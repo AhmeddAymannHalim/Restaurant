@@ -1,0 +1,111 @@
+﻿@model Restaurant.Data.Models.PaymentInvoiceCustomer
+
+@{
+    ViewData["Title"] = "InvoicePayForSupplier";
+    var invCode = ViewBag.Invoice;
+}
+
+<h1 class="text-center">اضافة فاتورة جديدة</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="InvoicePayForCustomer">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="CustomerId" class="control-label">اسم العميل</label>
+                <select id="customerId" asp-for="CustomerId" class="form-control" asp-items="@ViewBag.Customer">
+                    <option value="">اختر العميل</option>
+                </select>
+                <span asp-validation-for="CustomerId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ProcessCode" class="control-label">كود العملية</label>
+                <input id="processCode" name="ProcessCode" value="@invCode" class="form-control" readonly />
+                <span asp-validation-for="ProcessCode" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">المطلوب دفعه</label>
+                <input id="balance" class="form-control" readonly />
+
+            </div>
+            <div class="form-group">
+                <label asp-for="Paid" class="control-label">المدفوع</label>
+                <input id="paid" asp-for="Paid" class="form-control" />
+                <span asp-validation-for="Paid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">المتبقي</label>
+                <input id="remain" class="form-control" readonly />
+
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Description" class="control-label">البيان</label>
+                <input asp-for="Description" value="تسديد اموال نقدي" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group mt-3">
+                <input type="submit" value="اضافة فاتورة" class="btn btn-primary" />
+            </div>
+            
+            <div>
+                <a asp-action="IndexCustomer">عودة للفواتير</a> | 
+                <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+
+    <script>
+        $(document).ready(function () {
+            $('#paid').on('input', function () {
+                var balance = $('#balance').val();
+                var paid = $('#paid').val();
+                var remain = balance - paid;
+                $('#remain').val(remain.toFixed(2));
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Attach change event listener to the dropdown list
+            $('#customerId').change(function () {
+                // Get the selected SupplierId
+                var customerId = $(this).val();
+
+                // Make AJAX request to fetch SupplierBalance
+                $.ajax({
+                    url: '/Customer/CustomerBalance',
+                    type: 'GET',
+                    data: { customerId: customerId },
+                    success: function (data) {
+                        // Update the balance input field with the retrieved SupplierBalance
+                        $('#balance').val(data);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+        });
+    </script>
+
+
+}
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}

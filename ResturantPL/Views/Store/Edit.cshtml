@@ -1,0 +1,66 @@
+﻿@model Store
+
+@{
+    ViewData["Title"] = "Create";
+}
+<h1 class="text-center">تعديل بيانات مخزن </h1>
+<hr />
+
+
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" method="post">
+
+            @*For Server Side Validation Data Annotation*@
+            <div asp-validation-summary="All" class="text-danger"> </div>
+
+            <div class="form-group">
+                <label asp-for="Name">اسم المخزن</label>
+                <input asp-for="Name" class="form-control" required />
+                @*For Server Side Validation Data Annotation*@
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Address">العنوان</label>
+                <input asp-for="Address" class="form-control" required />
+                @*For Server Side Validation Data Annotation*@
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="MobileNumber">رقم الموبايل</label>
+                <input asp-for="MobileNumber" class="form-control" required maxlength="11" minlength="11" />
+                @*For Server Side Validation Data Annotation*@
+                <span asp-validation-for="MobileNumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="PhoneNumber">رقم الهاتف</label>
+                <input asp-for="PhoneNumber" class="form-control" required maxlength="11" />
+                @*For Server Side Validation Data Annotation*@
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+             <div class="form-group">
+                <label asp-for="StorekeeperId">امين المخزن</label>
+                <select asp-for="StorekeeperId" class="form-control" asp-items="@ViewBag.Employees"></select>
+                
+                @*For Server Side Validation Data Annotation*@
+                <span asp-validation-for="StorekeeperId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="تعديل" class="btn btn-primary" /> |
+                <a asp-action="Index">عودة للمخازن</a>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+@*For Client Side Validation Data Annotation - js libraries*@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

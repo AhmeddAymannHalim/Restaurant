@@ -1,0 +1,92 @@
+﻿@model Job
+
+@{
+    ViewData["Title"] = "DetailsJob";
+}
+
+
+<h1 class="text-center">حذف الوظيفة </h1>
+<hr />
+<h3 class="text-danger">هل انت متأكد من حذف الوظيفة ؟</h3>
+<br />
+<div>
+    <dl class="row">
+
+        <dt class="col-sm-2">
+           المسمي الوظيفة
+        </dt>
+        <dd class="col-sm-9">
+            @Model.Name
+        </dd>
+
+        <dt class="col-sm-2">
+            كود الوظيفة
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Code)
+        </dd>
+        <dt class="col-sm-2">
+            الموظفين
+        </dt>
+        <dd class="col-sm-9">
+
+            <table class="table table-hover text-center table-bordered table-striped-columns table-dark">
+                <thead>
+                    <tr>
+                        <th>
+                            الاسم
+                        </th>
+
+                        <th>
+                            السن
+                        </th>
+
+                        <th>
+                            نوع الراتب
+                        </th>
+                        <th>
+                            الراتب
+                        </th>
+                        <th>
+                            الفرع
+                        </th>
+                   
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Employees)
+                    {
+                        <tr>
+                            <td>
+                                @item.FirstName @item.LastName
+                            </td>
+                            <td>
+                                @item.Age
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.SalaryType.Type)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Salary)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Branche.Name)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+
+
+        </dd>
+    </dl>
+
+    <form asp-action="DeleteJob">
+        <input type="submit" value="حذف" class="btn btn-danger" /> |
+        <a asp-action="Jobs">عودة للوظائف</a>
+    </form>
+</div>
+
+

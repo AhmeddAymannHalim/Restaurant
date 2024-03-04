@@ -1,0 +1,45 @@
+﻿@model Expense
+@{
+    ViewData["Title"] = "Delete";
+}
+
+
+<h1 class="text-center">حذف بيانات المصروف </h1>
+<hr />
+
+
+
+<div>
+    <dl class="row">
+
+        <dt class="col-sm-2">
+            الاسم
+        </dt>
+        <dd class="col-sm-9">
+            @Model.Name
+        </dd>
+        
+        <dt class="col-sm-2">
+            المبلغ
+        </dt>
+        <dd class="col-sm-9">
+            @Model.Price
+        </dd>
+
+    </dl>
+
+
+    <form asp-action="Delete">
+        <input type="submit" value="حذف" class="btn btn-danger" /> |
+        <a asp-action="Index">عودة للمصروفات</a>
+    </form>
+</div>
+
+@*For Client Side Validation Data Annotation - js libraries*@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}  
+
+
+
+

@@ -1,0 +1,36 @@
+﻿@* @model StorageItemViewModel
+@{
+    ViewData["Title"] = "StorageItemDelete";
+}
+
+
+<br />
+<br />
+<br />
+<br />
+<div class="container mt-5">
+
+    <h1 class="float-end  text-danger">هل انت متاكد من حذف هذا العنصر </h1>
+    <br />
+    <br />
+    <br />
+    <br />
+    <form asp-action="StorageItemDelete" method="post">
+        <div class="d-flex flex-column  align-items-end">
+            <div class=" float-end  m-3" style="width= 500px !important; ">
+                <input type="text" asp-for="@Model.Name" id="name" class="text-black" style="width:70% ; direction:rtl" readonly> <span>اسم العنصر</span>
+            </div>
+
+            <div class=" float-end  m-3" style="width= 500px !important; ">
+                <input type="text" asp-for="@Model.Quantity" id="name" class="text-black" style="width:50% ; direction:rtl" readonly> <span>كميه العنصر بالكيلو جرام</span>
+            </div>
+
+
+        </div>
+        <div class="text-center  d-block  "><input type="submit" style="width:5%" class=" text-white bg-black border-black" value="حذف"></div>
+    </form>
+</div>
+
+
+
+ *@

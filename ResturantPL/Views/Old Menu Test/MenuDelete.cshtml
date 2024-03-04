@@ -1,0 +1,48 @@
+﻿@model MenuItemViewModel
+@{
+    ViewData["Title"] = "MenuDelete";
+}
+
+<br />
+<br />
+<br />
+<br />
+<div class="container mt-5">
+
+    <h1 class="float-end text-danger">هل انت متأكد من إزاله ذلك العنصر</h1>
+    <br />
+    <br />
+    <br />
+    <br />
+    <form asp-action="MenuDelete" method="post" enctype="multipart/form-data">
+        <div class="d-flex flex-column  align-items-end">
+            <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="text" asp-for="@Model.Name" id="name" class="text-black" style="width:70% ; direction:rtl" readonly> <span>اسم العنصر</span>
+            </div>
+
+            <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="text" asp-for="@Model.TotalCost" id="name" class="text-black" style="width:70% ; direction:rtl" readonly> <span>سعر العنصر</span>
+            </div>
+
+            <div class=" float-end  m-3" style="width: 500px !important; " >
+
+                <select asp-for="@Model.MenuSectionId" readonly>
+                    <option value="ساندوتشات">ساندوتشات</option>
+                    <option value="وجبات">وجبات</option>
+                    <option value="سلطات">سلطات</option>
+                    <option value="شربه">شربه</option>
+                    <option value="حلويات">حلويات</option>
+                    <option value="مميز">مميز</option>
+                </select>
+                <span>نوع العنصر</span>
+            </div>
+
+            <div class=" float-end  m-3" style="width: 1000px !important; " >
+                <textarea asp-for="@Model.Description" class="text-black" style=" direction:rtl" rows="5" cols="70" readonly> </textarea> <span>وصف العنصر</span>
+            </div>
+
+
+        </div>
+        <div class="text-center  d-block  "><input type="submit" style="width:5%" class=" text-white bg-black border-black" value="إزاله"></div>
+    </form>
+</div>

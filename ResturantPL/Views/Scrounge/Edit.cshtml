@@ -1,0 +1,88 @@
+﻿@model ScroungeViewModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<div class="container">
+    <h1>تعديل</h1>
+    <h4>الاستدان</h4>
+    <hr />
+
+
+    <div class="row">
+        <div class="col-md-4">
+            <form asp-action="Edit" method="post">
+
+
+                <input type="hidden" asp-for="Scrounge.Id" />
+
+                @*For Server Side Validation Data Annotation*@
+                <div asp-validation-summary="ModelOnly" class="text-danger"> </div>
+
+                <div class="form-group">
+                    <label asp-for="Scrounge.Info"></label>
+                    <input asp-for="Scrounge.Info" class="form-control" />
+                    @*For Server Side Validation Data Annotation*@
+                    <span asp-validation-for="Scrounge.Info" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Scrounge.CreatedTime"></label>
+                    <input readonly asp-for="Scrounge.CreatedTime" class="form-control" />
+                    @*For Server Side Validation Data Annotation*@
+                    <span asp-validation-for="Scrounge.CreatedTime" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Scrounge.Amount"></label>
+                    <input asp-for="Scrounge.Amount" class="form-control" />
+                    @*For Server Side Validation Data Annotation*@
+                    <span asp-validation-for="Scrounge.Amount" class="text-danger"></span>
+                </div>
+
+
+                @*For Any DropDown List Input*@
+                <div class="form-group">
+                    <label asp-for="Scrounge.EmployeeId"></label>
+                    <select asp-for="Scrounge.EmployeeId" class="form-control" asp-items="Model.EmployeeList">
+                        @*asp-items property to get data of Model Category on it*@
+                        <option disabled selected>-- Select Employee --</option> @*selected with first tag called option to appear in the first above*@ @*disabled to make user can't choose it*@
+
+
+                    </select>
+                    @*For Server Side Validation Data Annotation*@
+                    <span asp-validation-for="Scrounge.EmployeeId" class="text-danger"></span>
+                </div>
+
+                @*For Any DropDown List Input*@
+                <div class="form-group">
+                    <label asp-for="Scrounge.StateId"></label>
+                    <select asp-for="Scrounge.StateId" class="form-control" asp-items="Model.StateList">
+                        @*asp-items property to get data of Model Category on it*@
+                        <option disabled selected>-- Select State --</option> @*selected with first tag called option to appear in the first above*@ @*disabled to make user can't choose it*@
+
+
+                    </select>
+                    @*For Server Side Validation Data Annotation*@
+                    <span asp-validation-for="Scrounge.StateId" class="text-danger"></span>
+                </div>
+
+                <br />
+                <div class="form-group">
+                    <input type="submit" value="حفظ" class="btn btn-success" />
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+
+    <br />
+    <div>
+        <a asp-action="Index">عودة لقائمة الاستدان</a>
+    </div>
+</div>
+
+@*For Client Side Validation Data Annotation - js libraries*@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

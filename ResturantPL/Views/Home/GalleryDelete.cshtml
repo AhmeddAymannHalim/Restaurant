@@ -1,0 +1,35 @@
+﻿@model GalleryItemViewModel
+@{
+    ViewData["Title"] = "GalleryDelete";
+}
+
+
+<br />
+<br />
+<br />
+<br />
+<div class="container mt-5">
+
+    <h1 class="float-end text-danger">هل انت متأكد من إزاله تلك الصوره</h1>
+    <br />
+    <br />
+    <br />
+    <br />
+    <form asp-action="GalleryDelete" method="post" enctype="multipart/form-data">
+        <div class="d-flex flex-column  align-items-end">
+
+
+            <div class="col-lg-3 col-md-4 m-2 ">
+                <div class="gallery-item">
+                    <a href="@Model.PictureUrl" class="gallery-lightbox" data-gall="gallery-item">
+                        <img src="@Model.PictureUrl" alt="" class="img-fluid">
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+        <div class="text-center  d-block  "><input type="submit" style="width:5%" class=" text-white bg-black border-black" value="إزاله"></div>
+    </form>
+</div>
+

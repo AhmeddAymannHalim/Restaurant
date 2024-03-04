@@ -1,0 +1,76 @@
+﻿@model MenuItemViewModel
+@{
+    ViewData["Title"] = "MenuAdd";
+    var items = (List<StorageItemViewModel>)ViewData["storageItemsViewModel"];
+}
+<div class="container mt-5">
+
+    <h1 class="float-end ">إضافه عنصر جديد للمنيو</h1>
+    <br />
+    <br />
+    <br />
+    <br />
+    <form asp-action="MenuAdd" method="post" enctype="multipart/form-data">
+        <div class="d-flex flex-column  align-items-end">
+            <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="text" asp-for="@Model.Name" id="name" class="text-black" style="width:70% ; direction:rtl" required> <span>اسم العنصر</span>
+            </div>
+
+            <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="text" name="TotalCost" id="name" class="text-black" style="width:70% ; direction:rtl" required> <span>سعر العنصر</span>
+            </div>
+
+            <div class=" float-end  m-3" style="width: 500px !important; ">
+              
+                <select asp-for="@Model.MenuSectionId">
+                    <option value="ساندوتشات">ساندوتشات</option>
+                    <option value="وجبات">وجبات</option>
+                    <option value="سلطات">سلطات</option>
+                    <option value="شربه">شربه</option>
+                    <option value="حلويات">حلويات</option>
+                    <option value="مميز">مميز</option>
+                </select>
+                <span>نوع العنصر</span>
+            </div>
+
+            <div class=" float-end  m-3" style="width: 1000px !important; ">
+                <textarea asp-for="@Model.Description" class="text-black" style=" direction:rtl" rows="5" cols="70" required> </textarea> <span>وصف العنصر</span>
+            </div>
+
+
+            <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="file" accept="image/*" asp-for="@Model.Image" id="name" class="text-white" style="width:70% ; direction:rtl"> <span>صوره العنصر</span>
+            </div>
+            <br />
+            <div>
+                <h2 class="float-end">مكونات العنصر وكمياتها</h2>
+            </div>
+                <br />
+                
+                <div class=" float-end  m-3" style="width: 500px !important; ">
+                <select asp-for="@Model.Name">
+                        <option value="" selected>null</option>
+                    @foreach (var item in items)
+                    {
+                  
+                        <option value="@item.Name">@item.Name</option>
+                    }
+                </select>
+                    <span>نوع المكون1</span>
+                </div>
+
+                
+
+
+            <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="number" step="0.0001" asp-for="@Model.Name" id="name" class="text-black" style="width:70% ; direction:rtl"> <span>كميه المكون3</span>
+            </div>
+
+           
+
+
+        </div>
+        <div class="text-center  d-block  "><input type="submit" style="width:5%" class=" text-white bg-black border-black" value="حفظ"></div>
+    </form>
+</div>
+

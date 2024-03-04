@@ -1,0 +1,76 @@
+﻿@model IEnumerable<UsersViewModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1 class="text-center">المستخدمين</h1>
+<hr />
+
+<form asp-action="Index" class="row">
+    <div class="form-group col-md-4">
+
+        <input placeholder="Search by name" name="SearchValue" class="form-control col-md-8" />
+        <input type="submit" value="بحث" class="btn btn-success col-md-3 mt-3" />
+    </div>
+
+</form>
+<br />
+
+
+
+
+
+<div>
+    <table class="table table-hover text-center table-bordered table-striped-columns table-dark">
+        <thead>
+            <tr>
+                <th>
+                    ID
+                </th>
+                <th>
+                    الاسم
+                </th>
+                <th>
+                    الايميل
+                </th>
+                <th>
+                    رقم الهاتف
+                </th>
+
+                <th></th>
+
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(d => item.Id)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(d => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(d => item.Email)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(d => item.PhoneNumber)
+                    </td>
+
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id">التفاصيل</a>
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>
+
+<div>
+    <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
+</div>

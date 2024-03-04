@@ -1,0 +1,108 @@
+﻿@model Restaurant.Data.Models.MenuItem
+
+@{
+    ViewData["Title"] = "Details";
+}
+<div style="direction:rtl;">
+
+
+    <h1 class="text-center">تفاصيل  @Model.Name</h1>
+
+    <hr />
+    <div>
+
+        <dl class="row">
+
+            <dd class="col-sm-12">
+                <img src="@Model.ImageUrl" class="form-control img-thumbnail rounded-circle m-2" style="width:200px;" />
+            </dd>
+
+            <dt class="col-sm-2">
+                اسم المنتج
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Name)
+            </dd>
+            <dt class="col-sm-2">
+                نوع المنتج
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.MenuSection.Name)
+            </dd>
+            <dt class="col-sm-2">
+                وصف المنتج
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Description)
+            </dd>
+            <dt class="col-sm-2">
+                المخزن
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Store.Name)
+            </dd>
+            <dt class="col-sm-2">
+                التكلفة الكلية
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.TotalCost)
+            </dd>
+            <dt class="col-sm-2">
+                سعر البيع
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Price)
+            </dd>
+
+            <dt class="col-sm-2">
+                الربح
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Benefit)
+            </dd>
+
+
+            <dt class="col-sm-2">
+                المكونات
+            </dt>
+            <dd class="col-sm-9">
+                <table id="componentTable" class="table table-hover text-center table-bordered table-striped-columns table-dark">
+                    <thead>
+                        <tr>
+                            <th>
+                                اسم العنصر
+                            </th>
+                            <th>
+                                الكمية
+                            </th>
+                            <th>
+                                التكلفة
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Components)
+                        {
+                            <tr>
+                                <td>
+                                    @item.StoreProduct.ProductName
+                                </td>
+                                <td>
+                                    @item.Quantity
+                                </td>
+                                <td>
+                                    @item.Cost
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </dd>
+
+        </dl>
+    </div>
+    <div>
+        @*@Html.ActionLink("تعديل", "Edit", new { /* id = Model.PrimaryKey */ }) |*@
+        <a asp-action="Index">عودة للمنيو</a>
+    </div>
+</div>

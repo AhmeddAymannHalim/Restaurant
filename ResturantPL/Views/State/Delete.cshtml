@@ -1,0 +1,58 @@
+﻿@model State
+
+@{
+    ViewData["Title"] = "Delete";
+
+    // this 3 lines of code for _Dashboard
+    // ViewBag.PageTitle = "Category Management";
+    // ViewBag.CardTitle = "Delete Category";
+    //Layout = "~/Views/Shared/_Dashboard.cshtml";
+}
+
+<div class="container">
+    <h1>حذف</h1>
+    <h4>حالة المبلغ</h4>
+    <hr />
+
+    @*<h1>Delete</h1>
+    <h4>Category</h4>
+    <hr />*@
+
+    <div class="row">
+        <div class="col-md-4">
+            <form asp-action="DeleteState" method="post">
+
+                @* to link the id parameter in action Delete(int? id)*@
+                <input hidden asp-for="StateId" />
+
+                @*For Server Side Validation Data Annotation*@
+                <div asp-validation-summary="ModelOnly" class="text-danger"> </div>
+
+
+                <div class="form-group">
+                    <label asp-for="StateName"></label>
+                    <input disabled asp-for="StateName" class="form-control" /> @* input disabled with Delete *@
+                    @*For Server Side Validation Data Annotation*@
+                    <span asp-validation-for="StateName" class="text-danger"></span>
+                </div>
+            
+
+                <br />
+                <div class="form-group">
+                    <input type="submit" value="حذف" class="btn btn-success" />
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <br />
+    <div>
+        <a asp-action="Index">عودة لقائمة حالة المبلغ</a>
+    </div>
+</div>
+
+@*For Client Side Validation Data Annotation - js libraries*@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

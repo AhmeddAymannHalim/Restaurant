@@ -1,0 +1,49 @@
+﻿@model UsersViewModel
+@{
+    ViewData["Title"] = "Update";
+}
+
+<h1>Update</h1>
+
+<br />
+<br />
+
+<form asp-action="Update">
+
+    <div class="form-group">
+        <label asp-for="@Model.Name" class="col-form-label"></label>
+        <input asp-for="@Model.Name" class="form-control" />
+        <span asp-validation-for="@Model.Name" class="text-danger"></span>
+
+    </div>
+
+    <div class="form-group">
+        <label asp-for="@Model.PhoneNumber" class="col-form-label"></label>
+        <input asp-for="@Model.PhoneNumber" class="form-control" />
+        <span asp-validation-for="@Model.PhoneNumber" class="text-danger"></span>
+
+    </div>
+
+    <div class="form-group">
+        <label asp-for="@Model.Email" class="col-form-label"></label>
+        <input asp-for="@Model.Email" class="form-control" />
+        <span asp-validation-for="@Model.Email" class="text-danger"></span>
+
+    </div>
+
+
+    <div class="form-group mt-3">
+        <input type="submit" value="تعديل" class="btn btn-success" />
+    </div>
+    <br />
+    <div>
+        <a asp-action="Index" class="btn btn-info">BackToList</a>
+    </div>
+
+</form>
+
+
+@section ValidationScripts
+    {
+    <partial name="_ValidationScriptsPartial">   </partial>
+}

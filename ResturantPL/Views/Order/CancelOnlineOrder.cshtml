@@ -1,0 +1,143 @@
+﻿@model OnlineOrder
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+
+<style>
+    /* Define styles for the page content */
+    body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        margin: 0;
+        background-color: #111;
+    }
+
+    .container {
+        max-width: 576px; /* Set the maximum width to fit within the paper size */
+        margin: 0 auto; /* Center the content horizontally */
+        background-color: #fff; /* White background for better readability */
+        padding: 20px; /* Add padding for spacing */
+        color: black;
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    dl {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    dt, dd {
+        width: 45%; /* Set width for better alignment */
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc; /* Add border for styling */
+        box-sizing: border-box;
+    }
+
+    dt {
+        background-color: #f2f2f2; /* Light gray background for dt elements */
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse; /* Collapse table borders */
+        margin-top: 20px; /* Add margin at the top */
+    }
+
+    th, td {
+        border: 1px solid #ccc; /* Add border for styling */
+        padding: 8px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #f2f2f2; /* Light gray background for table header */
+    }
+</style>
+
+
+
+<div class="container">
+
+
+    <h1 class="text-center">الغاء طلب :  @Model.CustomerName </h1>
+    <hr />
+    <h3 class="text-danger">هل انت متأكد من الغاء الطلب ؟</h3>
+    <br />
+    <dl>
+
+        <dt class="col-sm-3">
+            تاريخ الفاتورة
+        </dt>
+        <dd class="col-sm-8">
+            @Model.OrderDate.ToString("dd-MM-yyyy  hh:mm tt")
+        </dd>
+
+
+        <dt class="col-sm-3">
+            العنوان
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.Address)
+        </dd>
+        <dt class="col-sm-3">
+            رقم الهاتف
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.PhoneNumber)
+        </dd>
+        <dt class="col-sm-3">
+            رقم الموبايل
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.MobileNumber)
+        </dd>
+
+        <dt class="col-sm-3">
+            الاجمالي
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.TotalPrice) + مصاريف التوصيل
+        </dd>
+
+        <dt class="col-sm-3">
+            المنتجات
+        </dt>
+        <dd class="col-sm-8">
+            <table class="mt-3 table table-bordered table-light text-dark">
+                <thead>
+                    <tr>
+                        <th>اسم المنتج</th>
+                        <th>كمية المنتج</th>
+                        <th>سعر الوحدة</th>
+                        <th>الاجمالي</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OnlineOrderMenuItems)
+                    {
+                        <tr>
+                            <td>@item.MenuItem.Name</td>
+                            <td>@item.Quantity</td>
+                            <td>@item.PriceForUnit</td>
+                            <td>@item.Price</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </dd>
+
+    </dl>
+
+    <form asp-action="CancelOnlineOrder">
+        <input type="submit" value="الغاء الطلب" class="btn btn-danger" /> |
+        <a asp-action="PendingOrders" asp-controller="Order">عودة للطلبات المعلقة</a>
+    </form>
+
+</div>

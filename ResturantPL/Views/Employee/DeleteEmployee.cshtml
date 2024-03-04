@@ -1,0 +1,95 @@
+﻿@model Employee
+
+@{
+    ViewData["Title"] = "DeleteEmployee";
+}
+
+<h1 class="text-center">حذف موظف </h1>
+<hr />
+<h3>هل انت متأكد من حذف هذا الموضف ؟</h3>
+<br />
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">
+         الاسم 
+        </dt>
+        <dd class="col-sm-9">
+           @Model.FirstName @Model.LastName
+        </dd>
+
+        <dt class="col-sm-2">
+           رقم الهاتف
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.PhoneNumber)
+        </dd>
+        <dt class="col-sm-2">
+           رقم الموبايل
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.MobileNumber)
+        </dd>
+
+        <dt class="col-sm-2">
+          العنوان
+        </dt>
+        <dd class="col-sm-9">
+           @Model.Country @Model.City @Model.Street
+        </dd>
+       
+        <dt class="col-sm-2">
+           السن
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Age)
+        </dd>
+        <dt class="col-sm-2">
+           كود الموظف
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Code)
+        </dd>
+        <dt class="col-sm-2">
+           الرقم القومي
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.NationalID)
+        </dd>
+        <dt class="col-sm-2">
+            الوظيفة
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Job.Name)
+        </dd>
+        <dt class="col-sm-2">
+            نوع المرتب
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.SalaryType.Type)
+        </dd>
+        <dt class="col-sm-2">
+            الفرع
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Branche.Name)
+        </dd>
+        <dt class="col-sm-2">
+            الصورة
+        </dt>
+        <dd class="col-sm-9">
+            @if (Model.Image != null)
+            {
+                <img src="@Model.Image" alt="image" class="rounded-circle m-3" width="200" />
+            }
+            else
+            {
+                <img src="~/Employee Images/User_Image.png" class="rounded-circle img-thumbnail" width="200" />
+            }
+        </dd>
+    </dl>
+
+    <form asp-action="DeleteEmployee">
+        <input type="submit" value="حذف" class="btn btn-danger" /> |
+        <a asp-action="Employees">عودة للموظفين</a>
+    </form>
+</div>

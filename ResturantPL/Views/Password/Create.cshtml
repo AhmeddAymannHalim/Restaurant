@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "Create Password";
+    Layout = "_Layout1";
+}
+
+<h2 class="text-center">انشاء رقم سري جديد</h2>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label for="newPassword">الرقم السري الجديد</label>
+        <input type="password" class="form-control" id="newPassword" name="newPassword">
+    </div>
+    <button type="submit" class="btn btn-primary">حفظ</button>
+</form>

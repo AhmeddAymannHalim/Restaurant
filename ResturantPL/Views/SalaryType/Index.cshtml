@@ -1,0 +1,42 @@
+﻿@model IEnumerable<Restaurant.Data.Models.SalaryType>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+<h1 class="text-center">انواع الرواتب</h1>
+<hr />
+
+<p>
+    <a asp-action="AddSalaryType">اضفة نوع راتب جديد</a>
+</p>
+<table class="table table-hover text-center table-bordered table-striped-columns table-dark">
+    <thead>
+        <tr>
+            
+            <th>
+                نوع الراتب
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+           
+            <td>
+                @Html.DisplayFor(modelItem => item.Type)
+            </td>
+            <td>
+                    @Html.ActionLink("تعديل", "UpdateSalaryType", new { id = item.Id }) |
+                @Html.ActionLink("تفاصيل", "Details", new {  id=item.Id  }) |
+                    @Html.ActionLink("حذف", "DeleteSalaryType", new { id = item.Id })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+<div>
+    <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
+</div>

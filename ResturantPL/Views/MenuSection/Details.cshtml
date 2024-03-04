@@ -1,0 +1,98 @@
+﻿@model Restaurant.Data.Models.MenuSection
+
+@{
+    ViewData["Title"] = "Delete";
+}
+<div style="direction:rtl;">
+
+
+    <h1 class="text-center">حذف قسم</h1>
+
+    <hr />
+    <h3>هل انت  متأكد  من حذف هذا القسم ؟</h3>
+    <br />
+    <div>
+
+        <dl class="row">
+
+            <dt class="col-sm-2">
+                اسم القسم
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Name)
+            </dd>
+
+            <dt class="col-sm-2">
+                المنتجات
+            </dt>
+            <dd class="col-sm-9">
+                <table class="table table-hover text-center table-bordered table-striped-columns table-dark">
+                    <thead>
+                        <tr>
+
+                            <th>
+                                اسم المنتج
+                            </th>
+                            <th>
+                                الوصف
+                            </th>
+
+                            <th>
+                                التكلفة
+                            </th>
+                            <th>
+                                سعر البيع
+                            </th>
+                            <th>
+                                الربح
+                            </th>
+                            <th>
+                                المخزن
+                            </th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.MenuItems)
+                        {
+                            <tr>
+
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Name)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Description)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.TotalCost)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Price)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Benefit)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Store.Name)
+                                </td>
+
+
+                                <td>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+            </dd>
+
+
+        </dl>
+
+    </div>
+</div>
+<div>
+
+    @Html.ActionLink("تعديل", "Edit", new { id = Model.Id }) |
+    <a asp-action="Index">عودة للاقسام</a>
+</div>

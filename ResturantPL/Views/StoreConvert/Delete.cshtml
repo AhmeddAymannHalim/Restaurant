@@ -1,0 +1,136 @@
+﻿@model Restaurant.Data.Models.StoreConvert
+
+@{
+    ViewData["Title"] = "Store Convert";
+}
+
+
+<style>
+    /* Define styles for the page content */
+    body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        margin: 0;
+        background-color: #111;
+    }
+
+    .container {
+        max-width: 576px; /* Set the maximum width to fit within the paper size */
+        margin: 0 auto; /* Center the content horizontally */
+        background-color: #fff; /* White background for better readability */
+        padding: 20px; /* Add padding for spacing */
+        color: black;
+    }
+
+    h1, h3 {
+        text-align: center;
+    }
+
+    dl {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    dt, dd {
+        width: 45%; /* Set width for better alignment */
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc; /* Add border for styling */
+        box-sizing: border-box;
+    }
+
+    dt {
+        background-color: #f2f2f2; /* Light gray background for dt elements */
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse; /* Collapse table borders */
+        margin-top: 20px; /* Add margin at the top */
+    }
+
+    th, td {
+        border: 1px solid #ccc; /* Add border for styling */
+        padding: 8px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #f2f2f2; /* Light gray background for table header */
+    }
+</style>
+
+
+
+<div class="container">
+
+
+    <h1> فاتورة نقل اصناف</h1>
+    <hr />
+    <h3>هل انت متأكد من حذف الفاتورة ؟</h3>
+    <br />
+
+    <dl>
+
+        <dt class="col-sm-3">
+            كود الفاتورة
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.ConvertCode)
+        </dd>
+        <dt class="col-sm-3">
+            تاريخ الفاتورة
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.ConvertDate)
+        </dd>
+
+
+        <dt class="col-sm-3">
+            المخزن المنقول منه
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.FromStore.Name)
+        </dd>
+        <dt class="col-sm-3">
+            المخزن المنقول اليه
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.ToStore.Name)
+        </dd>
+
+
+        <dt class="col-sm-3">
+            الاصناف
+        </dt>
+        <dd class="col-sm-8">
+            @* <table class="table table-hover text-center table-bordered table-striped-columns table-dark"> *@
+            <table class="mt-3 table table-bordered table-light text-dark">
+                <tr>
+                    <th>اسم المنتج</th>
+                    <th>الكمية</th>
+
+                </tr>
+                @foreach (var item in Model.StoreConvertProducts)
+                {
+                    <tr>
+                        <td>@item.StoreProduct.ProductName</td>
+                        <td>@item.Quantity</td>
+                    </tr>
+                }
+            </table>
+        </dd>
+
+    </dl>
+
+    <div>
+        <form asp-action="Delete">
+            <input type="submit" value="حذف" class="btn btn-danger" /> |
+            <a asp-action="Invoices">عودة للفواتير</a>
+        </form>
+    </div>
+
+</div>
+
+

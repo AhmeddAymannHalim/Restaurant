@@ -1,0 +1,187 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Restaurant.Data.Models;
+using ResturantPL.Helper;
+using Service.UnitOfWork;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static System.Formats.Asn1.AsnWriter;
+
+namespace ResturantPL.Controllers
+{
+    public class StoreController : Controller
+    {
+
+        private readonly IUnitOfWork _unitOfWork;
+        public StoreController(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
+
+        public IActionResult Index()
+        {
+            var stores = _unitOfWork.StoreRepository.GetAll(a => a.Include(a => a.Storekeeper));
+
+            return View(stores);
+        }
+
+
+        public IActionResult Details(int id)
+        {
+            var store = _unitOfWork.StoreRepository.GetById(a => a.Id == id, new string[] { "Storekeeper", "Invoices", "StoreProducts" }, new string[] { "Invoices.Supplier", "StoreProducts.Product" });
+            if (store != null)
+            {
+                return View(store);
+            }
+            return NotFound();
+        }
+
+        [HttpGet]
+        public IActionResult Create()
+        {
+            //ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll(), "EmployeeId", "FirstName");
+            ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll()
+                  .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" || a.UserType == "أمين مخزن"), "EmployeeId", "FullName");
+
+            return View();
+        }
+
+
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Store store)
+        {
+            try
+            {
+                ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll()
+                    .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" || a.UserType == "أمين مخزن"), "EmployeeId", "FullName");
+                var products = _unitOfWork.ProductRepository.GetAll();
+
+
+                if (ModelState.IsValid)
+                {
+                    await _unitOfWork.StoreRepository.AddAsync(store);
+                    foreach (var item in products)
+                    {
+                        StoreProduct storeProduct = new StoreProduct()
+                        {
+                            ProductId = item.Id,
+                            ProductName = item.Name,
+                            StoreId = store.Id,
+                            StoreName = store.Name,
+                            Quantity = 0,
+                            PriceForUnit = 0,
+                        };
+                        await _unitOfWork.StoreProductRepository.AddAsync(storeProduct);
+                    }
+
+                    return RedirectToAction("Index");
+                }
+                return View(store);
+            }
+            catch (Exception ex)
+            {
+                return View("Error", ErrorMessage.Error(ex.Message));
+            }
+        }
+
+
+
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll(), "EmployeeId", "FirstName");
+
+            var store = _unitOfWork.StoreRepository.GetById(a => a.Id == id, new string[] { "Storekeeper" });
+            if (store != null)
+            {
+                return View(store);
+            }
+            return NotFound();
+        }
+
+
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(Store store)
+        {
+            try
+            {
+                ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll(), "EmployeeId", "FirstName");
+
+                if (ModelState.IsValid)
+                {
+                    _unitOfWork.StoreRepository.Update(store);
+                    var products = _unitOfWork.ProductRepository.GetAll();
+                    foreach (var item in products)
+                    {
+                        StoreProduct storeProduct = _unitOfWork.StoreProductRepository.
+                            GetById(a => a.ProductId == item.Id && a.StoreId == store.Id);
+                        if (storeProduct != null)
+                        {
+                            storeProduct.StoreName = store.Name;
+                            await _unitOfWork.StoreProductRepository.UpdateAsync(storeProduct);
+                        }
+                        else
+                        {
+                            StoreProduct newStoreProduct = new StoreProduct()
+                            {
+                                ProductId = item.Id,
+                                ProductName = item.Name,
+                                StoreId = store.Id,
+                                StoreName = store.Name,
+                                Quantity = 0,
+                                PriceForUnit = 0,
+                            };
+                            await _unitOfWork.StoreProductRepository.AddAsync(storeProduct);
+                        }
+                    }
+
+                    return RedirectToAction("Index");
+                }
+                return View(store);
+            }
+            catch (Exception ex)
+            {
+                return View("Error", ErrorMessage.Error(ex.Message));
+            }
+        }
+
+
+
+        [HttpGet]
+        public IActionResult Delete(int id)
+        {
+            var store = _unitOfWork.StoreRepository.GetById(a => a.Id == id, new string[] { "Storekeeper", "Invoices", "StoreProducts" }, new string[] { "Invoices.Supplier", "StoreProducts.Product" });
+            if (store != null)
+            {
+                return View(store);
+            }
+            return NotFound();
+        }
+
+
+
+        [HttpPost, ValidateAntiForgeryToken, ActionName("Delete")]
+        public IActionResult DeleteStore(int id)
+        {
+            try
+            {
+                var store = _unitOfWork.StoreRepository.GetById(a => a.Id == id, new string[] { "Storekeeper" });
+                if (store != null)
+                {
+                    _unitOfWork.StoreRepository.Delete(store);
+                    return RedirectToAction("Index");
+
+                }
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                return View("Error", ErrorMessage.Error(ex.Message));
+            }
+        }
+    }
+}

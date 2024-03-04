@@ -1,0 +1,34 @@
+﻿@model Restaurant.Data.Models.SalaryType
+
+@{
+    ViewData["Title"] = "UpdateSalaryType";
+}
+
+
+<h1 class="text-center">تحديث بيانات راتب</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="UpdateSalaryType">
+            <div asp-validation-summary="All" class="text-danger"></div>
+           
+            <div class="form-group">
+                <label asp-for="Type" class="control-label">نوع الراتب</label>
+                <input asp-for="Type" class="form-control" />
+                <span asp-validation-for="Type" class="text-danger"></span>
+            </div>
+            <div class="form-group mt-3">
+                <input type="submit" value="تعديل" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">عودة للرواتب</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

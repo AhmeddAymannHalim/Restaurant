@@ -1,0 +1,421 @@
+﻿@* @model MenuItemViewModel
+
+@{
+    ViewData["Title"] = "Add Menu Item";
+}
+
+<h1>اضافة عنصر للمنيو</h1>
+<div class="row">
+    <form asp-action="AddMenuItem" method="post" class="col-md-4" enctype="multipart/form-data">
+        <div class="form-group">
+            <label asp-for="Name">اسم العنصر</label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Type">النوع</label>
+            <select asp-for="Type" class="form-control">
+                <option value="ساندوتشات">ساندوتشات</option>
+                <option value="وجبات">وجبات</option>
+                <option value="سلطات">سلطات</option>
+                <option value="شربه">شربه</option>
+                <option value="حلويات">حلويات</option>
+                <option value="مميز">مميز</option>
+            </select>
+            <span asp-validation-for="Type" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Description">الوصف</label>
+            <input asp-for="Description" class="form-control" />
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Image">الصورة</label>
+            <input type="file" accept="image/*" asp-for="Image" class="form-control" />
+            <span asp-validation-for="Image" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+             <label asp-for="StoreId">المخزن</label>
+            <select id="storeList" asp-for="StoreId" class="form-control" asp-items="ViewBag.Stores">
+                <option value="">اختر المخزن</option>
+            </select>
+            <input id="storeId" class="form-control" hidden />
+        </div>
+
+
+
+        <h3>المكونات</h3>
+        <div id="componentsContainer">
+            @if (Model.Components != null)
+            {
+                var componentIndex = 0;
+                foreach (var component in Model.Components)
+                {
+                    <div class="component">
+                        <div class="form-group">
+                            <label>Product Name:</label>
+                            <select class="form-control" name="Components[@componentIndex].StoreProductId">
+                                <option value="">Select Product</option>
+                                @foreach (var storeProduct in ViewBag.StoreProducts)
+                                {
+                                    if (storeProduct != null && storeProduct.Product != null)
+                                    {
+                                        <option value="@storeProduct.ProductId">@storeProduct.Product.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantity:</label>
+                            <input type="number" class="form-control" name="Components[@componentIndex].Quantity" />
+                        </div>
+                        <div class="form-group">
+                            <label>Price:</label>
+                            <input type="text" class="form-control" name="Components[@componentIndex].Price" />
+                        </div>
+                    </div>
+                    componentIndex++;
+                }
+            }
+        </div>
+
+        <div class="form-group">
+            <label asp-for="TotalCost">التكلفة الكلية</label>
+            <input asp-for="TotalCost" class="form-control" />
+            <span asp-validation-for="TotalCost" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Price">سعر البيع</label>
+            <input asp-for="Price" class="form-control" />
+            <span asp-validation-for="Price" class="text-danger"></span>
+        </div>
+
+        <button type="button" id="addComponentBtn" class="btn btn-primary">اضافة مكون</button>
+        <button type="submit" class="btn btn-success">حفظ</button>
+
+    </form>
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            var componentIndex = @Model.Components.Count;
+
+            $("#addComponentBtn").click(function () {
+                var componentHtml = `
+                            <div class="component">
+                                <div class="form-group">
+                                    <label>Product Name:</label>
+                                    <select class="form-control" name="Components[${componentIndex}].StoreProductId">
+                                        <option value="">Select Product</option>
+                                          @foreach (var storeProduct in ViewBag.StoreProducts)
+                                          {
+                                              if (storeProduct != null && storeProduct.Product != null)
+                                              {
+                                                   <option value="@storeProduct.ProductId">@storeProduct.Product.Name</option>
+                                              }
+                                          }
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Quantity:</label>
+                                    <input type="number" class="form-control" name="Components[${componentIndex}].Quantity" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Price:</label>
+                                    <input type="text" class="form-control" name="Components[${componentIndex}].Price" />
+                                </div>
+                            </div>`;
+
+                $("#componentsContainer").append(componentHtml);
+                componentIndex++; // Increment index for next component
+            });
+
+            // Change event listener for the store dropdown
+            $('#storeList').change(function () {
+                var storeId = $(this).val();
+                // Send AJAX request to get products for the selected store
+                $.ajax({
+                    url: '/Menu/GetProductsByStore',
+                    type: 'GET',
+                    data: { storeId: storeId },
+                    success: function (data) {
+                        // Clear existing options
+                        $('#componentsContainer').empty();
+                        // Append new options
+                        $.each(data, function (index, item) {
+                            $('#componentsContainer').append(`<div class="component">
+                                        <div class="form-group">
+                                            <label>Product Name:</label>
+                                            <select class="form-control product-dropdown" name="Components[${index}].StoreProductId">
+                                                <option value="">Select Product</option>
+                                                ${item.Products.map(p => `<option value="${p.Id}" data-quantity="${p.Quantity}">${p.Name}</option>`).join('')}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Quantity:</label>
+                                            <input type="number" class="form-control product-quantity" name="Components[${index}].Quantity" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Price:</label>
+                                            <input type="text" class="form-control" name="Components[${index}].Price" />
+                                        </div>
+                                    </div>`);
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+
+            // Change event listener for product dropdowns
+            $(document).on('change', '.product-dropdown', function () {
+                var quantity = $(this).find(':selected').data('quantity');
+                $(this).closest('.component').find('.product-quantity').val(quantity);
+            });
+        });
+    </script>
+}
+
+
+
+@* 
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            var componentIndex = @Model.Components.Count;
+
+            $("#addComponentBtn").click(function () {
+                var componentHtml = `
+                            <div class="component">
+                                <div class="form-group">
+                                    <label>Product Name:</label>
+                                    <select class="form-control" name="Components[${componentIndex}].StoreProductId">
+                                        <option value="">Select Product</option>
+        @foreach (var storeProduct in ViewBag.StoreProducts)
+        {
+            if (storeProduct != null && storeProduct.Product != null)
+            {
+                                                        <option value="@storeProduct.ProductId">@storeProduct.Product.Name</option>
+            }
+        }
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Quantity:</label>
+                                    <input type="number" class="form-control" name="Components[${componentIndex}].Quantity" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Price:</label>
+                                    <input type="text" class="form-control" name="Components[${componentIndex}].Price" />
+                                </div>
+                            </div>`;
+
+                $("#componentsContainer").append(componentHtml);
+                componentIndex++; // Increment index for next component
+            });
+
+            // Change event listener for the store dropdown
+            $('#storeList').change(function () {
+                var storeId = $(this).val();
+                // Send AJAX request to get products for the selected store
+                $.ajax({
+                    url: '/Menu/GetProductsByStore',
+                    type: 'GET',
+                    data: { storeId: storeId },
+                    success: function (data) {
+                        // Clear existing options
+                        $('#componentsContainer').empty();
+                        // Append new options
+                        $.each(data, function (index, item) {
+                            $('#componentsContainer').append(`<div class="component">
+                                        <div class="form-group">
+                                            <label>Product Name:</label>
+                                            <select class="form-control" name="Components[${index}].StoreProductId">
+                                                <option value="">Select Product</option>
+                                                ${item.Products.map(p => `<option value="${p.Id}">${p.Name}</option>`).join('')}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Quantity:</label>
+                                            <input type="number" class="form-control" name="Components[${index}].Quantity" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Price:</label>
+                                            <input type="text" class="form-control" name="Components[${index}].Price" />
+                                        </div>
+                                    </div>`);
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+        });
+    </script> *@
+   @*  <script>
+        $(document).ready(function () {
+            var componentIndex = @Model.Components.Count;
+
+            $("#addComponentBtn").click(function () {
+                var componentHtml = `
+                                                <div class="component">
+                                                    <div class="form-group">
+                                                        <label>Product Name:</label>
+                                                        <select class="form-control" name="Components[${componentIndex}].StoreProductId">
+                                                            <option value="">Select Product</option>
+        @foreach (var storeProduct in ViewBag.StoreProducts)
+        {
+            if (storeProduct != null && storeProduct.Product != null)
+            {
+                                                                                        <option value="@storeProduct.ProductId">@storeProduct.Product.Name</option>
+            }
+        }
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Quantity:</label>
+                                                        <input type="number" class="form-control" name="Components[${componentIndex}].Quantity" />
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Price:</label>
+                                                        <input type="text" class="form-control" name="Components[${componentIndex}].Price" />
+                                                    </div>
+                                                </div>`;
+
+                $("#componentsContainer").append(componentHtml);
+                componentIndex++; // Increment index for next component
+            });
+
+            $("#StoreId").change(function () {
+                var storeId = $(this).val();
+                $.ajax({
+                    url: '/Menu/GetProductsByStore',
+                    type: 'GET',
+                    data: { storeId: storeId },
+                    success: function (data) {
+                        // Clear existing options
+                        $('#componentsContainer').empty();
+                        // Append new options
+                        $.each(data, function (index, item) {
+                            $('#componentsContainer').append(`<div class="component">
+                                                            <div class="form-group">
+                                                                <label>Product Name:</label>
+                                                                <select class="form-control" name="Components[${index}].StoreProductId">
+                                                                    <option value="">Select Product</option>
+                                                                    ${item.Products.map(p => `<option value="${p.Id}">${p.Name}</option>`).join('')}
+                                                                </select>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label>Quantity:</label>
+                                                                <input type="number" class="form-control" name="Components[${index}].Quantity" />
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label>Price:</label>
+                                                                <input type="text" class="form-control" name="Components[${index}].Price" />
+                                                            </div>
+                                                        </div>`);
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+        });
+    </script> *@
+
+  @*   <script>
+        $(document).ready(function () {
+            // Attach change event listener to the dropdown list
+            $('#storeList').change(function () {
+                // Get the selected SupplierId
+                var store = $(this).val();
+                $('#storeId').val(store);
+            });
+        });
+    </script>
+    } *@
+
+
+    @*  <script>
+        $(document).ready(function () {
+            var componentIndex = @Model.Components.Count;
+
+            $("#addComponentBtn").click(function () {
+                var componentHtml = `
+                            <div class="component">
+                                <div class="form-group">
+                                    <label>Product Name:</label>
+                                    <select class="form-control" name="Components[${componentIndex}].StoreProductId">
+                                        <option value="">Select Product</option>
+        @foreach (var storeProduct in ViewBag.StoreProducts)
+        {
+                                                            <option value="@storeProduct.ProductId">@storeProduct.Product.Name</option>
+        }
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Quantity:</label>
+                                    <input type="number" class="form-control" name="Components[${componentIndex}].Quantity" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Price:</label>
+                                    <input type="text" class="form-control" name="Components[${componentIndex}].Price" />
+                                </div>
+                            </div>`;
+
+                $("#componentsContainer").append(componentHtml);
+                componentIndex++;
+            });
+
+            $("#StoreId").change(function () {
+                var storeId = $(this).val();
+                $.ajax({
+                    url: '/Menu/GetProductsByStore',
+                    type: 'GET',
+                    data: { storeId: storeId },
+                    success: function (data) {
+                        // Clear existing options
+                        $('#componentsContainer').empty();
+                        // Append new options
+                        $.each(data, function (index, item) {
+                            $('#componentsContainer').append(`<div class="component">
+                                        <div class="form-group">
+                                            <label>Product Name:</label>
+                                            <select class="form-control" name="Components[${index}].StoreProductId">
+                                                <option value="">Select Product</option>
+                                                ${item.Products.map(p => `<option value="${p.Id}">${p.Name}</option>`).join('')}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Quantity:</label>
+                                            <input type="number" class="form-control" name="Components[${index}].Quantity" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Price:</label>
+                                            <input type="text" class="form-control" name="Components[${index}].Price" />
+                                        </div>
+                                    </div>`);
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+        });
+    </script> *@
+
+
+ 

@@ -1,0 +1,30 @@
+﻿@model GalleryItemViewModel
+@{
+    ViewData["Title"] = "GalleryAdd";
+}
+
+
+
+
+<br />
+<br />
+<br />
+<br />
+<div class="container mt-5">
+
+    <h1 class="float-end ">إضافه صوره جديده </h1>
+    <br />
+    <br />
+    <br />
+    <br />
+    <form asp-action="GalleryAdd" method="post" enctype="multipart/form-data">
+        <div class="d-flex flex-column  align-items-end">
+
+            <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="file" accept="image/*" asp-for="@Model.Image" id="name" class="text-white" style="width:70% ; direction:rtl"> <span>صوره المطعم</span>
+            </div>
+
+        </div>
+        <div class="text-center  d-block  "><input type="submit" style="width:5%" class=" text-white bg-black border-black" value="حفظ"></div>
+    </form>
+</div>

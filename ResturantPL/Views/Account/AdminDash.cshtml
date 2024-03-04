@@ -1,0 +1,399 @@
+﻿@model AdminDashViewModel
+@{
+    Layout = null;
+    ApplicationUser user = ViewBag.CurrentAdmin;
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="~/css/admindashstyle.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DashBoard</title>
+</head>
+
+<body>
+    <div class="menu">
+        <ul>
+            <li class="profile">
+                <div class="img-box">
+                    @if (user.Image != null)
+                    {
+                        <img src="@user.Image" alt="profile-image">
+                    }
+                    else
+                    {
+                        <img src="~/Employee Images/User_Image.png" class="profile-image" width="60" />
+                    }
+                </div>
+                <h2>@ViewBag.CurrentAdmin.FirstName @ViewBag.CurrentAdmin.LastName</h2>
+            </li>
+            <li>
+                <a class="active" href="#">
+                    <i class="fas fa-home"></i>
+                    <p> DashBoard</p>
+                </a>
+            </li>
+            <li>
+                <a asp-action="Index" asp-controller="User">
+                    <i class="fas fa-user-group"></i>
+                    <p>المستخدمين</p>
+                </a>
+            </li>
+            <li>
+                <a asp-action="Index" asp-controller="Home">
+                    <i class="fa-solid fa-trowel-bricks"></i>
+                    <p>الصفحة الرئيسية</p>
+                </a>
+            </li>
+
+            <li>
+                <a asp-action="" asp-controller="">
+                    <i class="fas fa-cog"></i>
+                    <p>الاعدادات</p>
+                </a>
+            </li>
+            <li class="log-out">
+                <a asp-action="SignOut" asp-controller="Account">
+                    <i class="fas fa-sign-out"></i>
+                    <p>تسجيل الخروج</p>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+
+
+
+    <div class="content">
+        <div class="title-inf">
+            <p>Dashboard</p>
+            <i class="fas fa-chart-bar"></i>
+        </div>
+
+        <div class="data-inf">
+
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Invoices" asp-controller="Invoice">
+
+                    <i class="fa-solid fa-receipt"></i>
+
+                    <div class="data">
+                        <p>فواتير المشتريات و المرتجعات</p>
+                        <span>@Model.Invoices.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="StoreConvert">
+
+                    <i class="fa-solid fa-receipt"></i>
+
+                    <div class="data">
+                        <p>فواتير نقل الاصناف</p>
+                        <span>@Model.StoreConverts.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="Product">
+
+                    <i class="fa-solid fa-apple-whole"></i>
+                    <div class="data">
+                        <p>الاصناف</p>
+                        <span>@Model.Products.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="Supplier">
+
+                    <i class="fa-solid fa-truck-field"></i>
+                    <div class="data">
+                        <p>الموردين</p>
+                        <span>@Model.Suppliers.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="Customer">
+                    <i class="fa-solid fa-person-chalkboard"></i>
+                    <div class="data">
+                        <p>العملاء</p>
+                        <span>@Model.Customers.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="IndexSupplier" asp-controller="PaymentInvoice">
+
+                    <i class="fa-solid fa-receipt"></i>
+                    <div class="data">
+                        <p>فواتير تسديد الموردين</p>
+                        <span>@Model.PaymentInvoiceSuppliers.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="IndexCustomer" asp-controller="PaymentInvoice">
+                    <i class="fa-solid fa-receipt"></i>
+                    <div class="data">
+                        <p>فواتير تسديد العملاء</p>
+                        <span>@Model.PaymentInvoiceCustomers.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="Expense">
+
+                    <i class="fa-solid fa-sack-dollar"></i>
+                    <div class="data">
+                        <p>المصروفات</p>
+                        <span>@Model.Expenses.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="SalaryType">
+
+                    <i class="fa-solid fa-money-bills"></i>
+                    <div class="data">
+                        <p>انواع الرواتب</p>
+                        <span>@Model.SalaryTypes.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="Table">
+
+                    <i class="fa-solid fa-chair"></i>
+                    <div class="data">
+                        <p>الطاولات</p>
+                        <span>@Model.Tables.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="UnitPrice">
+
+                    <i class="fa-brands fa-unity"></i>
+                    <div class="data">
+                        <p>الوحدات</p>
+                        <span>@Model.UnitPrice.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="Branch">
+
+                    <i class="fa-solid fa-code-branch"></i>
+                    <div class="data">
+                        <p>الفروع</p>
+                        <span>@Model.Branches.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+
+
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="Store">
+
+                    <i class="fa-solid fa-store"></i>
+                    <div class="data">
+                        <p>المخازن</p>
+                        <span>@Model.Stores.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Jobs" asp-controller="Job">
+
+                    <i class="fa-solid fa-utensils"></i>
+                    <div class="data">
+                        <p>الوظايف</p>
+                        <span>@Model.Jobs.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+
+
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Employees" asp-controller="Employee">
+                    <i class="fa-solid fa-person-digging"></i>
+                    <div class="data">
+                        <p>الموظفين</p>
+                        <span>@Model.Employees.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+
+
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="EmployeeAccounts" asp-controller="Employee">
+                    <i class="fa-solid fa-building-user"></i>
+                    <div class="data">
+                        <p>حسابات الموظفين</p>
+                        <span>@Model.EmployeeAccounts.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Roles" asp-controller="Role">
+                    <i class="fa-solid fa-hand-sparkles"></i>
+                    <div class="data">
+                        <p>الفئات</p>
+                        <span>@Model.Roles.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="Menu">
+                    <i class="fa-solid fa-utensils"></i>
+                    <div class="data">
+                        <p>المنيو</p>
+                        <span>@Model.MenuItems.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="MenuSection">
+                    <i class="fa-solid fa-utensils"></i>
+                    <div class="data">
+                        <p>اقسام المنيو</p>
+                        <span>@Model.MenuSections.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="Deposit">
+                    <i class="fa-solid fa-money-bill-transfer"></i>
+                    <div class="data">
+                        <p>الايداعات</p>
+                        <span>@Model.Deposits.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+
+
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Create" asp-controller="Order">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <div class="data">
+                        <p>شاشة المبيعات</p>
+                        @* <span>@Model.MenuItems.Count()</span> *@
+                    </div>
+                </a>
+            </div>
+
+
+
+        </div>
+
+
+
+
+
+
+
+
+        @*
+
+        <div class="box">
+        <i class="fa-solid fa-hourglass-end"></i>
+        <div class="data">
+        <p>Pending Orders</p>
+        <span>@Model.Orders.Count()</span>
+        </div>
+        </div>
+        <div class="box">
+        <i class="fa-solid fa-chair"></i>
+        <div class="data">
+        <p>Tables</p>
+        <span>@Model.ChefItems.Count()</span>
+        </div>
+        </div>
+        <div class="box">
+        <i class="fa-solid fa-shop-lock"></i>
+
+        <div class="data">
+        <p>Store</p>
+        <span>@Model.BasketItems.Count()</span>
+        </div>
+        </div> *@
+
+
+
+
+
+        <div class="title-inf">
+            <p>Earnings</p>
+            <i class="fas fa-dollar"></i>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Cutomers</th>
+                    <th>Order Number</th>
+                    <th>Phone Number</th>
+                    <th>Money</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @foreach (var item in Model.Users)
+                {
+                    <tr>
+
+                        <td>@item.UserName</td>
+
+                        @{
+                            var result = item.Age;
+                        }
+                        <td><span class="count">@item.Age</span></td>
+                        <td><span class="count">@item.PhoneNumber</span></td>
+                        <td><span class="price">$ @result</span></td>
+                    </tr>
+
+                }
+            </tbody>
+        </table>
+
+    </div>
+</body>
+</html>

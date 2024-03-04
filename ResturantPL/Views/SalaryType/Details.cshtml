@@ -1,0 +1,28 @@
+﻿@model Restaurant.Data.Models.SalaryType
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+
+
+<h1 class="text-center">تفاصيل نوع الراتب </h1>
+<hr />
+
+<div>
+ 
+    
+    <dl class="row">
+     
+        <dt class = "col-sm-2">
+          نوع الراتب
+        </dt>
+        <dd class = "col-sm-9">
+            @Html.DisplayFor(model => model.Type)
+        </dd>
+    </dl>
+</div>
+<div>
+    @Html.ActionLink("تعديل", "UpdateSalaryType", new {  id = Model.Id }) |
+    <a asp-action="Index">عودة لانواع الرواتب</a>
+</div>

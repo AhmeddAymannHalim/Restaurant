@@ -1,0 +1,62 @@
+﻿@model IndexSettingsViewModel
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<br />
+<br />
+<br />
+<br />
+<div class="container mt-5">
+   
+    <h1 class="float-end ">تعديل بيانات الصفحه الرئيسيه</h1>
+    <br />
+    <br />
+    <br />
+    <br />
+    <form asp-action="IndexSettings" method="post" enctype="multipart/form-data" >
+        <div class="d-flex flex-column  align-items-end">
+        <div class=" float-end  m-3" style="width= 500px !important; ">
+                <input type="text" asp-for="@Model.Name"   id="name" class="text-black" style="width:70% ; direction:rtl" required> <span>اسم المطعم</span>
+            </div>
+        
+        <div class=" float-end  m-3" style="width= 500px !important; ">
+                <input type="text" asp-for="@Model.Phone" id="name" class="text-black" style="width:70% ; direction:rtl" required> <span>رقم التلفون</span>
+        </div>
+        
+        <div class=" float-end  m-3" style="width= 1000px !important; ">
+                <textarea asp-for="@Model.Description" class="text-black" style=" direction:rtl" rows="10" cols="70" required> </textarea> <span>وصف المطعم</span>
+        </div>
+       
+        <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="text" asp-for="@Model.StartDay" id="name" class="text-black" style="width:70% ; direction:rtl" required> <span>اول ايام العمل فى الاسبوع</span>
+        </div>
+        <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="text" asp-for="@Model.EndDay" id="name" class="text-black" style="width:70% ; direction:rtl" required> <span>اخر ايام العمل فى الاسبوع</span>
+        </div>
+        <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="text" asp-for="@Model.StartHour" id="name" class="text-black" style="width:70% ; direction:rtl" required> <span> اول ساعه عمل فى اليوم</span>
+        </div>
+       
+        <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="text" asp-for="@Model.EndHour" id="name" class="text-black" style="width:70% ; direction:rtl" required> <span>اخر ساعه عمل فى اليوم</span>
+        </div>
+         <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="text" asp-for="@Model.VedioUrl" id="name" class="text-black" style="width:70% ; direction:rtl" required> <span>لينك مقطع الدعايه</span>
+            </div>
+            <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="text" asp-for="@Model.Locaion" id="name" class="text-black" style="width:70% ; direction:rtl" required> <span> الموقع</span>
+            </div>
+            <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="text" asp-for="@Model.Email" id="name" class="text-black" style="width:70% ; direction:rtl" required> <span>الايميل</span>
+            </div>
+        <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="file" accept="image/*" asp-for="@Model.Image" id="name" class="text-white" style="width:70% ; direction:rtl" > <span>صوره المطعم الرئيسيه</span>
+        </div>
+       
+        </div>
+        <div class="text-center  d-block  "><input type="submit" style="width:5%" class=" text-white bg-black border-black" value="حفظ"></div>
+    </form>
+</div>
+
+

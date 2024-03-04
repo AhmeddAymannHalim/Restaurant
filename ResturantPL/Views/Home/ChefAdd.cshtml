@@ -1,0 +1,35 @@
+﻿@model ChefItemViewModel
+@{
+    ViewData["Title"] = "ChefAdd";
+}
+
+
+<div class="container mt-5">
+
+    <h1 class="float-end ">إضافه طباخ جديد </h1>
+    <br />
+    <br />
+    <br />
+    <hr />
+    <form asp-action="ChefAdd" method="post" enctype="multipart/form-data">
+        <div class="d-flex flex-column  align-items-end">
+            <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="text" asp-for="@Model.Name" id="name" class="text-black" style="width:70% ; direction:rtl" required> <span>اسم الطباخ</span>
+            </div>
+
+            <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="text" asp-for="@Model.Jop" id="name" class="text-black" style="width:70% ; direction:rtl" required> <span>وظيفه الطباخ</span>
+            </div>
+
+
+            <div class=" float-end  m-3" style="width: 500px !important; ">
+                <input type="file" accept="image/*" asp-for="@Model.Image" id="name" class="text-white" style="width:70% ; direction:rtl"> <span>صوره الطباخ</span>
+            </div>
+
+        </div>
+        <div class="text-center  d-block  "><input type="submit" style="width:5%" class=" text-white bg-black border-black" value="حفظ"></div>
+    </form>
+</div>
+
+
+

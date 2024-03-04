@@ -1,0 +1,150 @@
+﻿@model Restaurant.Data.Models.Product
+
+@{
+    ViewData["Title"] = "Delete";
+}
+<div style="direction:rtl;">
+
+
+    <h1 class="text-center">حذف صنف</h1>
+
+    <hr />
+    <h3>هل انت  متأكد  من حذف هذا الصنف ؟</h3>
+    <br />
+    <div>
+
+        <dl class="row">
+
+            <dt class="col-sm-2">
+                اسم الصنف
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Name)
+            </dd>
+
+            <dt class="col-sm-2">
+                الفواتير
+            </dt>
+            <dd class="col-sm-9">
+                <table class="table table-hover text-center table-bordered table-striped-columns table-dark">
+                    <thead>
+                        <tr>
+
+                            <th>
+                                كود الفاتورة
+                            </th>
+                            <th>
+                                تاريخ الفاتورة
+                            </th>
+
+                            <th>
+                                الكمية
+                            </th>
+                            <th>
+                                السعر الكلي
+                            </th>
+                            <th>
+                                نوع الفاتورة
+                            </th>
+
+                            <th>
+                                المورد
+                            </th>
+                            <th>
+                                المخزن
+                            </th>
+
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.InvoiceItems)
+                        {
+                            <tr>
+
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Invoice.InvoiceCode)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Invoice.InvoiceDate)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Quantity)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Price)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Invoice.InvoiceType)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Invoice.Supplier.Name)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Invoice.Store.Name)
+                                </td>
+
+                                <td>
+                                    @Html.ActionLink("التفاصيل", "DetailsInvoice", "Invoice", new { id = item.Invoice.Id }) |
+                                    @Html.ActionLink("حذف", "DeleteInvoice", "Invoice,", new { id = item.Invoice.Id })
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+            </dd>
+
+
+            <dt class="col-sm-2">
+                كمية الصنف في المخازن
+            </dt>
+            <dd class="col-sm-9">
+                <table class="table table-hover text-center table-bordered table-striped-columns table-dark">
+                    <thead>
+                        <tr>
+
+                            <th>
+                                اسم المخزن
+                            </th>
+                            <th>
+                                كمية الصنف
+                            </th>
+
+                            <th>
+                                السعر بالوحدة
+                            </th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.StoreProducts)
+                        {
+                            <tr>
+
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Store.Name)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Quantity)
+                                </td>
+
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.PriceForUnit)
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+            </dd>
+
+
+        </dl>
+
+        <form asp-action="Delete">
+            <input type="submit" value="حذف الصنف" class="btn btn-danger" /> |
+            <a asp-action="Index">عودة للاصناف</a>
+        </form>
+    </div>
+</div>

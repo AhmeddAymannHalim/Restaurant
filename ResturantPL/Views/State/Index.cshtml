@@ -1,0 +1,53 @@
+﻿@model IEnumerable<State>
+@* @model StateViewModel *@
+
+
+@*<h3>Categories List</h3>*@
+<div class="container">
+    <h1>جميع</h1>
+    <h4>حالات المبلغ</h4>
+    <hr />
+
+    <div>
+        <a class="btn btn-success" href="/State/Create">اضافة حالة المبلغ</a>
+    </div>
+    <br />
+
+    @* <table id="mytable" class="table table-hover" width="100%"> *@
+    <table class="table table-hover text-center table-bordered table-striped-columns table-dark">
+
+        <thead>
+            <tr>
+
+                <td>حالة المبلغ</td>
+
+                <td>التوجيهات</td>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+
+                    <td>@item.StateName</td> 
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.StateId">تفاصيل</a> |
+                        <a asp-action="Edit" asp-route-id="@item.StateId">تعديل</a> |
+                        <a asp-action="Delete" asp-route-id="@item.StateId">حذف</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+
+
+
+
+
+    </table>
+</div>
+
+@* @section Scripts {
+    <script src="~/js/State/scrounges.js">
+    </script>
+} *@

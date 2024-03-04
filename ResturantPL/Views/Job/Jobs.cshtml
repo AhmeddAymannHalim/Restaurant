@@ -1,0 +1,84 @@
+﻿@model IEnumerable<Job>
+
+@{
+    ViewData["Title"] = "Jobs";
+
+    var roles = ViewBag.Roles;
+}
+
+
+<h1 class="text-center">الوظائف</h1>
+<hr />
+
+<p>
+    <a asp-action="AddJob">إضافه وظيفة</a>
+</p>
+
+
+
+<table class="table table-hover text-center table-bordered table-striped-columns table-dark">
+    <thead>
+        <tr>
+            <th>
+                اسم الوظيفة
+            </th>
+            <th>
+                كود الوظيفة
+            </th>
+            <th>
+                عدد الموظفين
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(d => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(d => item.Code)
+                </td>
+                <td>
+                    @item.Employees.Count()
+                </td>
+
+                <td>
+                    <a asp-action="DetailsJob"  asp-route-id="@item.JobId">التفاصيل</a>|
+
+                    <a asp-action="UpdateJob"  asp-route-id="@item.JobId">تعديل</a>|
+
+                    <a asp-action="DeleteJob" asp-route-id="@item.JobId">حذف</a> |
+                    @{
+                        // bool roleExists = roles.Any(role => role.Name == item.Name);
+                        bool roleExists = false;
+                        foreach (var role in roles)
+                        {
+                            if (role.Name == item.Name)
+                            {
+                                roleExists = true;
+                                break;
+                            }
+                        }
+                        if (roleExists)
+                        {
+                            <a asp-action="RemoveRole"  asp-route-id="@item.JobId">حذف الفئة للمستخدمين</a>
+                        }
+                        else
+                        {
+                            <a asp-action="AddRole" asp-route-id="@item.JobId">اضافة كفئة للمستخدمين</a>
+                        }
+                    }
+
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<div>
+    <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
+</div>

@@ -1,0 +1,56 @@
+﻿@model Deposit
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1 class="text-center">اضافة ايداع</h1>
+
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create" method="post">
+
+            <div asp-validation-summary="All" class="text-danger"> </div>
+
+            <div class="form-group">
+                <label>كود العملية</label>
+                <input asp-for="ProcessCode" value="@ViewBag.ProcessCode" class="form-control" readonly />
+                <span asp-validation-for="DeposerName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="DeposerName"></label>
+                <input asp-for="DeposerName" class="form-control" />
+                <span asp-validation-for="DeposerName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Amount"></label>
+                <input asp-for="Amount" class="form-control" />
+                <span asp-validation-for="Amount" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Description"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+
+            <br />
+            <div class="form-group">
+                <input type="submit" value="اضافة" class="btn btn-success" /> |
+                <a asp-action="Index">عودة لقائمة الايداعات</a>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,205 @@
+﻿@model ShiftSummaryViewModel
+@{
+    ViewData["Title"] = "Index";
+    Layout = "_Layout1";
+    var user = ViewBag.CurrentUser;
+}
+
+<div class="row m-4">
+    <button type="button" class="btn btn-danger text-center col-md-12" style="font-size:24px;" data-bs-toggle="modal" data-bs-target="#myModal">انهاء الشيفت</button>
+</div>
+
+<div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">ادخل كلمة السر لانهاء الشيفت</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="passwordForm" asp-action="Logout" asp-controller="Shift" method="post">
+                <div class="modal-body text-light">
+                    <div class="mb-3">
+                        <label for="User_Name" class="col-form-label text-start" style="text-align: left;">اسم المستخدم</label>
+                        <input type="text" class="form-control" readonly value="@($"{user.FullName}")" id="User_Name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalPassword" class="col-form-label text-start" style="text-align: left;">الرقم السري</label>
+                        <input class="form-control" id="modalPassword" name="password" type="password" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">اغلاق</button>
+                    <button type="submit" class="btn btn-primary">تأكيد</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<hr />
+
+
+
+
+
+<div class="row m-3">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">الصالة</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.HallsSummary.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.HallsSummary.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">الدليفري</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.DeliverySummary.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.DeliverySummary.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">الدليفري الاونلاين</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.DeliveryOnlineSummary.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.DeliveryOnlineSummary.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">تيك اواي</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.TakeAwaySummary.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.TakeAwaySummary.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+</div>
+<hr />
+
+<div class="row m-3">
+    <div class="col-md-3">
+        <div class="card bg-secondary text-white">
+            <div class="card-body">
+                <h5 class="card-title">الصالة المعلقة</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.PendingHalls.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.PendingHalls.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title">الدليفري المعلق</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.PendingDelivery.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.PendingDelivery.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-secondary text-white">
+            <div class="card-body">
+                <h5 class="card-title">الدليفري الاونلاين المعلق</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.PendingOnlineDelivery.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.PendingOnlineDelivery.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title">اجمالي المعلق</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.TotalPending.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.TotalPending.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr />
+
+
+
+
+<div class="row m-3">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">الصالة المعلقة من الشيفت السابق</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.LastPendingHalls.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.LastPendingHalls.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">الدليفري المعلقة من الشيفت السابق</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.LastPendingDelivery.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.LastPendingDelivery.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">الاونلاين المعلق من الشيفت السابق</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.lastPendingOnlineDelivery.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.lastPendingOnlineDelivery.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">اجمالي المعلق من الشيفت السابق</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.TotalLastPending.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.TotalLastPending.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+</div>
+<hr />
+
+
+
+
+
+
+<div class="row m-3">
+    <div class="col-md-4">
+        <div class="card bg-secondary text-white">
+            <div class="card-body">
+                <h5 class="card-title">الطلبات المباعة من الشيفت الحالي</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.TotalSummary.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.TotalSummary.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title">الطلبات المباعة من المتعلق من الشيفت السابق</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.SelledLastPending.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.SelledLastPending.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-secondary text-white">
+            <div class="card-body">
+                <h5 class="card-title">اجمالي المال في الدرج</h5>
+                <p class="card-text">عدد الطلبات: @ViewBag.TotalMoney.NumberOfOrder</p>
+                <p class="card-text">الاجمالي: @ViewBag.TotalMoney.TotalAmount</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr />
+

@@ -1,0 +1,273 @@
+﻿@model StoreConvertViewModel
+
+@{
+    ViewData["Title"] = "Store Convert";
+    Layout = "_Layout1";
+}
+<div style="direction:rtl;">
+
+
+    <h1 class="text-center">فاتورة نقل اصناف </h1>
+
+    <hr />
+
+
+    <form id="menuForm" asp-action="Create" class="row m-3" enctype="multipart/form-data">
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <div class="form-group col-md-3">
+            <label asp-for="ConvertCode" class="control-label"></label>
+            <input asp-for="ConvertCode" value="@ViewBag.Convert" class="form-control" readonly />
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label" asp-for="FromStoreId"></label>
+            <select id="storeList" asp-for="FromStoreId" class="form-control" asp-items="ViewBag.Stores" required>
+                <option value="">اختر المخزن</option>
+            </select>
+            <input id="fromStoreId" class="form-control" hidden />
+        </div>
+
+
+        <div class="form-group col-md-3">
+            <label class="control-label" asp-for="ToStoreId"></label>
+            <select id="stores" asp-for="ToStoreId" class="form-control" required>
+                <option value="">اختر المخزن</option>
+            </select>
+        </div>
+
+
+        <div class="form-group col-md-3">
+            <label class="control-label">الصنف</label>
+            <select id="productList" name="StoreProductId" class="form-control" required>
+                <option value="">اختر الصنف</option>
+            </select>
+        </div>
+
+
+
+
+        <div class="form-group col-md-3">
+            <label class="control-label">الكمية المتاحة</label>
+            <input id="availableQuantity" class="form-control" readonly />
+        </div>
+
+
+        <div class="form-group col-md-3">
+            <label class="control-label">الكمية المنقولة</label>
+            <input id="quantity" name="Quantity" class="form-control" />
+        </div>
+
+        <div class="form-group col-md-3">
+            <label class="control-label">الكمية المتبقية</label>
+            <input id="remainQuantity" class="form-control" readonly />
+        </div>
+
+
+
+
+
+
+        <div class="form-group col-md-3">
+            <label class="control-label">اضافة</label>
+            <input id="addBtn" type="button" value="اضافة" class="btn btn-primary form-control" />
+        </div>
+
+        <div class="form-group col-md-3">
+            <label class="control-label">حفظ الفاتورة</label>
+            <input type="submit" value="حفظ الفاتورة" class="btn btn-success form-control" />
+        </div>
+
+        <div class="form-group col-md-12 mt-3 mb-1">
+            <div style="border: 3px solid white; min-height:200px;" id="items">
+                <table id="productTable" class="table table-hover text-center table-bordered table-striped-columns table-dark">
+                    <thead>
+                        <tr>
+                            <th hidden>
+                                storeProductId
+                            </th>
+                            <th>
+                                اسم العنصر
+                            </th>
+                            <th>
+                                الكمية
+                            </th>
+
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <div class="form-group col-md-2 mt-3">
+            <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a> |
+            <a asp-action="Index">عودة للفواتير</a>
+        </div>
+
+    </form>
+
+
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+            $('#quantity').on('input', function () {
+                var quantity = $('#quantity').val();
+                var availableQuantity = $('#availableQuantity').val();
+
+                var remainQuantity = availableQuantity - quantity
+                $('#remainQuantity').val(remainQuantity.toFixed(2)); // Format total to two decimal places
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $('#storeList').change(function () {
+                // Clear all input values
+                $('#availableQuantity').val('');
+                $('#quantity').val('');
+                $('#remainQuantity').val('');
+                $('#productTable tbody').empty(); // Clear all rows in the table
+
+                var storeId = $(this).val();
+                // console.log(storeId)
+                $.ajax({
+                    url: '/StoreConvert/GetProductsByStore',
+                    type: 'GET',
+                    data: { storeId: storeId },
+                    success: function (data) {
+                        $('#productList').empty();
+                        $('#availableQuantity').val(0);
+                        $('#quantity').val(0)
+                        $('#remainQuantity').val(0);
+                        $('#productList').append('<option value="">اختر الصنف</option>'); // Add "اختر الصنف" option
+                        $.each(data, function (index, prod) {
+                            $('#productList').append($('<option>', {
+                                value: prod.id, // Assuming productId is the correct property name
+                                text: prod.productName // Assuming product.name is the correct property name
+                            }));
+                        });
+
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+
+                $.ajax({
+                    url: '/StoreConvert/GetStoresByStoreId',
+                    type: 'GET',
+                    data: { storeId: storeId },
+                    success: function (stores) {
+                        $('#stores').empty();
+
+                        $('#stores').append('<option value="">اختر المخزن</option>'); // Add "اختر الصنف" option
+                        $.each(stores, function (index, store) {
+                            $('#stores').append($('<option>', {
+                                value: store.id, // Assuming productId is the correct property name
+                                text: store.name // Assuming product.name is the correct property name
+                            }));
+                        });
+
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+
+
+
+            $('#productList').change(function () {
+                var storeProductId = $(this).val();
+                // console.log(storeId)
+                $.ajax({
+                    url: '/StoreConvert/GetQuantityByProduct',
+                    type: 'GET',
+                    data: { productId: storeProductId },
+                    success: function (data) {
+                        $('#availableQuantity').val(data.quantity);
+                        $('#quantity').val('');
+                        $('#remainQuantity').val('');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+        });
+
+    </script>
+
+
+    <script>
+        $(document).ready(function () {
+            $('#addBtn').click(function () {
+                var productName = $('#productList option:selected').text();
+                var productId = $('#productList').val();
+                var quantity = $('#quantity').val();
+
+                if ((productId.trim() === '' || productName.trim() === '' || quantity.trim() === '' || isNaN(parseInt(quantity)))) {
+                    alert('برجاء اضافة المنتج و كميته قبل الاضافة.');
+                    return;
+                };
+
+                var newRow = '<tr>' +
+                    '<td hidden>' + productId + '</td>' +
+                    '<td>' + productName + '</td>' +
+                    '<td>' + quantity + '</td>' +
+                    '<td><button class="btn btn-danger cancelRow">الغاء</button></td>' +
+                    '</tr>';
+                $('#productTable tbody').append(newRow);
+            });
+
+            $(document).on('click', '.cancelRow', function () {
+                $(this).closest('tr').remove();
+            });
+        });
+    </script>
+
+
+
+
+    <script>
+        $(document).ready(function () {
+            $('#menuForm').submit(function () {
+                // Initialize index
+                var index = 0;
+
+                // Loop through each selected item in the table
+                $('#productTable tbody tr').each(function () {
+                    var storeProductId = $(this).find('td:eq(0)').text();
+                    var quantity = parseFloat($(this).find('td:eq(2)').text());
+
+                    // Create hidden input fields for each property of the MenuItemComponent
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'StoreConvertProducts[' + index + '].StoreProductId',
+                        value: storeProductId
+                    }).appendTo('#menuForm');
+
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'StoreConvertProducts[' + index + '].Quantity',
+                        value: quantity
+                    }).appendTo('#menuForm');
+
+                    // Increment index
+                    index++;
+                });
+            });
+        });
+    </script>
+
+
+}
