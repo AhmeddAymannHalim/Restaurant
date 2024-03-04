@@ -222,15 +222,15 @@ namespace ResturantPL.Controllers
                 new string[] { "Seller", "Receiver", "Table", "Customer", "Employee", "OrderMenuItems" },
                 new string[] { "OrderMenuItems.MenuItem" });
 
-            // Use Rotativa to convert the view to PDF
-            //var viewAsPdf = new ViewAsPdf
-            //{
-            //    Model = order,
-            //    ViewName = "_Details", // Replace with your view name
-            //    FileName = $"Order_{order.CustomerName}.pdf" // Customize filename as needed
-            //};
-            return new ViewAsPdf("_Details", order);
-            //return viewAsPdf;
+            // return new ViewAsPdf("_Details", order);
+           
+            var viewAsPdf = new ViewAsPdf
+            {
+                Model = order,
+                ViewName = "_Details", 
+                FileName = $"Order_{order.CustomerName}.pdf"
+            };
+            return viewAsPdf;
         }
 
         
