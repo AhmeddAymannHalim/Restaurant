@@ -41,165 +41,345 @@
 
 
 
-
-<div class="row m-3">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <h5 class="card-title">الصالة</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.HallsSummary.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.HallsSummary.TotalAmount</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h5 class="card-title">الدليفري</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.DeliverySummary.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.DeliverySummary.TotalAmount</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <h5 class="card-title">الدليفري الاونلاين</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.DeliveryOnlineSummary.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.DeliveryOnlineSummary.TotalAmount</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h5 class="card-title">تيك اواي</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.TakeAwaySummary.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.TakeAwaySummary.TotalAmount</p>
-            </div>
-        </div>
-    </div>
-</div>
-<hr />
-
-<div class="row m-3">
-    <div class="col-md-3">
-        <div class="card bg-secondary text-white">
-            <div class="card-body">
-                <h5 class="card-title">الصالة المعلقة</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.PendingHalls.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.PendingHalls.TotalAmount</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-danger text-white">
-            <div class="card-body">
-                <h5 class="card-title">الدليفري المعلق</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.PendingDelivery.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.PendingDelivery.TotalAmount</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-secondary text-white">
-            <div class="card-body">
-                <h5 class="card-title">الدليفري الاونلاين المعلق</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.PendingOnlineDelivery.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.PendingOnlineDelivery.TotalAmount</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-danger text-white">
-            <div class="card-body">
-                <h5 class="card-title">اجمالي المعلق</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.TotalPending.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.TotalPending.TotalAmount</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<hr />
+<form id="shiftSummaryForm" method="post" asp-action="EndShiftReport" asp-controller="Report">
 
 
+    <div class="row m-3">
+        <div id="hallSummary" class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">طلبات الصالة المكتملة</h5>
+                    <input type="hidden" name="hallSummaryNumber" value="@ViewBag.HallsSummary.NumberOfOrder" />
+                    <input type="hidden" name="hallSummaryTotal" value="@ViewBag.HallsSummary.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.HallsSummary.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.HallsSummary.TotalAmount</p>
+                </div>
+            </div>
+        </div>
+        <div id="deliverySummary" class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">طلبات الدليفري المكتملة</h5>
+                    <input type="hidden" name="deliverySummaryNumber" value="@ViewBag.DeliverySummary.NumberOfOrder" />
+                    <input type="hidden" name="deliverySummaryTotal" value="@ViewBag.DeliverySummary.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.DeliverySummary.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.DeliverySummary.TotalAmount</p>
+                </div>
+            </div>
+        </div>
+        <div id="deliveryOnlineSummary" class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">طلبات الدليفري الاونلاين المكتملة</h5>
+                    <input type="hidden" name="deliveryOnlineSummaryNumber" value="@ViewBag.DeliveryOnlineSummary.NumberOfOrder" />
+                    <input type="hidden" name="deliveryOnlineSummaryTotal" value="@ViewBag.DeliveryOnlineSummary.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.DeliveryOnlineSummary.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.DeliveryOnlineSummary.TotalAmount</p>
+                </div>
+            </div>
+        </div>
+        <div id="takeAwaySummary" class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">طلبات التيك اواي المكتملة</h5>
+                    <input type="hidden" name="takeAwaySummaryNumber" value="@ViewBag.TakeAwaySummary.NumberOfOrder" />
+                    <input type="hidden" name="takeAwaySummaryTotal" value="@ViewBag.TakeAwaySummary.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.TakeAwaySummary.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.TakeAwaySummary.TotalAmount</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr />
 
+    <div class="row m-3">
+        <div id="pendingHall" class="col-md-3">
+            <div class="card bg-secondary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">الصالة المعلقة</h5>
+                    <input type="hidden" name="pendingHallNumber" value="@ViewBag.PendingHalls.NumberOfOrder" />
+                    <input type="hidden" name="pendingHallTotal" value="@ViewBag.PendingHalls.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.PendingHalls.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.PendingHalls.TotalAmount</p>
+                </div>
+            </div>
+        </div>
+        <div id="pendingDelivery" class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">الدليفري المعلق</h5>
+                    <input type="hidden" name="pendingDeliveryNmuber" value="@ViewBag.PendingDelivery.NumberOfOrder" />
+                    <input type="hidden" name="pendingDeliveryTotal" value="@ViewBag.PendingDelivery.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.PendingDelivery.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.PendingDelivery.TotalAmount</p>
+                </div>
+            </div>
+        </div>
+        <div id="pendingDeliveryOnline" class="col-md-3">
+            <div class="card bg-secondary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">الدليفري الاونلاين المعلق</h5>
+                    <input type="hidden" name="pendingDeliveryOnlineNmuber" value="@ViewBag.PendingOnlineDelivery.NumberOfOrder" />
+                    <input type="hidden" name="pendingDeliveryOnlineTotal" value="@ViewBag.PendingOnlineDelivery.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.PendingOnlineDelivery.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.PendingOnlineDelivery.TotalAmount</p>
+                </div>
+            </div>
+        </div>
+        <div id="totalPending" class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">اجمالي المعلق</h5>
+                    <input type="hidden" name="totalPendingNumber" value="@ViewBag.TotalPending.NumberOfOrder" />
+                    <input type="hidden" name="totalPendingTotal" value="@ViewBag.TotalPending.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.TotalPending.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.TotalPending.TotalAmount</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div class="row m-3">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <h5 class="card-title">الصالة المعلقة من الشيفت السابق</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.LastPendingHalls.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.LastPendingHalls.TotalAmount</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h5 class="card-title">الدليفري المعلقة من الشيفت السابق</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.LastPendingDelivery.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.LastPendingDelivery.TotalAmount</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <h5 class="card-title">الاونلاين المعلق من الشيفت السابق</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.lastPendingOnlineDelivery.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.lastPendingOnlineDelivery.TotalAmount</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h5 class="card-title">اجمالي المعلق من الشيفت السابق</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.TotalLastPending.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.TotalLastPending.TotalAmount</p>
-            </div>
-        </div>
-    </div>
-</div>
-<hr />
+    <hr />
 
 
 
 
-
-
-<div class="row m-3">
-    <div class="col-md-4">
-        <div class="card bg-secondary text-white">
-            <div class="card-body">
-                <h5 class="card-title">الطلبات المباعة من الشيفت الحالي</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.TotalSummary.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.TotalSummary.TotalAmount</p>
+    <div class="row m-3">
+        <div id="lastPendingHall" class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">الصالة المعلقة من الشيفت السابق</h5>
+                    <input type="hidden" name="lastPendingHallNumber" value="@ViewBag.LastPendingHalls.NumberOfOrder" />
+                    <input type="hidden" name="lastPendingHallTotal" value="@ViewBag.LastPendingHalls.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.LastPendingHalls.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.LastPendingHalls.TotalAmount</p>
+                </div>
+            </div>
+        </div>
+        <div id="lastPendingDelivery" class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">الدليفري المعلق من الشيفت السابق</h5>
+                    <input type="hidden" name="lastPendingDeliveryNmuber" value="@ViewBag.LastPendingDelivery.NumberOfOrder" />
+                    <input type="hidden" name="lastPendingDeliveryTotal" value="@ViewBag.LastPendingDelivery.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.LastPendingDelivery.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.LastPendingDelivery.TotalAmount</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div id="lastPendingDeliveryOnline" class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">الاونلاين المعلق من الشيفت السابق</h5>
+                    <input type="hidden" name="lastPendingDeliveryOnlineNmuber" value="@ViewBag.lastPendingOnlineDelivery.NumberOfOrder" />
+                    <input type="hidden" name="lastPendingDeliveryOnlineTotal" value="@ViewBag.lastPendingOnlineDelivery.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.lastPendingOnlineDelivery.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.lastPendingOnlineDelivery.TotalAmount</p>
+                </div>
+            </div>
+        </div>
+        <div id="totalLastPending" class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">اجمالي المعلق من الشيفت السابق</h5>
+                    <input type="hidden" name="lastTotalPendingNumber" value="@ViewBag.TotalLastPending.NumberOfOrder" />
+                    <input type="hidden" name="lastTotalPendingTotal" value="@ViewBag.TotalLastPending.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.TotalLastPending.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.TotalLastPending.TotalAmount</p>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card bg-danger text-white">
-            <div class="card-body">
-                <h5 class="card-title">الطلبات المباعة من المتعلق من الشيفت السابق</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.SelledLastPending.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.SelledLastPending.TotalAmount</p>
+    <hr />
+
+
+
+
+
+
+    <div class="row m-3">
+        <div id="totalSummary" class="col-md-3">
+            <div class="card bg-secondary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">الطلبات المباعة من الشيفت الحالي</h5>
+                    <input type="hidden" name="totalSummeryNumber" value="@ViewBag.TotalSummary.NumberOfOrder" />
+                    <input type="hidden" name="totalSummeryTotal" value="@ViewBag.TotalSummary.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.TotalSummary.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.TotalSummary.TotalAmount</p>
+                </div>
+            </div>
+        </div>
+        <div id="selledLastPending" class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">الطلبات المباعة من الشيفت السابق</h5>
+                    <input type="hidden" name="selledLastPendingNumber" value="@ViewBag.SelledLastPending.NumberOfOrder" />
+                    <input type="hidden" name="selledLastPendingTotal" value="@ViewBag.SelledLastPending.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.SelledLastPending.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.SelledLastPending.TotalAmount</p>
+                </div>
+            </div>
+        </div>
+        <div id="totalMoney" class="col-md-3">
+            <div class="card bg-secondary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">اجمالي المال المعلق</h5>
+                    <input type="hidden" name="TotalRemainForPendingNumber" value="@ViewBag.RemainForPending.NumberOfOrder" />
+                    <input type="hidden" name="TotalRemainForPendingTotal" value="@ViewBag.RemainForPending.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.RemainForPending.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.RemainForPending.TotalAmount</p>
+                </div>
+            </div>
+        </div>
+        <div id="totalMoney" class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">اجمالي المال في الدرج</h5>
+                    <input type="hidden" name="totalMoneyNumber" value="@ViewBag.TotalMoney.NumberOfOrder" />
+                    <input type="hidden" name="totalMoneyTotal" value="@ViewBag.TotalMoney.TotalAmount" />
+                    <p class="card-text">عدد الطلبات: @ViewBag.TotalMoney.NumberOfOrder</p>
+                    <p class="card-text">الاجمالي: @ViewBag.TotalMoney.TotalAmount</p>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card bg-secondary text-white">
-            <div class="card-body">
-                <h5 class="card-title">اجمالي المال في الدرج</h5>
-                <p class="card-text">عدد الطلبات: @ViewBag.TotalMoney.NumberOfOrder</p>
-                <p class="card-text">الاجمالي: @ViewBag.TotalMoney.TotalAmount</p>
-            </div>
-        </div>
-    </div>
-</div>
+    <hr />
+    <button id="export" type="submit" class="btn btn-primary text-center col-md-12">تصدير الي pdf</button>
+</form>
 
-<hr />
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 
+@* 
+    <script>
+        $(document).ready(function () {
+            $("#export").click(function () {
+                // Submit the form when the button is clicked
+                $("#shiftSummaryForm").submit();
+            });
+        });
+    </script>
+ *@
+
+    @*   <script>
+        $(document).ready(function () {
+            // Function to collect data from cards and send to server-side action
+            function sendDataToServer() {
+                // Collect data from each card
+
+                var hallSummaryNumber = $("#hallSummary .card-text:eq(0)").text();
+                var hallSummaryTotal = $("#hallSummary .card-text:eq(1)").text();
+
+                var deliverySummaryNumber = $("#deliverySummary .card-text:eq(0)").text();
+                var deliverySummaryTotal = $("#deliverySummary .card-text:eq(1)").text();
+
+                var deliveryOnlineSummaryNumber = $("#deliveryOnlineSummary .card-text:eq(0)").text();
+                var deliveryOnlineSummaryTotal = $("#deliveryOnlineSummary .card-text:eq(1)").text();
+
+                var takeAwaySummaryNumber = $("#takeAwaySummary .card-text:eq(0)").text();
+                var takeAwaySummaryTotal = $("#takeAwaySummary .card-text:eq(1)").text();
+
+
+
+
+                var pendingHallNumber = $("#pendingHall .card-text:eq(0)").text();
+                var pendingHallTotal = $("#pendingHall .card-text:eq(1)").text();
+
+                var pendingDeliveryNmuber = $("#pendingDelivery .card-text:eq(0)").text();
+                var pendingDeliveryTotal = $("#pendingDelivery .card-text:eq(1)").text();
+
+                var pendingDeliveryOnlineNmuber = $("#pendingDeliveryOnline .card-text:eq(0)").text();
+                var pendingDeliveryOnlineTotal = $("#pendingDeliveryOnline .card-text:eq(1)").text();
+
+                var totalPendingNumber = $("#totalPending .card-text:eq(0)").text();
+                var totalPendingTotal = $("#totalPending .card-text:eq(1)").text();
+
+
+
+
+                var lastPendingHallNumber = $("#lastPendingHall .card-text:eq(0)").text();
+                var lastPendingHallTotal = $("#lastPendingHall .card-text:eq(1)").text();
+
+                var lastPendingDeliveryNmuber = $("#lastPendingDelivery .card-text:eq(0)").text();
+                var lastPendingDeliveryTotal = $("#lastPendingDelivery .card-text:eq(1)").text();
+
+                var lastPendingDeliveryOnlineNmuber = $("#lastPendingDeliveryOnline .card-text:eq(0)").text();
+                var lastPendingDeliveryOnlineTotal = $("#lastPendingDeliveryOnline .card-text:eq(1)").text();
+
+                var lastTotalPendingNumber = $("#totalLastPending .card-text:eq(0)").text();
+                var lastTotalPendingTotal = $("#totalLastPending .card-text:eq(1)").text();
+
+
+
+                var totalSummeryNumber = $("#totalSummary .card-text:eq(0)").text();
+                var totalSummeryTotal = $("#totalSummary .card-text:eq(1)").text();
+
+                var selledLastPendingNumber = $("#selledLastPending .card-text:eq(0)").text();
+                var selledLastPendingTotal = $("#selledLastPending .card-text:eq(1)").text();
+
+                var totalMoneyNumber = $("#totalMoney .card-text:eq(0)").text();
+                var totalMoneyTotal = $("#totalMoney .card-text:eq(1)").text();
+
+
+                var allData = {
+                    hallSummaryNumber: hallSummaryNumber,
+                    hallSummaryTotal: hallSummaryTotal,
+                    deliverySummaryNumber: deliverySummaryNumber,
+                    deliverySummaryTotal: deliverySummaryTotal,
+                    deliveryOnlineSummaryNumber: deliveryOnlineSummaryNumber,
+                    deliveryOnlineSummaryTotal: deliveryOnlineSummaryTotal,
+                    takeAwaySummaryNumber: takeAwaySummaryNumber,
+                    takeAwaySummaryTotal: takeAwaySummaryTotal,
+
+                    pendingHallNumber: pendingHallNumber,
+                    pendingHallTotal: pendingHallTotal,
+                    pendingDeliveryNmuber: pendingDeliveryNmuber,
+                    pendingDeliveryTotal: pendingDeliveryTotal,
+                    pendingDeliveryOnlineNmuber: pendingDeliveryOnlineNmuber,
+                    pendingDeliveryOnlineTotal: pendingDeliveryOnlineTotal,
+                    totalPendingNumber: totalPendingNumber,
+                    totalPendingTotal: totalPendingTotal,
+
+                    lastPendingHallNumber: lastPendingHallNumber,
+                    lastPendingHallTotal: lastPendingHallTotal,
+                    lastPendingDeliveryNmuber: lastPendingDeliveryNmuber,
+                    lastPendingDeliveryTotal: lastPendingDeliveryTotal,
+                    lastPendingDeliveryOnlineNmuber: lastPendingDeliveryOnlineNmuber,
+                    lastPendingDeliveryOnlineTotal: lastPendingDeliveryOnlineTotal,
+                    lastTotalPendingNumber: lastTotalPendingNumber,
+                    lastTotalPendingTotal: lastTotalPendingTotal,
+
+                    totalSummeryNumber: totalSummeryNumber,
+                    totalSummeryTotal: totalSummeryTotal,
+                    selledLastPendingNumber: selledLastPendingNumber,
+                    selledLastPendingTotal: selledLastPendingTotal,
+                    totalMoneyNumber: totalMoneyNumber,
+                    totalMoneyTotal: totalMoneyTotal,
+                };
+
+                // Send data to server-side action via AJAX
+                $.ajax({
+                    type: "POST",
+                    url: "/Report/EndShifts",
+                    data: JSON.stringify(allData),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        console.log("Data sent successfully!");
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error sending data:", error);
+                    }
+                });
+            }
+
+            // Attach click event to your button to trigger sending data
+            $("#export").click(function () {
+                // Call function to send data when the button is clicked
+                sendDataToServer();
+            });
+        });
+    </script> *@
+}

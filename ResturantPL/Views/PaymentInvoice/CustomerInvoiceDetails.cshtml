@@ -112,7 +112,8 @@
     </dl>
 
     <div>
-        <a asp-action="IndexCustomer">عودة لفواتير العملاء</a>
+        <a class="btn btn-primary" asp-action="PayForCustomerReport" asp-controller="Report" asp-route-invoiceId="@Model.Id"> تصدير الي PDF</a>
+        <a class="btn btn-info" asp-action="IndexCustomer">عودة لفواتير العملاء</a>
     </div>
 
 </div>

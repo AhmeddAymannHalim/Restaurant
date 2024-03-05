@@ -26,4 +26,8 @@
     <Folder Include="wwwroot\Menu Images\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="wwwroot\Rotativa\wkhtmltopdf.exe" />
+  </ItemGroup>
+
 </Project>
