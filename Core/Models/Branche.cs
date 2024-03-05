@@ -16,7 +16,7 @@ namespace Restaurant.Data.Models
         public string Phone2 { get; set; }
         public string Mobile1 { get; set; }
         public string Mobile2 { get; set; }
-
+        
 
         public virtual ICollection<ApplicationUser> ApplicationUsers { get; set; }
         public virtual ICollection<Employee> Employees { get; set; }

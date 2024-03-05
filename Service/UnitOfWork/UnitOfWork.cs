@@ -48,6 +48,9 @@ namespace Service.UnitOfWork
         public IGenericRepository<Deposit> DepositRepository { get; set; }
 
 
+        //By Mahmoud
+        public IGenericRepository<kitchen> kitchenRepository { get; set; }
+
         public UnitOfWork(ApplicationDbContext context)
         {
             this._context = context;
@@ -90,7 +93,10 @@ namespace Service.UnitOfWork
             ScroungeRepository = new GenericRepository<Scrounge>(_context);
             DepositRepository = new GenericRepository<Deposit>(_context);
 
-        }
+
+            //Mahmoud
+            kitchenRepository=new GenericRepository<kitchen>(_context);
+    }
 
         public int Complete()
         {

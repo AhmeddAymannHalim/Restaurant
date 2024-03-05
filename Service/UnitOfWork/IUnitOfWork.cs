@@ -46,6 +46,9 @@ namespace Service.UnitOfWork
         public IGenericRepository<Deposit> DepositRepository { get; set; }
 
 
+        //By Mahmoud
+        public IGenericRepository<kitchen> kitchenRepository { get; set; }
+
 
         int Complete();
 

@@ -48,7 +48,7 @@ namespace Restaurant.Data
         public DbSet<MenuSection> MenuSections { get; set; }
         public DbSet<StoreConvert> StoreConverts { get; set; }
         public DbSet<StoreConvertProduct> StoreConvertProducts { get; set; }
-
+        
 
 
 
@@ -60,6 +60,8 @@ namespace Restaurant.Data
         public DbSet<State> States { get; set; }
         public DbSet<Deposit> Deposits { get; set; }
 
+        //Mahmoud
+        public DbSet<kitchen> Kitchens { get; set; }
 
 
 

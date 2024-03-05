@@ -10,7 +10,8 @@ namespace Restaurant.Data.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
-
+        public int? kitchenId { get; set; } = null;
+        public kitchen kitchen { get; set; }
         public virtual ICollection<MenuItem> MenuItems { get; set; }
     }
 }
