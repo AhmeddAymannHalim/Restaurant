@@ -638,6 +638,22 @@ namespace Restaurant.Data.Migrations
                     b.ToTable("Jobs");
                 });
 
+            modelBuilder.Entity("Restaurant.Data.Models.kitchen", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Kitchens");
+                });
+
             modelBuilder.Entity("Restaurant.Data.Models.MenuItem", b =>
                 {
                     b.Property<int>("Id")
@@ -722,7 +738,12 @@ namespace Restaurant.Data.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("kitchenId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("kitchenId");
 
                     b.ToTable("MenuSections");
                 });
@@ -1422,6 +1443,13 @@ namespace Restaurant.Data.Migrations
                     b.Navigation("StoreProduct");
                 });
 
+            modelBuilder.Entity("Restaurant.Data.Models.MenuSection", b =>
+                {
+                    b.HasOne("Restaurant.Data.Models.kitchen", null)
+                        .WithMany("MenuSections")
+                        .HasForeignKey("kitchenId");
+                });
+
             modelBuilder.Entity("Restaurant.Data.Models.OnlineOrder", b =>
                 {
                     b.HasOne("Restaurant.Data.Models.ApplicationUser", "Customer")
@@ -1629,6 +1657,11 @@ namespace Restaurant.Data.Migrations
             modelBuilder.Entity("Restaurant.Data.Models.Job", b =>
                 {
                     b.Navigation("Employees");
+                });
+
+            modelBuilder.Entity("Restaurant.Data.Models.kitchen", b =>
+                {
+                    b.Navigation("MenuSections");
                 });
 
             modelBuilder.Entity("Restaurant.Data.Models.MenuItem", b =>
