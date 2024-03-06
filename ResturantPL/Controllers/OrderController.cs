@@ -217,13 +217,7 @@ namespace ResturantPL.Controllers
             //{
             //    return RedirectToAction("Login", "Shift");
             //}
-        }
-
-
-      
-        
-
-        
+        }     
 
         public IActionResult Details(int id)
         {
@@ -237,7 +231,6 @@ namespace ResturantPL.Controllers
             }
             return NotFound();
         }
-
 
         #region Orders Details
 
@@ -372,7 +365,6 @@ namespace ResturantPL.Controllers
         #endregion
 
 
-
         public async Task<IActionResult> Create()
         {
             try
@@ -419,7 +411,6 @@ namespace ResturantPL.Controllers
                 return View("Error", ErrorMessage.Error(ex.Message));
             }
         }
-
 
 
         [HttpPost, ValidateAntiForgeryToken]
@@ -506,7 +497,7 @@ namespace ResturantPL.Controllers
                         }
 
                     }
-
+                    await _orderHubContext.Clients.All.SendAsync("RefreshOrders");
                     return RedirectToAction("Details", new { id = Order.Id });
                 }
                 // Notify clients that a new order has been added

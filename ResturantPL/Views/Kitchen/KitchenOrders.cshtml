@@ -1,4 +1,8 @@
-﻿<div class="container-fluid">
+﻿@model List<Order>
+@{
+    int index = 1;
+}
+<div class="container-fluid">
     <h2 class="text-center my-5">الطلبيات</h2>
     <div class="table-responsive">
         <table class="table table-striped text-nowrap overflow-auto mb-0 text-center text-light border table-hover table-bordered table-dark">
@@ -11,61 +15,47 @@
                     <th>التخفيض</th>
                     <th>السعر الكلي</th>
                     <th>نوع الطلب</th>
-                    <th>تاريخ الطلب</th>
-                    <th>رقم البائع</th>
-                    <th>رقم المستلم</th>
+                    <th>تاريخ الطلب</th>                   
+                   
                     <th>نقداً</th>
                     <th>مكتمل</th>
-                    <th>انتهى التحول</th>
+                   
                     <th>اسم الزبون</th>
                     <th>الإجراء</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td class="align-middle">1</td>
-                    <td class="align-middle">ORD001</td>
-                    <td class="align-middle">100</td>
-                    <td class="align-middle">10</td>
-                    <td class="align-middle">5</td>
-                    <td class="align-middle">105</td>
-                    <td class="align-middle">النوع 1</td>
-                    <td class="align-middle">2024-03-05</td>
-                    <td class="align-middle">البائع123</td>
-                    <td class="align-middle">المستلم456</td>
-                    <td class="align-middle">نعم</td>
-                    <td class="align-middle">نعم</td>
-                    <td class="align-middle">لا</td>
-                    <td class="align-middle">جون دو</td>
-                    <td class="align-middle">
-                        <button type="button" class="btn btn-warning text-light"
-                                data-toggle="modal" data-target="#productModal">
-                            عرض التفاصيل
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="align-middle">1</td>
-                    <td class="align-middle">ORD001</td>
-                    <td class="align-middle">100</td>
-                    <td class="align-middle">10</td>
-                    <td class="align-middle">5</td>
-                    <td class="align-middle">105</td>
-                    <td class="align-middle">النوع 1</td>
-                    <td class="align-middle">2024-03-05</td>
-                    <td class="align-middle">البائع123</td>
-                    <td class="align-middle">المستلم456</td>
-                    <td class="align-middle">نعم</td>
-                    <td class="align-middle">نعم</td>
-                    <td class="align-middle">لا</td>
-                    <td class="align-middle">جون دو</td>
-                    <td class="align-middle">
-                        <button type="button" class="btn btn-warning text-light"
-                                data-toggle="modal" data-target="#productModal">
-                            عرض التفاصيل
-                        </button>
-                    </td>
-                </tr>
+                @foreach(var order in Model)
+                {
+                    <tr>
+                        <td class="align-middle">@index</td>
+                        <td class="align-middle">@order.OrderCode</td>
+                        <td class="align-middle">@order.Service</td>
+                        <td class="align-middle">@order.Tax</td>
+                        <td class="align-middle">@order.Discount</td>
+                        <td class="align-middle">@order.TotalPrice</td>
+                        <td class="align-middle">@order.Type</td>
+                        <td class="align-middle">@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                       
+                        
+
+                        <td class="align-middle">@(order.Cash ? "نعم" : "لا")</td>
+                        <td class="align-middle">@(order.Complete? "نعم":"لا")</td>
+                        
+                        <td class="align-middle">@order.CustomerName</td>
+                        <td class="align-middle">
+                            <button type="button" class="btn btn-warning text-light"
+                                    data-toggle="modal" data-target="#productModal">
+                                عرض التفاصيل
+                            </button>
+                        </td>
+                     
+                    </tr>
+                    index++;
+
+                }
+              
+              
             </tbody>
         </table>
     </div>
