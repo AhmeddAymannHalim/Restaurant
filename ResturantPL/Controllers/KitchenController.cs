@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.Data.Models;
@@ -7,6 +8,7 @@ using Service.UnitOfWork;
 
 namespace ResturantPL.Controllers
 {
+    [Authorize]
     public class KitchenController : Controller
     {
         private readonly IHubContext<OrderHub> _orderHubContext;
@@ -26,13 +28,16 @@ namespace ResturantPL.Controllers
         public IActionResult KitchenOrders()
         {
            var orders = _unitOfWork.OrderRepository
-               .GetAll(
+               .GetAll
+               (
                    a => a.Include(a => a.Seller),
                    a => a.Include(a => a.Receiver),
                    a => a.Include(a => a.Table),
                    a => a.Include(a => a.Employee),                  
-                   a => a.Include(a => a.OrderMenuItems).ThenInclude(o=>o.MenuItem)
-                   .Where(a => a.Complete == false))                   
+                   a => a.Include(a => a.OrderMenuItems)
+                   .ThenInclude(o=>o.MenuItem)                  
+                )
+                .Where(a => a.Complete == false)
                .OrderByDescending(a => a.OrderDate)
                .ToList();
             return View(orders);
