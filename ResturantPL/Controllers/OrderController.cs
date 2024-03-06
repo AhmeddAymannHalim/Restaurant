@@ -66,7 +66,6 @@ namespace ResturantPL.Controllers
                      .Where(a => a.SellerId == userId && a.ReceiverId == userId && a.Cash && a.Type == OrderType.Delivery && a.FinishShift == false)
                      .Sum(a => a.TotalPrice)
             };
-
             var deliveryOnlineSummary = new ShiftSummaryViewModel
             {
                 NumberOfOrder = _unitOfWork.OrderRepository
@@ -77,7 +76,6 @@ namespace ResturantPL.Controllers
                      .Where(a => a.SellerId == userId && a.ReceiverId == userId && a.Cash && a.Type == OrderType.Delivery_Online && a.FinishShift == false)
                      .Sum(a => a.TotalPrice)
             };
-
             var takeAwaySummary = new ShiftSummaryViewModel
             {
                 NumberOfOrder = _unitOfWork.OrderRepository
@@ -120,8 +118,6 @@ namespace ResturantPL.Controllers
                    .Where(a => a.SellerId == userId && a.Cash == false && a.Type == OrderType.Delivery_Online && a.FinishShift == false)
                    .Sum(a => a.TotalPrice)
             };
-
-
             var totalPending = new ShiftSummaryViewModel
             {
                 TotalAmount = pendingHalls.TotalAmount + pendingDelivery.TotalAmount + pendingOnlineDelivery.TotalAmount,
@@ -149,7 +145,6 @@ namespace ResturantPL.Controllers
                     .Where(a => a.SellerId != userId && a.Cash == false && a.Type == OrderType.Delivery && a.FinishShift == false)
                     .Sum(a => a.TotalPrice)
             };
-
             var lastPendingOnlineDelivery = new ShiftSummaryViewModel
             {
                 NumberOfOrder = _unitOfWork.OrderRepository
@@ -176,11 +171,16 @@ namespace ResturantPL.Controllers
             {
                 NumberOfOrder = _unitOfWork.OrderRepository
                    .GetAll()
-                   .Count(a => a.SellerId != userId && a.ReceiverId == userId && a.Cash == true && a.FinishShift == false),
+                   .Count(a => a.SellerId != userId && a.ReceiverId == userId && a.Cash && a.FinishShift == false),
                 TotalAmount = _unitOfWork.OrderRepository
                    .GetAll()
-                   .Where(a => a.SellerId != userId && a.ReceiverId == userId && a.Cash == true && a.FinishShift == false)
+                   .Where(a => a.SellerId != userId && a.ReceiverId == userId && a.Cash && a.FinishShift == false)
                    .Sum(a => a.TotalPrice)
+            };
+            var remainForPending = new ShiftSummaryViewModel
+            {
+                TotalAmount = totalPending.TotalAmount + totalLastPending.TotalAmount,
+                NumberOfOrder = totalPending.NumberOfOrder + totalLastPending.NumberOfOrder
             };
             var totalMoney = new ShiftSummaryViewModel
             {
@@ -208,6 +208,7 @@ namespace ResturantPL.Controllers
 
             ViewBag.TotalSummary = totalSummary;
             ViewBag.SelledLastPending = selledLastPending;
+            ViewBag.RemainForPending = remainForPending;
             ViewBag.TotalMoney = totalMoney;
 
             return View();
@@ -220,22 +221,7 @@ namespace ResturantPL.Controllers
 
 
       
-        public IActionResult ExportOrderPdf(int orderId)
-        {
-            var order = _unitOfWork.OrderRepository.GetById(a => a.Id == orderId,
-                new string[] { "Seller", "Receiver", "Table", "Customer", "Employee", "OrderMenuItems" },
-                new string[] { "OrderMenuItems.MenuItem" });
-
-            // return new ViewAsPdf("_Details", order);
-           
-            var viewAsPdf = new ViewAsPdf
-            {
-                Model = order,
-                ViewName = "_Details", 
-                FileName = $"Order_{order.CustomerName}.pdf"
-            };
-            return viewAsPdf;
-        }
+        
 
         
 

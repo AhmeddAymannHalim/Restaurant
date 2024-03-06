@@ -34,13 +34,11 @@ namespace ResturantPL
 
             builder.Services.AddHttpsRedirection(options =>
             {
-                options.HttpsPort = 44373; // Your SSL port
+                options.HttpsPort = 44373;
                 options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
             });
 
 
-
-            // Respi
             builder.Services.AddSingleton<IConnectionMultiplexer>(options =>
             {
                 return ConnectionMultiplexer.Connect(builder.Configuration["RedisConnection"]);
@@ -112,7 +110,7 @@ namespace ResturantPL
             app.UseCors("CorsPolicy");
             app.UseSession();
           
-            //app.UseRotativa();
+            app.UseRotativa();
 
             app.UseRouting();
 
