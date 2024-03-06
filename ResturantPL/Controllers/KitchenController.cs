@@ -1,24 +1,46 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Restaurant.Data.Models;
+using ResturantPL.Hubs;
 using Service.UnitOfWork;
 
 namespace ResturantPL.Controllers
 {
+    [Authorize]
     public class KitchenController : Controller
     {
+        private readonly IHubContext<OrderHub> _orderHubContext;
         private readonly IUnitOfWork _unitOfWork;
-
-        public KitchenController(IUnitOfWork unitOfWork)
+       
+        public KitchenController(IUnitOfWork unitOfWork, IHubContext<OrderHub> orderHubContext)
         {
             _unitOfWork = unitOfWork;
+            _orderHubContext = orderHubContext;
         }
 
         public IActionResult Index()
         {
-            var kitchens = _unitOfWork.kitchenRepository.GetAll();
-           
-
+            var kitchens = _unitOfWork.kitchenRepository.GetAll();           
             return View(kitchens);
+        }
+        public IActionResult KitchenOrders()
+        {
+           var orders = _unitOfWork.OrderRepository
+               .GetAll
+               (
+                   a => a.Include(a => a.Seller),
+                   a => a.Include(a => a.Receiver),
+                   a => a.Include(a => a.Table),
+                   a => a.Include(a => a.Employee),                  
+                   a => a.Include(a => a.OrderMenuItems)
+                   .ThenInclude(o=>o.MenuItem)                  
+                )
+                .Where(a => a.Complete == false)
+               .OrderByDescending(a => a.OrderDate)
+               .ToList();
+            return View(orders);
         }
         public IActionResult Details(int id)
         {
@@ -26,10 +48,12 @@ namespace ResturantPL.Controllers
             return View(kitchen);
         }
 
-        public IActionResult Create(int id)
+        public IActionResult CreateAsync(int id)
         {
             var kitchen = _unitOfWork.kitchenRepository.GetById(id);
             if (kitchen is not  null) {
+                //await _orderHubContext.Clients.All.SendAsync("RefreshOrders");
+              
                 return View(kitchen);
             }
             else
@@ -39,7 +63,7 @@ namespace ResturantPL.Controllers
            
         }
         [HttpPost, ValidateAntiForgeryToken]
-        public IActionResult Create(kitchen model)
+        public async Task<IActionResult> CreateAsync(kitchen model)
         {
             if (!ModelState.IsValid)
                 return View(model);
@@ -47,7 +71,8 @@ namespace ResturantPL.Controllers
             if (model.Id != 0)
                 _unitOfWork.kitchenRepository.Update(model);
 
-            _unitOfWork.kitchenRepository.AddAsync(model);
+             await _unitOfWork.kitchenRepository.AddAsync(model);
+            await _orderHubContext.Clients.All.SendAsync("RefreshOrders");
             TempData["success"] = "تمت العملية بنجاح";
             return RedirectToAction(nameof(Index));
 

@@ -1,0 +1,96 @@
+﻿@model List<Order>
+@{
+    int index = 1;
+    int itemindex = 1;
+    var selectedOrder = 1;
+}
+<div class="container-fluid">
+    <h2 class="text-center my-5">الطلبيات</h2>
+    <div class="table-responsive">
+        <table class="table table-striped text-nowrap overflow-auto mb-0 text-center text-light border table-hover table-bordered table-dark">
+            <thead>
+                <tr>
+                    <th>الرقم التسلسلي</th>
+                    <th>رمز الطلب</th>
+                    <th>الخدمة</th>
+                    <th>الضريبة</th>
+                    <th>التخفيض</th>
+                    <th>السعر الكلي</th>
+                    <th>نوع الطلب</th>
+                    <th>تاريخ الطلب</th>                   
+                   
+                    <th>نقداً</th>
+                    <th>مكتمل</th>
+                   
+                    <th>اسم الزبون</th>
+                    <th>الإجراء</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var order in Model)
+                {
+                    <tr>
+                        <td class="align-middle">@index</td>
+                        <td class="align-middle">@order.OrderCode</td>
+                        <td class="align-middle">@order.Service</td>
+                        <td class="align-middle">@order.Tax</td>
+                        <td class="align-middle">@order.Discount</td>
+                        <td class="align-middle">@order.TotalPrice</td>
+                        <td class="align-middle">@order.Type</td>
+                        <td class="align-middle">@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                       
+                        
+
+                        <td class="align-middle">@(order.Cash ? "نعم" : "لا")</td>
+                        <td class="align-middle">@(order.Complete? "نعم":"لا")</td>
+                        
+                        <td class="align-middle">@order.CustomerName</td>
+                        <td class="align-middle">
+                            <a type="button" asp-controller="Order" asp-action="Details" asp-route-id="@order.Id" asp-route-isCheef="true" class="btn btn-warning text-light">
+                                عرض التفاصيل
+                            </a>
+                        </td>
+                     
+                    </tr>
+                    index++;
+
+                  
+                }
+              
+              
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="~/microsoft-signalr/signalr.min.js"></script>
+<script>
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl("/orderhub")
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+
+    connection.start().then(function () {
+        console.log("SignalR Connected.");
+    }).catch(function (err) {
+        return console.error(err.toString());
+    });
+
+    connection.on("RefreshOrders", function () {
+        // Reload or update the list of orders here
+        location.reload();
+    });
+</script>
+@section Scripts{
+    <script src="~/modules/kitchen.js"></script>
+}
+
+
+
+

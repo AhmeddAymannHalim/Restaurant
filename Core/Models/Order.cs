@@ -23,7 +23,7 @@ namespace Restaurant.Data.Models
         public string SellerId { get; set; }
         public string ReceiverId { get; set; }
         public bool Cash { get; set; }
-        public bool Complete { get; set; }
+        public bool Complete { get; set; } = false;
         public bool FinishShift { get; set; }
         public string CustomerName { get; set; } = "عميل نقدي";
 

@@ -63,6 +63,29 @@
     </script>
 
 }
+
+
+@* <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="~/microsoft-signalr/signalr.min.js"></script>
+<script>
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl("/orderhub")
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+
+    connection.start().then(function () {
+        console.log("SignalR Connected.");
+    }).catch(function (err) {
+        return console.error(err.toString());
+    });
+
+    connection.on("RefreshOrders", function () {
+        
+        location.reload();
+    });
+</script> *@
+
+
 @section Scripts{
    
     <script src="~/modules/kitchen.js"></script>
