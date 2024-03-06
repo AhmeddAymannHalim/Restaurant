@@ -12,18 +12,22 @@ using ResturantPL.Helper;
 using Service.Repositories;
 using Rotativa.AspNetCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Microsoft.AspNetCore.SignalR;
+using ResturantPL.Hubs;
 
 namespace ResturantPL.Controllers
 {
     public class OrderController : Controller
     {
+        private readonly IHubContext<OrderHub> _orderHubContext;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUnitOfWork _unitOfWork;
 
-        public OrderController(UserManager<ApplicationUser> userManager, IUnitOfWork unitOfWork)
+        public OrderController(UserManager<ApplicationUser> userManager, IUnitOfWork unitOfWork, IHubContext<OrderHub> orderHubContext)
         {
             this._userManager = userManager;
             this._unitOfWork = unitOfWork;
+            _orderHubContext = orderHubContext;
         }
 
 
@@ -519,7 +523,8 @@ namespace ResturantPL.Controllers
 
                     return RedirectToAction("Details", new { id = Order.Id });
                 }
-
+                // Notify clients that a new order has been added
+                await _orderHubContext.Clients.All.SendAsync("RefreshOrders");
                 return View(viewModel);
             }
             catch (Exception ex)

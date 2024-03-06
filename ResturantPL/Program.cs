@@ -12,6 +12,7 @@ using Restaurant.Data;
 using Restaurant.Data.Models;
 using Restaurant.Data.SeedData;
 using Rotativa.AspNetCore;
+using ResturantPL.Hubs;
 
 
 namespace ResturantPL
@@ -46,6 +47,7 @@ namespace ResturantPL
             });
 
             builder.Services.AddAutoMapper(typeof(Profiler));
+            builder.Services.AddSignalR();
             builder.Services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
             //builder.Services.AddScoped(typeof(IBasketRepository), typeof(BasketRepository));
             //builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
@@ -117,9 +119,16 @@ namespace ResturantPL
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+            app.MapHub<OrderHub>("/OrderHub");
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+               
+               
+            });
 
             var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider;
 

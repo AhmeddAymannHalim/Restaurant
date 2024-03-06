@@ -1,0 +1,130 @@
+﻿<div class="container-fluid">
+    <h2 class="text-center my-5">الطلبيات</h2>
+    <div class="table-responsive">
+        <table class="table table-striped text-nowrap overflow-auto mb-0 text-center text-light border table-hover table-bordered table-dark">
+            <thead>
+                <tr>
+                    <th>الرقم التسلسلي</th>
+                    <th>رمز الطلب</th>
+                    <th>الخدمة</th>
+                    <th>الضريبة</th>
+                    <th>التخفيض</th>
+                    <th>السعر الكلي</th>
+                    <th>نوع الطلب</th>
+                    <th>تاريخ الطلب</th>
+                    <th>رقم البائع</th>
+                    <th>رقم المستلم</th>
+                    <th>نقداً</th>
+                    <th>مكتمل</th>
+                    <th>انتهى التحول</th>
+                    <th>اسم الزبون</th>
+                    <th>الإجراء</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="align-middle">1</td>
+                    <td class="align-middle">ORD001</td>
+                    <td class="align-middle">100</td>
+                    <td class="align-middle">10</td>
+                    <td class="align-middle">5</td>
+                    <td class="align-middle">105</td>
+                    <td class="align-middle">النوع 1</td>
+                    <td class="align-middle">2024-03-05</td>
+                    <td class="align-middle">البائع123</td>
+                    <td class="align-middle">المستلم456</td>
+                    <td class="align-middle">نعم</td>
+                    <td class="align-middle">نعم</td>
+                    <td class="align-middle">لا</td>
+                    <td class="align-middle">جون دو</td>
+                    <td class="align-middle">
+                        <button type="button" class="btn btn-warning text-light"
+                                data-toggle="modal" data-target="#productModal">
+                            عرض التفاصيل
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="align-middle">1</td>
+                    <td class="align-middle">ORD001</td>
+                    <td class="align-middle">100</td>
+                    <td class="align-middle">10</td>
+                    <td class="align-middle">5</td>
+                    <td class="align-middle">105</td>
+                    <td class="align-middle">النوع 1</td>
+                    <td class="align-middle">2024-03-05</td>
+                    <td class="align-middle">البائع123</td>
+                    <td class="align-middle">المستلم456</td>
+                    <td class="align-middle">نعم</td>
+                    <td class="align-middle">نعم</td>
+                    <td class="align-middle">لا</td>
+                    <td class="align-middle">جون دو</td>
+                    <td class="align-middle">
+                        <button type="button" class="btn btn-warning text-light"
+                                data-toggle="modal" data-target="#productModal">
+                            عرض التفاصيل
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-labelledby="productModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productModalLabel">تفاصيل المنتج</h5>
+            </div>
+            <div class="modal-body text-right">
+                <p>الرقم التسلسلي: 1</p>
+                <p>الاسم: اسم المنتج</p>
+                <p>الوصف: وصف المنتج</p>
+                <p>السعر: 100</p>
+                <p>الكمية: 10</p>
+                <p>التاريخ: 2024-03-05</p>
+                <p>البائع: البائع123</p>
+                <p>المستلم: المستلم456</p>
+                <p>نقداً: نعم</p>
+                <p>مكتمل: نعم</p>
+                <p>انتهى التحول: لا</p>
+                <p>اسم الزبون: جون دو</p>
+            </div>
+            <div class="modal-footer d-flex">
+                <button type="button" class="btn btn-warning text-light m-auto px-3"
+                        data-dismiss="modal">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="~/microsoft-signalr/signalr.min.js"></script>
+<script>
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl("/orderhub")
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+
+    connection.start().then(function () {
+        console.log("SignalR Connected.");
+    }).catch(function (err) {
+        return console.error(err.toString());
+    });
+
+    connection.on("RefreshOrders", function () {
+        // Reload or update the list of orders here
+        location.reload();
+    });
+</script>
+
+
+
