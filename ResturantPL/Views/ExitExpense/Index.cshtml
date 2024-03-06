@@ -1,0 +1,54 @@
+﻿@model IEnumerable<Restaurant.Data.Models.ExitExpense>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1 class="text-center">المصروفات</h1>
+
+<p>
+    <a asp-action="Create">دفع مصروف جديد</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+               المصروف
+            </th>
+            <th>
+              السعر
+            </th>
+            <th>
+              التاريخ
+            </th>
+            <th>
+               اسم المستخدم
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+          
+            <td>
+                @Html.DisplayFor(modelItem => item.Expense.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Price)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Date)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.User.FullName)
+            </td>
+            <td>
+                @Html.ActionLink("تعديل", "Edit", new { id=item.Id}) |
+                @Html.ActionLink("التفاصيل", "Details", new { id=item.Id }) |
+                @Html.ActionLink("حذف", "Delete", new {  id=item.Id })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

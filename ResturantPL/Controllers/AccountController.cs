@@ -72,6 +72,10 @@ namespace ResturantPL.Controllers
                 MenuSections = _unitOfWork.MenuSectionRepository.GetAll().ToList(),
                 StoreConverts = _unitOfWork.StoreConvertRepository.GetAll().ToList(),
                 Deposits = _unitOfWork.DepositRepository.GetAll().ToList(),
+                kitchens = _unitOfWork.kitchenRepository.GetAll().ToList(),
+                Scrounges = _unitOfWork.ScroungeRepository.GetAll().ToList(),
+                States = _unitOfWork.StateRepository.GetAll().ToList(),
+                ExitExpenses = _unitOfWork.ExitExpenseRepository.GetAll().ToList(),
             };
 
             return View(adminViewModel);

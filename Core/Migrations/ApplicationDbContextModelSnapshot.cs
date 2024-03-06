@@ -449,6 +449,35 @@ namespace Restaurant.Data.Migrations
                     b.ToTable("Employees");
                 });
 
+            modelBuilder.Entity("Restaurant.Data.Models.ExitExpense", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExpenseId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpenseId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ExitExpenses");
+                });
+
             modelBuilder.Entity("Restaurant.Data.Models.Expense", b =>
                 {
                     b.Property<int>("Id")
@@ -647,7 +676,9 @@ namespace Restaurant.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -1046,11 +1077,16 @@ namespace Restaurant.Data.Migrations
                     b.Property<int>("StateId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("EmployeeId");
 
                     b.HasIndex("StateId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Scrounges");
                 });
@@ -1355,6 +1391,23 @@ namespace Restaurant.Data.Migrations
                     b.Navigation("SalaryType");
                 });
 
+            modelBuilder.Entity("Restaurant.Data.Models.ExitExpense", b =>
+                {
+                    b.HasOne("Restaurant.Data.Models.Expense", "Expense")
+                        .WithMany("Expenses")
+                        .HasForeignKey("ExpenseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Restaurant.Data.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Expense");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Restaurant.Data.Models.Invoice", b =>
                 {
                     b.HasOne("Restaurant.Data.Models.Store", "Store")
@@ -1445,9 +1498,11 @@ namespace Restaurant.Data.Migrations
 
             modelBuilder.Entity("Restaurant.Data.Models.MenuSection", b =>
                 {
-                    b.HasOne("Restaurant.Data.Models.kitchen", null)
+                    b.HasOne("Restaurant.Data.Models.kitchen", "kitchen")
                         .WithMany("MenuSections")
                         .HasForeignKey("kitchenId");
+
+                    b.Navigation("kitchen");
                 });
 
             modelBuilder.Entity("Restaurant.Data.Models.OnlineOrder", b =>
@@ -1566,9 +1621,15 @@ namespace Restaurant.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Restaurant.Data.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
                     b.Navigation("Employee");
 
                     b.Navigation("State");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Restaurant.Data.Models.Store", b =>
@@ -1647,6 +1708,11 @@ namespace Restaurant.Data.Migrations
             modelBuilder.Entity("Restaurant.Data.Models.Customer", b =>
                 {
                     b.Navigation("PaymentInvoices");
+                });
+
+            modelBuilder.Entity("Restaurant.Data.Models.Expense", b =>
+                {
+                    b.Navigation("Expenses");
                 });
 
             modelBuilder.Entity("Restaurant.Data.Models.Invoice", b =>

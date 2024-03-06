@@ -167,6 +167,39 @@
             </div>
 
             <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="ExitExpense">
+
+                    <i class="fa-solid fa-sack-dollar"></i>
+                    <div class="data">
+                        <p>صرف مبلغ</p>
+                        <span>@Model.ExitExpenses.Count()</span>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="Scrounge">
+
+                    <i class="fa-solid fa-sack-dollar"></i>
+                    <div class="data">
+                        <p>مصروفات الموظفين</p>
+                        <span>@Model.Scrounges.Count()</span>
+                    </div>
+                </a>
+            </div>
+             
+            <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="State">
+
+                    <i class="fa-solid fa-sack-dollar"></i>
+                    <div class="data">
+                        <p>انواع مصروفات الموظفين</p>
+                        <span>@Model.States.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="box">
                 <a style="text-decoration:none;" asp-action="Index" asp-controller="SalaryType">
 
                     <i class="fa-solid fa-money-bills"></i>
@@ -268,7 +301,7 @@
                     <i class="fa-solid fa-utensils"></i>
                     <div class="data">
                         <p>المطابخ</p>
-                        <span>@Model.EmployeeAccounts.Count()</span>
+                        @* <span>@Model.kitchens.Count()</span> *@
                     </div>
                 </a>
             </div>

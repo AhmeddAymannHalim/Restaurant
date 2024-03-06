@@ -33,6 +33,7 @@ namespace Service.UnitOfWork
         public IGenericRepository<MenuSection> MenuSectionRepository { get; set; }
         public IGenericRepository<StoreConvert> StoreConvertRepository { get; set; }
         public IGenericRepository<StoreConvertProduct> StoreConvertProductRepository { get; set; }
+        public IGenericRepository<ExitExpense> ExitExpenseRepository { get; set; }
 
 
 

@@ -33,6 +33,10 @@ namespace ResturantPL.ViewModels
         public ICollection<UnitPrice> UnitPrice { get; set; } = new List<UnitPrice>();//
         public ICollection<StoreConvert> StoreConverts { get; set; } = new List<StoreConvert>();//
         public ICollection<Deposit> Deposits { get; set; } = new List<Deposit>();//
+        public ICollection<kitchen> kitchens { get; set; } = new List<kitchen>();//
+        public ICollection<Scrounge> Scrounges { get; set; } = new List<Scrounge>();//
+        public ICollection<State> States { get; set; } = new List<State>();//
+        public ICollection<ExitExpense> ExitExpenses { get; set; } = new List<ExitExpense>();//
 
 
     }

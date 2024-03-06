@@ -1,63 +1,46 @@
 ﻿@model IEnumerable<Scrounge>
-@* @model ScroungeViewModel *@
 
 
-@*<h3>Categories List</h3>*@
-<div class="container">
-    <h1>جميع</h1>
-    <h4>الاستدانات</h4> 
+
+
+    <h1 class="text-center">جميع مصروفات الموظفين</h1>
     <hr />
 
-        <div>
-            <a class="btn btn-success" href="/Scrounge/Create">اضافة استدان</a>
-        </div>
-        <br />
 
-        @* <table id="mytable" class="table table-hover" width="100%"> *@
-        <table class="table table-hover text-center table-bordered table-striped-columns table-dark">
+    <a class="btn btn-success" href="/Scrounge/Create">اضافة مصروف لموظف</a>
 
-            <thead>
+    <table class="table table-hover text-center table-bordered table-striped-columns table-dark">
+
+        <thead>
+            <tr>
+
+                <td>المستخدم</td>
+                <td>التاريخ</td>
+                <td>الموظف</td>
+                <td>حالة المبلغ</td>
+                <td>المبلغ</td>
+                <td>الوصف</td>
+                <td>التوجيهات</td>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var item in Model)
+            {
                 <tr>
+                    <td>@item.User.FullName</td>
+                    <td>@item.CreatedTime</td>
+                    <td>@item.Employee.FullName</td>
+                    <td>@item.State.StateName</td>
+                    <td>@item.Amount</td>
+                    <td>@item.Info</td>
 
-                    <td>المبلغ</td>
-                    <td>التاريخ</td>
-                    <td>الوصف</td>
-
-                    <td>الموظف</td>
-                    <td>حالة المبلغ</td>
-
-                    <td>التوجيهات</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id">تفاصيل</a> |
+                        <a asp-action="Edit" asp-route-id="@item.Id">تعديل</a> |
+                        <a asp-action="Delete" asp-route-id="@item.Id">حذف</a>
+                    </td>
                 </tr>
-            </thead>
-
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-
-                        <td>@item.Amount</td>
-                        <td>@item.CreatedTime</td>
-                        <td>@item.Info</td>
-
-                        <td>@item.EmployeeId</td>
-                        <td>@item.StateId</td>
-                        <td>
-                            <a asp-action="Details" asp-route-id="@item.Id">تفاصيل</a> |
-                            <a asp-action="Edit" asp-route-id="@item.Id">تعديل</a> |
-                            <a asp-action="Delete" asp-route-id="@item.Id">حذف</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-
-
-
-
-
-        </table>
-</div>
-
-@* @section Scripts {
-    <script src="~/js/Scrounge/scrounges.js">
-    </script>
-} *@
+            }
+        </tbody>
+    </table>

@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Restaurant.Data.Models;
 using Service.UnitOfWork;
 using ResturantPL.ViewModels;
 using ResturantPL.Helper;
+using System.Security.Claims;
 
 namespace ResturantPL.Controllers
 {
@@ -15,14 +17,14 @@ namespace ResturantPL.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<ActionResult> Index()
+        public ActionResult Index()
         {
-            var scrounges = await _unitOfWork.ScroungeRepository.GetAllAsync();
+            var scrounges = _unitOfWork.ScroungeRepository
+                .GetAll(a => a.Include(a => a.User), a => a.Include(a => a.Employee), a => a.Include(a => a.State));
 
             return View(scrounges);
         }
 
-        // for datatable - ajax js
         public IActionResult GetData()
         {
             // for datatable - ajax js
@@ -58,10 +60,10 @@ namespace ResturantPL.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    // _context.Scrounges.Add(scrounge);
+                    scroungeViewModel.Scrounge.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
                     await _unitOfWork.ScroungeRepository.AddAsync(scroungeViewModel.Scrounge);
 
-                    // _context.SaveChanges();
                     _unitOfWork.Complete();
 
                     return RedirectToAction("Index");

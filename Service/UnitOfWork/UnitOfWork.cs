@@ -36,6 +36,7 @@ namespace Service.UnitOfWork
         public IGenericRepository<MenuSection> MenuSectionRepository { get; set; }
         public IGenericRepository<StoreConvert> StoreConvertRepository { get; set; }
         public IGenericRepository<StoreConvertProduct> StoreConvertProductRepository { get; set; }
+        public IGenericRepository<ExitExpense> ExitExpenseRepository { get; set; }
 
 
 
@@ -51,10 +52,11 @@ namespace Service.UnitOfWork
         //By Mahmoud
         public IGenericRepository<kitchen> kitchenRepository { get; set; }
 
+
+
         public UnitOfWork(ApplicationDbContext context)
         {
             this._context = context;
-         
 
             IndexRepository = new GenericRepository<IndexSettings>(_context);
             ChefItemRepository = new GenericRepository<ChefItem>(_context);
@@ -83,6 +85,8 @@ namespace Service.UnitOfWork
             MenuSectionRepository = new GenericRepository<MenuSection>(_context);
             StoreConvertRepository = new GenericRepository<StoreConvert>(_context);
             StoreConvertProductRepository = new GenericRepository<StoreConvertProduct>(_context);
+            ExitExpenseRepository = new GenericRepository<ExitExpense>(_context);
+
 
 
             // Yasser

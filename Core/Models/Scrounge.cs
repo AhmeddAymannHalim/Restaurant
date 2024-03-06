@@ -19,21 +19,22 @@ namespace Restaurant.Data.Models
         [DisplayName("المبلغ")]
         public decimal Amount { get; set; }
 
-        // the relation with Employee table
         [Required]
-        //[DisplayName("Employee")]
         [DisplayName("الموظف")]
         public int EmployeeId { get; set; }
-        //[ValidateNever]
         public Employee Employee { get; set; }
 
-        // the relation with State table
         [Required]
-        //[DisplayName("State")]
         [DisplayName("حالة المبلغ")]
         public int StateId { get; set; }
-        //[ValidateNever]
+
+        public string UserId { get; set; }
+
+
+
+
         public State State { get; set; }
+        public ApplicationUser User { get; set; }
 
     }
 }
