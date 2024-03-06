@@ -292,7 +292,15 @@
 
     <div>
         <a class="btn btn-primary" asp-action="OrderReport" asp-controller="Report" asp-route-orderId="@Model.Id"> تصدير الي PDF</a>
-        <a class="btn btn-info" asp-action="Create" asp-controller="Order">طلب جديد</a>
+        @if (ViewBag.isCheef)
+        {
+            <a class="btn btn-info" asp-action="KitchenOrders" asp-controller="Kitchen">العوده للمطبخ</a>
+        }
+        else
+        {
+            <a class="btn btn-info" asp-action="Create" asp-controller="Order">طلب جديد</a>
+        }
+
     </div>
 
 </div>

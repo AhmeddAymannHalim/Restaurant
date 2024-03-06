@@ -1,6 +1,8 @@
 ﻿@model List<Order>
 @{
     int index = 1;
+    int itemindex = 1;
+    var selectedOrder = 1;
 }
 <div class="container-fluid">
     <h2 class="text-center my-5">الطلبيات</h2>
@@ -44,15 +46,15 @@
                         
                         <td class="align-middle">@order.CustomerName</td>
                         <td class="align-middle">
-                            <button type="button" class="btn btn-warning text-light"
-                                    data-toggle="modal" data-target="#productModal">
+                            <a type="button" asp-controller="Order" asp-action="Details" asp-route-id="@order.Id" asp-route-isCheef="true" class="btn btn-warning text-light">
                                 عرض التفاصيل
-                            </button>
+                            </a>
                         </td>
                      
                     </tr>
                     index++;
 
+                  
                 }
               
               
@@ -61,37 +63,7 @@
     </div>
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-labelledby="productModalLabel"
-     aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content bg-dark">
-            <div class="modal-header">
-                <h5 class="modal-title" id="productModalLabel">تفاصيل المنتج</h5>
-            </div>
-            <div class="modal-body text-right">
-                <p>الرقم التسلسلي: 1</p>
-                <p>الاسم: اسم المنتج</p>
-                <p>الوصف: وصف المنتج</p>
-                <p>السعر: 100</p>
-                <p>الكمية: 10</p>
-                <p>التاريخ: 2024-03-05</p>
-                <p>البائع: البائع123</p>
-                <p>المستلم: المستلم456</p>
-                <p>نقداً: نعم</p>
-                <p>مكتمل: نعم</p>
-                <p>انتهى التحول: لا</p>
-                <p>اسم الزبون: جون دو</p>
-            </div>
-            <div class="modal-footer d-flex">
-                <button type="button" class="btn btn-warning text-light m-auto px-3"
-                        data-dismiss="modal">
-                    إغلاق
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
@@ -115,6 +87,10 @@
         location.reload();
     });
 </script>
+@section Scripts{
+    <script src="~/modules/kitchen.js"></script>
+}
+
 
 
 

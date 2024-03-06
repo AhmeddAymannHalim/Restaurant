@@ -219,12 +219,12 @@ namespace ResturantPL.Controllers
             //}
         }     
 
-        public IActionResult Details(int id)
+        public IActionResult Details(int id,bool isCheef=false)
         {
             Order orderInvoice = _unitOfWork.OrderRepository.GetById(a => a.Id == id,
                 new string[] { "Seller", "Receiver", "Table", "Customer", "Employee", "OrderMenuItems" },
                 new string[] { "OrderMenuItems.MenuItem" });
-
+            ViewBag.isCheef = isCheef;
             if (orderInvoice != null)
             {
                 return View(orderInvoice);
@@ -432,7 +432,7 @@ namespace ResturantPL.Controllers
                         SellerId = CurrentUser().Id,
 
                         Cash = viewModel.Cash,
-                        Complete = true,
+                        Complete = false,
                         FinishShift = false,
                         CustomerName = string.IsNullOrEmpty(viewModel.CustomerName) ? "عميل نقدي" : viewModel.CustomerName,
                         CustomerId = viewModel.CustomerId,

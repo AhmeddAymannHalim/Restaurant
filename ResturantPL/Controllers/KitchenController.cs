@@ -32,7 +32,7 @@ namespace ResturantPL.Controllers
                    a => a.Include(a => a.Table),
                    a => a.Include(a => a.Employee),                  
                    a => a.Include(a => a.OrderMenuItems).ThenInclude(o=>o.MenuItem)
-                   /*.Where(a => a.Complete == false)*/)                   
+                   .Where(a => a.Complete == false))                   
                .OrderByDescending(a => a.OrderDate)
                .ToList();
             return View(orders);
