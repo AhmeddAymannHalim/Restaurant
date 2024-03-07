@@ -42,6 +42,22 @@ namespace ResturantPL.Controllers
                .ToList();
             return View(orders);
         }
+        public IActionResult KitchenOrderDetails(int id)
+        {
+            Order orderInvoice = _unitOfWork.OrderRepository.GetById(a => a.Id == id,
+               new string[] { "Seller", "Receiver", "Table", "Customer", "Employee", "OrderMenuItems" },
+               new string[] { "OrderMenuItems.MenuItem" });            
+            if (orderInvoice != null)
+            {
+                
+                return View(orderInvoice);
+            }
+            else
+            {
+                return View(new Order());
+            }
+           
+        }
         public IActionResult Details(int id)
         {
             var kitchen = _unitOfWork.kitchenRepository.GetById(id);
@@ -69,10 +85,14 @@ namespace ResturantPL.Controllers
                 return View(model);
 
             if (model.Id != 0)
+            {
                 _unitOfWork.kitchenRepository.Update(model);
-
-             await _unitOfWork.kitchenRepository.AddAsync(model);
-            await _orderHubContext.Clients.All.SendAsync("RefreshOrders");
+            }
+            else
+            {
+                await _unitOfWork.kitchenRepository.AddAsync(model);
+            }
+           
             TempData["success"] = "تمت العملية بنجاح";
             return RedirectToAction(nameof(Index));
 

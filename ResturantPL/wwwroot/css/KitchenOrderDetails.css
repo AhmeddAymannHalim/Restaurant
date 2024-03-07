@@ -1,0 +1,65 @@
+﻿body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    margin: 0;
+    background-color: #111;
+}
+
+
+
+
+.container {
+    max-width: 576px; /* Set the maximum width to fit within the paper size */
+    margin: 0 auto; /* Center the content horizontally */
+    background-color: #fff; /* White background for better readability */
+    padding: 10px; /* Add padding for spacing */
+    color: black;
+    direction: rtl;
+    font-size: 14px;
+}
+
+h1 {
+    text-align: center;
+}
+
+dl {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+dt, dd {
+    width: 45%; /* Set width for better alignment */
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc; /* Add border for styling */
+    box-sizing: border-box;
+}
+
+dt {
+    background-color: #f2f2f2; /* Light gray background for dt elements */
+}
+
+
+
+table {
+    width: 100%;
+    border-collapse: collapse; /* Collapse table borders */
+    margin-top: 20px; /* Add margin at the top */
+    font-size: 14px; /* Reduce font size */
+}
+
+th, td {
+    border: 1px solid #ccc; /* Add border for styling */
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: #f2f2f2; /* Light gray background for table header */
+}
+@media print{
+    .no-print {
+        display: none;
+    }
+}

@@ -460,6 +460,7 @@ namespace ResturantPL.Controllers
                     }
                     else if (viewModel.Cash == false && viewModel.Type == OrderType.Hall)
                     {
+                       
                         Restaurant.Data.Models.Table table = _unitOfWork.TableRepository.GetById(viewModel.TableId);
                         Order.TableId = viewModel.TableId;
                         table.IsPending = true;
