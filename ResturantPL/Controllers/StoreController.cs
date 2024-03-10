@@ -101,7 +101,12 @@ namespace ResturantPL.Controllers
             }
             return NotFound();
         }
-
+        [HttpGet]
+        public IActionResult Inventory(int id,DateTime startDate,DateTime endDate)
+        {
+            var store = _unitOfWork.StoreRepository.GetById(a => a.Id == id, new string[] { "Storekeeper", "Invoices", "StoreProducts" }, new string[] { "Invoices.Supplier", "StoreProducts.Product" });
+            return View();
+        }
 
 
         [HttpPost, ValidateAntiForgeryToken]

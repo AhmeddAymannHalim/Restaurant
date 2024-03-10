@@ -235,16 +235,10 @@
 
     <div id="print-button" class="no-print">
         <a class="btn btn-primary" onclick="window.print()"> طباعة</a>
-    </div>           
+        <a class="btn btn-primary" asp-action="KitchenOrders"> العوده للمطبخ</a>
+    </div>  
+    
 </div>
-<script>
-    window.addEventListener("afterprint", function (event) {
-        if (!event.returnValue) {
-            alert('Print was canceled');
-        } else {
-            alert('Print was successful');
-        }
-    });
-</script>
+
 
 
