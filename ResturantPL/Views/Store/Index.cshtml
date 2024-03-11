@@ -33,7 +33,8 @@
 
             <td>
                 <a href="/Store/Details/@item.Id">تفاصيل</a> | 
-                <a href="/Store/Edit/@item.Id">تعديل</a> | 
+                <a href="/Store/Edit/@item.Id">تعديل</a> |
+                <a href="#" onclick="openModal('@item.Id')">جرد المخزن</a> |
                 <a href="/Store/Delete/@item.Id">حذف</a>
             </td>
         </tr>
@@ -42,3 +43,63 @@
 <div>
     <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
 </div>
+<!-- Button trigger modal -->
+
+
+<!-- Modal -->
+<div class="modal fade" id="dateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+              
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h1 class="modal-title fs-5" id="exampleModalLabel" style="color:black">تحديد تاريخ بداية ونهاية لجرد المخزن</h1>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <input type="hidden" id="itemIdInput" />
+                    <div>
+                        <label style="color:black" for="startDate">من تاريخ:</label>
+                        <input type="date" id="startDate" name="startDate">
+                    </div>
+                    
+                    <br/>
+                    <div>
+                        <label style="color:black" for="endDate">الي تاريخ:</label>
+                        <input type="date" id="endDate" name="endDate">
+                    </div>
+                   
+
+                   
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">الغاء</button>
+                <button type="button" class="btn btn-primary" onclick="saveChanges()">اكمال</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal(itemId) {
+        $('#dateModal').modal('show');
+        $('#itemIdInput').val(itemId);
+    }
+
+    function saveChanges() {
+        var startDate = $('#startDate').val();
+        var endDate = $('#endDate').val();
+        var itemId = $('#itemIdInput').val();
+        var today = new Date();
+        if (startDate >= endDate || endDate > today) {
+            alert("يجب عليك ادخال تاريخ بداية ونهاية صحيحين");
+            return;
+        }
+        var url = "Store/Inventory?id=" + itemId + "&startDate=" + startDate + "&endDate=" + endDate;
+        window.location.href = url;
+
+        // Close the modal
+        $('#dateModal').modal('hide');
+    }
+</script>
