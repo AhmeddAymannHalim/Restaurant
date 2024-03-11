@@ -1,0 +1,25 @@
+﻿@model IEnumerable<Invoice>
+
+@if (Model.Count() > 0)
+{
+    foreach (var item in Model)
+    {
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.InvoiceCode) </td>
+            <td>@(item.InvoiceType == InvoiceType.Purchases ? "مشتريات" : "مرتجعات")</td>
+            <td>@item.InvoiceDate.ToString("yyyy-MM-dd")</td>
+            <td>@item.Supplier.Name</td>
+            <td>@item.Store.Name</td>
+            <td>@item.InvoiceItems.Count()</td>
+            <td>@item.TotalPrice</td>
+            <td>
+                @Html.ActionLink("التفاصيل", "DetailsInvoice", "Invoice", new { id = item.Id })
+            </td>
+        </tr>
+    }
+   
+}
+else
+{
+    <tr><td colspan='8'>لا توجد نتائج للعرض</td></tr>
+}

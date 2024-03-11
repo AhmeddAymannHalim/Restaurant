@@ -9,7 +9,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="style.css">
+    @* <link rel="stylesheet" href="style.css"> *@
     <link rel="stylesheet" href="~/css/admindashstyle.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -171,7 +171,7 @@
 
                     <i class="fa-solid fa-sack-dollar"></i>
                     <div class="data">
-                        <p>صرف مبلغ</p>
+                        <p>خروج مصروف</p>
                         <span>@Model.ExitExpenses.Count()</span>
                     </div>
                 </a>
@@ -182,19 +182,19 @@
 
                     <i class="fa-solid fa-sack-dollar"></i>
                     <div class="data">
-                        <p>مصروفات الموظفين</p>
+                        <p>حوافز و خصومات و سلف</p>
                         <span>@Model.Scrounges.Count()</span>
                     </div>
                 </a>
             </div>
              
             <div class="box">
-                <a style="text-decoration:none;" asp-action="Index" asp-controller="State">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="Salary">
 
                     <i class="fa-solid fa-sack-dollar"></i>
                     <div class="data">
-                        <p>انواع مصروفات الموظفين</p>
-                        <span>@Model.States.Count()</span>
+                        <p>صرف المرتبات</p>
+                        <span>@Model.Salaries.Count()</span>
                     </div>
                 </a>
             </div>
@@ -342,8 +342,17 @@
                 <a style="text-decoration:none;" asp-action="Index" asp-controller="Deposit">
                     <i class="fa-solid fa-money-bill-transfer"></i>
                     <div class="data">
-                        <p>الايداعات</p>
+                        <p>الايرادات</p>
                         <span>@Model.Deposits.Count()</span>
+                    </div>
+                </a>
+            </div>
+
+             <div class="box">
+                <a style="text-decoration:none;" asp-action="Index" asp-controller="Report">
+                    <i class="fa-solid fa-file"></i>
+                    <div class="data">
+                        <p>التقارير</p>
                     </div>
                 </a>
             </div>

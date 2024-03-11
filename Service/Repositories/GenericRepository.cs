@@ -15,7 +15,7 @@ namespace Service.Repositories
         }
 
 
-       
+
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             var items = await _context.Set<T>().ToListAsync();
@@ -78,7 +78,7 @@ namespace Service.Repositories
             {
                 foreach (var include in includes)
                 {
-                     query = query.Include(include);
+                    query = query.Include(include);
                 }
             }
 
@@ -194,6 +194,43 @@ namespace Service.Repositories
             }
             return query.SingleOrDefault();
         }
+
+
+
+        //public IEnumerable<T> GetBetweenDates(Func<T, DateTime> dateSelector, DateTime startDate, DateTime endDate)
+        //{
+        //    return _context.Set<T>()
+        //        .Where(e => dateSelector(e) >= startDate && dateSelector(e) <= endDate)
+        //        .ToList();
+        //}
+
+
+
+        //public IEnumerable<T> GetEntitiesBetweenDates(
+        //      Func<T, DateTime> dateSelector,
+        //      DateTime startDate,
+        //      DateTime endDate,
+        //      Func<IQueryable<T>, IQueryable<T>> include = null,
+        //      Func<IQueryable<T>, IQueryable<T>> thenInclude = null)
+        //{
+        //    IQueryable<T> query = _context.Set<T>();
+
+        //    if (include != null)
+        //    {
+        //        query = include(query);
+        //    }
+
+        //    if (thenInclude != null)
+        //    {
+        //        query = thenInclude(query);
+        //    }
+
+        //    query = query.Where(e => dateSelector(e) >= startDate && dateSelector(e) <= endDate);
+
+        //    return query.ToList();
+        //}
+
+        
 
     }
 }

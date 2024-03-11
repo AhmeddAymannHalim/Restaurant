@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.Data.Models;
 using ResturantPL.Helper;
+using ResturantPL.Hubs;
 using ResturantPL.ViewModels;
 using Service.Repositories;
 using Service.UnitOfWork;
@@ -16,11 +18,13 @@ namespace ResturantPL.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IHubContext<OrderHub> _orderHubContext;
 
-        public OnlineOrderController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
+        public OnlineOrderController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IHubContext<OrderHub> orderHubContext)
         {
             this._unitOfWork = unitOfWork;
             this._userManager = userManager;
+            this._orderHubContext = orderHubContext;
         }
 
 
@@ -95,8 +99,8 @@ namespace ResturantPL.Controllers
                             await _unitOfWork.OnlineOrderMenuItemRepository.AddAsync(onlinemenuItem);
                         }
                     }
+                    await _orderHubContext.Clients.All.SendAsync("RefreshOnlineOrders");
                     return RedirectToAction("PendingOrders");
-
                 }
                 return RedirectToAction("Menu");
             }

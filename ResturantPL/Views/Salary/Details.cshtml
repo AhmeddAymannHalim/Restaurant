@@ -1,0 +1,60 @@
+﻿@model Restaurant.Data.Models.Salary
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1 class="text-center">التفاصيل</h1>
+    <hr />
+
+<div>
+    <dl class="row">
+        
+        <dt class = "col-sm-2">
+            كود المرتب
+        </dt>
+        <dd class = "col-sm-9">
+            @Html.DisplayFor(model => model.SalaryCode)
+        </dd>
+        <dt class = "col-sm-2">
+            من تاريخ
+        </dt>
+        <dd class = "col-sm-9">
+            @Model.FromDate.ToString("yyyy-MM-dd")
+        </dd>
+        <dt class = "col-sm-2">
+            الي تاريخ
+        </dt>
+        <dd class = "col-sm-9">
+            @Model.ToDate.ToString("yyyy-MM-dd")
+        </dd>
+        <dt class = "col-sm-2">
+            تاريخ المرتب
+        </dt>
+        <dd class = "col-sm-9">
+            @Html.DisplayFor(model => model.SalaryDate)
+        </dd>
+        <dt class = "col-sm-2">
+           مبلغ المرتب
+        </dt>
+        <dd class = "col-sm-9">
+            @Html.DisplayFor(model => model.SalaryAmount)
+        </dd>
+        <dt class = "col-sm-2">
+           اسم الموظف
+        </dt>
+        <dd class = "col-sm-9">
+            @Html.DisplayFor(model => model.Employee.FullName)
+        </dd>
+        <dt class = "col-sm-2">
+           اسم المستخدم
+        </dt>
+        <dd class = "col-sm-9">
+            @Html.DisplayFor(model => model.User.FullName)
+        </dd>
+    </dl>
+</div>
+<div>
+    @Html.ActionLink("تعديل", "Edit", new {  id = Model.Id }) |
+    <a asp-action="Index">عودة للمرتبات</a>
+</div>

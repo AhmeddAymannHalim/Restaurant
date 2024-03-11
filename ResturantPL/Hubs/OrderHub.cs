@@ -8,5 +8,11 @@ namespace ResturantPL.Hubs
         {
             await Clients.All.SendAsync("RefreshOrders");
         }
+        
+        
+        public async Task RefreshOnlineOrders()
+        {
+            await Clients.All.SendAsync("RefreshOnlineOrders");
+        }
     }
 }

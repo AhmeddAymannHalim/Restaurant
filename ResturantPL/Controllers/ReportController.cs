@@ -5,6 +5,8 @@ using ResturantPL.ViewModels;
 using Rotativa.AspNetCore;
 using Service.UnitOfWork;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ResturantPL.Controllers
 {
@@ -26,6 +28,584 @@ namespace ResturantPL.Controllers
             return currentUser;
         }
 
+        // page for all reports
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+
+
+
+
+        // Orders between 2 dates
+        public IActionResult SearchInOrders()
+        {
+            ViewBag.DateNow = DateTime.Now.ToString("yyyy-MM-dd");
+            return View();
+        }
+
+        public IActionResult AllOrdersByDates(DateTime startDate, DateTime endDate)
+        {
+            var orders = _unitOfWork.OrderRepository
+                .GetAll(
+                    a => a.Include(a => a.Seller)
+                                    .Include(a => a.Receiver)
+                                    .Include(a => a.Table)
+                                    .Include(a => a.Employee)
+                                    .Include(a => a.OrderMenuItems))
+                .Where(a => a.OrderDate.Date >= startDate.Date && a.OrderDate.Date <= endDate.Date && a.Cash && a.FinishShift)
+                .OrderByDescending(a => a.OrderDate).ToList();
+
+            return PartialView("_AllOrdersByDatesPartial", orders);
+        }
+
+        public IActionResult OrdersReport(DateTime startDate, DateTime endDate)
+        {
+            var orders = _unitOfWork.OrderRepository
+                .GetAll(
+                    a => a.Include(a => a.Seller)
+                                    .Include(a => a.Receiver)
+                                    .Include(a => a.Table)
+                                    .Include(a => a.Employee)
+                                    .Include(a => a.OrderMenuItems))
+                .Where(a => a.OrderDate.Date >= startDate.Date && a.OrderDate.Date <= endDate.Date && a.Cash && a.FinishShift)
+                .OrderByDescending(a => a.OrderDate).ToList();
+
+            ViewBag.StartDate = startDate.Date;
+            ViewBag.EndDate = endDate.Date;
+            var viewAsPdf = new ViewAsPdf
+            {
+                Model = orders,
+                FileName = "تقرير طلبات بين تاريخين.pdf"
+            };
+            return viewAsPdf;
+        }
+
+
+
+
+
+
+
+
+        // Deposit between 2 dates
+        public IActionResult SearchInImports()
+        {
+            ViewBag.DateNow = DateTime.Now.ToString("yyyy-MM-dd");
+            return View();
+        }
+
+        public IActionResult AllImportsByDates(DateTime startDate, DateTime endDate)
+        {
+            var imports = _unitOfWork.DepositRepository
+                .GetAll(
+                    a => a.Include(a => a.User))
+                .Where(a => a.CreatedTime.Date >= startDate.Date && a.CreatedTime.Date <= endDate.Date && a.IsDeleted == false)
+                .OrderByDescending(a => a.CreatedTime).ToList();
+
+            return PartialView("_AllImportsByDatesPartial", imports);
+        }
+
+        public IActionResult ImportsReport(DateTime startDate, DateTime endDate)
+        {
+
+            var imports = _unitOfWork.DepositRepository
+                .GetAll(
+                    a => a.Include(a => a.User))
+                .Where(a => a.CreatedTime.Date >= startDate.Date && a.CreatedTime.Date <= endDate.Date && a.IsDeleted == false)
+                .OrderByDescending(a => a.CreatedTime).ToList();
+
+
+            var viewAsPdf = new ViewAsPdf
+            {
+                Model = imports,
+                FileName = "تقرير الايداعات بين تاريخين.pdf"
+            };
+            return viewAsPdf;
+        }
+
+
+
+
+
+        // Expense between 2 dates
+        public IActionResult SearchInExpense()
+        {
+            ViewBag.DateNow = DateTime.Now.ToString("yyyy-MM-dd");
+            return View();
+        }
+
+        public IActionResult AllExpensesByDates(DateTime startDate, DateTime endDate)
+        {
+            var expense = _unitOfWork.ExitExpenseRepository
+                .GetAll(a => a.Include(a => a.User).Include(a => a.Expense))
+                .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date)
+                .OrderByDescending(a => a.Date).ToList();
+
+            return PartialView("_AllExpensesByDatesPartial", expense);
+        }
+
+        public IActionResult ExpensesReport(DateTime startDate, DateTime endDate)
+        {
+            var expense = _unitOfWork.ExitExpenseRepository
+              .GetAll(a => a.Include(a => a.User).Include(a => a.Expense))
+              .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date)
+              .OrderByDescending(a => a.Date).ToList();
+
+            var viewAsPdf = new ViewAsPdf
+            {
+                Model = expense,
+                FileName = "تقرير المصروفات بين تاريخين.pdf"
+            };
+            return viewAsPdf;
+        }
+
+
+
+
+
+
+        // Supplier Payments between 2 dates
+        public IActionResult SearchInSupplierPayment()
+        {
+            ViewBag.DateNow = DateTime.Now.ToString("yyyy-MM-dd");
+            return View();
+        }
+
+        public IActionResult AllSupplierPaymentsByDates(DateTime startDate, DateTime endDate)
+        {
+            var payment = _unitOfWork.PaymentInvoiceSupplierRepository
+                .GetAll(a => a.Include(a => a.Supplier))
+                .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date)
+                .OrderByDescending(a => a.Date).ToList();
+
+            return PartialView("_AllSupplierPaymentsByDatesPartial", payment);
+        }
+
+        public IActionResult SupplierPaymentsReport(DateTime startDate, DateTime endDate)
+        {
+            var payment = _unitOfWork.PaymentInvoiceSupplierRepository
+               .GetAll(a => a.Include(a => a.Supplier))
+               .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date)
+               .OrderByDescending(a => a.Date).ToList();
+
+            var viewAsPdf = new ViewAsPdf
+            {
+                Model = payment,
+                FileName = "تقرير سندات صرف الموردين بين تاريخين.pdf"
+            };
+            return viewAsPdf;
+        }
+
+
+
+
+
+
+
+        // Scrounge between 2 dates
+        public IActionResult SearchInScrounge()
+        {
+            ViewBag.DateNow = DateTime.Now.ToString("yyyy-MM-dd");
+            return View();
+        }
+
+        public IActionResult AllScroungesByDates(string type, DateTime startDate, DateTime endDate)
+        {
+            List<Scrounge> scrounge = new List<Scrounge>();
+            if (type == "All")
+            {
+                scrounge = _unitOfWork.ScroungeRepository
+                .GetAll(a => a.Include(a => a.User).Include(a => a.Employee))
+                .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date)
+                .OrderByDescending(a => a.Date).ToList();
+            }
+            else if (type == "Dept")
+            {
+                scrounge = _unitOfWork.ScroungeRepository
+                .GetAll(a => a.Include(a => a.User).Include(a => a.Employee))
+                .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date && a.State == MoneyState.Dept)
+                .OrderByDescending(a => a.Date).ToList();
+            }
+            else if (type == "Discount")
+            {
+                scrounge = _unitOfWork.ScroungeRepository
+               .GetAll(a => a.Include(a => a.User).Include(a => a.Employee))
+               .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date && a.State == MoneyState.Discount)
+               .OrderByDescending(a => a.Date).ToList();
+            }
+            else
+            {
+                scrounge = _unitOfWork.ScroungeRepository
+               .GetAll(a => a.Include(a => a.User).Include(a => a.Employee))
+               .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date && a.State == MoneyState.Incentive)
+               .OrderByDescending(a => a.Date).ToList();
+            }
+
+            return PartialView("_AllScroungesByDatesPartial", scrounge);
+        }
+
+        public IActionResult ScroungesReport(string type, DateTime startDate, DateTime endDate)
+        {
+            List<Scrounge> scrounge = new List<Scrounge>();
+            if (type == "All")
+            {
+                scrounge = _unitOfWork.ScroungeRepository
+                   .GetAll(a => a.Include(a => a.User).Include(a => a.Employee))
+                   .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date)
+                   .OrderByDescending(a => a.Date).ToList();
+            }
+            else if (type == "Dept")
+            {
+                scrounge = _unitOfWork.ScroungeRepository
+                .GetAll(a => a.Include(a => a.User).Include(a => a.Employee))
+                .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date && a.State == MoneyState.Dept)
+                .OrderByDescending(a => a.Date).ToList();
+            }
+            else if (type == "Discount")
+            {
+                scrounge = _unitOfWork.ScroungeRepository
+               .GetAll(a => a.Include(a => a.User).Include(a => a.Employee))
+               .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date && a.State == MoneyState.Discount)
+               .OrderByDescending(a => a.Date).ToList();
+            }
+            else
+            {
+                scrounge = _unitOfWork.ScroungeRepository
+               .GetAll(a => a.Include(a => a.User).Include(a => a.Employee))
+               .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date && a.State == MoneyState.Incentive)
+               .OrderByDescending(a => a.Date).ToList();
+            }
+            var viewAsPdf = new ViewAsPdf
+            {
+                Model = scrounge,
+                FileName = "تقرير مصروفات الموظفين بين تاريخين.pdf"
+            };
+            return viewAsPdf;
+        }
+
+
+
+
+        // Salary between 2 dates
+        public IActionResult SearchInSalary()
+        {
+            ViewBag.DateNow = DateTime.Now.ToString("yyyy-MM-dd");
+            return View();
+        }
+
+        public IActionResult AllSalaryByDates(DateTime startDate, DateTime endDate)
+        {
+
+            var salary = _unitOfWork.SalaryRepository
+             .GetAll(a => a.Include(a => a.User).Include(a => a.Employee))
+             .Where(a => a.SalaryDate.Date >= startDate.Date && a.SalaryDate.Date <= endDate.Date)
+             .OrderByDescending(a => a.SalaryDate).ToList();
+
+
+            return PartialView("_AllSalaryByDatesPartial", salary);
+        }
+
+        public IActionResult SalaryReport(DateTime startDate, DateTime endDate)
+        {
+
+            var salary = _unitOfWork.SalaryRepository
+              .GetAll(a => a.Include(a => a.User).Include(a => a.Employee))
+              .Where(a => a.SalaryDate.Date >= startDate.Date && a.SalaryDate.Date <= endDate.Date)
+              .OrderByDescending(a => a.SalaryDate).ToList();
+
+            var viewAsPdf = new ViewAsPdf
+            {
+                Model = salary,
+                FileName = "تقرير مرتبات الموظفين بين تاريخين.pdf"
+            };
+            return viewAsPdf;
+        }
+
+
+
+
+
+
+
+        // Benefits between 2 dates
+        public IActionResult SearchInBenefits()
+        {
+            ViewBag.DateNow = DateTime.Now.ToString("yyyy-MM-dd");
+            return View();
+        }
+
+        public IActionResult BenefitsByDates(DateTime startDate, DateTime endDate)
+        {
+            decimal orders = _unitOfWork.OrderRepository
+                .GetAll(
+                    a => a.Include(a => a.Seller)
+                                    .Include(a => a.Receiver)
+                                    .Include(a => a.Table)
+                                    .Include(a => a.Employee)
+                                    .Include(a => a.OrderMenuItems).ThenInclude(a => a.MenuItem))
+                .Where(a => a.OrderDate.Date >= startDate.Date && a.OrderDate.Date <= endDate.Date && a.Cash && a.FinishShift)
+                .OrderByDescending(a => a.OrderDate).ToList().Sum(a => a.OrderMenuItems.Sum(a => a.MenuItem.Benefit * a.Quantity));
+
+            return Json(orders);
+        }
+
+        public IActionResult BenefitReport(DateTime startDate, DateTime endDate)
+        {
+            var orders = _unitOfWork.OrderRepository
+                .GetAll(
+                    a => a.Include(a => a.Seller)
+                                    .Include(a => a.Receiver)
+                                    .Include(a => a.Table)
+                                    .Include(a => a.Employee)
+                                    .Include(a => a.OrderMenuItems))
+                .Where(a => a.OrderDate.Date >= startDate.Date && a.OrderDate.Date <= endDate.Date && a.Cash && a.FinishShift)
+                .OrderByDescending(a => a.OrderDate).ToList();
+
+            ViewBag.StartDate = startDate.Date;
+            ViewBag.EndDate = endDate.Date;
+            var viewAsPdf = new ViewAsPdf
+            {
+                Model = orders,
+                FileName = "تقرير طلبات بين تاريخين.pdf"
+            };
+            return viewAsPdf;
+        }
+
+
+
+
+
+
+
+        // Invoices between 2 dates
+        public IActionResult SearchInInvoices()
+        {
+            ViewBag.DateNow = DateTime.Now.ToString("yyyy-MM-dd");
+            return View();
+        }
+
+        public IActionResult AllInvoicesByDates(string type, DateTime startDate, DateTime endDate)
+        {
+            List<Invoice> invoices = new List<Invoice>();
+            if (type == "All")
+            {
+
+                invoices = _unitOfWork.InvoiceRepository.GetAll(
+                  a => a.Include(a => a.InvoiceItems).ThenInclude(a => a.StoreProduct),
+                  a => a.Include(a => a.Supplier),
+                  a => a.Include(a => a.Store))
+                   .Where(a => a.InvoiceDate.Date >= startDate.Date && a.InvoiceDate.Date <= endDate.Date)
+                   .OrderByDescending(a => a.InvoiceDate).ToList();
+            }
+            else if (type == "Purchase")
+            {
+                invoices = _unitOfWork.InvoiceRepository.GetAll(
+              a => a.Include(a => a.InvoiceItems).ThenInclude(a => a.StoreProduct),
+              a => a.Include(a => a.Supplier),
+              a => a.Include(a => a.Store))
+               .Where(a => a.InvoiceDate.Date >= startDate.Date && a.InvoiceDate.Date <= endDate.Date && a.InvoiceType == InvoiceType.Purchases)
+               .OrderByDescending(a => a.InvoiceDate).ToList();
+            }
+            else
+            {
+                invoices = _unitOfWork.InvoiceRepository.GetAll(
+                              a => a.Include(a => a.InvoiceItems).ThenInclude(a => a.StoreProduct),
+                              a => a.Include(a => a.Supplier),
+                              a => a.Include(a => a.Store))
+                               .Where(a => a.InvoiceDate.Date >= startDate.Date && a.InvoiceDate.Date <= endDate.Date && a.InvoiceType == InvoiceType.Returns)
+                               .OrderByDescending(a => a.InvoiceDate).ToList();
+            }
+
+            return PartialView("_InvoicePartial", invoices);
+        }
+
+        public IActionResult InvoicesReport(string type, DateTime startDate, DateTime endDate)
+        {
+            List<Invoice> invoices = new List<Invoice>();
+            if (type == "All")
+            {
+
+                invoices = _unitOfWork.InvoiceRepository.GetAll(
+                  a => a.Include(a => a.InvoiceItems).ThenInclude(a => a.StoreProduct),
+                  a => a.Include(a => a.Supplier),
+                  a => a.Include(a => a.Store))
+                   .Where(a => a.InvoiceDate.Date >= startDate.Date && a.InvoiceDate.Date <= endDate.Date)
+                   .OrderByDescending(a => a.InvoiceDate).ToList();
+            }
+            else if (type == "Purchase")
+            {
+                invoices = _unitOfWork.InvoiceRepository.GetAll(
+              a => a.Include(a => a.InvoiceItems).ThenInclude(a => a.StoreProduct),
+              a => a.Include(a => a.Supplier),
+              a => a.Include(a => a.Store))
+               .Where(a => a.InvoiceDate.Date >= startDate.Date && a.InvoiceDate.Date <= endDate.Date && a.InvoiceType == InvoiceType.Purchases)
+               .OrderByDescending(a => a.InvoiceDate).ToList();
+            }
+            else
+            {
+                invoices = _unitOfWork.InvoiceRepository.GetAll(
+                              a => a.Include(a => a.InvoiceItems).ThenInclude(a => a.StoreProduct),
+                              a => a.Include(a => a.Supplier),
+                              a => a.Include(a => a.Store))
+                               .Where(a => a.InvoiceDate.Date >= startDate.Date && a.InvoiceDate.Date <= endDate.Date && a.InvoiceType == InvoiceType.Returns)
+                               .OrderByDescending(a => a.InvoiceDate).ToList();
+            }
+            var viewAsPdf = new ViewAsPdf
+            {
+                Model = invoices,
+                FileName = "تقرير الفواتير بين تاريخين.pdf"
+            };
+            return viewAsPdf;
+        }
+
+
+
+
+
+        // Tayar Orders between 2 dates
+        public IActionResult SearchInTayars()
+        {
+            ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll().Where(a => a.UserType == "طيار"), "EmployeeId", "FullName");
+
+            ViewBag.DateNow = DateTime.Now.ToString("yyyy-MM-dd");
+            return View();
+        }
+
+        public IActionResult AllTayarOrdersByDates(int employeeId, DateTime startDate, DateTime endDate)
+        {
+            var employee = _unitOfWork.EmployeeRepository.GetById(a => a.EmployeeId == employeeId, new string[] { "Orders" });
+
+            var orders = _unitOfWork.OrderRepository
+                .GetAll(a => a.Include(a => a.Seller)
+                                    .Include(a => a.Receiver)
+                                    .Include(a => a.Table)
+                                    .Include(a => a.Employee)
+                                    .Include(a => a.OrderMenuItems))
+                .Where(a => a.OrderDate.Date >= startDate.Date
+                && a.OrderDate.Date <= endDate.Date && a.Cash &&
+                a.FinishShift && a.EmployeeId == employee.EmployeeId)
+                .OrderByDescending(a => a.OrderDate).ToList();
+
+            return PartialView("_AllTayarOrdersPartial", orders);
+        }
+
+        public IActionResult TayarsReport(int employeeId, DateTime startDate, DateTime endDate)
+        {
+            var employee = _unitOfWork.EmployeeRepository.GetById(a => a.EmployeeId == employeeId, new string[] { "Orders" });
+
+            var orders = _unitOfWork.OrderRepository
+                .GetAll(a => a.Include(a => a.Seller)
+                                    .Include(a => a.Receiver)
+                                    .Include(a => a.Table)
+                                    .Include(a => a.Employee)
+                                    .Include(a => a.OrderMenuItems))
+                .Where(a => a.OrderDate.Date >= startDate.Date
+                && a.OrderDate.Date <= endDate.Date && a.Cash &&
+                a.FinishShift && a.EmployeeId == employee.EmployeeId)
+                .OrderByDescending(a => a.OrderDate).ToList();
+
+            var viewAsPdf = new ViewAsPdf
+            {
+                Model = orders,
+                FileName = $"تقرير طلبات الطيار {employee.FullName} بين تاريخين.pdf"
+            };
+            return viewAsPdf;
+        }
+
+
+
+
+
+        // Money Safe between 2 dates
+        public IActionResult MoneySafe()
+        {
+            ViewBag.DateNow = DateTime.Now.ToString("yyyy-MM-dd");
+            return View();
+        }
+
+        public IActionResult MoneySafeByDateas(DateTime startDate, DateTime endDate)
+        {
+            MoneySafeViewModel moneySafe = new MoneySafeViewModel()
+            {
+                Imports = _unitOfWork.DepositRepository.GetAll()
+                .Where(a => a.CreatedTime.Date >= startDate.Date && a.CreatedTime.Date <= endDate.Date).Sum(a => a.Amount),
+                Sales = _unitOfWork.OrderRepository.GetAll()
+                .Where(a => a.OrderDate.Date >= startDate.Date && a.OrderDate.Date <= endDate.Date && a.Cash && a.FinishShift).Sum(a => a.TotalPrice),
+                Returns = _unitOfWork.InvoiceRepository.GetAll()
+                .Where(a => a.InvoiceDate.Date >= startDate.Date && a.InvoiceDate.Date <= endDate.Date && a.InvoiceType == InvoiceType.Returns).Sum(a => a.Paid),
+                Purchases = _unitOfWork.InvoiceRepository.GetAll()
+                .Where(a => a.InvoiceDate.Date >= startDate.Date && a.InvoiceDate.Date <= endDate.Date && a.InvoiceType == InvoiceType.Purchases).Sum(a => a.Paid),
+                Expenses = _unitOfWork.ExitExpenseRepository.GetAll()
+                .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date).Sum(a => a.Price),
+                EmployeeExpenses = _unitOfWork.ScroungeRepository.GetAll()
+                .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date && a.State == MoneyState.Dept).Sum(a => a.Amount) + _unitOfWork.SalaryRepository.GetAll()
+                .Where(a => a.SalaryDate.Date >= startDate.Date && a.SalaryDate.Date <= endDate.Date).Sum(a => a.SalaryAmount),
+
+                SupplierPayment = _unitOfWork.PaymentInvoiceSupplierRepository.GetAll()
+                .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date).Sum(a => a.Paid),
+            };
+            moneySafe.TotalImports = moneySafe.Imports + moneySafe.Sales + moneySafe.Returns;
+            moneySafe.TotalExports = moneySafe.Purchases + moneySafe.Expenses + moneySafe.EmployeeExpenses + moneySafe.SupplierPayment;
+            moneySafe.TotalMoney = moneySafe.TotalImports - moneySafe.TotalExports;
+
+            return Json(moneySafe);
+        }
+
+        public IActionResult MoneySafeReport(DateTime startDate, DateTime endDate)
+        {
+            MoneySafeViewModel moneySafe = new MoneySafeViewModel()
+            {
+                Imports = _unitOfWork.DepositRepository.GetAll()
+               .Where(a => a.CreatedTime.Date >= startDate.Date && a.CreatedTime.Date <= endDate.Date).Sum(a => a.Amount),
+                Sales = _unitOfWork.OrderRepository.GetAll()
+               .Where(a => a.OrderDate.Date >= startDate.Date && a.OrderDate.Date <= endDate.Date).Sum(a => a.TotalPrice),
+                Returns = _unitOfWork.InvoiceRepository.GetAll()
+               .Where(a => a.InvoiceDate.Date >= startDate.Date && a.InvoiceDate.Date <= endDate.Date && a.InvoiceType == InvoiceType.Returns).Sum(a => a.Paid),
+                Purchases = _unitOfWork.InvoiceRepository.GetAll()
+               .Where(a => a.InvoiceDate.Date >= startDate.Date && a.InvoiceDate.Date <= endDate.Date && a.InvoiceType == InvoiceType.Purchases).Sum(a => a.Paid),
+                Expenses = _unitOfWork.ExitExpenseRepository.GetAll()
+               .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date).Sum(a => a.Price),
+                EmployeeExpenses = _unitOfWork.ScroungeRepository.GetAll()
+               .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date && a.State == MoneyState.Dept).Sum(a => a.Amount) + _unitOfWork.SalaryRepository.GetAll()
+               .Where(a => a.SalaryDate.Date >= startDate.Date && a.SalaryDate.Date <= endDate.Date).Sum(a => a.SalaryAmount),
+
+                SupplierPayment = _unitOfWork.PaymentInvoiceSupplierRepository.GetAll()
+               .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date).Sum(a => a.Paid),
+            };
+            moneySafe.TotalImports = moneySafe.Imports + moneySafe.Sales + moneySafe.Returns;
+            moneySafe.TotalExports = moneySafe.Purchases + moneySafe.Expenses + moneySafe.EmployeeExpenses + moneySafe.SupplierPayment;
+            moneySafe.TotalMoney = moneySafe.TotalImports - moneySafe.TotalExports;
+
+            moneySafe.FromDate = startDate;
+            moneySafe.ToDate = endDate;
+            moneySafe.ReportDate = DateTime.Now;
+
+
+
+
+            var viewAsPdf = new ViewAsPdf
+            {
+                Model = moneySafe,
+                FileName = "تقرير حركة الخزينة بين تاريخين.pdf"
+            };
+            return viewAsPdf;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         // Export Order to pdf
         public IActionResult OrderReport(int orderId)
@@ -34,7 +614,11 @@ namespace ResturantPL.Controllers
                 new string[] { "Seller", "Receiver", "Table", "Customer", "Employee", "OrderMenuItems" },
                 new string[] { "OrderMenuItems.MenuItem" });
 
-
+            if (order.Complete == false)
+            {
+                order.Complete = true;
+                _unitOfWork.OrderRepository.Update(order);
+            }
             // to open pdf and download if you want
             //return new ViewAsPdf( order);
 
@@ -89,7 +673,6 @@ namespace ResturantPL.Controllers
             return viewAsPdf;
         }
 
-
         // Report for  payment invoice for customer
         public IActionResult PayForCustomerReport(int invoiceId)
         {
@@ -103,7 +686,6 @@ namespace ResturantPL.Controllers
             return viewAsPdf;
         }
 
-       
         // Report for End Shift
         public IActionResult EndShiftReport(EndShiftViewModel model)
         {
@@ -117,6 +699,18 @@ namespace ResturantPL.Controllers
             };
             return viewAsPdf;
         }
+
+
+
+
+
+
+
+
+
+
+
+
 
     }
 }

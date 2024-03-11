@@ -1,0 +1,23 @@
+﻿@model IEnumerable<Order>
+
+@if (Model.Count() > 0)
+{
+    foreach (var item in Model)
+    {
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.OrderCode) </td>
+            <td>@item.OrderDate.ToString("yyyy-MM-dd")</td>
+            <td>@item.Employee.FullName</td>
+            <td>@item.Address</td>
+            <td>@item.TotalPrice</td>
+            <td>
+                @Html.ActionLink("التفاصيل", "Details", "Order", new { id = item.Id })
+            </td>
+        </tr>
+
+    }
+}
+else
+{
+    <tr><td colspan='6'>لا توجد نتائج للعرض</td></tr>
+}

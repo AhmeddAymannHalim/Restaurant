@@ -37,6 +37,7 @@ namespace Service.UnitOfWork
         public IGenericRepository<StoreConvert> StoreConvertRepository { get; set; }
         public IGenericRepository<StoreConvertProduct> StoreConvertProductRepository { get; set; }
         public IGenericRepository<ExitExpense> ExitExpenseRepository { get; set; }
+        public IGenericRepository<Salary> SalaryRepository { get; set; }
 
 
 
@@ -44,7 +45,6 @@ namespace Service.UnitOfWork
         public IGenericRepository<Table> TableRepository { get; set; }
         public IGenericRepository<Customer> CustomerRepository { get; set; }
         public IGenericRepository<Expense> ExpenseRepository { get; set; }
-        public IGenericRepository<State> StateRepository { get; set; }
         public IGenericRepository<Scrounge> ScroungeRepository { get; set; }
         public IGenericRepository<Deposit> DepositRepository { get; set; }
 
@@ -86,6 +86,7 @@ namespace Service.UnitOfWork
             StoreConvertRepository = new GenericRepository<StoreConvert>(_context);
             StoreConvertProductRepository = new GenericRepository<StoreConvertProduct>(_context);
             ExitExpenseRepository = new GenericRepository<ExitExpense>(_context);
+            SalaryRepository = new GenericRepository<Salary>(_context);
 
 
 
@@ -93,7 +94,6 @@ namespace Service.UnitOfWork
             TableRepository = new GenericRepository<Table>(_context);
             CustomerRepository = new GenericRepository<Customer>(_context);
             ExpenseRepository = new GenericRepository<Expense>(_context);
-            StateRepository = new GenericRepository<State>(_context);
             ScroungeRepository = new GenericRepository<Scrounge>(_context);
             DepositRepository = new GenericRepository<Deposit>(_context);
 

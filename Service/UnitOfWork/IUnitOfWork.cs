@@ -34,6 +34,7 @@ namespace Service.UnitOfWork
         public IGenericRepository<StoreConvert> StoreConvertRepository { get; set; }
         public IGenericRepository<StoreConvertProduct> StoreConvertProductRepository { get; set; }
         public IGenericRepository<ExitExpense> ExitExpenseRepository { get; set; }
+        public IGenericRepository<Salary> SalaryRepository { get; set; }
 
 
 
@@ -42,7 +43,6 @@ namespace Service.UnitOfWork
         public IGenericRepository<Table> TableRepository { get; set; }
         public IGenericRepository<Customer> CustomerRepository { get; set; }
         public IGenericRepository<Expense> ExpenseRepository { get; set; }
-        public IGenericRepository<State> StateRepository { get; set; }
         public IGenericRepository<Scrounge> ScroungeRepository { get; set; }
         public IGenericRepository<Deposit> DepositRepository { get; set; }
 

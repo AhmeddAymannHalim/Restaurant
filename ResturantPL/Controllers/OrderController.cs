@@ -11,9 +11,12 @@ using System.Security.Claims;
 using ResturantPL.Helper;
 using Service.Repositories;
 using Rotativa.AspNetCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Microsoft.AspNetCore.SignalR;
 using ResturantPL.Hubs;
+using NuGet.Protocol.Core.Types;
+using System.Linq.Expressions;
+using System.Globalization;
+
 
 namespace ResturantPL.Controllers
 {
@@ -217,9 +220,9 @@ namespace ResturantPL.Controllers
             //{
             //    return RedirectToAction("Login", "Shift");
             //}
-        }     
+        }
 
-        public IActionResult Details(int id,bool isCheef=false)
+        public IActionResult Details(int id, bool isCheef = false)
         {
             Order orderInvoice = _unitOfWork.OrderRepository.GetById(a => a.Id == id,
                 new string[] { "Seller", "Receiver", "Table", "Customer", "Employee", "OrderMenuItems" },
@@ -232,26 +235,10 @@ namespace ResturantPL.Controllers
             return NotFound();
         }
 
+
+       
+
         #region Orders Details
-
-
-        //public IActionResult AllOrders()
-        //{
-        //    var orders = _unitOfWork.OrderRepository
-        //        .GetAll(
-        //            a => a.Include(a => a.Seller),
-        //            a => a.Include(a => a.Receiver),
-        //            a => a.Include(a => a.Table),
-        //            a => a.Include(a => a.Employee),
-        //            a => a.Include(a => a.OrderMenuItems))
-        //        .Where(a => a.Cash && a.FinishShift)
-        //        .OrderByDescending(a => a.OrderDate);
-        //    //.OrderBy(a => a.OrderDate.Hour)
-        //    // Order by the day of the month from the Date property
-        //    //.ThenBy(a => a.SellerId).ThenBy(a=> a.ReceiverId);
-
-        //    return View(orders);
-        //}
 
         public IActionResult AllOrders(int page = 1, int pageSize = 10)
         {
@@ -273,22 +260,7 @@ namespace ResturantPL.Controllers
 
             return View(paginatedList);
         }
-        public IActionResult OrdersByDay(DateTime selectedDate)
-        {
-            // Filter orders based on the selected date
-            var orders = _unitOfWork.OrderRepository.GetAll(
-                    a => a.Include(a => a.Seller),
-                    a => a.Include(a => a.Receiver),
-                    a => a.Include(a => a.Table),
-                    a => a.Include(a => a.Employee),
-                    a => a.Include(a => a.OrderMenuItems))
-                .Where(a => a.Cash == true && a.FinishShift == true && a.OrderDate.Date == selectedDate.Date)
-                .OrderBy(a => a.SellerId)
-                .ThenBy(a => a.OrderDate);
 
-            // Pass the filtered orders to the view
-            return View(orders);
-        }
 
         public IActionResult HallOrders()
         {
@@ -319,6 +291,7 @@ namespace ResturantPL.Controllers
             return View(orders);
         }
 
+
         public IActionResult TakeAwayOrders()
         {
             var orders = _unitOfWork.OrderRepository
@@ -327,8 +300,6 @@ namespace ResturantPL.Controllers
 
             return View(orders);
         }
-
-
 
 
         public IActionResult PendingHall()
@@ -349,7 +320,8 @@ namespace ResturantPL.Controllers
 
             return View(orders);
         }
-   
+
+
         public IActionResult PendingOnlineDelivery()
         {
             var orders = _unitOfWork.OrderRepository
@@ -358,9 +330,6 @@ namespace ResturantPL.Controllers
 
             return View(orders);
         }
-
-
-
 
         #endregion
 
@@ -509,7 +478,7 @@ namespace ResturantPL.Controllers
                 return View("Error", ErrorMessage.Error(ex.Message));
             }
         }
-       
+
 
 
         public IActionResult Move(int id)
@@ -653,6 +622,7 @@ namespace ResturantPL.Controllers
 
                     order.Cash = true;
                     order.ReceiverId = CurrentUser().Id;
+                    order.OrderDate = DateTime.Now;
                 }
 
                 _unitOfWork.OrderRepository.Update(order);
@@ -828,7 +798,7 @@ namespace ResturantPL.Controllers
             }
             return NotFound();
         }
-      
+
 
 
         [HttpPost, ValidateAntiForgeryToken, ActionName("CancelOnlineOrder")]

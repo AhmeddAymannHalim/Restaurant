@@ -1,6 +1,6 @@
 ﻿@*@if (ViewData["Title"] == "Index")
 {
-    
+
   @model IndexSettings
 }*@
 
@@ -14,9 +14,9 @@
     <title>@ViewData["Title"] - ResturantPL</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/ResturantPL.styles.css" asp-append-version="true" />
+    @* <link rel="stylesheet" href="~/ResturantPL.styles.css" asp-append-version="true" /> *@
 
-  
+
         <!-- Favicons -->
         <link href="~/assets/img/favicon.png" rel="icon">
         <link href="~/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
@@ -37,19 +37,19 @@
         <link href="~/assets/css/style.css" rel="stylesheet">
 
 
-    
+
 </head>
 <body>
     <!-- ======= Top Bar ======= -->
     <div id="topbar" class="d-flex align-items-center fixed-top">
         <div class="container d-flex justify-content-center justify-content-md-between">
-            @if(Model!=null && Model.GetType() == typeof(IndexSettings))
+            @if (Model != null && Model.GetType() == typeof(IndexSettings))
             {
-                <div class="contact-info d-flex align-items-center">
-                    <i class="bi bi-phone d-flex align-items-center"><span>@Model.Phone</span></i>
-                    <i class="bi bi-clock d-flex align-items-center ms-4"><span> @Model.EndDay-@Model.StartDay: @Model.StartHour صباحا - @Model.EndHour مسائا</span></i>
-                </div>
-                
+                    <div class="contact-info d-flex align-items-center">
+                        <i class="bi bi-phone d-flex align-items-center"><span>@Model.Phone</span></i>
+                        <i class="bi bi-clock d-flex align-items-center ms-4"><span> @Model.EndDay-@Model.StartDay: @Model.StartHour صباحا - @Model.EndHour مسائا</span></i>
+                    </div>
+
             }
 
 
@@ -63,7 +63,7 @@
             <a asp-action="Basket" asp-controller="OnlineOrder" class="book-a-table-btn scrollto d-none d-lg-flex">احجز طلبك الان</a>
             <!-- Uncomment below if you prefer to use an image logo -->
             <!-- <a href="index.html" class="logo me-auto me-lg-0"><img src="~/assets/img/logo.png" alt="" class="img-fluid"></a>-->
-           
+
             <nav id="navbar" class="navbar order-last order-lg-0">
                 <ul>
                     <li><a class="nav-link scrollto active" asp-action="Index" asp-controller="Home" >الصفحه الرئيسيه</a></li>
@@ -77,21 +77,21 @@
                     @* <li><a class="nav-link scrollto" asp-action="Index" asp-controller="User">المستخدمين</a></li> *@
                     @* <li><a class="nav-link scrollto" asp-action="GetOrders" asp-controller="Order">الاوردرات المحجوزه</a></li> *@
                     <li><a class="nav-link scrollto" asp-action="AdminDash" asp-controller="Account">لوحة التحكم</a></li>
-                    @if(User.Identity.IsAuthenticated)
+                    @if (User.Identity.IsAuthenticated)
                     {
-                        <li><a class="nav-link scrollto float-end text-danger" asp-action="SignOut" asp-controller="Account">تسجيل الخروج</a></li>
-                        <img src="~/Images/chefs-1.jpg" alt="image" class="rounded-circle m-3" style="width:40px" />
+                            <li><a class="nav-link scrollto float-end text-danger" asp-action="SignOut" asp-controller="Account">تسجيل الخروج</a></li>
+                            <img src="~/Images/chefs-1.jpg" alt="image" class="rounded-circle m-3" style="width:40px" />
                     }
                     else
                     {
-                        <li><a class="nav-link scrollto float-end text-primary" asp-action="SignIn" asp-controller="Account">تسجيل الدخول</a></li>
-   
+                            <li><a class="nav-link scrollto float-end text-primary" asp-action="SignIn" asp-controller="Account">تسجيل الدخول</a></li>
+
                     }
                 </ul>
                 <i class="bi bi-list mobile-nav-toggle"></i>
             </nav>
             <!-- .navbar -->
-             @*  @if (Model != null && Model.GetType() == typeof(IndexSettings)) 
+            @*  @if (Model != null && Model.GetType() == typeof(IndexSettings)) 
             {
                 <h1 class="logo me-auto me-lg-0"><a href="">@Model.Name</a></h1>
             }*@                                                                 
@@ -104,15 +104,15 @@
         <div style="direction:rtl;">
             @RenderBody()
         </div>
-      
+
         </main>
 
-   @*  <main role="main" class="m-3 pb-3 d-flex justify-content-center align-items-center">
+    @*  <main role="main" class="m-3 pb-3 d-flex justify-content-center align-items-center">
         @RenderBody()
     </main> *@
-   
 
-   @* <footer class="border-top footer text-muted">
+
+    @* <footer class="border-top footer text-muted">
         <div class="container">
             &copy; 2023 - ResturantPL - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
