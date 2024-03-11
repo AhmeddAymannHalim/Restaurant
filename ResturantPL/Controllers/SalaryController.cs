@@ -121,29 +121,25 @@ namespace ResturantPL.Controllers
         }
 
 
-        [HttpGet]
         public IActionResult Delete(int id)
         {
-            var salary = _unitOfWork.SalaryRepository.GetById(a => a.Id == id, new string[] { "Employee", "User" });
-            if (salary == null)
+            var salary = _unitOfWork.SalaryRepository.GetById(id);
+            if (salary != null)
             {
-                return NotFound();
+                try
+                {
+                    _unitOfWork.SalaryRepository.Delete(salary);
+                    TempData["success"] = "تمت العملية بنجاح";
+                }
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            return View(salary);
-        }
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("Delete")]
-        public IActionResult DeleteSalary(int id)
-        {
-            var salary = _unitOfWork.SalaryRepository.GetById(a => a.Id == id, new string[] { "Employee", "User" });
-            if (salary == null)
-            {
-                return BadRequest();
-            }
-
-            _unitOfWork.SalaryRepository.Delete(salary);
             return RedirectToAction("Index");
         }
+
 
 
         public IActionResult EmployeeExpenses(int employeeId, DateTime startDate, DateTime endDate)

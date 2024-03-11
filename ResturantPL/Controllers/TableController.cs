@@ -85,36 +85,23 @@ namespace ResturantPL.Controllers
 
 
 
-        [HttpGet]
-        public async Task<IActionResult> Delete(int id)
+        public IActionResult Delete(int id)
         {
-            var table = await _unitOfWork.TableRepository.GetByIdAsync(id);
+            var table = _unitOfWork.TableRepository.GetById(id);
             if (table != null)
             {
-                return View(table);
-            }
-            return NotFound();
-        }
-
-
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("Delete")]
-        public async Task<IActionResult> DeleteTable(int id)
-        {
-            try
-            {
-                var table = await _unitOfWork.TableRepository.GetByIdAsync(id);
-                if (table != null)
+                try
                 {
                     _unitOfWork.TableRepository.Delete(table);
-                    return RedirectToAction("Index");
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-                return NotFound();
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return RedirectToAction("Index");
         }
     }
 }

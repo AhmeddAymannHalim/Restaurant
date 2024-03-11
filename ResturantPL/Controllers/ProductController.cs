@@ -135,39 +135,21 @@ namespace ResturantPL.Controllers
 
         public IActionResult Delete(int id)
         {
-            Product product = GetProduct(id);
+            var product = _unitOfWork.ProductRepository.GetById(id);
             if (product != null)
             {
-                return View(product);
-            }
-            else
-            {
-                return NotFound();
-            }
-
-        }
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("Delete")]
-        public IActionResult DeleteConfirm(int id)
-        {
-            try
-            {
-                Product product = GetProduct(id);
-                if (product != null)
+                try
                 {
                     _unitOfWork.ProductRepository.Delete(product);
-                    return RedirectToAction("Index");
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-                else
+                catch (Exception ex)
                 {
-                    return BadRequest();
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
                 }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
-
+            return RedirectToAction("Index");
         }
 
         public Product GetProduct(int id)

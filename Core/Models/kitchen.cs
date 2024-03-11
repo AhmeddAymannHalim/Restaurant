@@ -13,6 +13,8 @@ namespace Restaurant.Data.Models
         [Required(ErrorMessage ="هذا الحقل مطلوب")]
         [MaxLength(100,ErrorMessage ="يجب ان لا يزيد الاسم عن 100 حرف")]
         public string Name { get; set; }
+
+
         public virtual ICollection<MenuSection> MenuSections { get; set; }
     }
 }

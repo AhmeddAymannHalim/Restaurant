@@ -222,12 +222,11 @@ namespace ResturantPL.Controllers
             //}
         }
 
-        public IActionResult Details(int id, bool isCheef = false)
+        public IActionResult Details(int id)
         {
             Order orderInvoice = _unitOfWork.OrderRepository.GetById(a => a.Id == id,
                 new string[] { "Seller", "Receiver", "Table", "Customer", "Employee", "OrderMenuItems" },
                 new string[] { "OrderMenuItems.MenuItem" });
-            ViewBag.isCheef = isCheef;
             if (orderInvoice != null)
             {
                 return View(orderInvoice);
@@ -358,14 +357,11 @@ namespace ResturantPL.Controllers
                         ViewBag.OrderCode = orderCode;
                     }
 
-                    var customers = new SelectList(_unitOfWork.CustomerRepository.GetAll(), "Id", "Name");
-                    ViewBag.Customers = customers;
+                    ViewBag.Customers = new SelectList(_unitOfWork.CustomerRepository.GetAll(), "Id", "Name");
 
-                    var tables = new SelectList(_unitOfWork.TableRepository.GetAll().Where(a => a.IsPending == false), "Id", "Name");
-                    ViewBag.Tables = tables;
+                    ViewBag.Tables = new SelectList(_unitOfWork.TableRepository.GetAll().Where(a => a.IsPending == false), "Id", "Name");
 
-                    var tayar = new SelectList(_unitOfWork.EmployeeRepository.GetAll().Where(a => a.UserType == "طيار"), "EmployeeId", "FullName");
-                    ViewBag.Tayars = tayar;
+                    ViewBag.Tayars = new SelectList(_unitOfWork.EmployeeRepository.GetAll().Where(a => a.UserType == "طيار"), "EmployeeId", "FullName");
 
                     return View();
 

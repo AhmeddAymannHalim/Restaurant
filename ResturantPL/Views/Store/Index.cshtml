@@ -35,7 +35,7 @@
                 <a href="/Store/Details/@item.Id">تفاصيل</a> | 
                 <a href="/Store/Edit/@item.Id">تعديل</a> |
                 <a href="#" onclick="openModal('@item.Id')">جرد المخزن</a> |
-                <a href="/Store/Delete/@item.Id">حذف</a>
+                <a onclick="Delete(@item.Id)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
             </td>
         </tr>
     }
@@ -80,6 +80,30 @@
         </div>
     </div>
 </div>
+
+
+
+<script src="~/lib/sweetalert/sweetalert.min.js"></script>
+@if (TempData["success"] != null)
+{
+    <script>
+        swal("برافو عمل جيد !", "", "success");
+
+    </script>
+}
+@if (TempData["faild"] != null)
+{
+    <script>
+        swal("فشلت العملية !", "", "error");
+
+    </script>
+
+}
+@section Scripts {
+
+    <script src="~/modules/Store.js"></script>
+}
+
 
 <script>
     function openModal(itemId) {

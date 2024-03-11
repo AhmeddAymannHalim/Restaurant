@@ -418,7 +418,7 @@ namespace ResturantPL.Controllers
                                .OrderByDescending(a => a.InvoiceDate).ToList();
             }
 
-            return PartialView("_InvoicePartial", invoices);
+            return PartialView("_AllInvoicesPartial", invoices);
         }
 
         public IActionResult InvoicesReport(string type, DateTime startDate, DateTime endDate)
@@ -519,7 +519,7 @@ namespace ResturantPL.Controllers
 
 
         // Money Safe between 2 dates
-        public IActionResult MoneySafe()
+        public IActionResult SearchInMoneySafe()
         {
             ViewBag.DateNow = DateTime.Now.ToString("yyyy-MM-dd");
             return View();
@@ -614,13 +614,11 @@ namespace ResturantPL.Controllers
                 new string[] { "Seller", "Receiver", "Table", "Customer", "Employee", "OrderMenuItems" },
                 new string[] { "OrderMenuItems.MenuItem" });
 
-            if (order.Complete == false)
-            {
-                order.Complete = true;
-                _unitOfWork.OrderRepository.Update(order);
-            }
-            // to open pdf and download if you want
-            //return new ViewAsPdf( order);
+            //if (order.Complete == false)
+            //{
+            //    order.Complete = true;
+            //    _unitOfWork.OrderRepository.Update(order);
+            //}
 
             var viewAsPdf = new ViewAsPdf
             {

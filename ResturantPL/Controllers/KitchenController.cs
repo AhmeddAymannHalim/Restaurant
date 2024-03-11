@@ -68,7 +68,6 @@ namespace ResturantPL.Controllers
         {
             var kitchen = _unitOfWork.kitchenRepository.GetById(id);
             if (kitchen is not  null) {
-                //await _orderHubContext.Clients.All.SendAsync("RefreshOrders");
               
                 return View(kitchen);
             }
@@ -97,6 +96,7 @@ namespace ResturantPL.Controllers
             return RedirectToAction(nameof(Index));
 
         }
+
         public IActionResult Delete(int id)
         {
             var kitchen = _unitOfWork.kitchenRepository.Find(k=>k.Id==id);
@@ -108,7 +108,7 @@ namespace ResturantPL.Controllers
                     TempData["success"] = "تمت العملية بنجاح";
                   
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     TempData["faild"] = "Error";
                 }

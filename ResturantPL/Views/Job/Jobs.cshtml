@@ -50,7 +50,7 @@
 
                     <a asp-action="UpdateJob"  asp-route-id="@item.JobId">تعديل</a>|
 
-                    <a asp-action="DeleteJob" asp-route-id="@item.JobId">حذف</a> |
+                    <a onclick="Delete(@item.JobId)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a> |
                     @{
                         // bool roleExists = roles.Any(role => role.Name == item.Name);
                         bool roleExists = false;
@@ -82,3 +82,27 @@
 <div>
     <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
 </div>
+
+
+
+
+<script src="~/lib/sweetalert/sweetalert.min.js"></script>
+@if (TempData["success"] != null)
+{
+    <script>
+        swal("برافو عمل جيد !", "", "success");
+
+    </script>
+}
+@if (TempData["faild"] != null)
+{
+    <script>
+        swal("فشلت العملية !", "", "error");
+
+    </script>
+
+}
+@section Scripts {
+
+    <script src="~/modules/Job.js"></script>
+}

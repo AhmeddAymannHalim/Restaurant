@@ -93,39 +93,24 @@ namespace ResturantPL.Controllers
         }
 
 
-        [HttpGet]
         public IActionResult Delete(int id)
         {
-            var supplier = _unitOfWork.SupplierRepository.GetById(a => a.Id == id, new string[] { "Invoices" });
+            var supplier = _unitOfWork.SupplierRepository.GetById(id);
             if (supplier != null)
             {
-                return View(supplier);
-            }
-            return NotFound();
-        }
-
-
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("Delete")]
-        public IActionResult ConfirmDelete(int id)
-        {
-            try
-            {
-                var supplier = _unitOfWork.SupplierRepository.GetById(a => a.Id == id, new string[] { "Invoices" });
-                if (supplier != null)
+                try
                 {
                     _unitOfWork.SupplierRepository.Delete(supplier);
-                    return RedirectToAction("Index");
-
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-                return NotFound();
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return RedirectToAction("Index");
         }
-
 
     }
 }

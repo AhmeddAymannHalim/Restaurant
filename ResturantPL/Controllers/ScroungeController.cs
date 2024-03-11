@@ -106,44 +106,29 @@ namespace ResturantPL.Controllers
             }
         }
 
-     
 
 
 
 
-        [HttpGet]
+
         public IActionResult Delete(int id)
         {
-            var scrounge = _unitOfWork.ScroungeRepository.GetById(a => a.Id == id, new string[] { "Employee", "User" });
-            if (scrounge == null)
+            var scrounge = _unitOfWork.ScroungeRepository.GetById(id);
+            if (scrounge != null)
             {
-                return NotFound();
-            }
-            return View(scrounge);
-        }
-
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("Delete")]
-        public IActionResult DeleteScrounge(int id)
-        {
-            try
-            {
-                var scrounge = _unitOfWork.ScroungeRepository.GetById(a => a.Id == id, new string[] { "Employee", "User" });
-                if (scrounge == null)
+                try
                 {
-                    return NotFound();
+                    _unitOfWork.ScroungeRepository.Delete(scrounge);
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-
-                _unitOfWork.ScroungeRepository.Delete(scrounge);
-
-                return RedirectToAction("Index");
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return RedirectToAction("Index");
         }
-
 
 
     }

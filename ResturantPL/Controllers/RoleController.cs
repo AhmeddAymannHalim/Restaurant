@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ResturantPL.Helper;
 using Restaurant.Data.Models;
+using StackExchange.Redis;
 
 namespace ResturantPL.Controllers
 {
@@ -132,33 +133,25 @@ namespace ResturantPL.Controllers
         }
 
 
-        [HttpGet]
+  
         public async Task<IActionResult> Delete(string id)
         {
-            return await Update(id);
-        }
-
-
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(RoleViewModel roleViewModel)
-        {
-            try
+            var role = await _roleManager.FindByIdAsync(id);
+            if (role != null)
             {
-                if (roleViewModel == null)
+                try
                 {
-                    return BadRequest();
+                    await _roleManager.DeleteAsync(role);
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-                var role = await _roleManager.FindByIdAsync(roleViewModel.Id);
-                await _roleManager.DeleteAsync(role);
-
-                return RedirectToAction("Roles");
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return RedirectToAction("Roles");
         }
-
 
 
         #region Old Roles

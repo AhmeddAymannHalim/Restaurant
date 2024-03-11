@@ -95,7 +95,7 @@
                 <td>
                     @Html.ActionLink("تعديل", "UpdateEmployee", new { id = item.EmployeeId }) |
                     @Html.ActionLink("التفاصيل", "DetailsEmployee", new { id = item.EmployeeId }) |
-                    @Html.ActionLink("حذف", "DeleteEmployee", new { id = item.EmployeeId }) |
+                    <a onclick="Delete(@item.EmployeeId)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a> |
                     @{
                         bool userExists = false;
                         foreach (var user in users)
@@ -124,3 +124,26 @@
 <div>
     <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
 </div>
+
+
+
+<script src="~/lib/sweetalert/sweetalert.min.js"></script>
+@if (TempData["success"] != null)
+{
+    <script>
+        swal("برافو عمل جيد !", "", "success");
+
+    </script>
+}
+@if (TempData["faild"] != null)
+{
+    <script>
+        swal("فشلت العملية !", "", "error");
+
+    </script>
+
+}
+@section Scripts {
+
+    <script src="~/modules/Employee.js"></script>
+}

@@ -11,30 +11,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta content="" name="description">
     <meta content="" name="keywords">
-    <title>@ViewData["Title"] - ResturantPL</title>
+    <title>@ViewData["Title"] - Restaurant</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @* <link rel="stylesheet" href="~/ResturantPL.styles.css" asp-append-version="true" /> *@
+    <link href="~/css/site.css" rel="stylesheet" />
 
+    <!-- Favicons -->
+    <link href="~/assets/img/favicon.png" rel="icon">
+    <link href="~/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
 
-        <!-- Favicons -->
-        <link href="~/assets/img/favicon.png" rel="icon">
-        <link href="~/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
 
-        <!-- Google Fonts -->
-        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+    <!-- Vendor CSS Files -->
+    <link href="~/assets/vendor/animate.css/animate.min.css" rel="stylesheet">
+    <link href="~/assets/vendor/aos/aos.css" rel="stylesheet">
+    <link href="~/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="~/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="~/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="~/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
 
-        <!-- Vendor CSS Files -->
-        <link href="~/assets/vendor/animate.css/animate.min.css" rel="stylesheet">
-        <link href="~/assets/vendor/aos/aos.css" rel="stylesheet">
-        <link href="~/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-        <link href="~/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-        <link href="~/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
-        <link href="~/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
-        <link href="~/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
-
-        <!-- Template Main CSS File -->
-        <link href="~/assets/css/style.css" rel="stylesheet">
+    <!-- Template Main CSS File -->
+    <link href="~/assets/css/style.css" rel="stylesheet">
 
 
 
@@ -43,83 +43,62 @@
     <!-- ======= Top Bar ======= -->
     <div id="topbar" class="d-flex align-items-center fixed-top">
         <div class="container d-flex justify-content-center justify-content-md-between">
+
             @if (Model != null && Model.GetType() == typeof(IndexSettings))
             {
-                    <div class="contact-info d-flex align-items-center">
-                        <i class="bi bi-phone d-flex align-items-center"><span>@Model.Phone</span></i>
-                        <i class="bi bi-clock d-flex align-items-center ms-4"><span> @Model.EndDay-@Model.StartDay: @Model.StartHour صباحا - @Model.EndHour مسائا</span></i>
-                    </div>
-
+                <div class="contact-info d-flex align-items-center">
+                    <i class="bi bi-clock d-flex align-items-center ms-4"><span> @Model.StartDay-@Model.EndDay: @Model.StartHour صباحا - @Model.EndHour مساءا</span></i>
+                    <i class="bi bi-phone d-flex align-items-center"><span>@Model.Phone</span></i>
+                </div>
             }
-
 
         </div>
     </div>
 
     <!-- ======= Header ======= -->
-    <header id="header" class="fixed-top d-flex align-items-cente">
+    <header id="header" class="fixed-top d-flex align-items-center">
         <div class="container-fluid container-xl d-flex align-items-center justify-content-lg-between">
-
-            <a asp-action="Basket" asp-controller="OnlineOrder" class="book-a-table-btn scrollto d-none d-lg-flex">احجز طلبك الان</a>
-            <!-- Uncomment below if you prefer to use an image logo -->
-            <!-- <a href="index.html" class="logo me-auto me-lg-0"><img src="~/assets/img/logo.png" alt="" class="img-fluid"></a>-->
 
             <nav id="navbar" class="navbar order-last order-lg-0">
                 <ul>
-                    <li><a class="nav-link scrollto active" asp-action="Index" asp-controller="Home" >الصفحه الرئيسيه</a></li>
-                    <li><a class="nav-link scrollto" asp-action="Chefs" asp-controller="Home">فريق المطبخ</a></li>
-                    <li><a class="nav-link scrollto" asp-action="Gallery" asp-controller="Home">معرض الصور</a></li>
-                    <li><a class="nav-link scrollto" asp-action="PendingOrders" asp-controller="OnlineOrder">طلباتي</a></li>
-                    <li><a class="nav-link scrollto" asp-action="Menu" asp-controller="OnlineOrder">المنيو</a></li>
-                    <li><a class="nav-link scrollto" asp-action="KitchenOrders" asp-controller="kitchen">المطبخ</a></li>
-                    @* <li><a class="nav-link scrollto" asp-action="Basket" asp-controller="OnlineOrder">سلة المشتريات</a></li> *@
-                    @* <li><a class="nav-link scrollto" asp-action="Index" asp-controller="Storage">المخزن</a></li> *@
-                    @* <li><a class="nav-link scrollto" asp-action="Index" asp-controller="User">المستخدمين</a></li> *@
-                    @* <li><a class="nav-link scrollto" asp-action="GetOrders" asp-controller="Order">الاوردرات المحجوزه</a></li> *@
-                    <li><a class="nav-link scrollto" asp-action="AdminDash" asp-controller="Account">لوحة التحكم</a></li>
                     @if (User.Identity.IsAuthenticated)
                     {
-                            <li><a class="nav-link scrollto float-end text-danger" asp-action="SignOut" asp-controller="Account">تسجيل الخروج</a></li>
-                            <img src="~/Images/chefs-1.jpg" alt="image" class="rounded-circle m-3" style="width:40px" />
+                        <img src="~/Images/chefs-1.jpg" alt="image" class="rounded-circle m-3" style="width:40px" />
+                        <li><a class="nav-link scrollto float-end text-danger" asp-action="SignOut" asp-controller="Account">تسجيل الخروج</a></li>
                     }
                     else
                     {
-                            <li><a class="nav-link scrollto float-end text-primary" asp-action="SignIn" asp-controller="Account">تسجيل الدخول</a></li>
-
+                        <li><a class="nav-link scrollto float-end text-primary" asp-action="SignIn" asp-controller="Account">تسجيل الدخول</a></li>
                     }
+                    <li><a class="nav-link scrollto" asp-action="AdminDash" asp-controller="Account">لوحة التحكم</a></li>
+                    <li><a class="nav-link scrollto" asp-action="KitchenOrders" asp-controller="kitchen">المطبخ</a></li>
+                    <li><a class="nav-link scrollto" asp-action="Menu" asp-controller="OnlineOrder">المنيو</a></li>
+                    <li><a class="nav-link scrollto" asp-action="PendingOrders" asp-controller="OnlineOrder">طلباتي</a></li>
+                    <li><a class="nav-link scrollto" asp-action="Gallery" asp-controller="Home">معرض الصور</a></li>
+                    <li><a class="nav-link scrollto" asp-action="Chefs" asp-controller="Home">فريق المطبخ</a></li>
+                    <li><a class="nav-link scrollto active" asp-action="Index" asp-controller="Home">الصفحه الرئيسيه</a></li>
                 </ul>
                 <i class="bi bi-list mobile-nav-toggle"></i>
             </nav>
-            <!-- .navbar -->
-            @*  @if (Model != null && Model.GetType() == typeof(IndexSettings)) 
-            {
-                <h1 class="logo me-auto me-lg-0"><a href="">@Model.Name</a></h1>
-            }*@                                                                 
+            <a asp-action="Basket" asp-controller="OnlineOrder" class="book-a-table-btn scrollto d-none d-lg-flex">احجز طلبك الان</a>
+
         </div>
     </header>
     <!-- End Header -->
 
-        <main role="main" class="m-3 pb-3">
-        <div style="height:133px;"></div>   
+    <main role="main" class="m-3 pb-3">
+        <div style="height:133px;"></div>
         <div style="direction:rtl;">
             @RenderBody()
         </div>
 
-        </main>
-
-    @*  <main role="main" class="m-3 pb-3 d-flex justify-content-center align-items-center">
-        @RenderBody()
-    </main> *@
+    </main>
 
 
-    @* <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2023 - ResturantPL - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>*@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
     <!-- Vendor JS Files -->
     <script src="~/assets/vendor/aos/aos.js"></script>
     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

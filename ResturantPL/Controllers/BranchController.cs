@@ -111,47 +111,29 @@ namespace ResturantPL.Controllers
         }
 
 
-        public IActionResult DeleteBranch(int id)
+
+      
+        public IActionResult Delete(int id)
         {
             Branche branche = GetBranch(id);
             if (branche != null)
             {
-                BranchViewModel viewModel = _mapper.Map<BranchViewModel>(branche);
-                foreach (var item in branche.Employees)
-                {
-                    viewModel.EmployeeList.Add(item);
-                }
-                return View(viewModel);
-            }
-            else
-            {
-                return NotFound();
-            }
-
-        }
-
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("DeleteBranch")]
-        public IActionResult DeleteBranchConfirm(int id)
-        {
-            try
-            {
-                Branche branche = GetBranch(id);
-                if (branche != null)
+                try
                 {
                     _unitOfWork.BrancheRepository.Delete(branche);
-                    return RedirectToAction("Index");
+                    TempData["success"] = "تمت العملية بنجاح";
+
                 }
-                else
+                catch (Exception ex)
                 {
-                    return BadRequest();
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
                 }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return RedirectToAction("Index");
         }
+
+
 
 
         public Branche GetBranch(int id)

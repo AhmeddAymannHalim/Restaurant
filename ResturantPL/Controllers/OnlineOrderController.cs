@@ -135,40 +135,23 @@ namespace ResturantPL.Controllers
         }
 
 
-        public IActionResult CancelOrder(int id)
+        public IActionResult Delete(int id)
         {
-            OnlineOrder onlineOrder = _unitOfWork.OnlineOrderRepository.GetById(a => a.Id == id,
-                new string[] { "OnlineOrderMenuItems" },
-                new string[] { "OnlineOrderMenuItems.MenuItem" });
-
+            var onlineOrder = _unitOfWork.OnlineOrderRepository.GetById(id);
             if (onlineOrder != null)
             {
-                return View(onlineOrder);
-            }
-            return NotFound();
-        }
-
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("CancelOrder")]
-        public IActionResult CancelOrderConfirm(int id)
-        {
-            try
-            {
-                OnlineOrder onlineOrder = _unitOfWork.OnlineOrderRepository.GetById(a => a.Id == id,
-                    new string[] { "OnlineOrderMenuItems" },
-                    new string[] { "OnlineOrderMenuItems.MenuItem" });
-
-                if (onlineOrder != null)
+                try
                 {
                     _unitOfWork.OnlineOrderRepository.Delete(onlineOrder);
-                    return RedirectToAction("PendingOrders");
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-                return BadRequest();
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return RedirectToAction("PendingOrders");
         }
 
 

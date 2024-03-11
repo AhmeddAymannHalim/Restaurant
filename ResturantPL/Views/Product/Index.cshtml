@@ -32,7 +32,7 @@
                 <td>
                     @Html.ActionLink("تعديل", "Edit", new { id = item.Id }) |
                     @Html.ActionLink("التفاصيل", "Details", new { id = item.Id }) |
-                    @Html.ActionLink("حذف", "Delete", new { id = item.Id })
+                    <a onclick="Delete(@item.Id)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
                 </td>
             </tr>
         }
@@ -41,3 +41,26 @@
 <div>
     <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
 </div>
+
+
+
+<script src="~/lib/sweetalert/sweetalert.min.js"></script>
+@if (TempData["success"] != null)
+{
+    <script>
+        swal("برافو عمل جيد !", "", "success");
+
+    </script>
+}
+@if (TempData["faild"] != null)
+{
+    <script>
+        swal("فشلت العملية !", "", "error");
+
+    </script>
+
+}
+@section Scripts {
+
+    <script src="~/modules/Product.js"></script>
+}

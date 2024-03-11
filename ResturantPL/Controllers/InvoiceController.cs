@@ -169,39 +169,25 @@ namespace ResturantPL.Controllers
         }
 
 
-        public IActionResult DeleteInvoice(int id)
+        public IActionResult Delete(int id)
         {
-            Invoice invoice = _unitOfWork.InvoiceRepository.
-               GetById(a => a.Id == id, new string[] { "Supplier", "InvoiceItems", "Store" }
-               , new string[] { "InvoiceItems.StoreProduct", "InvoiceItems.UnitPrice" });
+            var invoice = _unitOfWork.InvoiceRepository.GetById(id);
             if (invoice != null)
             {
-                return View(invoice);
-            }
-            return NotFound();
-        }
-
-
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("DeleteInvoice")]
-        public IActionResult ConfirmDeleteInvoice(int id)
-        {
-            try
-            {
-                Invoice invoice = _unitOfWork.InvoiceRepository.GetById(id);
-                if (invoice != null)
+                try
                 {
                     _unitOfWork.InvoiceRepository.Delete(invoice);
-                    return RedirectToAction("Invoices");
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-                return BadRequest();
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
-        }
+            return RedirectToAction("Invoices");
 
+        }
 
 
     }
