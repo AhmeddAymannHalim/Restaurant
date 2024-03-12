@@ -57,7 +57,7 @@
 
                     success: function (data) {
                         $('#benefit').val(data);
-                        $("#report").attr("href", `/Report/OrdersReport?startDate=${startDate}&endDate=${endDate}`);
+                        //$("#report").attr("href", `/Report/OrdersReport?startDate=${startDate}&endDate=${endDate}`);
                     },
 
                     error: function (xhr, status, error) {
@@ -73,6 +73,7 @@
         $(document).ready(function () {
             $('#startDate, #endDate').change(function () {
                 $('#benefit').val('');
+                $("#report").attr("href", `#`);
             });
         });
     </script>

@@ -92,6 +92,7 @@
                     error: function (xhr, status, error) {
                         $("#importTable tbody").empty();
                         $("#importTable tbody").append("<tr><td colspan='6'>حدث خطأ أثناء جلب البيانات</td></tr>");
+                        $("#report").attr("href", `#`);
                     }
                 });
             });

@@ -35,7 +35,6 @@ namespace Restaurant.Data.Models
         public int StoreId { get; set; }
 
 
-
         public virtual Supplier Supplier { get; set; }
         public virtual Store Store { get; set; }
 

@@ -105,7 +105,9 @@ namespace ResturantPL.Controllers
             {
                 try
                 {
-                    _unitOfWork.DepositRepository.Delete(deposit);
+                    deposit.IsDeleted = true;
+                    _unitOfWork.DepositRepository.Update(deposit);
+
                     TempData["success"] = "تمت العملية بنجاح";
                 }
                 catch (Exception ex)

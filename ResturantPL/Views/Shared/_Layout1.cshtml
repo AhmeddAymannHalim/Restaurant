@@ -12,8 +12,8 @@
     @* <link rel="stylesheet" href="~/ResturantPL.styles.css" asp-append-version="true" /> *@
 
     <style>
-        *{
-            box-sizing:border-box;
+        * {
+            box-sizing: border-box;
         }
     </style>
 
@@ -39,56 +39,55 @@
         <div class="container d-flex justify-content-center justify-content-md-between">
             @if (Model != null && Model.GetType() == typeof(IndexSettings))
             {
-                    <div class="contact-info d-flex align-items-center">
-                        <i class="bi bi-phone d-flex align-items-center"><span>@Model.Phone</span></i>
-                        <i class="bi bi-clock d-flex align-items-center ms-4"><span> @Model.EndDay-@Model.StartDay: @Model.StartHour صباحا - @Model.EndHour مسائا</span></i>
-                    </div>
+                <div class="contact-info d-flex align-items-center">
+                    <i class="bi bi-phone d-flex align-items-center"><span>@Model.Phone</span></i>
+                    <i class="bi bi-clock d-flex align-items-center ms-4"><span> @Model.EndDay-@Model.StartDay: @Model.StartHour صباحا - @Model.EndHour مسائا</span></i>
+                </div>
 
             }
-
-
+     
+     
         </div>
     </div>
-
+     
     <!-- ======= Header ======= -->
-    <header id="header" class="fixed-top d-flex align-items-cente">
-        <div class="container-fluid container-xl d-flex align-items-center">
-
-            <a asp-action="AdminDash" asp-controller="Account" class="book-a-table-btn scrollto d-none d-lg-flex">لوحة التحكم</a>
-
-            <nav id="navbar" class="navbar order-last order-lg-0">
+    <header id="header" class="fixed-top d-flex align-items-center">
+        <div class="container-fluid align-items-center justify-content-lg-between">
+     
+     
+            <nav id="navbar" class="navbar order-last order-lg-0" style="text-align:center;">
                 <ul>
-                    <li><a style="font-size:17px;" class="nav-link scrollto active" asp-action="Create" asp-controller="Order">الرئيسية</a></li>
-                    <li> <a style="font-size:17px;" asp-action="Index" asp-controller="Order" class="nav-link scrollto">انهاء الشيفت</a></li>
-
-
-
-                    <li> <a style="font-size:17px;" asp-action="PendingOrders" asp-controller="Order" class="nav-link scrollto">طلبات اونلاين</a></li>
-                    <li> <a style="font-size:17px;" asp-action="PendingOnlineDelivery" asp-controller="Order" class="nav-link scrollto">اونلاين معلق</a></li>
-                    <li> <a style="font-size:17px;" asp-action="PendingDelivery" asp-controller="Order" class="nav-link scrollto">الدليفري المعلق</a></li>
-                    <li> <a style="font-size:17px;" asp-action="PendingHall" asp-controller="Order" class="nav-link scrollto">الصالة المعلقة</a></li>
-                    <li> <a style="font-size:17px;" asp-action="HallOrders" asp-controller="Order" class="nav-link scrollto">الصالة</a></li>
-                    <li> <a style="font-size:17px;" asp-action="DeliveryOrders" asp-controller="Order" class="nav-link scrollto">الدليفري</a></li>
-                    <li> <a style="font-size:17px;" asp-action="DeliveryOnlineOrders" asp-controller="Order" class="nav-link scrollto">الاونلاين</a></li>
-                    <li><a style="font-size:17px;" asp-action="TakeAwayOrders" asp-controller="Order" class="nav-link scrollto">التيك اواي</a></li>
-                    <li><a style="font-size:17px;" asp-action="AllOrders" asp-controller="Order" class="nav-link scrollto">كل الطلبات</a></li>
-
                     @if (User.Identity.IsAuthenticated)
                     {
-                            <li><a style="font-size:18px;" class="nav-link scrollto float-end text-danger" asp-action="SignOut" asp-controller="Account">تسجيل الخروج</a></li>
-                            <img src="~/Images/chefs-1.jpg" alt="image" class="rounded-circle m-3" style="width:40px" />
+                        <img src="~/Images/chefs-1.jpg" alt="image" class="rounded-circle m-3" style="width:40px" />
+                        <li><a style="font-size:17px;" class="nav-link scrollto float-end text-danger" asp-action="SignOut" asp-controller="Account">تسجيل الخروج</a></li>
                     }
                     else
                     {
-                            <li><a style="font-size:18px;" class="nav-link scrollto float-end text-primary" asp-action="SignIn" asp-controller="Account">تسجيل الدخول</a></li>
+                        <li><a style="font-size:17px;" class="nav-link scrollto float-end text-primary" asp-action="SignIn" asp-controller="Account">تسجيل الدخول</a></li>
                     }
+
+                    <li><a style="font-size:16px;" asp-action="AllOrders" asp-controller="Order" class="nav-link scrollto">كل الطلبات</a></li>
+                    <li><a style="font-size:16px;" asp-action="TakeAwayOrders" asp-controller="Order" class="nav-link scrollto">التيك اواي</a></li>
+                    <li><a style="font-size:16px;" asp-action="DeliveryOrders" asp-controller="Order" class="nav-link scrollto">الدليفري</a></li>
+                    <li><a style="font-size:16px;" asp-action="DeliveryOnlineOrders" asp-controller="Order" class="nav-link scrollto">الاونلاين</a></li>
+                    <li><a style="font-size:16px;" asp-action="HallOrders" asp-controller="Order" class="nav-link scrollto">الصالة</a></li>
+                    <li><a style="font-size:16px;" asp-action="PendingHall" asp-controller="Order" class="nav-link scrollto">الصالة المعلقة</a></li>
+                    <li><a style="font-size:16px;" asp-action="PendingDelivery" asp-controller="Order" class="nav-link scrollto">الدليفري المعلق</a></li>
+                    <li><a style="font-size:16px;" asp-action="PendingOnlineDelivery" asp-controller="Order" class="nav-link scrollto">اونلاين معلق</a></li>
+                    <li><a style="font-size:16px;" asp-action="PendingOrders" asp-controller="Order" class="nav-link scrollto">طلبات اونلاين</a></li>
+                    <li><a style="font-size:16px;" asp-action="Index" asp-controller="Order" class="nav-link scrollto">انهاء الشيفت</a></li>
+                    <li><a style="font-size:16px;" class="nav-link scrollto active" asp-action="Create" asp-controller="Order">الرئيسية</a></li>
+                   
+                    <a asp-action="AdminDash" asp-controller="Account" class="book-a-table-btn scrollto d-none d-lg-flex">  لوحة التحكم  </a>
+
                 </ul>
                 <i class="bi bi-list mobile-nav-toggle"></i>
             </nav><!-- .navbar -->
-            @if (Model != null && Model.GetType() == typeof(IndexSettings))
-            {
+                @*@if (Model != null && Model.GetType() == typeof(IndexSettings))
+                {
                     <h1 class="logo me-auto me-lg-0"><a href="">@Model.Name</a></h1>
-            }
+                }*@
         </div>
     </header><!-- End Header -->
 

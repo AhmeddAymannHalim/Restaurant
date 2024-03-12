@@ -1,0 +1,33 @@
+﻿@model SupplierTotalViewModel
+
+@if (Model.balances.Count() > 0)
+{
+    foreach (var item in Model.balances)
+    {
+        <tr>
+            <td>@Model.Name</td>
+            <td>@item.Deptor</td>
+            <td>@item.Creditor</td>
+            <td>@item.Date.ToString("yyyy-MM-dd")</td>
+            <td>@item.Info</td>
+            <td>
+                @{
+                    string controller = item.Info == "سندات قبض" ? "PaymentInvoice" : "Invoice";
+                    string action = item.Info == "سندات قبض" ? "SupplierInvoiceDetails" : "DetailsInvoice";
+                }
+                @Html.ActionLink("التفاصيل", action, controller, new { id = item.InvoiceId })
+            </td>
+        </tr>
+    }
+    <tr>
+        <td class="text-danger"><strong>الاجمالي</strong></td>
+        <td>@Model.TotalDeptor</td>
+        <td>@Model.TotalCreditor</td>
+        <td class="text-danger"><strong>متبقي له</strong></td>
+        <td colspan="2">@Model.Total</td>
+    </tr>
+}
+else
+{
+    <tr><td colspan='6'>لا توجد نتائج للعرض</td></tr>
+}

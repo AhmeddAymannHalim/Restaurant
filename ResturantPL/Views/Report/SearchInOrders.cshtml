@@ -5,25 +5,25 @@
 
 
 <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label for="startDate">تاريخ البداية:</label>
-                    <input type="date" id="startDate" name="startDate" value="@ViewBag.DateNow" class="form-control" required />
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label for="endDate">تاريخ النهاية:</label>
-                    <input type="date" id="endDate" name="endDate" value="@ViewBag.DateNow" class="form-control" required />
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                <button id="show" type="button" class="btn btn-primary mt-4" style="width:100%;">عرض الطلبات</button>
-                </div>
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="startDate">تاريخ البداية:</label>
+                <input type="date" id="startDate" name="startDate" value="@ViewBag.DateNow" class="form-control" required />
             </div>
         </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="endDate">تاريخ النهاية:</label>
+                <input type="date" id="endDate" name="endDate" value="@ViewBag.DateNow" class="form-control" required />
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <button id="show" type="button" class="btn btn-primary mt-4" style="width:100%;">عرض الطلبات</button>
+            </div>
+        </div>
+    </div>
 </div>
 <hr />
 
@@ -44,7 +44,6 @@
         </tr>
     </thead>
     <tbody>
-       
     </tbody>
 </table>
 <br />
@@ -60,7 +59,7 @@
             $("#show").click(function () {
                 var startDate = $("#startDate").val();
                 var endDate = $("#endDate").val();
-                    
+
                 $.ajax({
                     type: "GET",
                     url: "/Report/AllOrdersByDates",
@@ -80,7 +79,7 @@
                         $("#orderTable tbody").empty();
                         $("#orderTable tbody").append("<tr><td colspan='7'>حدث خطأ أثناء جلب البيانات</td></tr>");
                     }
-                }); 
+                });
             });
         });
     </script>
@@ -88,6 +87,7 @@
         $(document).ready(function () {
             $('#startDate, #endDate').change(function () {
                 $("#orderTable tbody").empty();
+                $("#report").attr("href", `#`);
             });
         });
     </script>

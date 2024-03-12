@@ -6,7 +6,7 @@
 
 <div class="container">
     <div class="row justify-content-center">
-        
+
 
         <div class="col-md-4">
             <div class="form-group">
@@ -89,6 +89,7 @@
         $(document).ready(function () {
             $('#startDate, #endDate').change(function () {
                 $("#importTable tbody").empty();
+                $("#report").attr("href", `#`);
             });
         });
     </script>
