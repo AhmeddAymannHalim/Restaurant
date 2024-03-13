@@ -9,6 +9,9 @@
     <title>@ViewData["Title"] - ResturantPL</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/ResturantPL.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.2/css/dataTables.dataTables.css" asp-append-version="true" />
+  
     @* <link rel="stylesheet" href="~/ResturantPL.styles.css" asp-append-version="true" /> *@
 
     <style>
@@ -112,7 +115,7 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/lib/sweetalert/sweetalert.min.js"></script>
 
-
+   
     <!-- Template Main JS File -->
     <script src="~/assets/js/main.js"></script>
     @await RenderSectionAsync("Scripts", required: false)

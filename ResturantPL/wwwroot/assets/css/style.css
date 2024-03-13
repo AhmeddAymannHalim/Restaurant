@@ -1731,3 +1731,10 @@ section {
   font-size: 13px;
   color: #fff;
 }
+.dataTables_wrapper .dt-buttons button {
+    background-color: #4CAF50; /* Green background color */
+}
+
+.dataTables_wrapper .dt-buttons button {
+    color: white; /* White text color */
+}

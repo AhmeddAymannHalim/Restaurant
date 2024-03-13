@@ -104,8 +104,14 @@ namespace ResturantPL.Controllers
         [HttpGet]
         public IActionResult Inventory(int id,DateTime startDate,DateTime endDate)
         {
-            var store = _unitOfWork.StoreRepository.GetById(a => a.Id == id, new string[] { "Storekeeper", "Invoices", "StoreProducts" }, new string[] { "Invoices.Supplier", "StoreProducts.Product" });
-            return View();
+            var store = _unitOfWork.StoreRepository.GetById(a => a.Id == id, new string[] {  "StoreProducts" });
+            decimal total = 0;
+            foreach (var item in store.StoreProducts)
+            {
+                total+= item.Quantity*item.PriceForUnit;
+            }
+           ViewBag.Total=total;
+            return View(store);
         }
 
 
