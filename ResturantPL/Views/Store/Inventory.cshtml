@@ -1,37 +1,47 @@
-﻿
+﻿@model Store
+@{
+    int index = 1;
+}
+
 <div>
-    <h4>اسم المخزن : .....</h4>
+    <h4>اسم المخزن : @Model.Name</h4>
 </div>
-<table class="table">
+<div>
+    <h4>الاجمالي : @ViewBag.Total</h4>
+</div>
+<table class="table" id="tbInventory">
     <thead>
         <tr>
             <th scope="col">#</th>
             <th scope="col">اسم الصنف</th>
             <th scope="col">الكمية</th>
-            <th scope="col">الوحده</th>
+            <th scope="col">سعر الوحده</th>
             <th scope="col">القيمة الاجمالية</th>
         </tr>
     </thead>
     <tbody class="table-group-divider">
-        <tr>
-            <th scope="row">1</th>
-            <td>Mark</td>
-            <td>Otto</td>
-            <td>mdo</td>
-            <td>mdo</td>
-        </tr>
-        <tr>
-            <th scope="row">2</th>
-            <td>Jacob</td>
-            <td>Thornton</td>
-            <td>fat</td>
-            <td>fat</td>
-        </tr>
-        <tr>
-            <th scope="row">3</th>
-            <td colspan="2">Larry the Bird</td>
-            <td>twitter</td>
-            <td>twitter</td>
-        </tr>
+        @foreach(var product in Model.StoreProducts)
+        {
+            if (product.Quantity > 0)
+            {
+                <tr>
+                    <th scope="row">@index</th>
+                    <td>@product.ProductName</td>
+                    <td>@product.Quantity</td>
+                    <td>@product.PriceForUnit</td>
+                    <td>@(product.PriceForUnit * product.Quantity)</td>
+                </tr>
+            }
+           
+            index++;
+        }
+      
+      
     </tbody>
 </table>
+@section Scripts {
+   
+    <script>
+        $('#tbInventory').DataTable();
+    </script>
+}
