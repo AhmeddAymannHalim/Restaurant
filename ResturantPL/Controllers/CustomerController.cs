@@ -123,6 +123,12 @@ namespace ResturantPL.Controllers
 
 
 
+
+        public Customer GetCustomer(int id)
+        {
+            Customer customer = _unitOfWork.CustomerRepository.GetById(a => a.Id == id, new string[] { "PaymentInvoices" });
+            return customer;
+        }
         public IActionResult CustomerBalance(int customerId)
         {
             Customer customer = _unitOfWork.CustomerRepository.GetById(customerId);
@@ -131,12 +137,6 @@ namespace ResturantPL.Controllers
                 return Json(customer.Balance);
             }
             return BadRequest();
-        }
-
-        public Customer GetCustomer(int id)
-        {
-            Customer customer = _unitOfWork.CustomerRepository.GetById(a => a.Id == id, new string[] { "PaymentInvoices" });
-            return customer;
         }
 
     }

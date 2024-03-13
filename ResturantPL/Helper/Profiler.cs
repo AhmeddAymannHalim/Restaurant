@@ -16,6 +16,7 @@ namespace ResturantPL.Helper
             CreateMap<ApplicationUser,EmployeeViewModel>().ReverseMap();
             CreateMap<Branche,BranchViewModel>().ReverseMap();
             CreateMap<SalaryType,SalaryTypeViewModel>().ReverseMap();
+            CreateMap<Employee,EmployeeViewModel>().ReverseMap();
         }
     }
 }

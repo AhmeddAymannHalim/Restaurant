@@ -38,6 +38,7 @@ namespace Service.UnitOfWork
         public IGenericRepository<StoreConvertProduct> StoreConvertProductRepository { get; set; }
         public IGenericRepository<ExitExpense> ExitExpenseRepository { get; set; }
         public IGenericRepository<Salary> SalaryRepository { get; set; }
+        public IGenericRepository<ApplicationSetting> ApplicationSettingRepository { get; set; }
 
 
 
@@ -87,6 +88,7 @@ namespace Service.UnitOfWork
             StoreConvertProductRepository = new GenericRepository<StoreConvertProduct>(_context);
             ExitExpenseRepository = new GenericRepository<ExitExpense>(_context);
             SalaryRepository = new GenericRepository<Salary>(_context);
+            ApplicationSettingRepository = new GenericRepository<ApplicationSetting>(_context);
 
 
 

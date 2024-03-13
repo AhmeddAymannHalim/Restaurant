@@ -7,6 +7,7 @@ using Service.UnitOfWork;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ResturantPL.Controllers
 {
@@ -203,7 +204,7 @@ namespace ResturantPL.Controllers
 
 
 
-
+        // Supplier Balance between 2 dates
         public IActionResult SearchInSupplierBalance()
         {
             ViewBag.Suppliers = new SelectList(_unitOfWork.SupplierRepository.GetAll(), "Id", "Name");
@@ -279,7 +280,6 @@ namespace ResturantPL.Controllers
 
             return PartialView("_AllSupplierBalancesPartial", supplierTotalViewModel);
         }
-
 
         public IActionResult SupplierBalanceReport(int supplierId, DateTime startDate, DateTime endDate)
         {
@@ -491,6 +491,7 @@ namespace ResturantPL.Controllers
 
 
 
+        
 
         // Benefits between 2 dates
         public IActionResult SearchInBenefits()

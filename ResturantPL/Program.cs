@@ -1,13 +1,8 @@
-using AutoMapper;
-using Service.Repositories;
 using Service.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using ResturantPL.Helper;
-using StackExchange.Redis;
-using Service.IRepositories;
 using Restaurant.Data;
 using Restaurant.Data.Models;
 using Restaurant.Data.SeedData;
@@ -39,10 +34,10 @@ namespace ResturantPL
             });
 
 
-            builder.Services.AddSingleton<IConnectionMultiplexer>(options =>
-            {
-                return ConnectionMultiplexer.Connect(builder.Configuration["RedisConnection"]);
-            });
+            //builder.Services.AddSingleton<IConnectionMultiplexer>(options =>
+            //{
+            //    return ConnectionMultiplexer.Connect(builder.Configuration["RedisConnection"]);
+            //});
 
             builder.Services.AddAutoMapper(typeof(Profiler));
             builder.Services.AddSignalR();
@@ -78,6 +73,17 @@ namespace ResturantPL
                     Option.Cookie.HttpOnly = true;
                     Option.ExpireTimeSpan = TimeSpan.FromDays(7);
                 });
+
+            //builder.Services.AddAuthorization(options =>
+            //{
+            //    options.AddPolicy("RequireAdminRole", policy =>
+            //    {
+            //        policy.RequireRole("Admin");
+            //    });
+            //});
+
+
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("CorsPolicy",

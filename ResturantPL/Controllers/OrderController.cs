@@ -16,10 +16,12 @@ using ResturantPL.Hubs;
 using NuGet.Protocol.Core.Types;
 using System.Linq.Expressions;
 using System.Globalization;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace ResturantPL.Controllers
 {
+
     public class OrderController : Controller
     {
         private readonly IHubContext<OrderHub> _orderHubContext;
@@ -235,7 +237,7 @@ namespace ResturantPL.Controllers
         }
 
 
-       
+
 
         #region Orders Details
 
@@ -342,8 +344,7 @@ namespace ResturantPL.Controllers
 
                     ViewBag.CurrentUser = CurrentUser();
 
-                    var menuItems = _unitOfWork.MenuItemRepository.GetAll(a => a.Include(a => a.MenuSection));
-                    ViewBag.MenuItems = menuItems;
+                    ViewBag.MenuItems = _unitOfWork.MenuItemRepository.GetAll(a => a.Include(a => a.MenuSection));
 
                     Order lastOrder = await _unitOfWork.OrderRepository.GetLast(item => item.Id);
 
@@ -383,6 +384,31 @@ namespace ResturantPL.Controllers
         {
             try
             {
+                if (viewModel.OrderMenuItems.Count() < 1)
+                {
+                    return View(viewModel);
+                }
+
+                ViewBag.MenuItems = _unitOfWork.MenuItemRepository.GetAll(a => a.Include(a => a.MenuSection));
+                ViewBag.CurrentUser = CurrentUser();
+                ViewBag.Customers = new SelectList(_unitOfWork.CustomerRepository.GetAll(), "Id", "Name");
+                ViewBag.Tables = new SelectList(_unitOfWork.TableRepository.GetAll().Where(a => a.IsPending == false), "Id", "Name");
+                ViewBag.Tayars = new SelectList(_unitOfWork.EmployeeRepository.GetAll().Where(a => a.UserType == "طيار"), "EmployeeId", "FullName");
+                Order lastOrder = await _unitOfWork.OrderRepository.GetLast(item => item.Id);
+                if (lastOrder == null)
+                {
+                    ViewBag.OrderCode = 1;
+                }
+                else
+                {
+                    int orderCode = int.Parse(lastOrder.OrderCode) + 1;
+                    ViewBag.OrderCode = orderCode;
+                }
+
+
+
+
+
                 if (ModelState.IsValid)
                 {
                     Order Order = new Order()
@@ -425,7 +451,11 @@ namespace ResturantPL.Controllers
                     }
                     else if (viewModel.Cash == false && viewModel.Type == OrderType.Hall)
                     {
-                       
+                        if (viewModel.TableId == null)
+                        {
+                            return View(viewModel);
+                        }
+
                         Restaurant.Data.Models.Table table = _unitOfWork.TableRepository.GetById(viewModel.TableId);
                         Order.TableId = viewModel.TableId;
                         table.IsPending = true;
@@ -713,6 +743,11 @@ namespace ResturantPL.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    if (viewModel.OrderMenuItems.Count() < 1)
+                    {
+                        return View(viewModel);
+                    }
+
                     Order Order = new Order()
                     {
                         OrderCode = viewModel.OrderCode,

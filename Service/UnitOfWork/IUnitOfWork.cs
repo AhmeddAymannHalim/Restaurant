@@ -35,6 +35,7 @@ namespace Service.UnitOfWork
         public IGenericRepository<StoreConvertProduct> StoreConvertProductRepository { get; set; }
         public IGenericRepository<ExitExpense> ExitExpenseRepository { get; set; }
         public IGenericRepository<Salary> SalaryRepository { get; set; }
+        public IGenericRepository<ApplicationSetting> ApplicationSettingRepository { get; set; }
 
 
 

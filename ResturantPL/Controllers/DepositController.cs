@@ -28,11 +28,13 @@ namespace ResturantPL.Controllers
             return currentUser;
         }
 
+
         public ActionResult Index()
         {
             var deposits = _unitOfWork.DepositRepository.GetAll(a => a.Include(a => a.User)).Where(a => a.IsDeleted == false);
             return View(deposits);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> Create()
@@ -51,16 +53,14 @@ namespace ResturantPL.Controllers
             return View();
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+  
+        [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Deposit deposit)
         {
             if (ModelState.IsValid)
             {
-                string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
                 deposit.CreatedTime = DateTime.Now;
-                deposit.UserId = userId;
+                deposit.UserId = CurrentUser().Id;
                 deposit.IsDeleted = false;
 
                 await _unitOfWork.DepositRepository.AddAsync(deposit);
@@ -70,21 +70,21 @@ namespace ResturantPL.Controllers
             return View(deposit);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Edit(int id)
+
+        public IActionResult Edit(int id)
         {
-            if ( id == 0)
+            var deposit = GetDeposit(id);
+            if (deposit == null)
             {
                return NotFound();
             }
-            var depositIndb = await _unitOfWork.DepositRepository.GetByIdAsync(id);
 
-            return View(depositIndb);
+            return View(deposit);
 
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+
+        [HttpPost, ValidateAntiForgeryToken]
         public IActionResult Edit(Deposit deposit)
         {
             if (ModelState.IsValid)
@@ -97,10 +97,9 @@ namespace ResturantPL.Controllers
         }
 
 
-
         public IActionResult Delete(int id)
         {
-            var deposit = _unitOfWork.DepositRepository.GetById(id);
+            var deposit = GetDeposit(id);
             if (deposit != null)
             {
                 try
@@ -123,14 +122,20 @@ namespace ResturantPL.Controllers
         [HttpGet]
         public IActionResult Details(int id)
         {
-            if ( id == 0)
+            var deposit = GetDeposit(id);
+            if (deposit == null)
             {
                return NotFound();
             }
+            return View(deposit);
+        }
 
-            var depositIndb = _unitOfWork.DepositRepository.GetById(a => a.Id == id, new string[]{ "User"});
 
-            return View(depositIndb);
+
+        public Deposit GetDeposit(int id)
+        {
+            Deposit deposit = _unitOfWork.DepositRepository.GetById(a => a.Id == id, new string[] { "User" });
+            return deposit;
         }
     }
 }

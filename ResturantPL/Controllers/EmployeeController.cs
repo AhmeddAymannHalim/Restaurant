@@ -9,8 +9,6 @@ using Restaurant.Data.Models;
 using Service.UnitOfWork;
 using ResturantPL.Helper;
 using ResturantPL.ViewModels;
-using StackExchange.Redis;
-using System.IO;
 using System.Security.Claims;
 
 namespace ResturantPL.Controllers
@@ -44,9 +42,9 @@ namespace ResturantPL.Controllers
         public IActionResult Employees()
         {
             IEnumerable<Employee> models = _unitOfWork.EmployeeRepository.GetAll(
-                a => a.Include(x => x.Branche),
-                a => a.Include(a => a.SalaryType),
-                a => a.Include(a => a.Job));
+                a => a.Include(x => x.Branche)
+                      .Include(a => a.SalaryType)
+                      .Include(a => a.Job));
 
 
             var users = _userManager.Users;
@@ -97,30 +95,15 @@ namespace ResturantPL.Controllers
                 if (ModelState.IsValid)
                 {
                     Job job = _unitOfWork.JobRepository.GetById(model.JobId);
-
-                    Employee employee = new Employee()
-                    {
-                        FirstName = model.FirstName,
-                        LastName = model.LastName,
-                        Country = model.Country,
-                        City = model.City,
-                        Street = model.Street,
-                        Age = model.Age,
-                        PhoneNumber = model.PhoneNumber,
-                        MobileNumber = model.MobileNumber,
-                        UserType = job.Name,
-                        Code = model.Code,
-                        NationalID = model.NationalID,
-                        SalaryTypeId = model.SalaryTypeId,
-                        Salary = model.Salary,
-                        BrancheId = model.BrancheId,
-                        JobId = model.JobId
-                    };
+                    var employee = _mapper.Map<Employee>(model);
+                    employee.UserType = job.Name;
 
                     if (model.ImageUrl != null)
                     {
                         employee.Image = DocumentSetting.UploadFile(model.ImageUrl, "Employee Images");
                     }
+
+
                     await _unitOfWork.EmployeeRepository.AddAsync(employee);
                     return RedirectToAction("Employees");
                 }
@@ -162,6 +145,7 @@ namespace ResturantPL.Controllers
                     Salary = employee.Salary,
                     BrancheId = employee.BrancheId,
                     JobId = employee.JobId,
+                    
                 };
                 return View(profile);
             }

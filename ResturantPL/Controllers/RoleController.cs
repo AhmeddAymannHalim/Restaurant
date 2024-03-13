@@ -4,12 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using ResturantPL.Helper;
 using Restaurant.Data.Models;
-using StackExchange.Redis;
 
 namespace ResturantPL.Controllers
 {

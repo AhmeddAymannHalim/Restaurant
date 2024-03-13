@@ -40,6 +40,7 @@ namespace ResturantPL.ViewModels
 
         [Display(Name ="الصورة")]
         public IFormFile ImageUrl { get; set; } = null;
+        public string Image { get; set; } = null;
 
 
         [Display(Name = "السن"), Required(ErrorMessage = "Age is required")]
@@ -73,8 +74,8 @@ namespace ResturantPL.ViewModels
         public int JobId { get; set; }
 
 
-        public virtual Branche Branche { get; set; } = new Branche();
-        public virtual SalaryType SalaryType { get; set; } = new SalaryType();
-        public virtual Job Job { get; set; } = new Job();
+        //public virtual Branche Branche { get; set; } = new Branche();
+        //public virtual SalaryType SalaryType { get; set; } = new SalaryType();
+        //public virtual Job Job { get; set; } = new Job();
     }
 }

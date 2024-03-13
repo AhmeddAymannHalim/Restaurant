@@ -50,6 +50,7 @@ namespace Restaurant.Data
         public DbSet<StoreConvertProduct> StoreConvertProducts { get; set; }
         public DbSet<ExitExpense> ExitExpenses { get; set; }
         public DbSet<Salary> Salaries { get; set; }
+        public DbSet<ApplicationSetting> ApplicationSettings { get; set; }
         
 
 

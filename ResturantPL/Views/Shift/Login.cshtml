@@ -2,11 +2,14 @@
 @{
     ViewData["Title"] = "Login For Shift";
     var user = ViewBag.CurrentUser;
-    Layout = "_Layout1";
+    Layout = null;
 }
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+<link href="~/css/invoicesstyle.css" rel="stylesheet" />
 
 
-
+<div style="height:200px;"></div>
 <div class="text-center text-light" >
 
 
@@ -54,7 +57,6 @@
 
 
 
-@section Scripts {
     <script>
         $(document).ready(function () {
             // Get the modal element
@@ -67,4 +69,7 @@
             });
         });
     </script>
-}
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+ 
+ 

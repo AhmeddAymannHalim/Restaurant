@@ -155,6 +155,25 @@ namespace Restaurant.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Restaurant.Data.Models.ApplicationSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<decimal>("OrderTax")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Password")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ApplicationSettings");
+                });
+
             modelBuilder.Entity("Restaurant.Data.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -1560,7 +1579,7 @@ namespace Restaurant.Data.Migrations
                         .HasForeignKey("CustomerId");
 
                     b.HasOne("Restaurant.Data.Models.Employee", "Employee")
-                        .WithMany()
+                        .WithMany("Orders")
                         .HasForeignKey("EmployeeId");
 
                     b.HasOne("Restaurant.Data.Models.ApplicationUser", "Receiver")
@@ -1741,6 +1760,8 @@ namespace Restaurant.Data.Migrations
 
             modelBuilder.Entity("Restaurant.Data.Models.Employee", b =>
                 {
+                    b.Navigation("Orders");
+
                     b.Navigation("Salaries");
                 });
 
