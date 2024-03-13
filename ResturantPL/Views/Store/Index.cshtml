@@ -82,6 +82,30 @@
     </div>
 </div>
 
+
+
+<script src="~/lib/sweetalert/sweetalert.min.js"></script>
+@if (TempData["success"] != null)
+{
+    <script>
+        swal("برافو عمل جيد !", "", "success");
+
+    </script>
+}
+@if (TempData["faild"] != null)
+{
+    <script>
+        swal("فشلت العملية !", "", "error");
+
+    </script>
+
+}
+@section Scripts {
+
+    <script src="~/modules/Store.js"></script>
+}
+
+
 <script>
     function openModal(itemId) {
         $('#dateModal').modal('show');

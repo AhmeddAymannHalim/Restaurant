@@ -304,39 +304,24 @@ namespace ResturantPL.Controllers
         }
 
 
-
-        public IActionResult DeleteEmployee(int id)
+        public IActionResult Delete(int id)
         {
-            Employee employee = GetEmployee(id);
+            var employee = _unitOfWork.EmployeeRepository.GetById(id);
             if (employee != null)
             {
-                return View(employee);
-            }
-            return NotFound();
-        }
-
-
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("DeleteEmployee")]
-        public IActionResult ConfirmDeleteEmployee(int id)
-        {
-            try
-            {
-                Employee employee = GetEmployee(id);
-                if (employee != null)
+                try
                 {
                     _unitOfWork.EmployeeRepository.Delete(employee);
-                    return RedirectToAction("Employees");
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-                return BadRequest();
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return RedirectToAction("Employees");
         }
-
-
 
         public Employee GetEmployee(int id)
         {

@@ -33,5 +33,8 @@ namespace Restaurant.Data.Models
         public virtual Branche Branche { get; set; }
         public virtual SalaryType SalaryType { get; set; }
         public virtual Job Job { get; set; }
+        public virtual ICollection<Salary> Salaries { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
+
     }
 }

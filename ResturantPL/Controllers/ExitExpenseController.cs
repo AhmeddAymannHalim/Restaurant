@@ -19,7 +19,7 @@ namespace ResturantPL.Controllers
         public IActionResult Index()
         {
             var expenses = _unitOfWork.ExitExpenseRepository.
-                GetAll(a => a.Include(a => a.Expense), a =>a.Include(a => a.User));
+                GetAll(a => a.Include(a => a.Expense), a => a.Include(a => a.User));
             return View(expenses);
         }
 
@@ -93,38 +93,24 @@ namespace ResturantPL.Controllers
 
 
 
-        [HttpGet]
-        public async Task<IActionResult> Delete(int id)
+        public IActionResult Delete(int id)
         {
-            var expense = await _unitOfWork.ExitExpenseRepository.GetByIdAsync(id);
-            if (expense != null)
+            var exitExpense = _unitOfWork.ExitExpenseRepository.GetById(id);
+            if (exitExpense != null)
             {
-                return View(expense);
-            }
-            return NotFound();
-        }
-
-
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("Delete")]
-        public async Task<IActionResult> DeleteExpense(int id)
-        {
-            try
-            {
-                var expenseIndb = await _unitOfWork.ExitExpenseRepository.GetByIdAsync(id);
-
-                if (expenseIndb != null)
+                try
                 {
-                    _unitOfWork.ExitExpenseRepository.Delete(expenseIndb);
-
-                    return RedirectToAction("Index");
+                    _unitOfWork.ExitExpenseRepository.Delete(exitExpense);
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-                return NotFound();
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return RedirectToAction("Index");
+
         }
     }
 }

@@ -29,8 +29,19 @@ namespace Service.IRepositories
         Task UpdateRangeAsync(IEnumerable<T> entities);
 
 
-
         IEnumerable<T> GetAll(Expression<Func<T, bool>> perdicate = null, string Includeword = null);
         T GetFirstorDefault(Expression<Func<T, bool>> perdicate = null, string Includeword = null);
+
+
+        //IEnumerable<T> GetBetweenDates(Func<T, DateTime> dateSelector, DateTime startDate, DateTime endDate);
+
+        //IEnumerable<T> GetEntitiesBetweenDates(
+        //Func<T, DateTime> dateSelector,
+        //DateTime startDate,
+        //DateTime endDate,
+        //Func<IQueryable<T>, IQueryable<T>> include = null,
+        //Func<IQueryable<T>, IQueryable<T>> thenInclude = null);
+
+
     }
 }

@@ -9,32 +9,40 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Data.Models
 {
+
+    public enum MoneyState
+    {
+        Incentive, Discount, Dept    }
+
+
     public class Scrounge 
     {
         public int Id { get; set; }
+
         [DisplayName("الوصف")]
         public string Info { get; set; }
+
         [DisplayName("التاريخ")]
-        public DateTime CreatedTime { get; set; } = DateTime.Now;
+        public DateTime Date { get; set; } = DateTime.Now;
+
         [DisplayName("المبلغ")]
         public decimal Amount { get; set; }
 
         [Required]
         [DisplayName("الموظف")]
         public int EmployeeId { get; set; }
-        public Employee Employee { get; set; }
 
         [Required]
         [DisplayName("حالة المبلغ")]
-        public int StateId { get; set; }
+        public MoneyState State { get; set; }
 
         public string UserId { get; set; }
 
 
 
 
-        public State State { get; set; }
         public ApplicationUser User { get; set; }
+        public Employee Employee { get; set; }
 
     }
 }

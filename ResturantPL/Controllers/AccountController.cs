@@ -74,8 +74,8 @@ namespace ResturantPL.Controllers
                 Deposits = _unitOfWork.DepositRepository.GetAll().ToList(),
                 kitchens = _unitOfWork.kitchenRepository.GetAll().ToList(),
                 Scrounges = _unitOfWork.ScroungeRepository.GetAll().ToList(),
-                States = _unitOfWork.StateRepository.GetAll().ToList(),
                 ExitExpenses = _unitOfWork.ExitExpenseRepository.GetAll().ToList(),
+                Salaries = _unitOfWork.SalaryRepository.GetAll().ToList(),
             };
 
             return View(adminViewModel);

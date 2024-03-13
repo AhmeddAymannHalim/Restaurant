@@ -20,55 +20,47 @@ namespace ResturantPL.Controllers
         public ActionResult Index()
         {
             var scrounges = _unitOfWork.ScroungeRepository
-                .GetAll(a => a.Include(a => a.User), a => a.Include(a => a.Employee), a => a.Include(a => a.State));
+                .GetAll(a => a.Include(a => a.User), a => a.Include(a => a.Employee));
 
             return View(scrounges);
         }
 
-        public IActionResult GetData()
+        [HttpGet]
+        public IActionResult Details(int id)
         {
-            // for datatable - ajax js
-            var scrounges = _unitOfWork.ScroungeRepository.GetAll(Includeword: "Employee, State");
-            return Json(new { data = scrounges });
+            var scrounge = _unitOfWork.ScroungeRepository.GetById(a => a.Id == id, new string[] { "Employee", "User" });
+            if (scrounge == null)
+            {
+                return NotFound();
+            }
+            return View(scrounge);
         }
+       
 
         [HttpGet]
         public IActionResult Create()
         {
-            ScroungeViewModel scroungeViewModel = new ScroungeViewModel()
-            {
-                Scrounge = new Scrounge(),
-                EmployeeList = _unitOfWork.EmployeeRepository.GetAll().Select(x => new SelectListItem
-                {
-                    Text = x.FirstName,
-                    Value = x.EmployeeId.ToString()
-                }),
-                StateList = _unitOfWork.StateRepository.GetAll().Select(x => new SelectListItem
-                {
-                    Text = x.StateName,
-                    Value = x.StateId.ToString()
-                })
-            };
-            return View(scroungeViewModel);
+            ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll(), "EmployeeId", "FullName");
+            return View();
         }
 
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ScroungeViewModel scroungeViewModel)
+        public async Task<IActionResult> Create(Scrounge model)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                    scroungeViewModel.Scrounge.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll(), "EmployeeId", "FullName");
+                    model.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    model.Date = DateTime.Now;
 
-                    await _unitOfWork.ScroungeRepository.AddAsync(scroungeViewModel.Scrounge);
-
-                    _unitOfWork.Complete();
+                    await _unitOfWork.ScroungeRepository.AddAsync(model);
 
                     return RedirectToAction("Index");
                 }
-                return View(scroungeViewModel.Scrounge);
+                return View(model);
             }
             catch (Exception ex)
             {
@@ -79,50 +71,34 @@ namespace ResturantPL.Controllers
 
 
         [HttpGet]
-        public IActionResult Edit(int? id)
+        public IActionResult Edit(int id)
         {
-            if (id == null || id == 0)
+            ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll(), "EmployeeId", "FullName");
+
+            var scrounge = _unitOfWork.ScroungeRepository.GetById(a => a.Id == id, new string[] { "Employee", "User" });
+            if (scrounge == null)
             {
-                NotFound();
+                return NotFound();
             }
-
-            ScroungeViewModel scroungeViewModel = new ScroungeViewModel()
-            {
-
-                Scrounge = _unitOfWork.ScroungeRepository.GetFirstorDefault(x => x.Id == id),
-                EmployeeList = _unitOfWork.EmployeeRepository.GetAll().Select(x => new SelectListItem
-                {
-                    Text = x.FirstName,
-                    Value = x.EmployeeId.ToString()
-                }),
-                StateList = _unitOfWork.StateRepository.GetAll().Select(x => new SelectListItem
-                {
-                    Text = x.StateName,
-                    Value = x.StateId.ToString()
-                })
-            };
-            return View(scroungeViewModel);
-
+            return View(scrounge);
         }
 
 
 
         [HttpPost, ValidateAntiForgeryToken]
-        public IActionResult Edit(ScroungeViewModel scroungeViewModel)
+        public IActionResult Edit(Scrounge model)
         {
             try
             {
+                ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll(), "EmployeeId", "FullName");
+
                 if (ModelState.IsValid)
                 {
-                    //_context.Scrounges.Update(scrounge);
-                    _unitOfWork.ScroungeRepository.Update(scroungeViewModel.Scrounge);
-
-                    // _context.SaveChanges();
-                    _unitOfWork.Complete();
+                    _unitOfWork.ScroungeRepository.Update(model);
 
                     return RedirectToAction("Index");
                 }
-                return View(scroungeViewModel.Scrounge);
+                return View(model);
             }
             catch (Exception ex)
             {
@@ -130,101 +106,30 @@ namespace ResturantPL.Controllers
             }
         }
 
-        ////[HttpGet]
-        ////public async Task<IActionResult> Delete(int id)
-        ////{
-        ////    if (id == null || id == 0)
-        ////    {
-        ////        NotFound();
-        ////    }
-
-        ////    //var scroungeIndb = _context.Scrounges.Find(id);  
-        ////    var scroungeIndb = await _unitOfWork.ScroungeRepository.GetByIdAsync(id);
-
-        ////    return View(scroungeIndb);
-        ////}
-
-        //[HttpDelete]
-        ////[HttpPost]
-        ////[ValidateAntiForgeryToken]
-        //public IActionResult Delete(int? id) 
-        //{
-        //    //var scroungeIndb = _context.Scrounges.Find(id);
-        //    var scroungeIndb = _unitOfWork.ScroungeRepository.GetFirstorDefault(x => x.Id == id);
-
-        //    if (scroungeIndb == null)  
-        //    {
-        //        //NotFound();
-        //        return Json(new { success = false, message = "Error While Deleting" });
-        //    }
-
-        //    //_context.Scrounges.Remove(scroungeIndb);
-        //    _unitOfWork.ScroungeRepository.Delete(scroungeIndb);
-
-        //    //_context.SaveChanges();
-        //    _unitOfWork.Complete();
-
-        //    //return RedirectToAction("Index");
-        //    return Json(new { success = true, message = "file has been Deleted" }); 
-        //}
 
 
 
 
-        ///////////////////////////////////////////////////////////////////////////////////////
-        ///
 
-        [HttpGet]
-        public async Task<IActionResult> Delete(int id)
+        public IActionResult Delete(int id)
         {
-            if (id == 0)
+            var scrounge = _unitOfWork.ScroungeRepository.GetById(id);
+            if (scrounge != null)
             {
-                NotFound();
-            }
-
-            var scroungeIndb = await _unitOfWork.ScroungeRepository.GetByIdAsync(id);
-
-            return View(scroungeIndb);
-        }
-
-
-        [HttpPost, ValidateAntiForgeryToken]
-        public IActionResult DeleteScrounge(int? id)
-        {
-            try
-            {
-                var scroungeIndb = _unitOfWork.ScroungeRepository.GetFirstorDefault(x => x.Id == id);
-
-                if (scroungeIndb == null)
+                try
                 {
-                    NotFound();
+                    _unitOfWork.ScroungeRepository.Delete(scrounge);
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-
-                _unitOfWork.ScroungeRepository.Delete(scroungeIndb);
-
-                _unitOfWork.Complete();
-
-                return RedirectToAction("Index");
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return RedirectToAction("Index");
         }
 
 
-
-        [HttpGet]
-        public async Task<IActionResult> Details(int id)
-        {
-            if (id == 0)
-            {
-                NotFound();
-            }
-
-            var scroungeIndb = await _unitOfWork.ScroungeRepository.GetByIdAsync(id);
-
-            return View(scroungeIndb);
-        }
     }
 }

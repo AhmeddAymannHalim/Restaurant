@@ -6,6 +6,7 @@ using ResturantPL.ViewModels;
 using Service.UnitOfWork;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using ResturantPL.Helper;
 
 namespace ResturantPL.Controllers
 {
@@ -95,36 +96,29 @@ namespace ResturantPL.Controllers
             return View(deposit);
         }
 
-      
 
-        [HttpGet]
+
         public IActionResult Delete(int id)
         {
-            if (id == 0)
+            var deposit = _unitOfWork.DepositRepository.GetById(id);
+            if (deposit != null)
             {
-              return  NotFound();
+                try
+                {
+                    deposit.IsDeleted = true;
+                    _unitOfWork.DepositRepository.Update(deposit);
+
+                    TempData["success"] = "تمت العملية بنجاح";
+                }
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-
-            var depositIndb = _unitOfWork.DepositRepository.GetById(a => a.Id == id, new string[] { "User" });
-
-            return View(depositIndb);
-        }
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("Delete")]
-        public IActionResult DeleteDeposit(int id)
-        {
-            var depositIndb = _unitOfWork.DepositRepository.GetFirstorDefault(x => x.Id == id);
-
-            if (depositIndb == null)
-            {
-                return NotFound();
-            }
-            depositIndb.IsDeleted = true;
-
-            _unitOfWork.DepositRepository.Update(depositIndb);
-
             return RedirectToAction("Index");
         }
+
 
         [HttpGet]
         public IActionResult Details(int id)

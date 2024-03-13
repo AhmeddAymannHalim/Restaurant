@@ -1,5 +1,6 @@
 html {
   font-size: 14px;
+  direction:rtl;
 }
 
 @media (min-width: 768px) {
@@ -30,3 +31,8 @@ body {
         padding: 10px 20px;
     }
 
+@media print {
+    .no-print {
+        display: none;
+    }
+}

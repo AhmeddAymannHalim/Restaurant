@@ -116,34 +116,23 @@ namespace ResturantPL.Controllers
 
 
 
-        public IActionResult DeleteJob(int id)
+        public IActionResult Delete(int id)
         {
-            Job job = GetJob(id);
+            var job = _unitOfWork.JobRepository.GetById(id);
             if (job != null)
             {
-                return View(job);
-            }
-            return NotFound();
-        }
-
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("DeleteJob")]
-        public IActionResult ConfirmDeleteJob(int id)
-        {
-            try
-            {
-                Job job = GetJob(id);
-                if (job != null)
+                try
                 {
                     _unitOfWork.JobRepository.Delete(job);
-                    return RedirectToAction("Jobs");
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-                return BadRequest();
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return RedirectToAction("Jobs");
         }
 
         public Job GetJob(int id)

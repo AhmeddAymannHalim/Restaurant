@@ -92,35 +92,21 @@ namespace ResturantPL.Controllers
 
         public IActionResult Delete(int id)
         {
-            MenuSection section = _unitOfWork.MenuSectionRepository
-                .GetById(a => a.Id == id, new string[] { "MenuItems" }, new string[] { "MenuItems.Store" });
+            var section = _unitOfWork.MenuSectionRepository.GetById(id);
             if (section != null)
             {
-                return View(section);
-            }
-            return NotFound();
-        }
-
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("Delete")]
-        public IActionResult DeleteConfirm(int id)
-        {
-            try
-            {
-                MenuSection section = _unitOfWork.MenuSectionRepository
-                    .GetById(a => a.Id == id, new string[] { "MenuItems" }, new string[] { "MenuItems.Store" });
-                if (section != null)
+                try
                 {
                     _unitOfWork.MenuSectionRepository.Delete(section);
-                    return RedirectToAction("Index");
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-
-                return BadRequest();
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return RedirectToAction("Index");
         }
 
     }

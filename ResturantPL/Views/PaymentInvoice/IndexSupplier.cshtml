@@ -23,13 +23,13 @@
             <th>
                 البيان
             </th>
-            <th></th>
             <th>
                 المدفوع
             </th>
             <th>
                 المتبقي
             </th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -55,9 +55,7 @@
                 @Html.DisplayFor(modelItem => item.Supplier.Balance)
             </td>
             <td>
-                @* @Html.ActionLink("Edit", "Edit", new { id=item.Id }) | *@
                     @Html.ActionLink("التفاصيل", "SupplierInvoiceDetails", new { id = item.Id })
-                @* @Html.ActionLink("Delete", "Delete", new {  id=item.Id }) *@
             </td>
         </tr>
 }

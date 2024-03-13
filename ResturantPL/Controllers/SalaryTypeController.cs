@@ -90,43 +90,24 @@ namespace ResturantPL.Controllers
         }
 
 
-        public async Task<IActionResult> DeleteSalaryType(int id)
+        public IActionResult Delete(int id)
         {
-            SalaryType type = await GetSalary(id);
+            var type = _unitOfWork.SalaryTypeRepository.GetById(id);
             if (type != null)
             {
-                return View(type);
-            }
-            else
-            {
-                return NotFound();
-            }
-
-        }
-
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("DeleteSalaryType")]
-        public async Task<IActionResult> DeleteSalaryTypeConfirm(int id)
-        {
-            try
-            {
-                SalaryType type = await GetSalary(id);
-                if (type != null)
+                try
                 {
                     _unitOfWork.SalaryTypeRepository.Delete(type);
-
-                    return RedirectToAction("Index");
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-                return BadRequest();
-
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return RedirectToAction("Index");
         }
-
-
 
         public async Task<SalaryType> GetSalary(int id)
         {

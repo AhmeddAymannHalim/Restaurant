@@ -127,41 +127,26 @@ namespace ResturantPL.Controllers
 
 
 
-
         public IActionResult Delete(int id)
         {
-            StoreConvert item = _unitOfWork.StoreConvertRepository.GetById(a => a.Id == id, new string[] { "FromStore", "ToStore", "StoreConvertProducts" }, new string[] { "StoreConvertProducts.StoreProduct" });
-            if (item != null)
+            var convert = _unitOfWork.StoreConvertRepository.GetById(id);
+            if (convert != null)
             {
-                return View(item);
-            }
-            return NotFound();
-        }
-
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("Delete")]
-        public IActionResult ConfirmDelete(int id)
-        {
-            try
-            {
-                StoreConvert item = _unitOfWork.StoreConvertRepository.GetById(a => a.Id == id, new string[] { "FromStore", "ToStore", "StoreConvertProducts" }, new string[] { "StoreConvertProducts.StoreProduct" });
-                if (item != null)
+                try
                 {
-                    _unitOfWork.StoreConvertRepository.Delete(item);
-                    return RedirectToAction("Index");
+                    _unitOfWork.StoreConvertRepository.Delete(convert);
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-                return BadRequest();
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return RedirectToAction("Index");
         }
 
 
-
-
-    
 
 
 

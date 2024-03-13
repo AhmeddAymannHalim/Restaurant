@@ -1,0 +1,157 @@
+﻿@{
+    ViewData["Title"] = "Search By Dates";
+
+}
+
+
+
+
+
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="startDate">تاريخ البداية:</label>
+                <input type="date" id="startDate" name="startDate" value="@ViewBag.DateNow" class="form-control" required />
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="endDate">تاريخ النهاية:</label>
+                <input type="date" id="endDate" name="endDate" value="@ViewBag.DateNow" class="form-control" required />
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <button id="show" type="button" style="width:100%;" class="btn btn-primary mt-4">عرض البيانات</button>
+            </div>
+        </div>
+    </div>
+</div>
+<hr />
+
+
+<h1 class="text-center">حركة الخزينة</h1>
+<hr />
+<div class="row">
+
+    <div class="form-group mb-4 col-md-4">
+        <label class="control-label">الايرادات</label>
+        <input id="imports" class="form-control" readonly />
+    </div>
+
+    <div class="form-group mb-4 col-md-4">
+        <label class="control-label">المبيعات</label>
+        <input id="sales" class="form-control" readonly />
+    </div>
+
+    <div class="form-group mb-4 col-md-4">
+        <label class="control-label">مرتجع المشتريات</label>
+        <input id="returns" class="form-control" readonly />
+    </div>
+
+    <div class="form-group mb-4 col-md-3">
+        <label class="control-label">المصروفات</label>
+        <input id="expenses" class="form-control" readonly />
+    </div>
+
+    <div class="form-group mb-4 col-md-3">
+        <label class="control-label">مصروفات الموظفين</label>
+        <input id="empExpenses" class="form-control" readonly />
+    </div>
+
+    <div class="form-group mb-4 col-md-3">
+        <label class="control-label">المشتريات</label>
+        <input id="purchases" class="form-control" readonly />
+    </div>
+
+    <div class="form-group mb-4 col-md-3">
+        <label class="control-label">سندات صرف الموردين</label>
+        <input id="supplierMoney" class="form-control" readonly />
+    </div>
+    <hr />
+
+    <div class="form-group mb-4 col-md-3">
+        <label class="control-label">اجمالي الواردات</label>
+        <input id="totalImports" class="form-control" readonly />
+    </div>
+
+    <div class="form-group mb-4 col-md-3">
+        <label class="control-label">اجمالي الصادرات</label>
+        <input id="totalExports" class="form-control" readonly />
+    </div>
+
+    
+    <div class="form-group mb-4 col-md-3">
+        <label class="control-label">صافي الخزينة</label>
+        <input id="total" class="form-control" readonly />
+    </div>
+
+    <div class="form-group mb-4 mt-4 col-md-3">
+        <a id="report" class="btn btn-primary" style="width:100%;"> تصدير الي PDF</a>
+    </div>
+</div>
+<br />
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            $("#show").click(function () {
+                var startDate = $("#startDate").val();
+                var endDate = $("#endDate").val();
+
+                $.ajax({
+                    url: '/Report/MoneySafeByDateas',
+                    type: 'GET',
+                    data: {
+                        startDate: startDate,
+                        endDate: endDate
+                    },
+                    success: function (data) {
+                        $('#imports').val(data.imports);
+                        $('#sales').val(data.sales);
+                        $('#returns').val(data.returns);
+                        $('#purchases').val(data.purchases);
+                        $('#expenses').val(data.expenses);
+                        $('#empExpenses').val(data.employeeExpenses);
+                        $('#supplierMoney').val(data.supplierPayment);
+                        $('#totalExports').val(data.totalExports);
+                        $('#totalImports').val(data.totalImports);
+                        $('#total').val(data.totalMoney);
+                        $("#report").attr("href", `/Report/MoneySafeReport?startDate=${startDate}&endDate=${endDate}`);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                        alert("حدث خطأ اثناء جلب البيانات");
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#startDate, #endDate').change(function () {
+                $('#imports').val('');
+                $('#sales').val('');
+                $('#returns').val('');
+                $('#purchases').val('');
+                $('#expenses').val('');
+                $('#empExpenses').val('');
+                $('#supplierMoney').val('');
+                $('#totalExports').val('');
+                $('#totalImports').val('');
+                $('#total').val('');
+                $("#report").attr("href", `#`);
+            });
+        });
+    </script>
+
+}
+
+
+

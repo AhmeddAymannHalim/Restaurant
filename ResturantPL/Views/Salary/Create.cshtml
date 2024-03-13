@@ -1,0 +1,161 @@
+﻿@model Restaurant.Data.Models.Salary
+
+@{
+    ViewData["Title"] = "Create";
+    var date = ViewBag.DateNow;
+
+}
+
+<h1 class="text-center">اضافة مرتب</h1>
+<hr />
+
+<div>
+
+    <form asp-action="Create" class="row">
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+
+        <div class="form-group mb-4 col-md-3">
+            <label asp-for="SalaryCode" class="control-label">كود العملية</label>
+            <input asp-for="SalaryCode" value="@ViewBag.SalaryCode" class="form-control" readonly />
+            <span asp-validation-for="SalaryCode" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-4 col-md-3">
+            <label asp-for="EmployeeId" class="control-label">الموظف</label>
+            <select id="employeeId" asp-for="EmployeeId" class="form-control" asp-items="@ViewBag.Employees" required>
+                <option value="">اختر موظف</option>
+            </select>
+            <span asp-validation-for="EmployeeId" class="text-danger"></span>
+        </div>
+
+
+        <div class="form-group mb-4 col-md-3">
+            <label asp-for="FromDate" class="control-label">من تاريخ</label>
+            <input id="startDate" asp-for="FromDate" value="@date" type="date" class="form-control" required />
+            <span asp-validation-for="FromDate" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-4 col-md-3">
+            <label asp-for="ToDate" class="control-label">الي تاريخ</label>
+            <input id="endDate" asp-for="ToDate" value="@ViewBag.DateNow" type="date" class="form-control" required />
+            <span asp-validation-for="ToDate" class="text-danger"></span>
+        </div>
+        
+
+        <div class="form-group mb-4 col-md-3">
+            <label class="control-label">الراتب الاساسي</label>
+            <input id="mainAmount" class="form-control" readonly />
+        </div>
+
+        <div class="form-group mb-4 col-md-3">
+            <label class="control-label">نوع الراتب</label>
+            <input id="salaryType" class="form-control" readonly />
+        </div>
+
+        <div class="form-group mb-4 col-md-3">
+            <label class="control-label">الحوافز</label>
+            <input id="incentive" class="form-control" readonly />
+        </div>
+
+        <div class="form-group mb-4 col-md-3">
+            <label class="control-label">الخصومات</label>
+            <input id="discount" class="form-control" readonly />
+        </div>
+
+        <div class="form-group mb-4 col-md-3">
+            <label class="control-label">السلف</label>
+            <input id="dept" class="form-control" readonly />
+        </div>
+
+
+        <div class="form-group mb-4 col-md-3">
+            <label asp-for="SalaryAmount" class="control-label">اجمالي الراتب</label>
+            <input id="amount" asp-for="SalaryAmount" class="form-control" required />
+            <span asp-validation-for="SalaryAmount" class="text-danger"></span>
+        </div>
+
+        <div class=" form-group mb-4 col-md-3  mt-4">
+            <input id="detailBtn" type="button" value="عرض اجمالي الراتب" class="btn btn-primary" style="width:100%"/>
+        </div>
+
+
+        <div class="form-group col-md-3 mb-4  mt-4">
+            <input type="submit" value="اضافة" class="btn btn-success" style="width:100%" />
+        </div>
+    </form>
+
+</div>
+<a asp-action="Index">عودة للمرتبات</a>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            $("#detailBtn").click(function () {
+                var startDate = $("#startDate").val();
+                var endDate = $("#endDate").val();
+                var employeeId = $("#employeeId").val();
+
+                $.ajax({
+                    url: '/Salary/EmployeeExpenses',
+                    type: 'GET',
+                    data: {
+                        employeeId: employeeId,
+                        startDate: startDate,
+                        endDate: endDate
+                    },
+                    success: function (data) {
+                        $('#mainAmount').val(data.mainSalary);
+                        $('#incentive').val(data.incentives);
+                        $('#dept').val(data.depts);
+                        $('#discount').val(data.discounts);
+                        $('#amount').val(data.totalSalary);
+                        $('#salaryType').val(data.salaryType);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#employeeId, #startDate, #endDate').change(function () {
+                // Clear all input values
+                $('#mainAmount').val('');
+                $('#incentive').val('');
+                $('#dept').val('');
+                $('#discount').val('');
+                $('#amount').val('');
+                $('#salaryType').val('');
+            });
+        });
+    </script>
+    @*   <script>
+        $(document).ready(function () {
+            // Attach change event listener to the dropdown list
+            $('#employeeId').change(function () {
+                // Get the selected SupplierId
+                var employeeId = $(this).val();
+
+                $.ajax({
+                    url: '/Salary/EmployeeExpenses',
+                    type: 'GET',
+                    data: { employeeId: employeeId },
+                    success: function (data) {
+                        // Update the balance input field with the retrieved SupplierBalance
+                        $('#mainAmount').val(data);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+        });
+    </script> *@
+}

@@ -86,39 +86,24 @@ namespace ResturantPL.Controllers
         }
 
 
-
-        [HttpGet]
-        public async Task<IActionResult> Delete(int id)
+        public IActionResult Delete(int id)
         {
-            var expense = await _unitOfWork.ExpenseRepository.GetByIdAsync(id);
+            var expense = _unitOfWork.ExpenseRepository.GetById(id);
             if (expense != null)
             {
-                return View(expense);
-            }
-            return NotFound();
-        }
-
-
-
-        [HttpPost, ValidateAntiForgeryToken, ActionName("Delete")]
-        public async Task<IActionResult> DeleteExpense(int id)
-        {
-            try
-            {
-                var expenseIndb = await _unitOfWork.ExpenseRepository.GetByIdAsync(id);
-
-                if (expenseIndb != null)
+                try
                 {
-                    _unitOfWork.ExpenseRepository.Delete(expenseIndb);
-
-                    return RedirectToAction("Index");
+                    _unitOfWork.ExpenseRepository.Delete(expense);
+                    TempData["success"] = "تمت العملية بنجاح";
                 }
-                return NotFound();
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
             }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return RedirectToAction("Index");
+
         }
     }
 }

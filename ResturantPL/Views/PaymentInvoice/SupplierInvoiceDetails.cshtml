@@ -2,65 +2,14 @@
 
 @{
     ViewData["Title"] = "SupplierInvoiceDetails";
+    Layout = null;
 }
 
 
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+<link href="~/css/invoicesstyle.css" rel="stylesheet" />
 
-<style>
-    /* Define styles for the page content */
-    body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-        margin: 0;
-        background-color: #111;
-    }
-
-    .container {
-        max-width: 576px; /* Set the maximum width to fit within the paper size */
-        margin: 0 auto; /* Center the content horizontally */
-        background-color: #fff; /* White background for better readability */
-        padding: 20px; /* Add padding for spacing */
-        color: black;
-    }
-
-    h1 {
-        text-align: center;
-    }
-
-    dl {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-    }
-
-    dt, dd {
-        width: 45%; /* Set width for better alignment */
-        padding: 10px;
-        margin-bottom: 10px;
-        border: 1px solid #ccc; /* Add border for styling */
-        box-sizing: border-box;
-    }
-
-    dt {
-        background-color: #f2f2f2; /* Light gray background for dt elements */
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse; /* Collapse table borders */
-        margin-top: 20px; /* Add margin at the top */
-    }
-
-    th, td {
-        border: 1px solid #ccc; /* Add border for styling */
-        padding: 8px;
-        text-align: center;
-    }
-
-    th {
-        background-color: #f2f2f2; /* Light gray background for table header */
-    }
-</style>
 
 
 
@@ -115,10 +64,13 @@
        
     </dl>
 
-    <div>
+
+    <div id="print-button" class="no-print">
+        <a class="btn btn-primary" onclick="window.print()"> طباعة</a>
         <a class="btn btn-primary" asp-action="PayForSuppliertReport" asp-controller="Report" asp-route-invoiceId="@Model.Id"> تصدير الي PDF</a>
         <a class="btn btn-info" asp-action="IndexSupplier">عودة لفواتير الموردين</a>
     </div>
+
 
 </div>
 

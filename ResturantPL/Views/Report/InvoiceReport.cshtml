@@ -5,42 +5,40 @@
     Layout = null;
 }
 
-
-
 <style>
     body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-        margin: 0;
-        background-color: #fff;
-        direction: rtl;
-    }
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    margin: 0;
+    background-color: #fff;
+    direction: rtl;
+}
 
-    h1 {
-        text-align: center;
-    }
 
-    table {
-        width: 100%;
-        border-collapse: collapse; /* Collapse table borders */
-        margin-top: 20px; /* Add margin at the top */
-        font-size: 22px;
-    }
+h1, h2, h3, p {
+    text-align: center;
+}
 
-    .mainRow, th {
-        background-color: #f2f2f2; /* Light gray background for dt elements */
-        font-weight: bold;
-    }
+table {
+    width: 100%;
+    border-collapse: collapse; /* Collapse table borders */
+    margin-top: 20px; /* Add margin at the top */
+    font-size: 22px;
+}
 
-    th, td {
-        border: 1px solid #ccc; /* Add border for styling */
-        padding: 8px;
-        text-align: center;
-    }
+
+.mainRow, th {
+    background-color: #f2f2f2; /* Light gray background for dt elements */
+    font-weight: bold;
+}
+
+th, td {
+    border: 1px solid #ccc; /* Add border for styling */
+    padding: 8px;
+    text-align: center;
+}
 
 </style>
-
-
 
 
 @if (Model.InvoiceType == InvoiceType.Purchases)
