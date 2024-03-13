@@ -2,6 +2,15 @@
 @{
     int index = 1;
 }
+<style>
+    .dataTables_wrapper .dt-buttons button {
+        background-color: #4CAF50; /* Green background color */
+    }
+
+    .dataTables_wrapper .dt-buttons button {
+        color: white; /* White text color */
+    }
+</style>
 
 <div>
     <h4>اسم المخزن : @Model.Name</h4>
@@ -42,6 +51,11 @@
 @section Scripts {
    
     <script>
-        $('#tbInventory').DataTable();
+        $('#tbInventory').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                'copy',  'pdf', 'print'
+            ]
+        });
     </script>
 }
