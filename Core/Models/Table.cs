@@ -11,7 +11,7 @@ namespace Restaurant.Data.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string NumOfPersons { get; set; }
+        public byte NumOfPersons { get; set; }
         public bool IsPending { get; set; }
     }
 }

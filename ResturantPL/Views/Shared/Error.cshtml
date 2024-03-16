@@ -2,13 +2,20 @@
 @{
     ViewData["Title"] = "Error";
 }
+<div class="m-5">
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<h1 class="text-danger text-center">خطأ</h1>
+<hr />
+
+<h2 class="text-danger">حدث خطأ اثناء اجراء العملية</h2>
+<br />
+
 
 @if (Model.ShowErrorMessage)
 {
-    <p>
-        <strong>Error Message :</strong> <code>@Model.ErrorMessage</code>
-    </p>
+    <h4>
+            <strong>رسالة الخطأ : </strong>  <span style="color:deeppink">@Model.ErrorMessage</span>
+    </h4>
 }
+
+</div>

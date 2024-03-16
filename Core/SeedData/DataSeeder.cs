@@ -43,13 +43,13 @@ namespace Restaurant.Data.SeedData
             {
                 var tables = new[]
                 {
-                new Table {  Name = "طاولة رقم 1 ", IsPending = false, NumOfPersons = "4"},
-                new Table {  Name = "طاولة رقم 2 ", IsPending = false, NumOfPersons = "6"},
-                new Table {  Name = "طاولة رقم 3 ", IsPending = false, NumOfPersons = "8"},
-                new Table {  Name = "طاولة رقم 4 ", IsPending = false, NumOfPersons = "3"},
-                new Table {  Name = "طاولة رقم 5 ", IsPending = false, NumOfPersons = "2"},
-                new Table {  Name = "طاولة رقم 6 ", IsPending = false, NumOfPersons = "4"},
-                new Table {  Name = "طاولة رقم 7 ", IsPending = false, NumOfPersons = "5"},
+                new Table {  Name = "طاولة رقم 1 ", IsPending = false, NumOfPersons = 4},
+                new Table {  Name = "طاولة رقم 2 ", IsPending = false, NumOfPersons = 6},
+                new Table {  Name = "طاولة رقم 3 ", IsPending = false, NumOfPersons = 8},
+                new Table {  Name = "طاولة رقم 4 ", IsPending = false, NumOfPersons = 3},
+                new Table {  Name = "طاولة رقم 5 ", IsPending = false, NumOfPersons = 2},
+                new Table {  Name = "طاولة رقم 6 ", IsPending = false, NumOfPersons = 4},
+                new Table {  Name = "طاولة رقم 7 ", IsPending = false, NumOfPersons = 3},
             };
                 context.Tables.AddRange(tables);
                 context.SaveChanges();
@@ -85,6 +85,26 @@ namespace Restaurant.Data.SeedData
                 new UnitPrice {  Name = "زجاجة"},
             };
                 context.UnitPrices.AddRange(units);
+                context.SaveChanges();
+            }
+
+            if (!context.ApplicationSettings.Any())
+            {
+                var setting = new[]
+                {
+                    new ApplicationSetting {  Password = "@Qwe12", OrderTax = 5, OrderDiscount = 1, OrderService = 10, PrintAfterOrder = true, PrintForTakeawayOrder = true, NumberOfCustomerPrint = 1, NumberOfKitchenPrint = 1, ShowTotalShift = true }
+                };
+                context.ApplicationSettings.AddRange(setting);
+                context.SaveChanges();
+            }
+
+            if (!context.PrinterSettings.Any())
+            {
+                var setting = new[]
+                {
+                    new PrinterSetting {  PrinterForAllSections = "Microsoft Print to PDF",  PrinterForCashier = "Microsoft Print to PDF",  PrinterForEachSection = "Microsoft Print to PDF"}
+                };
+                context.PrinterSettings.AddRange(setting);
                 context.SaveChanges();
             }
 

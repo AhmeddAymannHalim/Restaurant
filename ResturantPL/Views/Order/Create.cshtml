@@ -2,7 +2,7 @@
     ViewData["Title"] = "Create Order";
     Layout = "_Layout1";
     var user = ViewBag.CurrentUser;
-    var items = ViewBag.MenuItems as List<MenuItem>; 
+    var items = ViewBag.MenuItems as List<MenuItem>;
     var distinctMenuSections = items.Select(i => i.MenuSection.Name).Distinct();
 }
 
@@ -64,25 +64,26 @@
 
             <div class="form-group col-md-3">
                 <label class="control-label">كود الطلب</label>
-                <input id="orderCode" name="OrderCode" value="@ViewBag.OrderCode" class="form-control" readonly  />
+                <input id="orderCode" name="OrderCode" value="@ViewBag.OrderCode" class="form-control" readonly />
                 <input id="cash" name="Cash" type="radio" class="form-control" hidden />
             </div>
 
 
             <div class="form-group col-md-3">
                 <label class="control-label">خدمة</label>
-                <input type="number" value="5" step="0.01" id="service" name="Service" class="form-control" required />
+                <input type="number" value="@ViewBag.Settings.OrderService" step="0.01" id="service" name="Service" class="form-control" required />
+                <input type="number" value="@ViewBag.Settings.OrderService" step="0.01" id="lastService" name="Service" class="form-control" hidden />
             </div>
 
             <div class="form-group col-md-3">
                 <label class="control-label">ضريبة</label>
-                <input type="number" value="5" step="0.01" id="tax" name="Tax" class="form-control" required />
+                <input type="number" step="0.01" id="tax" name="Tax" class="form-control" required />
             </div>
 
 
             <div class="form-group col-md-3">
                 <label class="control-label">خصم</label>
-                <input type="number" value="0" step="0.01" id="discount" name="Discount" class="form-control" required />
+                <input type="number" value="@ViewBag.Settings.OrderDiscount" step="0.01" id="discount" name="Discount" class="form-control" required />
             </div>
 
             <div class="form-group col-md-3">
@@ -121,14 +122,14 @@
             <div class="form-group col-md-3" id="employeeIdField">
                 <label class="control-label">الطيار</label>
                 <select id="employeeId" name="EmployeeId" class="form-control" asp-items="ViewBag.Tayars">
-                    <option value="">اختر الطيار</option>
+                    @* <option value="">اختر الطيار</option> *@
                 </select>
             </div>
 
             <div class="form-group col-md-3" id="tableIdField">
                 <label class="control-label">الطاولة</label>
                 <select id="tableId" name="TableId" class="form-control" asp-items="ViewBag.Tables">
-                    <option value="">اختر الطاولة</option>
+                    @* <option value="">اختر الطاولة</option> *@
                 </select>
             </div>
 
@@ -154,7 +155,6 @@
                     </tr>
                 </thead>
                 <tbody>
-
                 </tbody>
             </table>
         </form>
@@ -175,12 +175,11 @@
 
     <script>
         $(document).ready(function () {
-            // Get the modal element
+
             var modal = $('#myModal');
 
-            // Event listener for when the modal is shown
             modal.on('shown.bs.modal', function () {
-                // Set focus on the password input field
+                
                 $('#modalPassword').focus();
             });
         });
@@ -188,6 +187,8 @@
 
     <script>
         $(document).ready(function () {
+
+
             $('#customerId').change(function () {
                 var customerId = $(this).val();
 
@@ -218,33 +219,7 @@
         });
     </script>
 
-    <script>
-        $(document).ready(function () {
-            $('#orderType').change(function () {
-                var selectedOption = $(this).val();
-                if (selectedOption === "@OrderType.Hall") {
-                    $('#addressField, #phoneNumberField, #mobileNumberField, #employeeIdField').hide();
-                    $('#tableIdField').show();
-                    $('#addInvoiceBtnField').show();
-                    $('#payInvoiceBtnField').hide(); // Hide the Pay Invoice button for Hall orders
-                } else if (selectedOption === "@OrderType.TakeAway") {
-                    $('#addressField, #phoneNumberField, #mobileNumberField, #employeeIdField, #tableIdField').hide();
-                    $('#addInvoiceBtnField').hide();
-                    $('#payInvoiceBtnField').show(); // Show the Pay Invoice button for TakeAway orders
-                } else if (selectedOption === "@OrderType.Delivery") {
-                    $('#tableIdField').hide();
-                    $('#addressField, #phoneNumberField, #mobileNumberField, #employeeIdField').show();
-                    $('#addInvoiceBtnField').show();
-                    $('#payInvoiceBtnField').hide(); // Hide the Pay Invoice button for Delivery orders
-                } else {
-                    $('#addressField, #phoneNumberField, #mobileNumberField, #employeeIdField, #tableIdField').show();
-                    $('#addInvoiceBtnField').show();
-                    $('#payInvoiceBtnField').show(); // Show the Pay Invoice button for other order types
-                }
-            });
-        });
-    </script>
-
+  
     <script>
         $(document).ready(function () {
             // Function to handle click on item buttons
@@ -312,10 +287,50 @@
                 row.remove();
             }
 
+            $('#discount, #tax, #service').on('input', function () {
+
+                calculateTotalPrice();
+
+            });
+
+
+            $('#orderType').change(function () {
+                var selectedOption = $(this).val();
+                var lastService = $('#lastService').val();
+
+                calculateTotalPrice();
+
+
+                if (selectedOption === "@OrderType.Hall") {
+                    $('#addressField, #phoneNumberField, #mobileNumberField, #employeeIdField').hide();
+                    $('#tableIdField').show();
+                    $('#addInvoiceBtnField').show();
+                    $('#payInvoiceBtnField').hide(); // Hide the Pay Invoice button for Hall orders
+                    $('#service').val(lastService);
+                } else if (selectedOption === "@OrderType.TakeAway") {
+                    $('#addressField, #phoneNumberField, #mobileNumberField, #employeeIdField, #tableIdField').hide();
+                    $('#addInvoiceBtnField').hide();
+                    $('#payInvoiceBtnField').show();
+                    $('#service').val('');
+
+                } else if (selectedOption === "@OrderType.Delivery") {
+                    $('#tableIdField').hide();
+                    $('#addressField, #phoneNumberField, #mobileNumberField, #employeeIdField').show();
+                    $('#addInvoiceBtnField').show();
+                    $('#payInvoiceBtnField').hide(); // Hide the Pay Invoice button for Delivery orders
+                    $('#service').val(lastService);
+                } else {
+                    $('#addressField, #phoneNumberField, #mobileNumberField, #employeeIdField, #tableIdField').show();
+                    $('#addInvoiceBtnField').show();
+                    $('#payInvoiceBtnField').show(); // Show the Pay Invoice button for other order types
+                    $('#service').val(lastService);
+                }
+            });
 
 
 
-            // Function to calculate total price
+
+
             function calculateTotalPrice() {
                 var subtotal = 0;
                 $('#selectedItemsTable tbody tr').each(function () {
@@ -323,13 +338,31 @@
                     subtotal += price;
                 });
 
-                var discount = parseFloat($('#discount').val()) || 0;
-                var tax = parseFloat($('#tax').val()) || 0;
-                var service = parseFloat($('#service').val()) || 0;
-                var totalPrice = subtotal + tax + service - discount;
+                var taxRate = 0;
 
-                $('#totalPrice').val(totalPrice.toFixed(2));
+                $.ajax({
+                    url: '/Order/GetTaxPercentage', // Adjust the URL to match your controller action
+                    type: 'GET',
+                    success: function (data) {
+                        // On success, update the tax input field with the retrieved value
+                        taxRate = parseFloat(data.orderTax) / 100;
+
+                        // Calculate tax and total price after retrieving tax rate
+                        var tax = subtotal * taxRate;
+                        var discount = parseFloat($('#discount').val()) || 0;
+                        var service = parseFloat($('#service').val()) || 0;
+                        var totalPrice = subtotal + tax + service - discount;
+
+                        // Set tax and total price fields
+                        $('#tax').val(tax.toFixed(2));
+                        $('#totalPrice').val(totalPrice.toFixed(2));
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
             }
+
         });
 
     </script>
@@ -339,19 +372,20 @@
 
 
             $('#addInvoiceBtn').click(function () {
-                // Set the value of the hidden input field "cash" to false
+
                 $('#cash').val('false');
             });
 
-            // Function to handle click on payInvoiceBtn
+           
             $('#payInvoiceBtn').click(function () {
-                // Set the value of the hidden input field "cash" to true
+                
                 $('#cash').val('true');
             });
 
 
+
             $('#orderForm').submit(function () {
-                // Initialize index
+               
                 var index = 0;
 
                 // Loop through each selected item in the table

@@ -61,6 +61,8 @@ namespace ResturantPL.Controllers
             var indexSettingsViewModel = _mapper.Map<IndexSettingsViewModel>(indexSettings);
             return View(indexSettingsViewModel);
         }
+
+
         [HttpPost]
         public async Task<IActionResult> IndexSettings(IndexSettingsViewModel model)
         {

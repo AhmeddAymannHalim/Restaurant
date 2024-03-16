@@ -48,13 +48,16 @@ namespace ResturantPL.Controllers
 
 
         [HttpPost, ValidateAntiForgeryToken]
-        public IActionResult Login(string password)
+        public async Task<IActionResult> Login(string password)
         {
             try
             {
                 ViewBag.CurrentUser = CurrentUser();
 
-                if (PasswordManager.ValidatePassword(password))
+
+                ApplicationSetting setting = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
+
+                if (setting.Password == password)
                 {
                     HttpContext.Session.SetString("IsAuthenticated", "true");
                     return RedirectToAction("Create", "Order");
@@ -79,7 +82,10 @@ namespace ResturantPL.Controllers
             {
                 ViewBag.CurrentUser = CurrentUser();
 
-                if (PasswordManager.ValidatePassword(password))
+                ApplicationSetting setting = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
+
+                if (setting.Password == password)
+                //if (PasswordManager.ValidatePassword(password))
                 {
                     var orders = _unitOfWork.OrderRepository.GetAll().Where(a => a.Cash && a.ReceiverId == CurrentUser().Id);
                     foreach (var item in orders)
@@ -94,7 +100,7 @@ namespace ResturantPL.Controllers
                 else
                 {
                     ModelState.AddModelError(string.Empty, "Incorrect password.");
-                    return RedirectToAction("Create", "Order");
+                    return RedirectToAction("Index", "Order");
                 }
 
             }

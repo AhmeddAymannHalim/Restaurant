@@ -1,0 +1,80 @@
+﻿@model PrinterSetting
+
+@{
+    ViewData["Title"] = "Printer Setting";
+}
+
+<h1 class="text-center">اعدادات الطابعات</h1>
+
+<form id="printerForm" asp-action="PrinterSetting" method="post">
+    <input asp-for="Id" hidden />
+
+
+    <div class="form-group col-md-4">
+        <label asp-for="PrinterForAllSections" class="control-label">اختر طابعة لكل الاقسام</label>
+        <select id="printerDropdown" asp-for="PrinterForAllSections" class="form-control" required>
+            <option value="">اختر الطابعة</option>
+            @foreach (var printer in ViewBag.InstalledPrinters)
+            {
+                <option value="@printer">@printer</option>
+            }
+        </select>
+        <span asp-validation-for="PrinterForAllSections" class="text-danger"></span>
+    </div>
+
+
+    <div class="form-group col-md-4">
+        <label asp-for="PrinterForCashier" class="control-label">اختر طابعة للكاشير</label>
+        <select id="printerDropdown" asp-for="PrinterForCashier" class="form-control" required>
+            <option value="">اختر الطابعة</option>
+            @foreach (var printer in ViewBag.InstalledPrinters)
+            {
+                <option value="@printer">@printer</option>
+            }
+        </select>
+        <span asp-validation-for="PrinterForCashier" class="text-danger"></span>
+    </div>
+
+    <div class="form-group col-md-4">
+        <label asp-for="PrinterForEachSection" class="control-label">اختر طابعة لكل قسم</label>
+        <select id="printerDropdown" asp-for="PrinterForEachSection" class="form-control" required>
+            <option value="">اختر الطابعة</option>
+            @foreach (var printer in ViewBag.InstalledPrinters)
+            {
+                <option value="@printer">@printer</option>
+            }
+        </select>
+        <span asp-validation-for="PrinterForEachSection" class="text-danger"></span>
+    </div>
+
+    <div class="form-group col-md-4 mt-4">
+        <input type="submit" value="حفظ" class="btn btn-primary" /> |
+        <a asp-action="Index">عودة للاعدادات</a>
+    </div>
+
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    @* <script>
+        // Function to populate dropdown with available printers
+        function populatePrinters() {
+            var printerDropdowns = document.querySelectorAll("#printerDropdown");
+            var printers = @Html.Raw(Json.Serialize(ViewBag.InstalledPrinters)); // Get the list of printers from ViewBag
+            var setting = @Html.Raw(Json.Serialize(Model));
+
+            printerDropdowns.forEach(function (dropdown) {
+                printers.forEach(function (printer) {
+                    var option = document.createElement("option");
+                    option.text = printer;
+                    option.value = printer;
+                    dropdown.add(option);
+                });
+            });
+        }
+
+        // Call the populatePrinters function when the page loads
+        window.onload = populatePrinters; *@
+        </script>
+
+}

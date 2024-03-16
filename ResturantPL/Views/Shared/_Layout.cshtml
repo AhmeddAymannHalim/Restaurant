@@ -1,9 +1,9 @@
-﻿@*@if (ViewData["Title"] == "Index")
+﻿@*  @if (ViewData["Title"] == "Home")
 {
 
   @model IndexSettings
-}*@
-
+}
+  *@
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -60,8 +60,8 @@
             @if (Model != null && Model.GetType() == typeof(IndexSettings))
             {
                 <div class="contact-info d-flex align-items-center">
-                    <i class="bi bi-clock d-flex align-items-center ms-4"><span> @Model.StartDay-@Model.EndDay: @Model.StartHour صباحا - @Model.EndHour مساءا</span></i>
-                    <i class="bi bi-phone d-flex align-items-center"><span>@Model.Phone</span></i>
+                    <i class="bi bi-clock d-flex align-items-center ms-4"><span> @Model.StartDay - @Model.EndDay : @Model.StartHour صباحا - @Model.EndHour مساءا</span></i>
+                    <i class="bi bi-phone d-flex align-items-center"> <span> @Model.Phone </span> </i>
                 </div>
             }
 

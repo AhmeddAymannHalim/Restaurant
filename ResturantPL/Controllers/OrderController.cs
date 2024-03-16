@@ -224,8 +224,19 @@ namespace ResturantPL.Controllers
             //}
         }
 
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
+            ViewBag.Printers = await _unitOfWork.PrinterSettingRepository.GetLast(a => a.Id);
+           var settings = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
+
+
+            ViewBag.NumberOfCustomerPrint = settings.NumberOfCustomerPrint;
+            ViewBag.PrintAfterOrder = settings.PrintAfterOrder;
+            ViewBag.PrintForTakeawayOrder = settings.PrintForTakeawayOrder;
+           // ViewBag.PrintForKitchen = settings.PrintForKitchen;
+           // ViewBag.NumberOfKitchenPrint = settings.NumberOfKitchenPrint;
+
+
             Order orderInvoice = _unitOfWork.OrderRepository.GetById(a => a.Id == id,
                 new string[] { "Seller", "Receiver", "Table", "Customer", "Employee", "OrderMenuItems" },
                 new string[] { "OrderMenuItems.MenuItem" });
@@ -342,6 +353,11 @@ namespace ResturantPL.Controllers
                 if (HttpContext.Session.GetString("IsAuthenticated") == "true")
                 {
 
+
+                    ViewBag.Settings = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
+
+
+
                     ViewBag.CurrentUser = CurrentUser();
 
                     ViewBag.MenuItems = _unitOfWork.MenuItemRepository.GetAll(a => a.Include(a => a.MenuSection));
@@ -389,6 +405,7 @@ namespace ResturantPL.Controllers
                     return View(viewModel);
                 }
 
+                ViewBag.Settings = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
                 ViewBag.MenuItems = _unitOfWork.MenuItemRepository.GetAll(a => a.Include(a => a.MenuSection));
                 ViewBag.CurrentUser = CurrentUser();
                 ViewBag.Customers = new SelectList(_unitOfWork.CustomerRepository.GetAll(), "Id", "Name");
@@ -448,6 +465,7 @@ namespace ResturantPL.Controllers
                         Order.Address = viewModel.Address;           // لو الطلب دليفري
                         Order.PhoneNumber = viewModel.PhoneNumber;   // لو الطلب دليفري
                         Order.MobileNumber = viewModel.MobileNumber; // لو الطلب دليفري
+                        Order.Table = null;
                     }
                     else if (viewModel.Cash == false && viewModel.Type == OrderType.Hall)
                     {
@@ -458,6 +476,7 @@ namespace ResturantPL.Controllers
 
                         Restaurant.Data.Models.Table table = _unitOfWork.TableRepository.GetById(viewModel.TableId);
                         Order.TableId = viewModel.TableId;
+                        Order.EmployeeId = null;
                         table.IsPending = true;
                         await _unitOfWork.TableRepository.UpdateAsync(table);
                     }
@@ -465,6 +484,9 @@ namespace ResturantPL.Controllers
                     {
                         Order.ReceiverId = CurrentUser().Id;
                         Order.Cash = true;
+                        Order.Table = null;
+                        Order.EmployeeId = null;
+
                     }
 
                     await _unitOfWork.OrderRepository.AddAsync(Order);
@@ -674,14 +696,25 @@ namespace ResturantPL.Controllers
             return BadRequest();
         }
 
+        public async Task<IActionResult> GetTaxPercentage()
+        {
+            ApplicationSetting setting = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
+
+            return Json(setting);
+        }
+
+
+
+
+
+
 
         // Pending online order
         public IActionResult PendingOrders()
         {
             var orders = _unitOfWork.OnlineOrderRepository.GetAll().Where(a => a.IsPending == true);
 
-            //int pendingOrderCount = _orderService.GetPendingOrderCount();
-            //ViewBag.PendingOrderCount = pendingOrderCount;
+     
             return View(orders);
         }
 
@@ -690,6 +723,8 @@ namespace ResturantPL.Controllers
         {
             try
             {
+                ViewBag.Settings = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
+
                 OnlineOrder onlineOrder = await _unitOfWork.OnlineOrderRepository.GetByIdAsync(id);
                 TempData["OnlineOrderId"] = onlineOrder.Id;
 
@@ -743,6 +778,8 @@ namespace ResturantPL.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    ViewBag.Settings = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
+
                     if (viewModel.OrderMenuItems.Count() < 1)
                     {
                         return View(viewModel);

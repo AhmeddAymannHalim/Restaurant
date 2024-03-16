@@ -1,0 +1,82 @@
+﻿@model Restaurant.Data.Models.ApplicationSetting
+
+@{
+    ViewData["Title"] = "Application Setting";
+}
+
+<h1 class="text-center">الاعدادات العامة للمبيعات</h1>
+
+
+<hr />
+<div>
+    <div>
+        <form asp-action="ApplicationSetting" class="row" asp-controller="ApplicationSetting">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <input asp-for="Id" hidden />
+
+            <div class="form-group col-md-4">
+                <label asp-for="Password" class="control-label">الرقم السري</label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="form-group col-md-4">
+                <label asp-for="OrderTax" class="control-label">ضريبة الطلب بالنسبة المئوية</label>
+                <input asp-for="OrderTax" class="form-control" type="number" required />
+                <span asp-validation-for="OrderTax" class="text-danger"></span>
+            </div>
+            <div class="form-group col-md-4">
+                <label asp-for="OrderDiscount" class="control-label">الخصم بالقيمة</label>
+                <input asp-for="OrderDiscount" class="form-control" type="number" required />
+                <span asp-validation-for="OrderDiscount" class="text-danger"></span>
+            </div>
+            <div class="form-group col-md-4">
+                <label asp-for="OrderService" class="control-label">الخدمة بالقيمة</label>
+                <input asp-for="OrderService" class="form-control" type="number" required />
+                <span asp-validation-for="OrderService" class="text-danger"></span>
+            </div>
+            <div class="form-group  col-md-4">
+                <label asp-for="NumberOfCustomerPrint" class="control-label">عدد نسخ طباعة الفاتورة للعميل بعد البيع</label>
+                <input asp-for="NumberOfCustomerPrint" class="form-control" type="number" required />
+                <span asp-validation-for="NumberOfCustomerPrint" class="text-danger"></span>
+            </div>
+            <div class="form-group  col-md-4">
+                <label asp-for="NumberOfKitchenPrint" class="control-label">عدد نسخ طباعة اذن التجهيز</label>
+                <input asp-for="NumberOfKitchenPrint" class="form-control" type="number" required />
+                <span asp-validation-for="NumberOfKitchenPrint" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check  col-md-3 mt-3">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="PrintAfterOrder" /> طباعة شيك بعد عملية البيع
+                </label>
+            </div>
+            <div class="form-group form-check  col-md-3 mt-3">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="PrintForTakeawayOrder" /> طباعة البون لعميل التيك اواي
+                </label>
+            </div>
+            <div class="form-group form-check  col-md-3 mt-3">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="PrintForKitchen" /> طباعة بون للمطبخ
+                </label>
+            </div>
+            <div class="form-group form-check  col-md-3 mt-3">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="ShowTotalShift" /> عرض اجماليات الشيفت
+                </label>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="تحديث" class="btn btn-primary" /> |
+                <a asp-action="Index" asp-controller="ApplicationSetting">عودة للاعدادات</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

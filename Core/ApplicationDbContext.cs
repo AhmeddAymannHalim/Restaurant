@@ -51,6 +51,8 @@ namespace Restaurant.Data
         public DbSet<ExitExpense> ExitExpenses { get; set; }
         public DbSet<Salary> Salaries { get; set; }
         public DbSet<ApplicationSetting> ApplicationSettings { get; set; }
+        public DbSet<PrinterSetting> PrinterSettings { get; set; }
+        public DbSet<PrinterForSection> PrinterForSections { get; set; }
         
 
 

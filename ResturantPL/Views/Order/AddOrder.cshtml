@@ -38,7 +38,7 @@
                         @foreach (var item in items.Where(i => i.MenuSection.Name == menuSection))
                         {
                             <button class="btn btn-info mealBtn" data-id="@item.Id" style="margin:2px; width:95px; height:135px;">
-                                <img src="@item.ImageUrl" alt="@item.Name" style="width: 80%; height: 50%;" >
+                                <img src="@item.ImageUrl" alt="@item.Name" style="width: 80%; height: 50%;">
                                 <span>@item.Name</span> <span>$@item.Price</span>
                             </button>
                         }
@@ -70,18 +70,18 @@
 
             <div class="form-group col-md-3">
                 <label class="control-label">خدمة</label>
-                <input type="number" id="service" name="Service" class="form-control" required />
+                <input type="number" id="service" value="0" name="Service" class="form-control" required />
             </div>
 
             <div class="form-group col-md-3">
                 <label class="control-label">ضريبة</label>
-                <input type="number" value="0" step="0.01" id="tax" name="Tax" class="form-control" required />
+                <input type="number" step="0.01" id="tax" name="Tax" class="form-control" required />
             </div>
 
 
             <div class="form-group col-md-3">
                 <label class="control-label">خصم</label>
-                <input type="number" value="0" step="0.01" id="discount" name="Discount" class="form-control" required />
+                <input type="number" value="@ViewBag.Settings.OrderDiscount" step="0.01" id="discount" name="Discount" class="form-control" required />
             </div>
 
             <div class="form-group col-md-3">
@@ -96,7 +96,7 @@
                 <input id="customerName" value="@ViewBag.OnlineOrder.CustomerName" name="CustomerName" class="form-control" />
             </div>
 
-           
+
 
             <div class="form-group col-md-3" id="addressField">
                 <label class="control-label">العنوان</label>
@@ -164,14 +164,35 @@
     }
     <script>
         $(document).ready(function () {
+        
             $('#discount, #tax, #service').on('input', function () {
-                var discount = parseFloat($('#discount').val());
-                var tax = parseFloat($('#tax').val());
-                var service = parseFloat($('#service').val());
-                var allTotalPrice = parseFloat($('#allTotalPrice').val());
+                var subtotal = $('#allTotalPrice').val();
+                var taxRate = 0;
 
-                var totalPrice = (allTotalPrice + service + tax) - discount;
-                $('#totalPrice').val(totalPrice.toFixed(2)); // Format total to two decimal places
+                $.ajax({
+                    url: '/Order/GetTaxPercentage', 
+                    type: 'GET',
+                    success: function (data) {
+                       
+                        taxRate = parseFloat(data.orderTax) / 100;
+
+                        var tax = subtotal * taxRate;
+                        var discount = parseFloat($('#discount').val());
+                        var service = parseFloat($('#service').val());
+                        var allTotalPrice = parseFloat($('#allTotalPrice').val());
+                        var totalPrice = (allTotalPrice + service + tax) - discount;
+
+                        $('#tax').val(tax.toFixed(2));
+                        $('#totalPrice').val(totalPrice.toFixed(2));
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+
+
+
+
 
             });
         });
@@ -306,6 +327,42 @@
 
                 $('#totalPrice').val(totalPrice.toFixed(2));
             }
+
+
+            function calculateTotalPrice() {
+                var subtotal = 0;
+                $('#selectedItemsTable tbody tr').each(function () {
+                    var price = parseFloat($(this).find('.total-price').text().replace('$', ''));
+                    subtotal += price;
+                });
+
+                var taxRate = 0;
+
+                $.ajax({
+                    url: '/Order/GetTaxPercentage', // Adjust the URL to match your controller action
+                    type: 'GET',
+                    success: function (data) {
+                        // On success, update the tax input field with the retrieved value
+                        taxRate = parseFloat(data.orderTax) / 100;
+
+                        // Calculate tax and total price after retrieving tax rate
+                        var tax = subtotal * taxRate;
+                        var discount = parseFloat($('#discount').val()) || 0;
+                        var service = parseFloat($('#service').val()) || 0;
+                        var totalPrice = subtotal + tax + service - discount;
+
+                        // Set tax and total price fields
+                        $('#tax').val(tax.toFixed(2));
+                        $('#totalPrice').val(totalPrice.toFixed(2));
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            }
+
+
+
         });
 
     </script>

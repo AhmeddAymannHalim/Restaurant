@@ -39,6 +39,8 @@ namespace Service.UnitOfWork
         public IGenericRepository<ExitExpense> ExitExpenseRepository { get; set; }
         public IGenericRepository<Salary> SalaryRepository { get; set; }
         public IGenericRepository<ApplicationSetting> ApplicationSettingRepository { get; set; }
+        public IGenericRepository<PrinterSetting> PrinterSettingRepository { get; set; }
+        public IGenericRepository<PrinterForSection> PrinterForSectionRepository { get; set; }
 
 
 
@@ -89,6 +91,8 @@ namespace Service.UnitOfWork
             ExitExpenseRepository = new GenericRepository<ExitExpense>(_context);
             SalaryRepository = new GenericRepository<Salary>(_context);
             ApplicationSettingRepository = new GenericRepository<ApplicationSetting>(_context);
+            PrinterSettingRepository = new GenericRepository<PrinterSetting>(_context);
+            PrinterForSectionRepository = new GenericRepository<PrinterForSection>(_context);
 
 
 

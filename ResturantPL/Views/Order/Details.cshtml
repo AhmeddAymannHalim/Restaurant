@@ -9,9 +9,10 @@
 <link href="~/css/invoicesstyle.css" rel="stylesheet" />
 
 
+<input type="hidden" id="orderType" value="@Model.Type" />
 
 
-<div class="container">
+<div class="container" id="contentToPrint">
 
     <h1>تفاصيل فاتورة : @Model.CustomerName</h1>
     <hr />
@@ -49,7 +50,6 @@
                 @Model.Receiver.FullName
             </dd>
         }
-
 
         @if (Model.Type == OrderType.TakeAway)
         {
@@ -238,9 +238,34 @@
     </dl>
 
     <div id="print-button" class="no-print">
-        <a class="btn btn-primary" onclick="window.print()"> طباعة</a>
+        <a class="btn btn-primary" onclick="printCopies()"> طباعة</a>
         <a class="btn btn-primary" asp-action="OrderReport" asp-controller="Report" asp-route-orderId="@Model.Id"> تصدير الي PDF</a>
         <a class="btn btn-info" asp-action="Create" asp-controller="Order">طلب جديد</a>
     </div>
 
 </div>
+
+
+<script>
+    var orderType = document.getElementById("orderType").value;
+
+    function printCopies() {
+        var numberOfPrinters = @Html.Raw(Json.Serialize(ViewBag.NumberOfCustomerPrint));
+
+        for (var i = 0; i < numberOfPrinters; i++) {
+            window.print();
+        }
+    }
+
+    var PrintAfterOrder = @Html.Raw(Json.Serialize(ViewBag.PrintAfterOrder));
+    if (PrintAfterOrder) {
+        console.log('print after order = True');
+        printCopies();
+    }
+
+    var PrintForTakeawayOrder = @Html.Raw(Json.Serialize(ViewBag.PrintForTakeawayOrder));
+    if (PrintForTakeawayOrder && orderType === "@(OrderType.TakeAway)") {
+        console.log('Print For Takeaway Order = True');
+        printCopies();
+    }
+</script>

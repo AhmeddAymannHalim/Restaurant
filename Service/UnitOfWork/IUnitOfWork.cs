@@ -36,6 +36,8 @@ namespace Service.UnitOfWork
         public IGenericRepository<ExitExpense> ExitExpenseRepository { get; set; }
         public IGenericRepository<Salary> SalaryRepository { get; set; }
         public IGenericRepository<ApplicationSetting> ApplicationSettingRepository { get; set; }
+        public IGenericRepository<PrinterSetting> PrinterSettingRepository { get; set; }
+        public IGenericRepository<PrinterForSection> PrinterForSectionRepository { get; set; }
 
 
 

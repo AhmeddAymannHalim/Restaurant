@@ -44,7 +44,7 @@
         </dt>
         <dd class="col-sm-9">
             @Model.Storekeeper.FirstName @Model.Storekeeper.LastName
-            </dd>
+        </dd>
 
         <dt class="col-sm-2">
             الاصناف و الفواتير
@@ -60,11 +60,11 @@
                         <th>
                             تاريخ الفاتورة
                         </th>
-               
+
                         <th>
                             الاجمالي بعد الخصم
                         </th>
-                      
+
                         <th></th>
                     </tr>
                 </thead>
@@ -79,14 +79,14 @@
                             <td>
                                 @Html.DisplayFor(modelItem => item.InvoiceDate)
                             </td>
-                           
+
                             <td>
                                 @Html.DisplayFor(modelItem => item.TotalPrice)
                             </td>
-                           
+
                             <td>
-                                    @Html.ActionLink("التفاصيل", "DetailsInvoice", "Invoice", new { id = item.Id })
-                                    @* @Html.ActionLink("Delete", "Invoice", "DeleteInvoice", "Invoice", new { id = item.Id }) *@
+                                @Html.ActionLink("التفاصيل", "DetailsInvoice", "Invoice", new { id = item.Id })
+                                @* @Html.ActionLink("Delete", "Invoice", "DeleteInvoice", "Invoice", new { id = item.Id }) *@
                             </td>
                         </tr>
                     }
@@ -106,10 +106,10 @@
                     <tr>
 
                         <th>
-                           اسم الصنف
+                            اسم الصنف
                         </th>
                         <th>
-                           الكمية
+                            الكمية
                         </th>
 
                         <th>
@@ -121,19 +121,22 @@
                 <tbody>
                     @foreach (var item in Model.StoreProducts)
                     {
-                        <tr>
+                        if (item.Quantity > 0)
+                        {
+                            <tr>
 
-                            <td>
-                                @Html.DisplayFor(modelItem => item.Product.Name)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.Quantity)
-                            </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Product.Name)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Quantity)
+                                </td>
 
-                            <td>
-                                @Html.DisplayFor(modelItem => item.PriceForUnit)
-                            </td>
-                        </tr>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.PriceForUnit)
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>

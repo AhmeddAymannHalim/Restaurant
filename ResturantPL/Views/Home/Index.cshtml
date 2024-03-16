@@ -1,6 +1,6 @@
 ﻿@model IndexSettings
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Home";
     ViewData["Name"] = Model.Name;
     ViewData["StartDay"] = Model.StartDay;
     ViewData["EndDay"] = Model.EndDay;
@@ -95,7 +95,7 @@
                                 <i class="bi bi-clock"></i>
                                 <h4>ساعات العمل</h4>
                                 <p>
-                                    @Model.StartDay - @Model.EndDay<br>
+                                    @Model.StartDay  -  @Model.EndDay<br>
                                     صباحا @Model.StartHour - مساءا @Model.EndHour
                                 </p>
                             </div>

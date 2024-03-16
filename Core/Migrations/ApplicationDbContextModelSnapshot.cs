@@ -163,11 +163,35 @@ namespace Restaurant.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<byte>("NumberOfCustomerPrint")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("NumberOfKitchenPrint")
+                        .HasColumnType("tinyint");
+
+                    b.Property<decimal>("OrderDiscount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("OrderService")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal>("OrderTax")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Password")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PrintAfterOrder")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("PrintForKitchen")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("PrintForTakeawayOrder")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ShowTotalShift")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -1041,6 +1065,49 @@ namespace Restaurant.Data.Migrations
                     b.ToTable("PaymentInvoiceSupplier");
                 });
 
+            modelBuilder.Entity("Restaurant.Data.Models.PrinterForSection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Printer")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SectionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SectionId");
+
+                    b.ToTable("PrinterForSections");
+                });
+
+            modelBuilder.Entity("Restaurant.Data.Models.PrinterSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("PrinterForAllSections")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PrinterForCashier")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PrinterForEachSection")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PrinterSettings");
+                });
+
             modelBuilder.Entity("Restaurant.Data.Models.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -1308,8 +1375,8 @@ namespace Restaurant.Data.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("NumOfPersons")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<byte>("NumOfPersons")
+                        .HasColumnType("tinyint");
 
                     b.HasKey("Id");
 
@@ -1644,6 +1711,17 @@ namespace Restaurant.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("Restaurant.Data.Models.PrinterForSection", b =>
+                {
+                    b.HasOne("Restaurant.Data.Models.MenuSection", "Section")
+                        .WithMany()
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Section");
                 });
 
             modelBuilder.Entity("Restaurant.Data.Models.Salary", b =>
