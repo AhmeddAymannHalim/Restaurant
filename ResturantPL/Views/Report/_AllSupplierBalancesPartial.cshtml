@@ -20,7 +20,14 @@
         </tr>
     }
     <tr>
-        <td class="text-danger"><strong>الاجمالي</strong></td>
+        <td class="text-danger"><strong>الحساب السابق</strong></td>
+        <td>@Model.LastTotalDeptor</td>
+        <td>@Model.LastTotalCreditor</td>
+        <td class="text-danger"><strong>متبقي له</strong></td>
+        <td colspan="2">@Model.LastTotal</td>
+    </tr>
+    <tr>
+        <td class="text-danger"><strong>الحساب الحالي</strong></td>
         <td>@Model.TotalDeptor</td>
         <td>@Model.TotalCreditor</td>
         <td class="text-danger"><strong>متبقي له</strong></td>

@@ -217,6 +217,61 @@ namespace ResturantPL.Controllers
         {
             var sup = _unitOfWork.SupplierRepository.GetById(a => a.Id == supplierId, new string[] { "Invoices", "PaymentInvoices" });
 
+            var LastPurchases = _unitOfWork.InvoiceRepository
+               .GetAll(a => a.Include(a => a.Supplier))
+               .Where(a => a.InvoiceDate.Date < startDate.Date
+                && a.SupplierId == supplierId && a.InvoiceType == InvoiceType.Purchases)
+               .OrderByDescending(a => a.InvoiceDate).ToList();
+
+            var lastReturns = _unitOfWork.InvoiceRepository
+                .GetAll(a => a.Include(a => a.Supplier))
+                .Where(a => a.InvoiceDate.Date < startDate.Date
+                && a.SupplierId == supplierId && a.InvoiceType == InvoiceType.Returns)
+                .OrderByDescending(a => a.InvoiceDate).ToList();
+
+            var lastPayments = _unitOfWork.PaymentInvoiceSupplierRepository
+               .GetAll(a => a.Include(a => a.Supplier))
+               .Where(a => a.Date.Date < startDate.Date
+               && a.SupplierId == supplierId)
+               .OrderByDescending(a => a.Date).ToList();
+
+
+
+            var lastBalances = LastPurchases.Select(item => new SupplierBalanceViewModel
+            {
+                Deptor = item.Remaining,
+                Creditor = 0,
+                Date = item.InvoiceDate.Date,
+                Info = "فاتورة مشتريات",
+                InvoiceId = item.Id
+            })
+            .Concat(lastReturns.Select(item => new SupplierBalanceViewModel
+            {
+                Deptor = 0,
+                Creditor = item.Remaining,
+                Date = item.InvoiceDate.Date,
+                Info = "فاتورة مرتجعات",
+                InvoiceId = item.Id
+            }))
+            .Concat(lastPayments.Select(item => new SupplierBalanceViewModel
+            {
+                Deptor = 0,
+                Creditor = item.Paid,
+                Date = item.Date.Date,
+                Info = "سندات قبض",
+                InvoiceId = item.Id
+            }))
+            .OrderByDescending(a => a.Date)
+            .ToList();
+
+
+            decimal lastTotalDeptor = lastBalances.Sum(b => b.Deptor);
+            decimal lastTotalCreditor = lastBalances.Sum(b => b.Creditor);
+            decimal lastOverallBalance = lastTotalDeptor - lastTotalCreditor;
+
+
+
+
             var purchases = _unitOfWork.InvoiceRepository
                 .GetAll(a => a.Include(a => a.Supplier))
                 .Where(a => a.InvoiceDate.Date >= startDate.Date
@@ -274,7 +329,10 @@ namespace ResturantPL.Controllers
                 balances = balances,
                 TotalDeptor = totalDeptor,
                 TotalCreditor = totalCreditor,
-                Total = overallBalance
+                Total = overallBalance,
+                LastTotalCreditor = lastTotalCreditor,
+                LastTotalDeptor = lastTotalDeptor,
+                LastTotal = lastOverallBalance
             };
 
 
@@ -284,6 +342,72 @@ namespace ResturantPL.Controllers
         public IActionResult SupplierBalanceReport(int supplierId, DateTime startDate, DateTime endDate)
         {
             var sup = _unitOfWork.SupplierRepository.GetById(a => a.Id == supplierId, new string[] { "Invoices", "PaymentInvoices" });
+
+            var LastPurchases = _unitOfWork.InvoiceRepository
+              .GetAll(a => a.Include(a => a.Supplier))
+              .Where(a => a.InvoiceDate.Date < startDate.Date
+               && a.SupplierId == supplierId && a.InvoiceType == InvoiceType.Purchases)
+              .OrderByDescending(a => a.InvoiceDate).ToList();
+
+            var lastReturns = _unitOfWork.InvoiceRepository
+                .GetAll(a => a.Include(a => a.Supplier))
+                .Where(a => a.InvoiceDate.Date < startDate.Date
+                && a.SupplierId == supplierId && a.InvoiceType == InvoiceType.Returns)
+                .OrderByDescending(a => a.InvoiceDate).ToList();
+
+            var lastPayments = _unitOfWork.PaymentInvoiceSupplierRepository
+               .GetAll(a => a.Include(a => a.Supplier))
+               .Where(a => a.Date.Date < startDate.Date
+               && a.SupplierId == supplierId)
+               .OrderByDescending(a => a.Date).ToList();
+
+
+
+            var lastBalances = LastPurchases.Select(item => new SupplierBalanceViewModel
+            {
+                Deptor = item.Remaining,
+                Creditor = 0,
+                Date = item.InvoiceDate.Date,
+                Info = "فاتورة مشتريات",
+                InvoiceId = item.Id
+            })
+            .Concat(lastReturns.Select(item => new SupplierBalanceViewModel
+            {
+                Deptor = 0,
+                Creditor = item.Remaining,
+                Date = item.InvoiceDate.Date,
+                Info = "فاتورة مرتجعات",
+                InvoiceId = item.Id
+            }))
+            .Concat(lastPayments.Select(item => new SupplierBalanceViewModel
+            {
+                Deptor = 0,
+                Creditor = item.Paid,
+                Date = item.Date.Date,
+                Info = "سندات قبض",
+                InvoiceId = item.Id
+            }))
+            .OrderByDescending(a => a.Date)
+            .ToList();
+
+
+            decimal lastTotalDeptor = lastBalances.Sum(b => b.Deptor);
+            decimal lastTotalCreditor = lastBalances.Sum(b => b.Creditor);
+            decimal lastOverallBalance = lastTotalDeptor - lastTotalCreditor;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             var purchases = _unitOfWork.InvoiceRepository
                .GetAll(a => a.Include(a => a.Supplier))
@@ -343,7 +467,10 @@ namespace ResturantPL.Controllers
                 balances = balances,
                 TotalDeptor = totalDeptor,
                 TotalCreditor = totalCreditor,
-                Total = overallBalance
+                Total = overallBalance,
+                LastTotalCreditor = lastTotalCreditor,
+                LastTotalDeptor = lastTotalDeptor,
+                LastTotal = lastOverallBalance
             };
 
 
@@ -491,7 +618,7 @@ namespace ResturantPL.Controllers
 
 
 
-        
+
 
         // Benefits between 2 dates
         public IActionResult SearchInBenefits()

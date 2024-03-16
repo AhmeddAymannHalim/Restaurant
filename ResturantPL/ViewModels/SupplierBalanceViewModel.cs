@@ -20,5 +20,10 @@
         public DateTime Date { get; set; }
         public string Name { get; set; }
 
+
+        public decimal LastTotalDeptor { get; set; }
+        public decimal LastTotalCreditor { get; set; }
+        public decimal LastTotal { get; set; }
+
     }
 }
