@@ -26,4 +26,21 @@
         public decimal LastTotal { get; set; }
 
     }
+
+
+    public class SuppliersTotalViewModel
+    {
+        public string Name { get; set; }
+        public DateTime Date { get; set; }
+
+        public decimal TotalDeptor { get; set; }
+        public decimal TotalCreditor { get; set; }
+        public decimal Total { get; set; }
+
+
+        public decimal LastTotalDeptor { get; set; }
+        public decimal LastTotalCreditor { get; set; }
+        public decimal LastTotal { get; set; }
+
+    }
 }

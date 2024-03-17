@@ -485,6 +485,320 @@ namespace ResturantPL.Controllers
 
 
 
+        // Supplier Balance between 2 dates
+        public IActionResult SearchInSuppliersBalance()
+        {
+            ViewBag.Suppliers = new SelectList(_unitOfWork.SupplierRepository.GetAll(), "Id", "Name");
+
+            ViewBag.DateNow = DateTime.Now.ToString("yyyy-MM-dd");
+            return View();
+        }
+
+        public IActionResult AllSuppliersBalanceByDates(DateTime startDate, DateTime endDate)
+        {
+            var suppliers = _unitOfWork.SupplierRepository.GetAll();
+
+            var supplierViewModels = new List<SuppliersTotalViewModel>();
+
+            foreach (var supplier in suppliers)
+            {
+                var purchases = _unitOfWork.InvoiceRepository
+                    .GetAll(a => a.Include(a => a.Supplier))
+                    .Where(a => a.InvoiceDate.Date >= startDate.Date
+                                && a.InvoiceDate.Date <= endDate.Date
+                                && a.SupplierId == supplier.Id
+                                && a.InvoiceType == InvoiceType.Purchases)
+                    .OrderByDescending(a => a.InvoiceDate)
+                    .ToList();
+
+                var returns = _unitOfWork.InvoiceRepository
+                    .GetAll(a => a.Include(a => a.Supplier))
+                    .Where(a => a.InvoiceDate.Date >= startDate.Date
+                                && a.InvoiceDate.Date <= endDate.Date
+                                && a.SupplierId == supplier.Id
+                                && a.InvoiceType == InvoiceType.Returns)
+                    .OrderByDescending(a => a.InvoiceDate)
+                    .ToList();
+
+                var payments = _unitOfWork.PaymentInvoiceSupplierRepository
+                    .GetAll(a => a.Include(a => a.Supplier))
+                    .Where(a => a.Date.Date >= startDate.Date
+                                && a.Date.Date <= endDate.Date
+                                && a.SupplierId == supplier.Id)
+                    .OrderByDescending(a => a.Date)
+                    .ToList();
+
+
+                var lastPurchases = _unitOfWork.InvoiceRepository
+                    .GetAll(a => a.Include(a => a.Supplier))
+                    .Where(a => a.InvoiceDate.Date < startDate.Date
+                                && a.InvoiceDate.Date <= endDate.Date
+                                && a.SupplierId == supplier.Id
+                                && a.InvoiceType == InvoiceType.Purchases)
+                    .OrderByDescending(a => a.InvoiceDate)
+                    .ToList();
+
+                var lastReturns = _unitOfWork.InvoiceRepository
+                    .GetAll(a => a.Include(a => a.Supplier))
+                    .Where(a => a.InvoiceDate.Date < startDate.Date
+                                && a.InvoiceDate.Date <= endDate.Date
+                                && a.SupplierId == supplier.Id
+                                && a.InvoiceType == InvoiceType.Returns)
+                    .OrderByDescending(a => a.InvoiceDate)
+                    .ToList();
+
+                var lastPayments = _unitOfWork.PaymentInvoiceSupplierRepository
+                    .GetAll(a => a.Include(a => a.Supplier))
+                    .Where(a => a.Date.Date < startDate.Date
+                                && a.Date.Date <= endDate.Date
+                                && a.SupplierId == supplier.Id)
+                    .OrderByDescending(a => a.Date)
+                    .ToList();
+
+
+                var lastBalances = lastPurchases.Select(item => new SupplierBalanceViewModel
+                {
+                    Deptor = item.Remaining,
+                    Creditor = 0,
+                    Date = item.InvoiceDate.Date,
+                    Info = "فاتورة مشتريات",
+                    InvoiceId = item.Id
+                })
+                .Concat(lastReturns.Select(item => new SupplierBalanceViewModel
+                {
+                    Deptor = 0,
+                    Creditor = item.Remaining,
+                    Date = item.InvoiceDate.Date,
+                    Info = "فاتورة مرتجعات",
+                    InvoiceId = item.Id
+                }))
+                .Concat(lastPayments.Select(item => new SupplierBalanceViewModel
+                {
+                    Deptor = 0,
+                    Creditor = item.Paid,
+                    Date = item.Date.Date,
+                    Info = "سندات قبض",
+                    InvoiceId = item.Id
+                }))
+                .OrderByDescending(a => a.Date)
+                .ToList();
+
+                decimal lastTotalDeptor = lastBalances.Sum(b => b.Deptor);
+                decimal lastTotalCreditor = lastBalances.Sum(b => b.Creditor);
+                decimal lastOverallBalance = lastTotalDeptor - lastTotalCreditor;
+
+
+
+
+                var balances = purchases.Select(item => new SupplierBalanceViewModel
+                {
+                    Deptor = item.Remaining,
+                    Creditor = 0,
+                    Date = item.InvoiceDate.Date,
+                    Info = "فاتورة مشتريات",
+                    InvoiceId = item.Id
+                })
+                .Concat(returns.Select(item => new SupplierBalanceViewModel
+                {
+                    Deptor = 0,
+                    Creditor = item.Remaining,
+                    Date = item.InvoiceDate.Date,
+                    Info = "فاتورة مرتجعات",
+                    InvoiceId = item.Id
+                }))
+                .Concat(payments.Select(item => new SupplierBalanceViewModel
+                {
+                    Deptor = 0,
+                    Creditor = item.Paid,
+                    Date = item.Date.Date,
+                    Info = "سندات قبض",
+                    InvoiceId = item.Id
+                }))
+                .OrderByDescending(a => a.Date)
+                .ToList();
+
+                decimal totalDeptor = balances.Sum(b => b.Deptor);
+                decimal totalCreditor = balances.Sum(b => b.Creditor);
+                decimal overallBalance = totalDeptor - totalCreditor;
+
+                var supplierViewModel = new SuppliersTotalViewModel()
+                {
+                    Name = supplier.Name,
+                    Date = DateTime.Now,
+                    TotalDeptor = totalDeptor,
+                    TotalCreditor = totalCreditor,
+                    Total = overallBalance,
+
+                    LastTotalCreditor = lastTotalCreditor,
+                    LastTotalDeptor = lastTotalDeptor,
+                    LastTotal = lastOverallBalance
+                };
+
+                supplierViewModels.Add(supplierViewModel);
+            }
+
+          
+            return PartialView("_AllSuppliersBalancesPartial", supplierViewModels);
+        }
+       
+
+        public IActionResult SuppliersBalanceReport( DateTime startDate, DateTime endDate)
+        {
+
+            var suppliers = _unitOfWork.SupplierRepository.GetAll();
+
+            var supplierViewModels = new List<SuppliersTotalViewModel>();
+
+            foreach (var supplier in suppliers)
+            {
+                var purchases = _unitOfWork.InvoiceRepository
+                    .GetAll(a => a.Include(a => a.Supplier))
+                    .Where(a => a.InvoiceDate.Date >= startDate.Date
+                                && a.InvoiceDate.Date <= endDate.Date
+                                && a.SupplierId == supplier.Id
+                                && a.InvoiceType == InvoiceType.Purchases)
+                    .OrderByDescending(a => a.InvoiceDate)
+                    .ToList();
+
+                var returns = _unitOfWork.InvoiceRepository
+                    .GetAll(a => a.Include(a => a.Supplier))
+                    .Where(a => a.InvoiceDate.Date >= startDate.Date
+                                && a.InvoiceDate.Date <= endDate.Date
+                                && a.SupplierId == supplier.Id
+                                && a.InvoiceType == InvoiceType.Returns)
+                    .OrderByDescending(a => a.InvoiceDate)
+                    .ToList();
+
+                var payments = _unitOfWork.PaymentInvoiceSupplierRepository
+                    .GetAll(a => a.Include(a => a.Supplier))
+                    .Where(a => a.Date.Date >= startDate.Date
+                                && a.Date.Date <= endDate.Date
+                                && a.SupplierId == supplier.Id)
+                    .OrderByDescending(a => a.Date)
+                    .ToList();
+
+
+                var lastPurchases = _unitOfWork.InvoiceRepository
+                    .GetAll(a => a.Include(a => a.Supplier))
+                    .Where(a => a.InvoiceDate.Date < startDate.Date
+                                && a.InvoiceDate.Date <= endDate.Date
+                                && a.SupplierId == supplier.Id
+                                && a.InvoiceType == InvoiceType.Purchases)
+                    .OrderByDescending(a => a.InvoiceDate)
+                    .ToList();
+
+                var lastReturns = _unitOfWork.InvoiceRepository
+                    .GetAll(a => a.Include(a => a.Supplier))
+                    .Where(a => a.InvoiceDate.Date < startDate.Date
+                                && a.InvoiceDate.Date <= endDate.Date
+                                && a.SupplierId == supplier.Id
+                                && a.InvoiceType == InvoiceType.Returns)
+                    .OrderByDescending(a => a.InvoiceDate)
+                    .ToList();
+
+                var lastPayments = _unitOfWork.PaymentInvoiceSupplierRepository
+                    .GetAll(a => a.Include(a => a.Supplier))
+                    .Where(a => a.Date.Date < startDate.Date
+                                && a.Date.Date <= endDate.Date
+                                && a.SupplierId == supplier.Id)
+                    .OrderByDescending(a => a.Date)
+                    .ToList();
+
+
+                var lastBalances = lastPurchases.Select(item => new SupplierBalanceViewModel
+                {
+                    Deptor = item.Remaining,
+                    Creditor = 0,
+                    Date = item.InvoiceDate.Date,
+                    Info = "فاتورة مشتريات",
+                    InvoiceId = item.Id
+                })
+                .Concat(lastReturns.Select(item => new SupplierBalanceViewModel
+                {
+                    Deptor = 0,
+                    Creditor = item.Remaining,
+                    Date = item.InvoiceDate.Date,
+                    Info = "فاتورة مرتجعات",
+                    InvoiceId = item.Id
+                }))
+                .Concat(lastPayments.Select(item => new SupplierBalanceViewModel
+                {
+                    Deptor = 0,
+                    Creditor = item.Paid,
+                    Date = item.Date.Date,
+                    Info = "سندات قبض",
+                    InvoiceId = item.Id
+                }))
+                .OrderByDescending(a => a.Date)
+                .ToList();
+
+                decimal lastTotalDeptor = lastBalances.Sum(b => b.Deptor);
+                decimal lastTotalCreditor = lastBalances.Sum(b => b.Creditor);
+                decimal lastOverallBalance = lastTotalDeptor - lastTotalCreditor;
+
+
+
+
+                var balances = purchases.Select(item => new SupplierBalanceViewModel
+                {
+                    Deptor = item.Remaining,
+                    Creditor = 0,
+                    Date = item.InvoiceDate.Date,
+                    Info = "فاتورة مشتريات",
+                    InvoiceId = item.Id
+                })
+                .Concat(returns.Select(item => new SupplierBalanceViewModel
+                {
+                    Deptor = 0,
+                    Creditor = item.Remaining,
+                    Date = item.InvoiceDate.Date,
+                    Info = "فاتورة مرتجعات",
+                    InvoiceId = item.Id
+                }))
+                .Concat(payments.Select(item => new SupplierBalanceViewModel
+                {
+                    Deptor = 0,
+                    Creditor = item.Paid,
+                    Date = item.Date.Date,
+                    Info = "سندات قبض",
+                    InvoiceId = item.Id
+                }))
+                .OrderByDescending(a => a.Date)
+                .ToList();
+
+                decimal totalDeptor = balances.Sum(b => b.Deptor);
+                decimal totalCreditor = balances.Sum(b => b.Creditor);
+                decimal overallBalance = totalDeptor - totalCreditor;
+
+                // Step 3: Construct the view model for each supplier
+                var supplierViewModel = new SuppliersTotalViewModel()
+                {
+                    Name = supplier.Name,
+                    Date = DateTime.Now,
+                    TotalDeptor = totalDeptor,
+                    TotalCreditor = totalCreditor,
+                    Total = overallBalance,
+
+                    LastTotalCreditor = lastTotalCreditor,
+                    LastTotalDeptor = lastTotalDeptor,
+                    LastTotal = lastOverallBalance
+                };
+
+                supplierViewModels.Add(supplierViewModel);
+            }
+
+
+            var viewAsPdf = new ViewAsPdf
+            {
+                Model = supplierViewModels,
+                FileName = $"تقرير كشف حساب الموردين بين تاريخين.pdf"
+            };
+            return viewAsPdf;
+        }
+
+
+
+
 
 
 
