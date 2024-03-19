@@ -3,47 +3,52 @@
     ViewData["Title"] = "Update";
 }
 
-<h1>Update</h1>
+<h1 class="text-center">تحديث</h1>
 
-<br />
-<br />
-
-<form asp-action="Update">
-
-    <div class="form-group">
-        <label asp-for="@Model.Name" class="col-form-label"></label>
-        <input asp-for="@Model.Name" class="form-control" />
-        <span asp-validation-for="@Model.Name" class="text-danger"></span>
-
-    </div>
-
-    <div class="form-group">
-        <label asp-for="@Model.PhoneNumber" class="col-form-label"></label>
-        <input asp-for="@Model.PhoneNumber" class="form-control" />
-        <span asp-validation-for="@Model.PhoneNumber" class="text-danger"></span>
-
-    </div>
-
-    <div class="form-group">
-        <label asp-for="@Model.Email" class="col-form-label"></label>
-        <input asp-for="@Model.Email" class="form-control" />
-        <span asp-validation-for="@Model.Email" class="text-danger"></span>
-
-    </div>
+<hr />
+<div class="row">
 
 
-    <div class="form-group mt-3">
-        <input type="submit" value="تعديل" class="btn btn-success" />
-    </div>
-    <br />
-    <div>
-        <a asp-action="Index" class="btn btn-info">BackToList</a>
-    </div>
+    <form asp-action="Update" class="col-md-4">
 
-</form>
+        <div class="form-group">
+            <label asp-for="@Model.Name" class="col-form-label">الاسم</label>
+            <input asp-for="@Model.Name" class="form-control" required />
+            <span asp-validation-for="@Model.Name" class="text-danger"></span>
+
+        </div>
+        <div class="form-group">
+            <label asp-for="@Model.UserName" class="col-form-label">اسم المستخدم</label>
+            <input asp-for="@Model.UserName" class="form-control" required />
+            <span asp-validation-for="@Model.UserName" class="text-danger"></span>
+
+        </div>
+
+        <div class="form-group">
+            <label asp-for="@Model.Email" class="col-form-label">الايميل</label>
+            <input asp-for="@Model.Email" class="form-control" type="email" required />
+            <span asp-validation-for="@Model.Email" class="text-danger"></span>
+
+        </div>
+
+        <div class="form-group">
+            <label asp-for="@Model.PhoneNumber" class="col-form-label">رقم الهاتف</label>
+            <input asp-for="@Model.PhoneNumber" class="form-control" maxlength="11" required />
+            <span asp-validation-for="@Model.PhoneNumber" class="text-danger"></span>
+
+        </div>
 
 
-@section ValidationScripts
-    {
+        <div class="form-group mt-4">
+            <input type="submit" value="تعديل" class="btn btn-success" /> |
+            <a asp-action="Index" class="btn btn-info">عودة للمستخدمين</a>
+        </div>
+
+
+    </form>
+</div>
+
+@section Scripts
+{
     <partial name="_ValidationScriptsPartial">   </partial>
 }

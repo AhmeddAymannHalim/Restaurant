@@ -40,54 +40,10 @@ namespace ResturantPL.Controllers
             return View(model);
         }
 
-        public IActionResult RestaurantInformation()
-        {
-            return View();
-        }
+      
 
-        [HttpPost]
-        public async Task<IActionResult> RestaurantInformation(IndexSettings info)
-        {
-            if (ModelState.IsValid)
-            {
-                await _unitOfWork.IndexRepository.AddAsync(info);
-                return RedirectToAction("Index");
-            }
-            return View(info);
-        }
-        public async Task<IActionResult> IndexSettings()
-        {
-            var indexSettings = (await _unitOfWork.IndexRepository.GetAllAsync()).FirstOrDefault();
-            var indexSettingsViewModel = _mapper.Map<IndexSettingsViewModel>(indexSettings);
-            return View(indexSettingsViewModel);
-        }
-
-
-        [HttpPost]
-        public async Task<IActionResult> IndexSettings(IndexSettingsViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var indexSettings = (await _unitOfWork.IndexRepository.GetAllAsync()).FirstOrDefault();
-                indexSettings.StartHour = model.StartHour;
-                indexSettings.EndHour = model.EndHour;
-                indexSettings.StartDay = model.StartDay;
-                indexSettings.EndDay = model.EndDay;
-                indexSettings.Name = model.Name;
-                indexSettings.Locaion = model.Locaion;
-                indexSettings.Description = model.Description;
-                indexSettings.Email = model.Email;
-                indexSettings.Phone = model.Phone;
-                if (model.Image != null)
-                {
-
-                    indexSettings.ImageUrl = Helper.DocumentSetting.UploadFile(model.Image, "Images");
-                }
-                _unitOfWork.IndexRepository.Update(indexSettings);
-                return RedirectToAction("Index");
-            }
-            return View(model);
-        }
+      
+       
         #endregion
 
 
@@ -135,8 +91,8 @@ namespace ResturantPL.Controllers
             var ChefItemViewModel = _mapper.Map<ChefItemViewModel>(ChefItem);
             return View(ChefItemViewModel);
         }
-    
-        
+
+
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> ChefUpdate(ChefItemViewModel model)
         {

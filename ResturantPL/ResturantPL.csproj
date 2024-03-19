@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\Menu Images\" />
+    <Folder Include="wwwroot\Videos\" />
   </ItemGroup>
 
   <ItemGroup>

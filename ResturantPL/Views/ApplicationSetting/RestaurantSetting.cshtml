@@ -1,4 +1,4 @@
-﻿@model Restaurant.Data.Models.IndexSettings
+﻿@model IndexSettingsViewModel
 
 @{
     ViewData["Title"] = "RestaurantSetting";
@@ -9,7 +9,7 @@
 <hr />
 <div>
     <div>
-        <form asp-action="RestaurantSetting" class="row">
+        <form asp-action="RestaurantSetting" method="post" enctype="multipart/form-data" class="row">
             <div asp-validation-summary="All" class="text-danger"></div>
                 <input asp-for="Id"  hidden />
 
@@ -49,14 +49,14 @@
                 <span asp-validation-for="EndHour" class="text-danger"></span>
             </div>
             <div class="form-group col-md-4">
-                <label asp-for="VedioUrl" class="control-label">رابط الفيديو</label>
-                <input asp-for="VedioUrl" class="form-control" />
-                <span asp-validation-for="VedioUrl" class="text-danger"></span>
+                <label asp-for="Video" class="control-label">الفيديو</label>
+                <input type="file" asp-for="Video" class="form-control" />
+                <span asp-validation-for="Video" class="text-danger"></span>
             </div>
             <div class="form-group col-md-4">
-                <label asp-for="ImageUrl" class="control-label">رابط الصورة</label>
-                <input asp-for="ImageUrl" class="form-control" />
-                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                <label asp-for="Image" class="control-label">الصورة</label>
+                <input type="file" asp-for="Image" class="form-control" />
+                <span asp-validation-for="Image" class="text-danger"></span>
             </div>
             <div class="form-group col-md-4">
                 <label asp-for="Email" class="control-label">الايميل</label>

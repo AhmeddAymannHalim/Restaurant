@@ -8,17 +8,15 @@ using Restaurant.Data.Models;
 using Restaurant.Data.SeedData;
 using Rotativa.AspNetCore;
 using ResturantPL.Hubs;
-
+using System.Security.Claims;
 
 namespace ResturantPL
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-           // CreateHostBuilder(args).Build().Run();
-
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
@@ -33,54 +31,36 @@ namespace ResturantPL
                 options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
             });
 
-
-            //builder.Services.AddSingleton<IConnectionMultiplexer>(options =>
-            //{
-            //    return ConnectionMultiplexer.Connect(builder.Configuration["RedisConnection"]);
-            //});
-
             builder.Services.AddAutoMapper(typeof(Profiler));
             builder.Services.AddSignalR();
             builder.Services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
-            //builder.Services.AddScoped(typeof(IBasketRepository), typeof(BasketRepository));
-            //builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 
-
-            /*****authentication and identity ********************/
-
+            // Identity setup
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
+                options.SignIn.RequireConfirmedAccount = true;
                 options.Password.RequiredLength = 6;
                 options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;
                 options.Password.RequireUppercase = true;
-            }
-            )
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+            }).AddEntityFrameworkStores<ApplicationDbContext>();
 
+            
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;// to force it to check
             })
-                .AddCookie(Option =>
-                {
-                    Option.LoginPath = "/Account/SignIn";
-                    Option.AccessDeniedPath = "/Home/Error";
-                    Option.Cookie.HttpOnly = true;
-                    Option.ExpireTimeSpan = TimeSpan.FromDays(7);
-                });
-
-            //builder.Services.AddAuthorization(options =>
-            //{
-            //    options.AddPolicy("RequireAdminRole", policy =>
-            //    {
-            //        policy.RequireRole("Admin");
-            //    });
-            //});
+            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+            {
+                options.LoginPath = "/Account/SignIn";
+                options.AccessDeniedPath = "/Home/Error";
+                options.Cookie.HttpOnly = true;
+                options.ExpireTimeSpan = TimeSpan.FromDays(7);
+            });
 
 
 
@@ -93,7 +73,6 @@ namespace ResturantPL
                         .AllowAnyHeader());
             });
 
-
             builder.Services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -103,50 +82,38 @@ namespace ResturantPL
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseCors("CorsPolicy");
             app.UseSession();
-          
             app.UseRotativa();
-
             app.UseRouting();
-
             app.UseAuthentication();
             app.UseAuthorization();
-
             app.MapHub<OrderHub>("/OrderHub");
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-               
-               
             });
 
             var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider;
-
             var roleManger = scopeFactory.GetRequiredService<RoleManager<IdentityRole>>();
             var userManger = scopeFactory.GetRequiredService<UserManager<ApplicationUser>>();
             var dbContext = scopeFactory.GetRequiredService<ApplicationDbContext>();
             dbContext.Database.Migrate();
-            // await SeedRestaurantData.SeedAsync(roleManger);
-            // await SeedData.SeedDataAsync(dbContext, userManger);
 
-            DataSeeder.SeedData(dbContext);
+            await DataSeeder.SeedData(dbContext, userManger, roleManger);
 
             app.Run();
         }
-
     }
 }

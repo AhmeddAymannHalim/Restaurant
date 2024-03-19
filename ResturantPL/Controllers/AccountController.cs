@@ -42,7 +42,7 @@ namespace ResturantPL.Controllers
             return currentUser;
         }
 
-        [Authorize]
+        [Authorize(Roles = "Admin,Manager,كاشير")]
         public async Task<IActionResult> AdminDash()
         {
             ViewBag.CurrentAdmin = CurrentUser();
@@ -101,10 +101,8 @@ namespace ResturantPL.Controllers
                         LastName = registerViewModel.LastName,
                         Email = registerViewModel.Email,
                         UserName = registerViewModel.Email.Split("@")[0],
-                        //UserName = registerViewModel.Fname,
                         PhoneNumber = registerViewModel.PhoneNumber,
                         UserType = "User",
-                        Age = 0
                     };
 
 
@@ -133,10 +131,65 @@ namespace ResturantPL.Controllers
             }
         }
 
+
+
+        [Authorize(Roles = "Admin,Manager")]
+        public IActionResult AddUser()
+        {
+            ViewBag.Roles = new SelectList(_roleManager.Roles, "Name", "Name");
+
+
+            return View();
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddUser(AddUserViewModel model)
+        {
+            try
+            {
+                ViewBag.Roles = new SelectList(_roleManager.Roles, "Name", "Name");
+                if (ModelState.IsValid)
+                {
+
+                    ApplicationUser user = new ApplicationUser()
+                    {
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        Email = model.Email,
+                        UserName = model.Email.Split("@")[0],
+                        PhoneNumber = model.PhoneNumber,
+                        UserType = model.UserType,
+                    };
+
+
+                    var result = await _userManager.CreateAsync(user, model.Password);
+                    if (result.Succeeded)
+                    {
+
+                        await _userManager.AddToRoleAsync(user, user.UserType);
+                        return RedirectToAction("Index", "User");
+                    }
+                    else
+                    {
+
+                        foreach (var error in result.Errors)
+                            ModelState.AddModelError(string.Empty, error.Description);
+                    }
+                }
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                return View("Error", ErrorMessage.Error(ex.Message));
+            }
+        }
+
         public IActionResult SignIn()
         {
             return View(new SignInViewModel());
         }
+
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> SignIn(SignInViewModel signInViewModel)
@@ -151,21 +204,31 @@ namespace ResturantPL.Controllers
                         var result = await _userManager.CheckPasswordAsync(user, signInViewModel.Password);
                         if (result)
                         {
-                            var LoginResult = await _signInManager.PasswordSignInAsync(user, signInViewModel.Password, signInViewModel.RememberMe, false);
-                            if (LoginResult.Succeeded)
-                            {
-                                var claims = new List<Claim>
-                                {
-                                    new Claim(ClaimTypes.NameIdentifier, user.Id), // Replace with a unique identifier for the user
-                                    new Claim(ClaimTypes.Name, user.UserName), // Replace with the user's username or any unique identifier
-                                    new Claim(ClaimTypes.Email, user.Email)
-                                };
-                                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                                var principal = new ClaimsPrincipal(identity);
-                                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+                            
+                            var roles = await _userManager.GetRolesAsync(user);
 
-                                return RedirectToAction("Index", "Home");
+                           
+                            var claims = new List<Claim>
+                            {
+                                new Claim(ClaimTypes.NameIdentifier, user.Id), 
+                                new Claim(ClaimTypes.Name, user.UserName), 
+                                new Claim(ClaimTypes.Email, user.Email),
+                            };
+
+                           
+                            foreach (var role in roles)
+                            {
+                                claims.Add(new Claim(ClaimTypes.Role, role));
                             }
+
+                          
+                            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                            var principal = new ClaimsPrincipal(identity);
+
+                           
+                            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                            return RedirectToAction("Index", "Home");
                         }
                         ModelState.AddModelError(string.Empty, "Password is not correct");
                     }
@@ -178,6 +241,7 @@ namespace ResturantPL.Controllers
                 return View("Error", ErrorMessage.Error(ex.Message));
             }
         }
+
 
         public new async Task<IActionResult> SignOut()
         {
@@ -233,8 +297,8 @@ namespace ResturantPL.Controllers
 
             return View(resetPasswordViewModel);
         }
-       
-        
+
+
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {

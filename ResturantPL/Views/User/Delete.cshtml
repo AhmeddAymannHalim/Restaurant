@@ -1,61 +1,55 @@
 ﻿@model UsersViewModel
 @{
     ViewData["Title"] = "Delete";
-   
+
 }
 
-<h1 class="text-danger">Are you sure you want to delete this user</h1>
+
+<h1 class="text-center">حذف مستخدم</h1>
+<hr />
+
+<h3 class="text-danger">هل انت متأكد من حذف المستخدم ؟</h3>
 
 
 <br />
-<br />
-
-<form asp-action="Delete">
-
-    <div class="form-group">
-        <label asp-for="@Model.Name" class="col-form-label"></label>
-        <input asp-for="@Model.Name" class="form-control" readonly />
+<div class="row">
 
 
-    </div>
+    <form asp-action="Delete" class="col-md-4">
 
-    <div class="form-group">
-        <label asp-for="@Model.PhoneNumber" class="col-form-label"></label>
-        <input asp-for="@Model.PhoneNumber" class="form-control" readonly />
+        <div class="form-group">
+            <label asp-for="@Model.Name" class="col-form-label">الاسم</label>
+            <input asp-for="@Model.Name" class="form-control" readonly />
+        </div>
 
+        <div class="form-group">
+            <label asp-for="@Model.UserName" class="col-form-label">اسم المستخدم</label>
+            <input asp-for="@Model.UserName" class="form-control" readonly />
+        </div>
 
-    </div>
+        <div class="form-group">
+            <label asp-for="@Model.Email" class="col-form-label">الايميل</label>
+            <input asp-for="@Model.Email" class="form-control" readonly />
+        </div>
 
-    <div class="form-group">
-        <label asp-for="@Model.Email" class="col-form-label"></label>
-        <input asp-for="@Model.Email" class="form-control" readonly />
-
-
-    </div>
-
-    <div class="form-group">
-        <label asp-for="@Model.Id" class="col-form-label"></label>
-        <input asp-for="@Model.Id" class="form-control" readonly />
-
-
-    </div>
+        <div class="form-group">
+            <label asp-for="@Model.PhoneNumber" class="col-form-label">رقم الهاتف</label>
+            <input asp-for="@Model.PhoneNumber" class="form-control" readonly />
+        </div>
 
 
 
-    <div class="form-group">
-        <label asp-for="@Model.Roles" class="col-form-label"></label>
-        <input asp-for="@Model.Roles" class="form-control" readonly />
+        <div class="form-group">
+            <label asp-for="@Model.UserType" class="col-form-label">الفئة</label>
+            <input asp-for="@Model.UserType" class="form-control" readonly />
+        </div>
+
+        <div class="mt-4">
+            <input type="submit" value="حذف" class="btn btn-success" /> |
+            <a asp-action="Index" class="btn btn-info">عودة للمستخدمين</a>
+        </div>
 
 
-    </div>
-    <div>
-        <input type="submit" value="Delete" class="btn btn-success" />
-       
-    </div>
-    <br />
-    <div>
-        <a asp-action="Index" class="btn btn-info">BackToList</a>
-    </div>
+    </form>
 
-</form>
-
+</div>

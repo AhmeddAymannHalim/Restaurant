@@ -12,65 +12,73 @@ using Restaurant.Data.Models;
 
 namespace ResturantPL.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin,Manager")]
     public class UserController : Controller
     {
-
-        public IMapper _Mapper { get; set; }
-        public UserManager<ApplicationUser> _userManager { get; set; }
-        public RoleManager<IdentityRole> _roleManager { get; set; }
+        private readonly IMapper _mapper;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public UserController(IMapper mapper, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
-            _Mapper = mapper;
+            _mapper = mapper;
             _userManager = userManager;
             _roleManager = roleManager;
         }
 
 
 
+      
         public async Task<IActionResult> Index(string SearchValue = "")
         {
             IEnumerable<UsersViewModel> usersViewModel = null;
-            if (SearchValue == null)
+            var users = await _userManager.Users.ToListAsync();
+
+            if (string.IsNullOrWhiteSpace(SearchValue))
             {
-                usersViewModel = await _userManager.Users.Where(a => a.UserType == "User").Select(u => new UsersViewModel()
-                {
-                    Id = u.Id,
-                    Name = u.UserName,
-                    Email = u.Email,
-                    PhoneNumber = u.PhoneNumber,
-                    Roles = _userManager.GetRolesAsync(u).Result
+                var groupedUsers = users
+                    .OrderBy(u => u.UserType)
+                    .GroupBy(u => u.UserType)
+                    .SelectMany(group =>
+                        group.Concat(new[] { new ApplicationUser() }) // Add empty row after each group
+                    )
+                    .Select(u => new UsersViewModel()
+                    {
+                        Id = u.Id,
+                        UserName = u.UserName,
+                        Name = u.FullName,
+                        Email = u.Email,
+                        PhoneNumber = u.PhoneNumber,
+                        UserType = u.UserType,
+                    });
 
-
-                }).ToListAsync();
-
-
+                usersViewModel = groupedUsers.ToList();
             }
             else
             {
-                usersViewModel = await _userManager.Users.
-                    Where(u => u.Email.Trim().ToLower().Contains(SearchValue.Trim().ToLower()) == true && u.UserType == "User").
-                    Select(u => new UsersViewModel()
+                usersViewModel = users
+                    .Where(u => u.Email.Trim().ToLower().Contains(SearchValue.Trim().ToLower()) || u.FullName.ToLower().Contains(SearchValue.ToLower()) || u.UserType.ToLower().Contains(SearchValue.ToLower()) || u.UserName.ToLower().Contains(SearchValue.ToLower()))
+                    .Select(u => new UsersViewModel()
                     {
                         Id = u.Id,
-                        Name = u.UserName,
+                        UserName = u.UserName,
+                        Name = u.FullName,
                         Email = u.Email,
                         PhoneNumber = u.PhoneNumber,
-                    }).ToListAsync();
-
+                        UserType = u.UserType,
+                    })
+                    .OrderBy(a => a.UserType)
+                    .ToList();
             }
 
             return View(usersViewModel);
         }
 
 
-
         [HttpGet]
-        public async Task<IActionResult> Update([FromRoute] string id, string ViewName = "Update")
+        public async Task<IActionResult> Update(string id, string ViewName = "Update")
         {
             var user = await _userManager.FindByIdAsync(id);
-
 
             if (user is null)
             {
@@ -80,16 +88,16 @@ namespace ResturantPL.Controllers
             UsersViewModel usersViewModel = new UsersViewModel()
             {
                 Id = user.Id,
-                Name = user.UserName,
+                Name = user.FullName,
+                UserName = user.UserName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
+                UserType = user.UserType,
             };
 
-
             return View(ViewName, usersViewModel);
-
         }
-    
+
 
 
         [HttpPost, ValidateAntiForgeryToken]
@@ -102,10 +110,14 @@ namespace ResturantPL.Controllers
                     var user = await _userManager.FindByIdAsync(usersViewModel.Id);
                     if (user.PhoneNumber != usersViewModel.PhoneNumber)
                         user.PhoneNumber = usersViewModel.PhoneNumber;
-                    if (user.UserName != usersViewModel.Name)
-                        user.UserName = usersViewModel.Name;
+                    if (user.UserName != usersViewModel.UserName)
+                        user.UserName = usersViewModel.UserName;
                     if (user.Email != usersViewModel.Email)
                         user.Email = usersViewModel.Email;
+                    if (user.FirstName != usersViewModel.Name.Split(" ")[0])
+                        user.FirstName = usersViewModel.Name.Split(" ")[0];
+                    if (user.LastName != usersViewModel.Name.Split(" ")[1])
+                        user.LastName = usersViewModel.Name.Split(" ")[1];
 
                     await _userManager.UpdateAsync(user);
 
@@ -122,7 +134,7 @@ namespace ResturantPL.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> Details([FromRoute] string id)
+        public async Task<IActionResult> Details(string id)
         {
             return await Update(id, "Details");
         }
@@ -130,14 +142,14 @@ namespace ResturantPL.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> Delete([FromRoute] string id)
+        public async Task<IActionResult> Delete(string id)
         {
 
             return await Update(id, "Delete");
 
         }
-     
-        
+
+
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(UsersViewModel usersViewModel)
         {

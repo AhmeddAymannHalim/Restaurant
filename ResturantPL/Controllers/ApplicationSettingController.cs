@@ -1,7 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using Restaurant.Data.Models;
+using ResturantPL.Helper;
+using ResturantPL.ViewModels;
 using Service.UnitOfWork;
 using System.Drawing.Printing;
+using System.Xml.Linq;
 
 namespace ResturantPL.Controllers
 {
@@ -43,16 +47,61 @@ namespace ResturantPL.Controllers
         public async Task<IActionResult> RestaurantSetting()
         {
             IndexSettings setting = await _unitOfWork.IndexRepository.GetLast(a => a.Id);
-            return View(setting);
+            IndexSettingsViewModel model = new IndexSettingsViewModel()
+            {
+                Id = setting.Id,
+                Name = setting.Name,
+                Description = setting.Description,
+                Email = setting.Email,
+                Phone = setting.Phone,
+                StartDay = setting.StartDay,
+                EndDay = setting.EndDay,
+                StartHour = setting.StartHour,
+                EndHour = setting.EndHour,
+                VedioUrl = setting.VedioUrl,
+                ImageUrl = setting.ImageUrl,
+                Locaion = setting.Locaion
+            };
+
+            return View(model);
         }
 
 
         [HttpPost]
-        public IActionResult RestaurantSetting(IndexSettings setting)
+        public IActionResult RestaurantSetting(IndexSettingsViewModel setting)
         {
             if (ModelState.IsValid)
             {
-                _unitOfWork.IndexRepository.Update(setting);
+                IndexSettings old = _unitOfWork.IndexRepository.GetById(setting.Id);
+                old.Id = setting.Id;
+                old.Name = setting.Name;
+                old.Description = setting.Description;
+                old.Email = setting.Email;
+                old.Phone = setting.Phone;
+                old.StartDay = setting.StartDay;
+                old.EndDay = setting.EndDay;
+                old.StartHour = setting.StartHour;
+                old.EndHour = setting.EndHour;
+                old.Locaion = setting.Locaion;
+
+                if (setting.Image != null)
+                {
+                    if (old.ImageUrl != null)
+                    {
+                        DocumentSetting.DeleteFile(old.ImageUrl);
+                    }
+                    old.ImageUrl = DocumentSetting.UploadFile(setting.Image, "Images");
+                }
+                if (setting.Video != null)
+                {
+                    if (old.VedioUrl != null)
+                    {
+                        DocumentSetting.DeleteFile(old.VedioUrl);
+                    }
+                    old.VedioUrl = DocumentSetting.UploadFile(setting.Video, "Videos");
+                }
+
+                _unitOfWork.IndexRepository.Update(old);
                 return RedirectToAction("RestaurantSetting");
             }
             return View(setting);
