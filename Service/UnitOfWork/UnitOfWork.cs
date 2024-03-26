@@ -2,6 +2,7 @@
 using Service.Repositories;
 using Service.IRepositories;
 using Restaurant.Data;
+using Microsoft.AspNetCore.Identity;
 
 namespace Service.UnitOfWork
 {
@@ -41,7 +42,8 @@ namespace Service.UnitOfWork
         public IGenericRepository<ApplicationSetting> ApplicationSettingRepository { get; set; }
         public IGenericRepository<PrinterSetting> PrinterSettingRepository { get; set; }
         public IGenericRepository<PrinterForSection> PrinterForSectionRepository { get; set; }
-
+        public IGenericRepository<ApplicationUser> UserRepository { get; set; }
+        public IGenericRepository<IdentityRole> RoleRepository { get; set; }
 
 
         // By Yasser
@@ -93,6 +95,8 @@ namespace Service.UnitOfWork
             ApplicationSettingRepository = new GenericRepository<ApplicationSetting>(_context);
             PrinterSettingRepository = new GenericRepository<PrinterSetting>(_context);
             PrinterForSectionRepository = new GenericRepository<PrinterForSection>(_context);
+            UserRepository = new GenericRepository<ApplicationUser>(_context);
+            RoleRepository = new GenericRepository<IdentityRole>(_context);
 
 
 

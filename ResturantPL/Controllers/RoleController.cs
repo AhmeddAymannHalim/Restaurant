@@ -128,26 +128,82 @@ namespace ResturantPL.Controllers
             return await Update(id);
         }
 
+       
 
-  
-        public async Task<IActionResult> Delete(string id)
+        //public async Task<IActionResult> Delete(string id)
+        //{
+        //    var obj = await _roleManager.FindByIdAsync(id);
+        //    if (obj != null)
+        //    {
+        //        try
+        //        {
+        //            await _roleManager.DeleteAsync(obj);
+        //            return Json(new { success = true });
+        //        }
+        //        catch (Exception)
+        //        {
+        //            return Json(new { success = false, errorMessage = "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر " });
+        //        }
+        //    }
+        //    return Json(new { success = true });
+        //}
+
+        [HttpGet]
+        public async Task<IActionResult> Delete(string roleId)
         {
-            var role = await _roleManager.FindByIdAsync(id);
-            if (role != null)
+            if (string.IsNullOrEmpty(roleId))
             {
-                try
+                return BadRequest("Role ID مطلوب.");
+            }
+
+            var role = await _roleManager.FindByIdAsync(roleId);
+            if (role == null)
+            {
+                return NotFound("المستخدم غير موجود.");
+            }
+
+            RoleViewModel model = new RoleViewModel()
+            {
+                Id = role.Id,
+                RoleName = role.Name,
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken, ActionName("Delete")]
+        public async Task<IActionResult> DeleteConfirmed(RoleViewModel model)
+        {
+            if (string.IsNullOrEmpty(model.Id))
+            {
+                return BadRequest("Role ID مطلوب.");
+            }
+
+            var role = await _roleManager.FindByIdAsync(model.Id);
+            if (role == null)
+            {
+                return NotFound("الفئة غير موجودة.");
+            }
+
+            try
+            {
+                var result = await _roleManager.DeleteAsync(role);
+                if (result.Succeeded)
                 {
-                    await _roleManager.DeleteAsync(role);
-                    TempData["success"] = "تمت العملية بنجاح";
+                    return RedirectToAction("Roles"); 
                 }
-                catch (Exception ex)
+                else
                 {
-                    TempData["faild"] = "Error";
-                    return View("Error", ErrorMessage.Error(ex.Message));
+                    return BadRequest("فشل حذف الفئة.");
                 }
             }
-            return RedirectToAction("Roles");
+            catch (Exception)
+            {
+                return StatusCode(500, "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر");
+            }
         }
+
 
 
         #region Old Roles

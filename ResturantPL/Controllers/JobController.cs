@@ -47,8 +47,21 @@ namespace ResturantPL.Controllers
 
 
         [HttpGet]
-        public IActionResult AddJob()
+        public async Task<IActionResult> AddJob()
         {
+            Job lastCode = await _unitOfWork.JobRepository.GetLast(item => item.JobId);
+
+            if (lastCode == null)
+            {
+                ViewBag.Code = 1;
+            }
+            else
+            {
+                int jobCode = int.Parse(lastCode.Code) + 1;
+                ViewBag.Code = jobCode;
+            }
+
+
             return View();
 
         }
@@ -59,6 +72,19 @@ namespace ResturantPL.Controllers
         {
             try
             {
+                Job lastCode = await _unitOfWork.JobRepository.GetLast(item => item.JobId);
+
+                if (lastCode == null)
+                {
+                    ViewBag.Code = 1;
+                }
+                else
+                {
+                    int jobCode = int.Parse(lastCode.Code) + 1;
+                    ViewBag.Code = jobCode;
+                }
+
+
                 if (ModelState.IsValid)
                 {
                     await _unitOfWork.JobRepository.AddAsync(model);
@@ -98,10 +124,13 @@ namespace ResturantPL.Controllers
                 if (ModelState.IsValid)
                 {
                     Job job = GetJob(model.JobId);
-                    if (job != null)
+                    if (job == null)
                     {
                         return NotFound();
                     }
+
+                    job.Name = model.Name;
+                    job.Code = model.Code;
                     await _unitOfWork.JobRepository.UpdateAsync(job);
 
                     return RedirectToAction("Jobs");
@@ -118,22 +147,22 @@ namespace ResturantPL.Controllers
 
         public IActionResult Delete(int id)
         {
-            var job = _unitOfWork.JobRepository.GetById(id);
-            if (job != null)
+            var obj = _unitOfWork.JobRepository.GetById(id);
+            if (obj != null)
             {
                 try
                 {
-                    _unitOfWork.JobRepository.Delete(job);
-                    TempData["success"] = "تمت العملية بنجاح";
+                    _unitOfWork.JobRepository.Delete(obj);
+                    return Json(new { success = true });
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    TempData["faild"] = "Error";
-                    return View("Error", ErrorMessage.Error(ex.Message));
+                    return Json(new { success = false, errorMessage = "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر " });
                 }
             }
-            return RedirectToAction("Jobs");
+            return Json(new { success = true });
         }
+
 
         public Job GetJob(int id)
         {

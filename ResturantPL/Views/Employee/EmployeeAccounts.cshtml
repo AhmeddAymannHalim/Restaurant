@@ -38,7 +38,7 @@
             <th>
                 السن
             </th>
-
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -78,7 +78,10 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.Age)
                 </td>
-               
+               <td>
+                    <a asp-action="UpdateUserAccount" asp-route-id="@item.Id">تعديل</a> |
+                    <a class="text-danger" asp-action="Delete" asp-controller="User" asp-route-userId="@item.Id"><strong>حذف</strong></a>
+               </td>
 
             </tr>
         }
@@ -90,3 +93,5 @@
     <a asp-action="Employees"> عودة للموظفين</a> |
     <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
 </div>
+
+

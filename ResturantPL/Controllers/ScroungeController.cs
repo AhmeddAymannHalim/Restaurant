@@ -113,21 +113,20 @@ namespace ResturantPL.Controllers
 
         public IActionResult Delete(int id)
         {
-            var scrounge = _unitOfWork.ScroungeRepository.GetById(id);
-            if (scrounge != null)
+            var obj = _unitOfWork.ScroungeRepository.GetById(id);
+            if (obj != null)
             {
                 try
                 {
-                    _unitOfWork.ScroungeRepository.Delete(scrounge);
-                    TempData["success"] = "تمت العملية بنجاح";
+                    _unitOfWork.ScroungeRepository.Delete(obj);
+                    return Json(new { success = true });
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    TempData["faild"] = "Error";
-                    return View("Error", ErrorMessage.Error(ex.Message));
+                    return Json(new { success = false, errorMessage = "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر " });
                 }
             }
-            return RedirectToAction("Index");
+            return Json(new { success = true });
         }
 
 

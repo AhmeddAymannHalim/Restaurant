@@ -19,7 +19,7 @@
             <td>@item.Name</td>
             <td>
                 <a href="/UnitPrice/Edit/@item.Id">تعديل</a> |
-                <a onclick="Delete(@item.Id)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
+                <a onclick="Delete('/UnitPrice/Delete/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
             </td>
         </tr>
     }
@@ -31,22 +31,4 @@
 
 
 <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-@if (TempData["success"] != null)
-{
-    <script>
-        swal("برافو عمل جيد !", "", "success");
-
-    </script>
-}
-@if (TempData["faild"] != null)
-{
-    <script>
-        swal("فشلت العملية !", "", "error");
-
-    </script>
-
-}
-@section Scripts {
-
-    <script src="~/modules/UnitPrice.js"></script>
-}
+<script src="~/modules/deleteobjects.js"></script>

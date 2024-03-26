@@ -11,20 +11,23 @@
 
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="UpdateJob">
+        <form asp-action="UpdateJob" method="post">
             <div asp-validation-summary="All" class="text-danger"></div>
 
-        <div class="form-group">
-            <label asp-for="Name" class="control-label">المسمي الوظيفي</label>
-            <input asp-for="Name" class="form-control" />
-            <span asp-validation-for="Name" class="text-danger"></span>
-        </div>
-
+      
         <div class="form-group">
             <label asp-for="Code" class="control-label">كود الوظيفة</label>
             <input asp-for="Code" class="form-control" />
             <span asp-validation-for="Code" class="text-danger"></span>
         </div>
+
+            <div class="form-group">
+                <input asp-for="JobId" class="form-control" hidden />
+                <label asp-for="Name" class="control-label">المسمي الوظيفي</label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
 
         <div class=" mt-3">
             <input type="submit" value="تعديل" class="btn btn-success" /> |

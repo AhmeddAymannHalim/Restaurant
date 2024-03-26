@@ -32,11 +32,11 @@
 
 
             <td>
-                <a href="/Store/Details/@item.Id">تفاصيل</a> | 
+                <a href="/Store/Details/@item.Id">تفاصيل</a> |
                 <a href="/Store/Edit/@item.Id">تعديل</a> |
-                <a onclick="Delete(@item.Id)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a> |
-                <a href="/Store/Inventory/@item.Id">جرد المخزن</a> 
-                
+                <a onclick="Delete('/Store/Delete/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
+                <a href="/Store/Inventory/@item.Id">جرد المخزن</a>
+
             </td>
         </tr>
     }
@@ -45,14 +45,12 @@
     <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
 </div>
 <!-- Button trigger modal -->
-
-
 <!-- Modal -->
 <div class="modal fade" id="dateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-              
+
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 <h1 class="modal-title fs-5" id="exampleModalLabel" style="color:black">تحديد تاريخ بداية ونهاية لجرد المخزن</h1>
             </div>
@@ -63,15 +61,15 @@
                         <label style="color:black" for="startDate">من تاريخ:</label>
                         <input type="date" id="startDate" name="startDate">
                     </div>
-                    
-                    <br/>
+
+                    <br />
                     <div>
                         <label style="color:black" for="endDate">الي تاريخ:</label>
                         <input type="date" id="endDate" name="endDate">
                     </div>
-                   
 
-                   
+
+
                 </form>
             </div>
             <div class="modal-footer">
@@ -85,26 +83,7 @@
 
 
 <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-@if (TempData["success"] != null)
-{
-    <script>
-        swal("برافو عمل جيد !", "", "success");
-
-    </script>
-}
-@if (TempData["faild"] != null)
-{
-    <script>
-        swal("فشلت العملية !", "", "error");
-
-    </script>
-
-}
-@section Scripts {
-
-    <script src="~/modules/Store.js"></script>
-}
-
+<script src="~/modules/deleteobjects.js"></script>
 
 <script>
     function openModal(itemId) {

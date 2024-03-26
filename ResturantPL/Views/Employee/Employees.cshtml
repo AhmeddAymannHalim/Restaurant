@@ -16,7 +16,7 @@
     <thead>
         <tr>
             <th>
-               الاسم
+                الاسم
             </th>
             <th>
                 الوظيفة
@@ -28,24 +28,24 @@
                 رقم الهاتف
             </th>
             <th>
-               العنوان
+                العنوان
             </th>
 
             <th>
-               الصورة
+                الصورة
             </th>
             <th>
                 السن
             </th>
-          
+
             <th>
-               نوع الراتب
+                نوع الراتب
             </th>
             <th>
-             الراتب
+                الراتب
             </th>
             <th>
-              الفرع
+                الفرع
             </th>
             <th></th>
         </tr>
@@ -95,7 +95,7 @@
                 <td>
                     @Html.ActionLink("تعديل", "UpdateEmployee", new { id = item.EmployeeId }) |
                     @Html.ActionLink("التفاصيل", "DetailsEmployee", new { id = item.EmployeeId }) |
-                    <a onclick="Delete(@item.EmployeeId)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a> |
+                    <a onclick="Delete('/Employee/Delete/@item.EmployeeId')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
                     @{
                         bool userExists = false;
                         foreach (var user in users)
@@ -126,24 +126,5 @@
 </div>
 
 
-
 <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-@if (TempData["success"] != null)
-{
-    <script>
-        swal("برافو عمل جيد !", "", "success");
-
-    </script>
-}
-@if (TempData["faild"] != null)
-{
-    <script>
-        swal("فشلت العملية !", "", "error");
-
-    </script>
-
-}
-@section Scripts {
-
-    <script src="~/modules/Employee.js"></script>
-}
+<script src="~/modules/deleteobjects.js"></script>

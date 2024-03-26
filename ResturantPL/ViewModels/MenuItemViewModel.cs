@@ -34,21 +34,18 @@ namespace ResturantPL.ViewModels
 
 
         [Required(ErrorMessage = "The price is required.")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "The price must be greater than 0.")]
         [Display(Name = "التكلفة الكلية")]
         [DataType(DataType.Currency)]
         public decimal TotalCost { get; set; }
 
 
         [Required(ErrorMessage = "The price is required.")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "The price must be greater than 0.")]
         [Display(Name = "سعر البيع")]
         [DataType(DataType.Currency)]
         public decimal Price { get; set; }
 
 
         [Required(ErrorMessage = "The price is required.")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "The price must be greater than 0.")]
         [Display(Name = "الربح")]
         [DataType(DataType.Currency)]
         public decimal Benefit { get; set; }
@@ -70,7 +67,6 @@ namespace ResturantPL.ViewModels
 
 
         [Required(ErrorMessage = "The Cost is required.")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "The Cost must be greater than 0.")]
         [Display(Name = "تكلفة المكون")]
         [DataType(DataType.Currency)]
         public decimal Cost { get; set; }

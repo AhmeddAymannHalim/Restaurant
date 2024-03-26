@@ -4,10 +4,10 @@
     ViewData["Title"] = "IndexSupplier";
 }
 
-<h1 class="text-center">فواتير المدفوعات للموردين</h1>
+<h1 class="text-center">فواتير سندات الموردين</h1>
 
 <p>
-    <a asp-action="InvoicePayForSupplier">اضافة فاتورة جديدة</a>
+    <a asp-action="InvoicePayForSupplier">اضافة سند جديد</a>
 </p>
 <table class="table table-hover text-center table-bordered table-striped-columns table-dark">
     <thead>
@@ -18,7 +18,7 @@
                 كود الفاتورة
             </th>
             <th>
-              تاريخ الفاتورة
+                تاريخ الفاتورة
             </th>
             <th>
                 البيان
@@ -33,32 +33,36 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Supplier.Name)
-            </td>
-           
-            <td>
-                @Html.DisplayFor(modelItem => item.ProcessCode)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Date)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Paid)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Supplier.Balance)
-            </td>
-            <td>
-                    @Html.ActionLink("التفاصيل", "SupplierInvoiceDetails", new { id = item.Id })
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Supplier.Name)
+                </td>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProcessCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Date)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Paid)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Supplier.Balance)
+                </td>
+                <td>
+                    @Html.ActionLink("التفاصيل", "SupplierInvoiceDetails", new { id = item.Id }) |
+                    @Html.ActionLink("تعديل", "SupplierInvoiceEdit", new { id = item.Id }) |
+                    <a onclick="Delete('/PaymentInvoice/DeleteSupplierPayment/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
+
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
 
@@ -66,3 +70,9 @@
 <div>
     <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
 </div>
+
+
+
+<script src="~/lib/sweetalert/sweetalert.min.js"></script>
+<script src="~/modules/deleteobjects.js"></script>
+

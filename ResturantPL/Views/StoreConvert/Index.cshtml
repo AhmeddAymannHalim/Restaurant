@@ -21,14 +21,14 @@
                 <th>
                     تاريخ الفاتورة
                 </th>
-                
+
                 <th>
                     المخزن المنقول منه
                 </th>
                 <th>
                     المخزن المنقول اليه
                 </th>
-                  <th>
+                <th>
                     عدد الاصناف
                 </th>
 
@@ -58,7 +58,7 @@
                     </td>
                     <td>
                         @Html.ActionLink("التفاصيل", "Details", new { id = item.Id }) |
-                        <a onclick="Delete(@item.Id)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
+                        <a onclick="Delete('/StoreConvert/Delete/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
                     </td>
                 </tr>
             }
@@ -71,24 +71,5 @@
 
 
 
-
 <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-@if (TempData["success"] != null)
-{
-    <script>
-        swal("برافو عمل جيد !", "", "success");
-
-    </script>
-}
-@if (TempData["faild"] != null)
-{
-    <script>
-        swal("فشلت العملية !", "", "error");
-
-    </script>
-
-}
-@section Scripts {
-
-    <script src="~/modules/StoreConvert.js"></script>
-}
+<script src="~/modules/deleteobjects.js"></script>

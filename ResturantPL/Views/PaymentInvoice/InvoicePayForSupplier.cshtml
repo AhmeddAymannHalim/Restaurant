@@ -5,7 +5,7 @@
     var invCode = ViewBag.Invoice;
 }
 
-<h1 class="text-center">اضافة فاتورة جديدة</h1>
+<h1 class="text-center">اضافة سند جديد</h1>
 <hr />
 
 
@@ -49,11 +49,11 @@
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="form-group mt-3">
-                <input type="submit" value="اضافة فاتورة" class="btn btn-primary" />
+                <input type="submit" value="اضافة سند دفع" class="btn btn-primary" />
             </div>
 
             <div>
-                <a asp-action="IndexSupplier">عودة للفواتير</a> | 
+                <a asp-action="IndexSupplier">عودة للسندات</a> | 
                 <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
             </div>
 

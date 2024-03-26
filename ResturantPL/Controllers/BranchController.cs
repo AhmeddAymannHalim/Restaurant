@@ -112,28 +112,24 @@ namespace ResturantPL.Controllers
 
 
 
-      
+           
         public IActionResult Delete(int id)
         {
-            Branche branche = GetBranch(id);
-            if (branche != null)
+            var obj = _unitOfWork.BrancheRepository.GetById(id);
+            if (obj != null)
             {
                 try
                 {
-                    _unitOfWork.BrancheRepository.Delete(branche);
-                    TempData["success"] = "تمت العملية بنجاح";
-
+                    _unitOfWork.BrancheRepository.Delete(obj);
+                    return Json(new { success = true });
                 }
-                catch (Exception)
+                catch (Exception )
                 {
-                    TempData["faild"] = "Error";
-                    return View("Error", ErrorMessage.Error("لا يمكنك حذف الفرع لارتباطه بالموظفين"));
+                    return Json(new { success = false, errorMessage = "لا يمكنك حذف الفرع لارتباطه بالموظفين" });
                 }
             }
-            return RedirectToAction("Index");
+            return Json(new { success = true });
         }
-
-
 
 
         public Branche GetBranch(int id)

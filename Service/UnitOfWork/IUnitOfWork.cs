@@ -1,4 +1,5 @@
-﻿using Restaurant.Data.Models;
+﻿using Microsoft.AspNetCore.Identity;
+using Restaurant.Data.Models;
 using Service.IRepositories;
 
 namespace Service.UnitOfWork
@@ -38,6 +39,8 @@ namespace Service.UnitOfWork
         public IGenericRepository<ApplicationSetting> ApplicationSettingRepository { get; set; }
         public IGenericRepository<PrinterSetting> PrinterSettingRepository { get; set; }
         public IGenericRepository<PrinterForSection> PrinterForSectionRepository { get; set; }
+        public IGenericRepository<ApplicationUser> UserRepository { get; set; }
+        public IGenericRepository<IdentityRole> RoleRepository { get; set; }
 
 
 

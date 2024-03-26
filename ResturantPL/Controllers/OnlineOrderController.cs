@@ -156,21 +156,20 @@ namespace ResturantPL.Controllers
 
         public IActionResult Delete(int id)
         {
-            var onlineOrder = _unitOfWork.OnlineOrderRepository.GetById(id);
-            if (onlineOrder != null)
+            var obj = _unitOfWork.OnlineOrderRepository.GetById(id);
+            if (obj != null)
             {
                 try
                 {
-                    _unitOfWork.OnlineOrderRepository.Delete(onlineOrder);
-                    TempData["success"] = "تمت العملية بنجاح";
+                    _unitOfWork.OnlineOrderRepository.Delete(obj);
+                    return Json(new { success = true });
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    TempData["faild"] = "Error";
-                    return View("Error", ErrorMessage.Error(ex.Message));
+                    return Json(new { success = false, errorMessage = "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر " });
                 }
             }
-            return RedirectToAction("PendingOrders");
+            return Json(new { success = true });
         }
 
 

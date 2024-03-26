@@ -99,25 +99,21 @@ namespace ResturantPL.Controllers
 
         public IActionResult Delete(int id)
         {
-            var deposit = GetDeposit(id);
-            if (deposit != null)
+            var obj = _unitOfWork.DepositRepository.GetById(id);
+            if (obj != null)
             {
                 try
                 {
-                    deposit.IsDeleted = true;
-                    _unitOfWork.DepositRepository.Update(deposit);
-
-                    TempData["success"] = "تمت العملية بنجاح";
+                    _unitOfWork.DepositRepository.Delete(obj);
+                    return Json(new { success = true });
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    TempData["faild"] = "Error";
-                    return View("Error", ErrorMessage.Error(ex.Message));
+                    return Json(new { success = false, errorMessage = "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر " });
                 }
             }
-            return RedirectToAction("Index");
+            return Json(new { success = true });
         }
-
 
         [HttpGet]
         public IActionResult Details(int id)

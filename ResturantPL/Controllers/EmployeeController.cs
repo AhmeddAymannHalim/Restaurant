@@ -67,7 +67,7 @@ namespace ResturantPL.Controllers
 
 
 
-        public IActionResult AddEmployee()
+        public async Task<IActionResult> AddEmployee()
         {
             var branches = _unitOfWork.BrancheRepository.GetAll();
             var jobs = _unitOfWork.JobRepository.GetAll();
@@ -76,6 +76,20 @@ namespace ResturantPL.Controllers
             ViewBag.BranchList = new SelectList(branches, "Id", "Name");
             ViewBag.JobList = new SelectList(jobs, "JobId", "Name");
             ViewBag.SalaryType = new SelectList(salaryTypes, "Id", "Type");
+
+            Employee lastCode = await _unitOfWork.EmployeeRepository.GetLast(item => item.EmployeeId);
+
+            if (lastCode == null)
+            {
+                ViewBag.Code = 1;
+            }
+            else
+            {
+                int empCode = int.Parse(lastCode.Code) + 1;
+                ViewBag.Code = empCode;
+            }
+
+
 
             return View();
         }
@@ -90,6 +104,17 @@ namespace ResturantPL.Controllers
                 ViewBag.BranchList = new SelectList(_unitOfWork.BrancheRepository.GetAll(), "Id", "Name");
                 ViewBag.JobList = new SelectList(_unitOfWork.JobRepository.GetAll(), "JobId", "Name");
                 ViewBag.SalaryType = new SelectList(_unitOfWork.SalaryTypeRepository.GetAll(), "Id", "Type");
+                Employee lastCode = await _unitOfWork.EmployeeRepository.GetLast(item => item.EmployeeId);
+
+                if (lastCode == null)
+                {
+                    ViewBag.Code = 1;
+                }
+                else
+                {
+                    int empCode = int.Parse(lastCode.Code) + 1;
+                    ViewBag.Code = empCode;
+                }
 
 
                 if (ModelState.IsValid)
@@ -145,7 +170,7 @@ namespace ResturantPL.Controllers
                     Salary = employee.Salary,
                     BrancheId = employee.BrancheId,
                     JobId = employee.JobId,
-                    
+
                 };
                 return View(profile);
             }
@@ -290,22 +315,22 @@ namespace ResturantPL.Controllers
 
         public IActionResult Delete(int id)
         {
-            var employee = _unitOfWork.EmployeeRepository.GetById(id);
-            if (employee != null)
+            var obj = _unitOfWork.EmployeeRepository.GetById(id);
+            if (obj != null)
             {
                 try
                 {
-                    _unitOfWork.EmployeeRepository.Delete(employee);
-                    TempData["success"] = "تمت العملية بنجاح";
+                    _unitOfWork.EmployeeRepository.Delete(obj);
+                    return Json(new { success = true });
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    TempData["faild"] = "Error";
-                    return View("Error", ErrorMessage.Error(ex.Message));
+                    return Json(new { success = false, errorMessage = "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر " });
                 }
             }
-            return RedirectToAction("Employees");
+            return Json(new { success = true });
         }
+
 
         public Employee GetEmployee(int id)
         {
@@ -332,6 +357,16 @@ namespace ResturantPL.Controllers
 
                 }
                 return RedirectToAction("AddAccount", employee);
+            }
+            return NotFound();
+        }
+
+        public async Task<IActionResult> UpdateUserAccount(string id)
+        {
+            ApplicationUser user = await _userManager.FindByIdAsync(id);
+            if (user != null)
+            {
+                return RedirectToAction("UpdateAccount", user);
             }
             return NotFound();
         }

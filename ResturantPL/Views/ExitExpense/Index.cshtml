@@ -13,68 +13,49 @@
     <thead>
         <tr>
             <th>
-               المصروف
+                المصروف
             </th>
             <th>
-              السعر
+                السعر
             </th>
             <th>
-              التاريخ
+                التاريخ
             </th>
             <th>
-               اسم المستخدم
+                اسم المستخدم
             </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-          
-            <td>
-                @Html.DisplayFor(modelItem => item.Expense.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Date)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.User.FullName)
-            </td>
-            <td>
-                @Html.ActionLink("تعديل", "Edit", new { id=item.Id}) |
-                @Html.ActionLink("التفاصيل", "Details", new { id=item.Id }) |
-                    <a onclick="Delete(@item.Id)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.Expense.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Price)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Date)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.User.FullName)
+                </td>
+                <td>
+                    @Html.ActionLink("تعديل", "Edit", new { id = item.Id }) |
+                    @Html.ActionLink("التفاصيل", "Details", new { id = item.Id }) |
+                    <a onclick="Delete('/ExitExpense/Delete/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
 <div>
     <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
 </div>
 
-
-
 <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-@if (TempData["success"] != null)
-{
-    <script>
-        swal("برافو عمل جيد !", "", "success");
-
-    </script>
-}
-@if (TempData["faild"] != null)
-{
-    <script>
-        swal("فشلت العملية !", "", "error");
-
-    </script>
-
-}
-@section Scripts {
-
-    <script src="~/modules/ExitExpense.js"></script>
-}
+<script src="~/modules/deleteobjects.js"></script>

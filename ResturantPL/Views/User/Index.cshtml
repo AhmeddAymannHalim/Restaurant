@@ -45,7 +45,9 @@
                         <td>
                             <a asp-action="Details" asp-route-id="@item.Id">التفاصيل</a> |
                             <a asp-action="Update" asp-route-id="@item.Id">تعديل</a> |
-                            <a asp-action="Delete" asp-route-id="@item.Id">حذف</a>
+                            <a class="text-danger" asp-action="Delete" asp-route-userId="@item.Id"><strong>حذف</strong></a>
+                            @* <a onclick="Delete(@item.Id)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a> *@
+                               
                         </td>
                     </tr>
                 }
@@ -63,3 +65,10 @@
 <div>
     <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

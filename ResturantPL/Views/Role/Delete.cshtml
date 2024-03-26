@@ -1,0 +1,33 @@
+﻿@model ResturantPL.ViewModels.RoleViewModel
+
+@{
+    ViewData["Title"] = "Delete";
+}
+<h1 class="text-center">حذف فئة</h1>
+<hr />
+
+<h3 class="text-danger">هل انت متأكد من حذف الفئة ؟</h3>
+<br />
+
+
+<div class="row">
+
+
+    <form asp-action="Delete" class="col-md-4">
+
+        <div class="form-group">
+            <label asp-for="@Model.RoleName" class="col-form-label">اسم الفئة</label>
+            <input asp-for="@Model.RoleName" class="form-control" readonly />
+            <input asp-for="@Model.Id" class="form-control" hidden />
+        </div>
+
+        
+        <div class="mt-4">
+            <input type="submit" value="حذف" class="btn btn-success" /> |
+            <a asp-action="Index" asp-controller="Role" class="btn btn-info">عودة للفئات</a>
+        </div>
+
+
+    </form>
+
+</div>

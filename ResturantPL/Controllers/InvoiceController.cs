@@ -171,22 +171,20 @@ namespace ResturantPL.Controllers
 
         public IActionResult Delete(int id)
         {
-            var invoice = _unitOfWork.InvoiceRepository.GetById(id);
-            if (invoice != null)
+            var obj = _unitOfWork.InvoiceRepository.GetById(id);
+            if (obj != null)
             {
                 try
                 {
-                    _unitOfWork.InvoiceRepository.Delete(invoice);
-                    TempData["success"] = "تمت العملية بنجاح";
+                    _unitOfWork.InvoiceRepository.Delete(obj);
+                    return Json(new { success = true });
                 }
                 catch (Exception)
                 {
-                    TempData["faild"] = "Error";
-                    return View("Error", ErrorMessage.Error("نأسف حدث خطأ اثناء الحذف ربما هذه الفاتورة مرتبطة بشئ آخر."));
+                    return Json(new { success = false, errorMessage = "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر " });
                 }
             }
-            return RedirectToAction("Invoices");
-
+            return Json(new { success = true });
         }
 
 

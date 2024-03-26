@@ -28,7 +28,7 @@ namespace ResturantPL.Controllers
 
 
 
-      
+
         public async Task<IActionResult> Index(string SearchValue = "")
         {
             IEnumerable<UsersViewModel> usersViewModel = null;
@@ -140,35 +140,86 @@ namespace ResturantPL.Controllers
         }
 
 
-
+        
         [HttpGet]
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(string userId)
         {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("User ID مطلوب.");
+            }
 
-            return await Update(id, "Delete");
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound("المستخدم غير موجود.");
+            }
 
+            UsersViewModel model = new UsersViewModel()
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Name = user.FullName,
+                PhoneNumber = user.PhoneNumber,
+                UserName = user.UserName,
+                UserType = user.UserType,
+            };
+
+            return View(model); 
         }
 
-
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(UsersViewModel usersViewModel)
+        [HttpPost]
+        [ValidateAntiForgeryToken, ActionName("Delete")]
+        public async Task<IActionResult> DeleteConfirmed(UsersViewModel model)
         {
+            if (string.IsNullOrEmpty(model.Id))
+            {
+                return BadRequest("User ID مطلوب.");
+            }
+
+            var user = await _userManager.FindByIdAsync(model.Id);
+            if (user == null)
+            {
+                return NotFound("المستخدم غير موجود.");
+            }
+
             try
             {
-                if (usersViewModel == null)
+                var result = await _userManager.DeleteAsync(user);
+                if (result.Succeeded)
                 {
-                    return BadRequest();
+                    return RedirectToAction("Index"); // Redirect to the index page
                 }
-                var user = await _userManager.FindByIdAsync(usersViewModel.Id);
-                await _userManager.DeleteAsync(user);
-
-                return RedirectToAction("Index");
+                else
+                {
+                    return BadRequest("فشل حذف المستخدم.");
+                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return View("Error", ErrorMessage.Error(ex.Message));
+                return StatusCode(500, "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر");
             }
         }
+
+
+
+        //public async Task<IActionResult> Delete(string userId)
+        //{
+        //    var obj = await _userManager.FindByIdAsync(userId);
+        //    if (obj != null)
+        //    {
+        //        try
+        //        {
+        //            await _userManager.DeleteAsync(obj);
+        //            return Json(new { success = true });
+        //        }
+        //        catch (Exception)
+        //        {
+        //            return Json(new { success = false, errorMessage = "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر " });
+        //        }
+        //    }
+        //    return Json(new { success = true });
+        //}
 
     }
 }

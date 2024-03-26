@@ -347,21 +347,20 @@ namespace ResturantPL.Controllers
 
         public IActionResult Delete(int id)
         {
-            var order = _unitOfWork.OrderRepository.GetById(id);
-            if (order != null)
+            var obj = _unitOfWork.OrderRepository.GetById(id);
+            if (obj != null)
             {
                 try
                 {
-                    _unitOfWork.OrderRepository.Delete(order);
-                    TempData["success"] = "تمت العملية بنجاح";
+                    _unitOfWork.OrderRepository.Delete(obj);
+                    return Json(new { success = true });
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    TempData["faild"] = "Error";
-                    return View("Error", ErrorMessage.Error(ex.Message));
+                    return Json(new { success = false, errorMessage = "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر " });
                 }
             }
-            return RedirectToAction("AllOrders");
+            return Json(new { success = true });
         }
 
 

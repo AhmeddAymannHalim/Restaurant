@@ -34,11 +34,8 @@
                     <a style="color: white;
                         font-size: large;
                         font-weight: bold;" asp-action="Create" asp-route-id="@item.Id" class="btn btn-light-primary btn-sm">تعديل</a>
-                    <a id="btn-delete" style="color: red;
-                        font-size: large;
-                        font-weight: bold;" onclick="DeleteKitchen(@item.Id)" class="btn btn-light-danger btn-sm">
-                        حذف
-                    </a>
+
+                    <a id="btn-delete" onclick="Delete('/Kitchen/Delete/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
                 </td>
             </tr>
         }
@@ -47,23 +44,11 @@
 <div>
     <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
 </div>
+
+
+
 <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-@if (TempData["success"] != null)
-{
-    <script>
-        swal("Good job!", "", "success");
-
-    </script>
-}
-@if (TempData["faild"] != null)
-{
-    <script>
-        swal("Faild!", "", "error");
-
-    </script>
-
-}
-
+<script src="~/modules/deleteobjects.js"></script>
 
 @* <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="~/microsoft-signalr/signalr.min.js"></script>
@@ -80,13 +65,9 @@
     });
 
     connection.on("RefreshOrders", function () {
-        
+
         location.reload();
     });
 </script> *@
 
 
-@section Scripts{
-   
-    <script src="~/modules/kitchen.js"></script>
-}

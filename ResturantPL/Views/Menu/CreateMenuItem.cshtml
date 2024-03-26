@@ -142,31 +142,17 @@
 
 </div>
 @section Scripts {
-
     <script>
         $(document).ready(function () {
+            // Input event for quantity field
             $('#quantity').on('input', function () {
                 var quantity = $('#quantity').val();
-               // var price = $('#price').val();
                 var buyPrice = $('#buyPrice').val();
-                var cost = $('#cost').val();
-
-
-                var productCost = quantity * buyPrice
-                $('#cost').val(productCost.toFixed(2)); // Format total to two decimal places
-               // $('#totalCost').val(productCost.toFixed(2)); // Format total to two decimal places
-
-               // var benefit = price - cost
-               // $('#benefit').val(benefit.toFixed(2)); // Format total to two decimal places
-
+                var productCost = quantity * buyPrice;
+                $('#cost').val(productCost.toFixed(2));
             });
 
-
-        });
-    </script>
-
-    <script>
-        $(document).ready(function () {
+            // Change event for store list
             $('#storeList').change(function () {
                 // Clear all input values
                 $('#benefit').val('');
@@ -175,28 +161,22 @@
                 $('#totalCost').val('');
                 $('#quantity').val('');
                 $('#componentTable tbody').empty(); // Clear all rows in the table
-            });
 
-
-            $('#storeList').change(function () {
+                // Retrieve products by store using AJAX
                 var storeId = $(this).val();
-                // console.log(storeId)
                 $.ajax({
                     url: '/Menu/GetProductsByStore',
                     type: 'GET',
                     data: { storeId: storeId },
                     success: function (data) {
-                        $('#productList').empty();
-                        $('#availableQuantity').val(0);
-                        $('#buyPrice').val(0)
-                        $('#productList').append('<option value="">اختر الصنف</option>'); // Add "اختر الصنف" option
+                        // Populate product list dropdown
+                        $('#productList').empty().append('<option value="">اختر الصنف</option>');
                         $.each(data, function (index, prod) {
                             $('#productList').append($('<option>', {
-                                value: prod.id, // Assuming productId is the correct property name
-                                text: prod.productName // Assuming product.name is the correct property name
+                                value: prod.id,
+                                text: prod.productName
                             }));
                         });
-               
                     },
                     error: function (xhr, status, error) {
                         console.error(error);
@@ -204,11 +184,10 @@
                 });
             });
 
-
-
+            // Change event for product list
             $('#productList').change(function () {
+                // Retrieve price by product using AJAX
                 var storeProductId = $(this).val();
-                // console.log(storeId)
                 $.ajax({
                     url: '/Menu/GetPriceByProduct',
                     type: 'GET',
@@ -224,20 +203,14 @@
                     }
                 });
             });
-        });
 
-    </script>
-
-
-    <script>
-        $(document).ready(function () {
             // Function to calculate total cost and benefit
             function calculateTotalCostAndBenefit() {
                 var totalCost = 0;
                 $('#componentTable tbody tr').each(function () {
                     var rowQuantity = parseFloat($(this).find('td:eq(2)').text());
                     var rowCost = parseFloat($(this).find('td:eq(3)').text());
-                    totalCost +=  rowCost;
+                    totalCost += rowCost;
                 });
                 $('#totalCost').val(totalCost.toFixed(2));
 
@@ -245,9 +218,9 @@
                 var benefit = price - totalCost;
                 $('#benefit').val(benefit.toFixed(2));
 
-                if (benefit < 0) {
-                    alert("احذر التكلفة أكبر من سعر البيع");
-                }
+                // if (benefit < 0) {
+                //     alert("احذر التكلفة أكبر من سعر البيع");
+                // }
             }
 
             // Event listener for the "Add Component" button
@@ -258,11 +231,10 @@
                 var cost = $('#cost').val();
 
                 // Check if any of the fields are empty
-                if ((productId.trim() === '' || productName.trim() === '' || quantity.trim() === '' || cost.trim() === '')) {
+                if (productId.trim() === '' || productName.trim() === '' || quantity.trim() === '' || cost.trim() === '') {
                     alert('برجاء اضافة المكون و عدم ترك الخانات فارغة');
                     return; // Exit the function early if any field is empty
                 }
-
 
                 // Append a new row to the table with the captured values
                 var newRow = '<tr>' +
@@ -291,11 +263,7 @@
                 calculateTotalCostAndBenefit();
             });
 
-        });
-    </script>
-
-  <script>
-        $(document).ready(function () {
+            // Submit event for the menu form
             $('#menuForm').submit(function () {
                 // Initialize index
                 var index = 0;
@@ -328,9 +296,22 @@
                     // Increment index
                     index++;
                 });
+
+                var totalCost = parseFloat($('#totalCost').val());
+                var price = parseFloat($('#price').val());
+                var benefit = price - totalCost;
+
+                // Check if benefit is less than 0
+                if (benefit < 0) {
+                    // Ask the user if they want to save with negative benefit
+                    var confirmation = confirm("احذر التكلفة أكبر من سعر البيع. هل تريد المتابعة؟");
+                    if (!confirmation) {
+                        // Prevent form submission
+                        event.preventDefault();
+                    }
+                }
+
             });
         });
     </script>
- 
-
 }

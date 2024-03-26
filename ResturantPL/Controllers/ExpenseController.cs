@@ -86,6 +86,26 @@ namespace ResturantPL.Controllers
         }
 
 
+        //public IActionResult Delete(int id)
+        //{
+        //    var expense = _unitOfWork.ExpenseRepository.GetById(id);
+        //    if (expense != null)
+        //    {
+        //        try
+        //        {
+        //            _unitOfWork.ExpenseRepository.Delete(expense);
+        //            TempData["success"] = "تمت العملية بنجاح";
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            TempData["faild"] = "Error";
+        //            return View("Error", ErrorMessage.Error(ex.Message));
+        //        }
+        //    }
+        //    return RedirectToAction("Index");
+
+        //}
+
         public IActionResult Delete(int id)
         {
             var expense = _unitOfWork.ExpenseRepository.GetById(id);
@@ -94,16 +114,14 @@ namespace ResturantPL.Controllers
                 try
                 {
                     _unitOfWork.ExpenseRepository.Delete(expense);
-                    TempData["success"] = "تمت العملية بنجاح";
+                    return Json(new { success = true });
                 }
                 catch (Exception ex)
                 {
-                    TempData["faild"] = "Error";
-                    return View("Error", ErrorMessage.Error(ex.Message));
+                    return Json(new { success = false, errorMessage = ex.Message });
                 }
             }
-            return RedirectToAction("Index");
-
+            return Json(new { success = true });
         }
     }
 }

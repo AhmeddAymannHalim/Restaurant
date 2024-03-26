@@ -4,10 +4,10 @@
     ViewData["Title"] = "IndexSupplier";
 }
 
-<h1 class="text-center">فواتير المدفوعات للعملاء</h1>
+<h1 class="text-center">فواتير سندات العملاء</h1>
 
 <p>
-    <a asp-action="InvoicePayForCustomer">اضافة فاتورة جديدة</a>
+    <a asp-action="InvoicePayForCustomer">اضافة سند جديد</a>
 </p>
 <table class="table table-hover text-center table-bordered table-striped-columns table-dark">
     <thead>
@@ -29,7 +29,7 @@
             <th>
                 المتبقي
             </th>
-         <th></th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -56,9 +56,9 @@
                     @Html.DisplayFor(modelItem => item.Customer.Balance)
                 </td>
                 <td>
-                    @* @Html.ActionLink("Edit", "Edit", new { id=item.Id }) | *@
-                    @Html.ActionLink("التفاصيل", "CustomerInvoiceDetails", new { id = item.Id })
-                    @* @Html.ActionLink("Delete", "Delete", new {  id=item.Id }) *@
+                    @Html.ActionLink("التفاصيل", "CustomerInvoiceDetails", new { id = item.Id }) |
+                    @Html.ActionLink("تعديل", "CustomerInvoiceEdit", new { id = item.Id }) |
+                    <a onclick="Delete('/PaymentInvoice/DeleteCustomerPayment/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
                 </td>
             </tr>
         }
@@ -69,3 +69,11 @@
 <div>
     <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
 </div>
+
+
+
+
+
+<script src="~/lib/sweetalert/sweetalert.min.js"></script>
+<script src="~/modules/deleteobjects.js"></script>
+

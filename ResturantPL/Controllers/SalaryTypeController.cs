@@ -92,23 +92,21 @@ namespace ResturantPL.Controllers
 
         public IActionResult Delete(int id)
         {
-            var type = _unitOfWork.SalaryTypeRepository.GetById(id);
-            if (type != null)
+            var obj = _unitOfWork.SalaryTypeRepository.GetById(id);
+            if (obj != null)
             {
                 try
                 {
-                    _unitOfWork.SalaryTypeRepository.Delete(type);
-                    TempData["success"] = "تمت العملية بنجاح";
+                    _unitOfWork.SalaryTypeRepository.Delete(obj);
+                    return Json(new { success = true });
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    TempData["faild"] = "Error";
-                    return View("Error", ErrorMessage.Error(ex.Message));
+                    return Json(new { success = false, errorMessage = "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر " });
                 }
             }
-            return RedirectToAction("Index");
+            return Json(new { success = true });
         }
-
         public async Task<SalaryType> GetSalary(int id)
         {
             SalaryType type = await _unitOfWork.SalaryTypeRepository.GetByIdAsync(id);

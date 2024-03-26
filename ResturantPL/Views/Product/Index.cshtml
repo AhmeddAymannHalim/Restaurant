@@ -17,7 +17,7 @@
             <th>
                 اسم الصنف
             </th>
-  
+
             <th></th>
         </tr>
     </thead>
@@ -28,11 +28,11 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.Name)
                 </td>
-       
+
                 <td>
                     @Html.ActionLink("تعديل", "Edit", new { id = item.Id }) |
                     @Html.ActionLink("التفاصيل", "Details", new { id = item.Id }) |
-                    <a onclick="Delete(@item.Id)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
+                    <a onclick="Delete('/Product/Delete/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
                 </td>
             </tr>
         }
@@ -45,22 +45,5 @@
 
 
 <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-@if (TempData["success"] != null)
-{
-    <script>
-        swal("برافو عمل جيد !", "", "success");
+<script src="~/modules/deleteobjects.js"></script>
 
-    </script>
-}
-@if (TempData["faild"] != null)
-{
-    <script>
-        swal("فشلت العملية !", "", "error");
-
-    </script>
-
-}
-@section Scripts {
-
-    <script src="~/modules/Product.js"></script>
-}

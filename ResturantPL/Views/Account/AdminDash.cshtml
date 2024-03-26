@@ -35,7 +35,7 @@
             <li>
                 <a class="active" href="#">
                     <i class="fas fa-home"></i>
-                    <p> DashBoard</p>
+                    <p> لوحة التحكم</p>
                 </a>
             </li>
             <li>
@@ -71,8 +71,8 @@
 
     <div class="content">
         <div class="title-inf">
-            <p>Dashboard</p>
             <i class="fas fa-chart-bar"></i>
+            <p>لوحــة التـحـكــم</p>
         </div>
 
         <div class="data-inf">
@@ -410,34 +410,32 @@
 
 
         <div class="title-inf">
-            <p>Earnings</p>
             <i class="fas fa-dollar"></i>
+            <p>العملاء</p>
         </div>
 
         <table>
             <thead>
                 <tr>
-                    <th>Cutomers</th>
-                    <th>Order Number</th>
-                    <th>Phone Number</th>
-                    <th>Money</th>
+                    <th>الرصيد</th>
+                    <th>العنوان</th>
+                    <th>رقم الهاتف</th>
+                    <th>رقم الموبايل</th>
+                    <th>اسم العميل</th>
                 </tr>
             </thead>
 
             <tbody>
 
-                @foreach (var item in Model.Users)
+                @foreach (var item in Model.Customers)
                 {
                     <tr>
 
-                        <td>@item.UserName</td>
-
-                        @{
-                            var result = item.Age;
-                        }
-                        <td><span class="count">@item.Age</span></td>
+                        <td><span class="price">LE @item.Balance</span></td>
+                        <td><span class="count">@item.Address</span></td>
                         <td><span class="count">@item.PhoneNumber</span></td>
-                        <td><span class="price">$ @result</span></td>
+                        <td><span class="count">@item.MobileNumber</span></td>
+                        <td>@item.Name</td>
                     </tr>
 
                 }

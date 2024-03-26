@@ -63,7 +63,7 @@
                 <td>
                     @if (item.IsPending == true)
                     {
-                        <a onclick="Delete(@item.Id)" class="text-danger" style="font-weight:bold; cursor:pointer;">الغاء</a>
+                        <a onclick="Delete('/OnlineOrder/Delete/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
                         <a asp-action="Details" asp-controller="OnlineOrder" asp-route-id="@item.Id" class="btn btn-primary">التفاصيل</a>
                     }
                     else
@@ -78,24 +78,5 @@
 
 
 
-
 <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-@if (TempData["success"] != null)
-{
-    <script>
-        swal("برافو عمل جيد !", "", "success");
-
-    </script>
-}
-@if (TempData["faild"] != null)
-{
-    <script>
-        swal("فشلت العملية !", "", "error");
-
-    </script>
-
-}
-@section Scripts {
-
-    <script src="~/modules/OnlineOrder.js"></script>
-}
+<script src="~/modules/deleteobjects.js"></script>

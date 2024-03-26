@@ -110,6 +110,105 @@ namespace ResturantPL.Controllers
                 return View("Error", ErrorMessage.Error(ex.Message));
             }
         }
+        public IActionResult SupplierInvoiceEdit(int id)
+        {
+            PaymentInvoiceSupplier invoice = _unitOfWork.PaymentInvoiceSupplierRepository.GetById(a => a.Id == id, new string[] { "Supplier" });
+
+            if (invoice != null)
+            {
+                return View(invoice);
+            }
+            else
+            {
+                return NotFound();
+            }
+        }
+
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public IActionResult SupplierInvoiceEdit(PaymentInvoiceSupplier invoice)
+        {
+            try
+            {
+
+                if (ModelState.IsValid)
+                {
+                    PaymentInvoiceSupplier existingInvoice = _unitOfWork.PaymentInvoiceSupplierRepository.GetById(invoice.Id);
+
+                    decimal lastPaid = existingInvoice.Paid;
+
+                    existingInvoice.Description = invoice.Description;
+                    existingInvoice.Date = DateTime.Now;
+                    existingInvoice.Paid = invoice.Paid;
+
+                    _unitOfWork.PaymentInvoiceSupplierRepository.Update(existingInvoice);
+
+                    Supplier supplier = _unitOfWork.SupplierRepository.GetById(existingInvoice.SupplierId);
+                    if (supplier != null)
+                    {
+                        supplier.Balance -= (invoice.Paid - lastPaid);
+                        _unitOfWork.SupplierRepository.Update(supplier);
+                    }
+
+                    return RedirectToAction("SupplierInvoiceDetails", new { id = existingInvoice.Id });
+                }
+                return View(invoice);
+            }
+            catch (Exception ex)
+            {
+                return View("Error", ErrorMessage.Error(ex.Message));
+            }
+        }
+
+        public IActionResult CustomerInvoiceEdit(int id)
+        {
+            PaymentInvoiceCustomer invoice = _unitOfWork.PaymentInvoiceCustomerRepository.GetById(a => a.Id == id, new string[] { "Customer" });
+
+            if (invoice != null)
+            {
+                return View(invoice);
+            }
+            else
+            {
+                return NotFound();
+            }
+        }
+
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public IActionResult CustomerInvoiceEdit(PaymentInvoiceCustomer invoice)
+        {
+            try
+            {
+
+                if (ModelState.IsValid)
+                {
+                    PaymentInvoiceCustomer existingInvoice = _unitOfWork.PaymentInvoiceCustomerRepository.GetById(invoice.Id);
+
+                    decimal lastPaid = existingInvoice.Paid;
+
+                    existingInvoice.Description = invoice.Description;
+                    existingInvoice.Date = DateTime.Now;
+                    existingInvoice.Paid = invoice.Paid;
+
+                    _unitOfWork.PaymentInvoiceCustomerRepository.Update(existingInvoice);
+
+                    Customer customer = _unitOfWork.CustomerRepository.GetById(existingInvoice.CustomerId);
+                    if (customer != null)
+                    {
+                        customer.Balance -= (invoice.Paid - lastPaid);
+                        _unitOfWork.CustomerRepository.Update(customer);
+                    }
+
+                    return RedirectToAction("CustomerInvoiceDetails", new { id = existingInvoice.Id });
+                }
+                return View(invoice);
+            }
+            catch (Exception ex)
+            {
+                return View("Error", ErrorMessage.Error(ex.Message));
+            }
+        }
 
 
 
@@ -173,6 +272,45 @@ namespace ResturantPL.Controllers
                 return View("Error", ErrorMessage.Error(ex.Message));
             }
         }
+
+
+
+        public IActionResult DeleteCustomerPayment(int id)
+        {
+            var obj = _unitOfWork.PaymentInvoiceCustomerRepository.GetById(id);
+            if (obj != null)
+            {
+                try
+                {
+                    _unitOfWork.PaymentInvoiceCustomerRepository.Delete(obj);
+                    return Json(new { success = true });
+                }
+                catch (Exception)
+                {
+                    return Json(new { success = false, errorMessage = "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر " });
+                }
+            }
+            return Json(new { success = true });
+        }
+
+        public IActionResult DeleteSupplierPayment(int id)
+        {
+            var obj = _unitOfWork.PaymentInvoiceSupplierRepository.GetById(id);
+            if (obj != null)
+            {
+                try
+                {
+                    _unitOfWork.PaymentInvoiceSupplierRepository.Delete(obj);
+                    return Json(new { success = true });
+                }
+                catch (Exception)
+                {
+                    return Json(new { success = false, errorMessage = "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر " });
+                }
+            }
+            return Json(new { success = true });
+        }
+
 
 
 

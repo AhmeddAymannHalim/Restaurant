@@ -16,7 +16,7 @@
 <div class="container">
 
 
-    <h1>فاتورة @Model.Supplier.Name</h1>
+    <h1>سند دفع / @Model.Supplier.Name</h1>
     <hr />
 
 
@@ -68,7 +68,7 @@
     <div id="print-button" class="no-print">
         <a class="btn btn-primary" onclick="window.print()"> طباعة</a>
         <a class="btn btn-primary" asp-action="PayForSuppliertReport" asp-controller="Report" asp-route-invoiceId="@Model.Id"> تصدير الي PDF</a>
-        <a class="btn btn-info" asp-action="IndexSupplier">عودة لفواتير الموردين</a>
+        <a class="btn btn-info" asp-action="IndexSupplier">عودة لسندات الموردين</a>
     </div>
 
 

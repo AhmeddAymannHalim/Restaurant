@@ -14,7 +14,7 @@
 <table class="table table-hover text-center table-bordered table-striped-columns table-dark">
     <thead>
         <tr>
-            
+
             <th>
                 نوع الراتب
             </th>
@@ -22,19 +22,20 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-           
-            <td>
-                @Html.DisplayFor(modelItem => item.Type)
-            </td>
-            <td>
+        @foreach (var item in Model)
+        {
+            <tr>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.Type)
+                </td>
+                <td>
                     @Html.ActionLink("تعديل", "UpdateSalaryType", new { id = item.Id }) |
-                @Html.ActionLink("تفاصيل", "Details", new {  id=item.Id  }) |
-                    <a onclick="Delete(@item.Id)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
-            </td>
-        </tr>
-}
+                    @Html.ActionLink("تفاصيل", "Details", new { id = item.Id }) |
+                    <a onclick="Delete('/SalaryType/Delete/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
 <div>
@@ -42,24 +43,5 @@
 </div>
 
 
-
 <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-@if (TempData["success"] != null)
-{
-    <script>
-        swal("برافو عمل جيد !", "", "success");
-
-    </script>
-}
-@if (TempData["faild"] != null)
-{
-    <script>
-        swal("فشلت العملية !", "", "error");
-
-    </script>
-
-}
-@section Scripts {
-
-    <script src="~/modules/SalaryType.js"></script>
-}
+<script src="~/modules/deleteobjects.js"></script>

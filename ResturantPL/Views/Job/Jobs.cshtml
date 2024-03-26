@@ -46,11 +46,11 @@
                 </td>
 
                 <td>
-                    <a asp-action="DetailsJob"  asp-route-id="@item.JobId">التفاصيل</a>|
+                    <a asp-action="DetailsJob" asp-route-id="@item.JobId">التفاصيل</a>|
 
-                    <a asp-action="UpdateJob"  asp-route-id="@item.JobId">تعديل</a>|
+                    <a asp-action="UpdateJob" asp-route-id="@item.JobId">تعديل</a>|
 
-                    <a onclick="Delete(@item.JobId)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a> |
+                    <a onclick="Delete('/Job/Delete/@item.JobId')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a> | 
                     @{
                         // bool roleExists = roles.Any(role => role.Name == item.Name);
                         bool roleExists = false;
@@ -64,7 +64,7 @@
                         }
                         if (roleExists)
                         {
-                            <a asp-action="RemoveRole"  asp-route-id="@item.JobId">حذف الفئة للمستخدمين</a>
+                            <a asp-action="RemoveRole" asp-route-id="@item.JobId">حذف الفئة للمستخدمين</a>
                         }
                         else
                         {
@@ -87,22 +87,4 @@
 
 
 <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-@if (TempData["success"] != null)
-{
-    <script>
-        swal("برافو عمل جيد !", "", "success");
-
-    </script>
-}
-@if (TempData["faild"] != null)
-{
-    <script>
-        swal("فشلت العملية !", "", "error");
-
-    </script>
-
-}
-@section Scripts {
-
-    <script src="~/modules/Job.js"></script>
-}
+<script src="~/modules/deleteobjects.js"></script>

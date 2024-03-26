@@ -56,9 +56,8 @@ namespace ResturantPL.Controllers
             try
             {
                 ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll()
-                    .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" || a.UserType == "أمين مخزن"), "EmployeeId", "FullName");
+                    .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" ||a.UserType == "امين مخازن" ||a.UserType == "أمين مخازن" || a.UserType == "أمين مخزن"), "EmployeeId", "FullName");
                 var products = _unitOfWork.ProductRepository.GetAll();
-
 
                 if (ModelState.IsValid)
                 {
@@ -164,21 +163,20 @@ namespace ResturantPL.Controllers
 
         public IActionResult Delete(int id)
         {
-            var store = _unitOfWork.StoreRepository.GetById(id);
-            if (store != null)
+            var obj = _unitOfWork.StoreRepository.GetById(id);
+            if (obj != null)
             {
                 try
                 {
-                    _unitOfWork.StoreRepository.Delete(store);
-                    TempData["success"] = "تمت العملية بنجاح";
+                    _unitOfWork.StoreRepository.Delete(obj);
+                    return Json(new { success = true });
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    TempData["faild"] = "Error";
-                    return View("Error", ErrorMessage.Error(ex.Message));
+                    return Json(new { success = false, errorMessage = "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر " });
                 }
             }
-            return RedirectToAction("Index");
+            return Json(new { success = true });
         }
     }
 }

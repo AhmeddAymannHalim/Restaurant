@@ -3,49 +3,49 @@
     ViewData["Title"] = "Index";
 }
 
-    <h1 class="text-center">جميع الايداع</h1>
-    <hr />
+<h1 class="text-center">جميع الايداع</h1>
+<hr />
 
-    <p>
-        <a class="btn btn-success" href="/Deposit/Create">اضافة ايداع</a>
-    </p>
+<p>
+    <a class="btn btn-success" href="/Deposit/Create">اضافة ايداع</a>
+</p>
 
 
-    <table class="table table-hover text-center table-bordered table-striped-columns table-dark">
+<table class="table table-hover text-center table-bordered table-striped-columns table-dark">
 
-        <thead>
+    <thead>
+        <tr>
+            <td>كود العملية</td>
+            <td>اسم المودع</td>
+            <td>المبلغ</td>
+            <td>التاريخ</td>
+            <td>الوصف</td>
+            <td>المستخدم</td>
+            <td></td>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
             <tr>
-                <td>كود العملية</td>
-                <td>اسم المودع</td>
-                <td>المبلغ</td>
-                <td>التاريخ</td>
-                <td>الوصف</td>
-                <td>المستخدم</td>
-                <td>التوجيهات</td>
-            </tr>
-        </thead>
+                <td>@item.ProcessCode</td>
+                <td>@item.DeposerName</td>
+                <td>@item.Amount</td>
+                <td>@item.CreatedTime</td>
+                <td>@item.Description</td>
+                <td>@item.User.FullName</td>
 
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>@item.ProcessCode</td>
-                    <td>@item.DeposerName</td>
-                    <td>@item.Amount</td>
-                    <td>@item.CreatedTime</td>
-                    <td>@item.Description</td>
-                    <td>@item.User.FullName</td>
-                
-                    <td>
-                        <a asp-action="Details" asp-route-id="@item.Id">تفاصيل</a> |
-                        <a asp-action="Edit" asp-route-id="@item.Id">تعديل</a> |
-                    <a onclick="Delete(@item.Id)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
-                    </td>
-               
-                </tr>   
-            }
-        </tbody>
-    </table>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id">تفاصيل</a> |
+                    <a asp-action="Edit" asp-route-id="@item.Id">تعديل</a> |
+                    <a onclick="Delete('/Deposit/Delete/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>
 
 
 
@@ -56,22 +56,4 @@
 
 
 <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-@if (TempData["success"] != null)
-{
-    <script>
-        swal("برافو عمل جيد !", "", "success");
-
-    </script>
-}
-@if (TempData["faild"] != null)
-{
-    <script>
-        swal("فشلت العملية !", "", "error");
-
-    </script>
-
-}
-@section Scripts {
-
-    <script src="~/modules/Deposit.js"></script>
-}
+<script src="~/modules/deleteobjects.js"></script>

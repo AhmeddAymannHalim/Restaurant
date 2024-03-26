@@ -53,7 +53,7 @@
                 <td>
                     <a asp-action="Details" asp-route-id="@item.Id">تفاصيل</a>|
                     <a asp-action="Update" asp-route-id="@item.Id">تعديل</a>|
-                    <a onclick="Delete(@item.Id)" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
+                    <a asp-action="Delete" asp-route-roleId="@item.Id" class="text-danger"><strong>حذف</strong></a>
                 </td>
             </tr>
         }
@@ -64,26 +64,3 @@
 <div>
     <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
 </div>
-
-
-
-<script src="~/lib/sweetalert/sweetalert.min.js"></script>
-@if (TempData["success"] != null)
-{
-    <script>
-        swal("برافو عمل جيد !", "", "success");
-
-    </script>
-}
-@if (TempData["faild"] != null)
-{
-    <script>
-        swal("فشلت العملية !", "", "error");
-
-    </script>
-
-}
-@section Scripts {
-
-    <script src="~/modules/Role.js"></script>
-}
