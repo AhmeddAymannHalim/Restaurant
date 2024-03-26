@@ -179,10 +179,10 @@ namespace ResturantPL.Controllers
                     _unitOfWork.InvoiceRepository.Delete(invoice);
                     TempData["success"] = "تمت العملية بنجاح";
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     TempData["faild"] = "Error";
-                    return View("Error", ErrorMessage.Error(ex.Message));
+                    return View("Error", ErrorMessage.Error("نأسف حدث خطأ اثناء الحذف ربما هذه الفاتورة مرتبطة بشئ آخر."));
                 }
             }
             return RedirectToAction("Invoices");

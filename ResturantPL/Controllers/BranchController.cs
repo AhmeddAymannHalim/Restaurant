@@ -124,10 +124,10 @@ namespace ResturantPL.Controllers
                     TempData["success"] = "تمت العملية بنجاح";
 
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     TempData["faild"] = "Error";
-                    return View("Error", ErrorMessage.Error(ex.Message));
+                    return View("Error", ErrorMessage.Error("لا يمكنك حذف الفرع لارتباطه بالموظفين"));
                 }
             }
             return RedirectToAction("Index");

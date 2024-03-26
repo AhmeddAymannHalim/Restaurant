@@ -343,6 +343,30 @@ namespace ResturantPL.Controllers
             return View(orders);
         }
 
+
+
+        public IActionResult Delete(int id)
+        {
+            var order = _unitOfWork.OrderRepository.GetById(id);
+            if (order != null)
+            {
+                try
+                {
+                    _unitOfWork.OrderRepository.Delete(order);
+                    TempData["success"] = "تمت العملية بنجاح";
+                }
+                catch (Exception ex)
+                {
+                    TempData["faild"] = "Error";
+                    return View("Error", ErrorMessage.Error(ex.Message));
+                }
+            }
+            return RedirectToAction("AllOrders");
+        }
+
+
+
+
         #endregion
 
 
@@ -410,14 +434,14 @@ namespace ResturantPL.Controllers
                     ViewBag.Tables = new SelectList(_unitOfWork.TableRepository.GetAll().Where(a => a.IsPending == false), "Id", "Name");
                     ViewBag.Tayars = new SelectList(_unitOfWork.EmployeeRepository.GetAll().Where(a => a.UserType == "طيار"), "EmployeeId", "FullName");
 
-                    Order lastOrder1 = await _unitOfWork.OrderRepository.GetLast(item => item.Id);
-                    if (lastOrder1 == null)
+                    Order lastOrder2 = await _unitOfWork.OrderRepository.GetLast(item => item.Id);
+                    if (lastOrder2 == null)
                     {
                         ViewBag.OrderCode = 1;
                     }
                     else
                     {
-                        int orderCode = int.Parse(lastOrder1.OrderCode) + 1;
+                        int orderCode = int.Parse(lastOrder2.OrderCode) + 1;
                         ViewBag.OrderCode = orderCode;
                     }
 
