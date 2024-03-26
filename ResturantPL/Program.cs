@@ -25,6 +25,7 @@ namespace ResturantPL
                 options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
             });
 
+
             builder.Services.AddHttpsRedirection(options =>
             {
                 options.HttpsPort = 44373;

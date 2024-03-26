@@ -66,6 +66,25 @@ namespace ResturantPL.Controllers
                     return RedirectToAction("Basket");
                     //return View("Error", ErrorMessage.Error("برجاء اضافة منتجات الي السلة لطلبها"));
                 }
+                bool found = false;
+                foreach (var item in viewModel.OnlineOrderMenuItems)
+                {
+                    if (item.Quantity > 0)
+                    {
+                        found = true;
+                    }
+                }
+
+                if (!found)
+                {
+                    return RedirectToAction("Basket");
+                }
+
+
+                if (viewModel.OnlineOrderMenuItems.Count()<1)
+                {
+                    return RedirectToAction("Basket");
+                }
 
                 if (ModelState.IsValid)
                 {
@@ -115,7 +134,7 @@ namespace ResturantPL.Controllers
         public IActionResult PendingOrders()
         {
             var orders = _unitOfWork.OnlineOrderRepository.GetAll()
-                .Where(a => a.CustomerId == CurrentUser().Id);
+                .Where(a => a.CustomerId == CurrentUser().Id  && a.IsPending == true);
 
             return View(orders);
         }

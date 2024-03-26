@@ -159,14 +159,13 @@
         </div>
         <div class="form-group col-md-2">
             <label class="control-label">المتبقي</label>
-            <input id="remain" name="Remaining" class="form-control" readonly type="number" value="0" />
+            <input id="remain" name="Remaining" class="form-control" readonly type="number"  />
 
         </div>
 
         <div class="form-group col-md-2">
             <label asp-for="PayType" class="control-label">طريقة الدفع</label>
             <select id="payType" asp-for="PayType" class="form-control">
-                <option value="">اختر النوع</option>
                 <option value="@PayType.Cash">كاش</option>
                 <option value="@PayType.Later">آجل</option>
             </select>
@@ -213,19 +212,19 @@
                 var allTotalPrice = $('#allTotalPrice').val();
 
                 var total = requiredQuantity * buyPrice;
-                $('#total').val(total.toFixed(2)); // Format total to two decimal places
+                $('#total').val(total.toFixed(2)); 
               
                 var totalPrice = allTotalPrice - discount;
-                $('#totalPrice').val(totalPrice.toFixed(2)); // Format total to two decimal places
-              
+                $('#totalPrice').val(totalPrice.toFixed(2)); 
+
                 var remained = totalPrice - paid;
-                $('#remain').val(remained.toFixed(2)); // Format total to two decimal places
+                $('#remain').val(remained.toFixed(2)); 
             });
         });
     </script>
     <script>
         $(document).ready(function () {
-            // Attach change event listener to the dropdown list
+            
             $('#supplierId').change(function () {
                 // Get the selected SupplierId
                 var supplierId = $(this).val();

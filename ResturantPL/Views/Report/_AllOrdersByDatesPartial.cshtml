@@ -1,8 +1,8 @@
-﻿@model IEnumerable<Order>
+﻿@model OrdersByDatesViewModel
 
-@if (Model.Count() > 0)
+@if (Model.Orders.Count() > 0)
 {
-    foreach (var item in Model)
+    foreach (var item in Model.Orders)
     {
         <tr>
             <td> @Html.DisplayFor(modelItem => item.OrderCode) </td>
@@ -17,6 +17,11 @@
         </tr>
 
     }
+    
+    <tr>
+        <td class="text-danger"><strong>الاجمالي</strong> </td>
+        <td colspan="6"><strong>@Model.Total</strong></td>
+    </tr>
    
 }
 else

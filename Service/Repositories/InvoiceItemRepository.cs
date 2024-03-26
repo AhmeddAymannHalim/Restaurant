@@ -7,7 +7,7 @@ namespace Service.Repositories
 {
     public class InvoiceItemRepository : GenericRepository<InvoiceItem>, IInvoiceItemRepository
     {
-        private new readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context;
 
         public InvoiceItemRepository(ApplicationDbContext context) : base(context)
         {

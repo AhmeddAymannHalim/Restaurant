@@ -40,10 +40,10 @@ namespace ResturantPL.Controllers
             return View(model);
         }
 
-      
+        
 
-      
-       
+        
+        
         #endregion
 
 
@@ -59,7 +59,6 @@ namespace ResturantPL.Controllers
 
         public IActionResult ChefAdd()
         {
-
             return View(new ChefItemViewModel());
         }
 

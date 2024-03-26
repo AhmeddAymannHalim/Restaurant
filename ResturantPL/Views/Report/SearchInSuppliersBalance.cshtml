@@ -40,12 +40,14 @@
     <thead>
         <tr style="font-size:20px;">
             <th>اسم المورد</th>
-            <th>اجمالي المدين</th>
             <th>اجمالي الدائن</th>
+            <th>اجمالي المدين</th>
             <th>الاجمالي الحالي</th>
-            <th class="text-danger">المدين السابق</th>
             <th class="text-danger">الدائن السابق</th>
+            <th class="text-danger">المدين السابق</th>
             <th class="text-danger">الاجمالي السابق</th>
+            <th class="text-success">الاجمالي الكلي</th>
+
         </tr>
     </thead>
     <tbody>
@@ -53,7 +55,8 @@
 </table>
 <br />
 
-<a id="report" class="btn btn-primary"> تصدير الي PDF</a>
+<a id="report" class="btn btn-primary"> تصدير الي PDF</a> |
+<a asp-action="Index" asp-controller="Report">عودة للتقارير</a>
 
 @section Scripts {
     @{

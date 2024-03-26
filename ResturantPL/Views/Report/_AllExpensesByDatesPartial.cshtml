@@ -1,8 +1,7 @@
-﻿@model IEnumerable<ExitExpense>
-
-@if (Model.Count() > 0)
+﻿@model ExpensesByDatesViewModel
+@if (Model.Expenses.Count() > 0)
 {
-    foreach (var item in Model)
+    foreach (var item in Model.Expenses)
     {
         <tr>
             <td>@item.Date.ToString("yyyy-MM-dd")</td>
@@ -11,6 +10,10 @@
             <td>@item.Price</td>
         </tr>
     }
+    <tr>
+        <td class="text-danger"><strong>الاجمالي</strong> </td>
+        <td colspan="3"><strong>@Model.Total</strong></td>
+    </tr>
 }
 else
 {

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Deposit>
+﻿@model ImportsByDatesViewModel
 
 @{
     ViewData["Title"] = "Imports by dates";
@@ -42,28 +42,11 @@
 </style>
 
 
-@{
-    DateTime? firstDate = null; // Initialize with null to ensure it's assigned later
-    DateTime? endDate = null;   // Initialize with null to ensure it's assigned later
-
-    foreach (var item in Model)
-    {
-        if (firstDate == null || item.CreatedTime < firstDate)
-        {
-            firstDate = item.CreatedTime.Date; // Assign the first order date
-        }
-
-        if (endDate == null || item.CreatedTime > endDate)
-        {
-            endDate = item.CreatedTime.Date; // Assign the last order date
-        }
-    }
-}
 
 <h1>تقرير الايرادات بين تاريخين </h1>
-<h3>@firstDate?.ToString("yyyy-MM-dd")  :   @endDate?.ToString("yyyy-MM-dd")</h3>
+<h3>@Model.FromDate.ToString("yyyy-MM-dd")  :   @Model.ToDate.ToString("yyyy-MM-dd")</h3>
 <hr />
-
+<p>تاريخ الطباعة : @Model.PrintDate</p>
 
 <table class="mt-3 table table-bordered table-light text-dark">
     <thead>
@@ -77,9 +60,9 @@
         </tr>
     </thead>
     <tbody>
-        @if (Model.Count() > 0)
+        @if (Model.Deposits.Count() > 0)
         {
-            foreach (var item in Model)
+            foreach (var item in Model.Deposits)
             {
                 <tr>
                     <td>@item.ProcessCode </td>
@@ -90,6 +73,11 @@
                     <td>@item.Amount</td>
                 </tr>
             }
+            <tr>
+                <td class="text-danger"><strong>الاجمالي</strong> </td>
+                <td colspan="5"><strong>@Model.Total</strong></td>
+            </tr>
+
         }
         else
         {

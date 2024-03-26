@@ -1,8 +1,8 @@
-﻿@model IEnumerable<Deposit>
+﻿@model ImportsByDatesViewModel
 
-@if (Model.Count() > 0)
+@if (Model.Deposits.Count() > 0)
 {
-    foreach (var item in Model)
+    foreach (var item in Model.Deposits)
     {
         <tr>
             <td>@item.ProcessCode </td>
@@ -17,6 +17,10 @@
         </tr>
 
     }
+    <tr>
+        <td class="text-danger"><strong>الاجمالي</strong> </td>
+        <td colspan="6"><strong>@Model.Total</strong></td>
+    </tr>
 }
 else
 {

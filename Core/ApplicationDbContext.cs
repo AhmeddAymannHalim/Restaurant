@@ -82,5 +82,8 @@ namespace Restaurant.Data
         //{
         //    optionsBuilder.UseLazyLoadingProxies(false);
         //}
+
+
+
     }
 }

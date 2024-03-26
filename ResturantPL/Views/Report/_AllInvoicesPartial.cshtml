@@ -1,8 +1,8 @@
-﻿@model IEnumerable<Invoice>
+﻿@model InvoicesByDatesViewModel
 
-@if (Model.Count() > 0)
+@if (Model.Invoices.Count() > 0)
 {
-    foreach (var item in Model)
+    foreach (var item in Model.Invoices)
     {
         <tr>
             <td>@Html.DisplayFor(modelItem => item.InvoiceCode) </td>
@@ -17,6 +17,10 @@
             </td>
         </tr>
     }
+    <tr>
+        <td class="text-danger"><strong>الاجمالي</strong> </td>
+        <td colspan="7"><strong>@Model.Total</strong></td>
+    </tr>
    
 }
 else

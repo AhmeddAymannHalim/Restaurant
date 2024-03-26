@@ -40,7 +40,7 @@
 
 </style>
 
-@{
+@* @{
     DateTime? firstDate = null; // Initialize with null to ensure it's assigned later
     DateTime? endDate = null;   // Initialize with null to ensure it's assigned later
 
@@ -57,9 +57,9 @@
         }
     }
 }
-
+ *@
 <h1>تقرير كشف حساب المورد /  @Model.Name  </h1>
-<h3>  بين تاريخين : @firstDate?.ToString("yyyy-MM-dd")  :   @endDate?.ToString("yyyy-MM-dd") </h3>
+<h3>  بين تاريخين : @Model.FromDate.ToString("yyyy-MM-dd")  :   @Model.ToDate.ToString("yyyy-MM-dd") </h3>
 <hr />
 
 <p>تاريخ الطباعة : @Model.Date</p>
@@ -68,8 +68,9 @@
     <thead>
         <tr style="font-size:20px;">
             <th>اسم المورد</th>
-            <th>مدين</th>
             <th>دائن</th>
+            <th>مدين</th>
+            <th>الرصيد</th>
             <th>التاريخ</th>
             <th>البيان</th>
         </tr>
@@ -79,34 +80,37 @@
 
         @if (Model.balances.Count() > 0)
         {
+            <tr>
+                <td class="text-danger"><strong>الحساب السابق</strong></td>
+                <td>@Model.LastTotalDeptor</td>
+                <td>@Model.LastTotalCreditor</td>
+                <td>@Model.LastTotal</td>
+                <td colspan="2"></td>
+            </tr>
             foreach (var item in Model.balances)
             {
                 <tr>
                     <td>@Model.Name</td>
                     <td>@item.Deptor</td>
                     <td>@item.Creditor</td>
+                    <td>@item.Balance</td>
                     <td>@item.Date.ToString("yyyy-MM-dd")</td>
                     <td>@item.Info</td>
                 </tr>
             }
-            <tr>
-                <td class="text-danger"><strong>الحساب السابق</strong></td>
-                <td>@Model.LastTotalDeptor</td>
-                <td>@Model.LastTotalCreditor</td>
-                <td class="text-danger"><strong>متبقي له</strong></td>
-                <td colspan="2">@Model.LastTotal</td>
-            </tr>
+          
+
             <tr>
                 <td class="text-danger"><strong>الحساب الحالي</strong></td>
-                <td>@Model.TotalDeptor</td>
-                <td>@Model.TotalCreditor</td>
-                <td class="text-danger"><strong>متبقي له</strong></td>
-                <td>@Model.Total</td>
+                <td>@Model.AllTotalDeptor</td>
+                <td>@Model.AllTotalCreditor</td>
+                <td>@Model.Balance</td>
+                <td colspan="2"></td>
             </tr>
         }
         else
         {
-            <tr><td colspan='5'>لا توجد نتائج للعرض</td></tr>
+            <tr><td colspan='6'>لا توجد نتائج للعرض</td></tr>
         }
 
     </tbody>

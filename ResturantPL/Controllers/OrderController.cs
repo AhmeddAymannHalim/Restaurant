@@ -227,14 +227,14 @@ namespace ResturantPL.Controllers
         public async Task<IActionResult> Details(int id)
         {
             ViewBag.Printers = await _unitOfWork.PrinterSettingRepository.GetLast(a => a.Id);
-           var settings = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
+            var settings = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
 
 
             ViewBag.NumberOfCustomerPrint = settings.NumberOfCustomerPrint;
             ViewBag.PrintAfterOrder = settings.PrintAfterOrder;
             ViewBag.PrintForTakeawayOrder = settings.PrintForTakeawayOrder;
-           // ViewBag.PrintForKitchen = settings.PrintForKitchen;
-           // ViewBag.NumberOfKitchenPrint = settings.NumberOfKitchenPrint;
+            // ViewBag.PrintForKitchen = settings.PrintForKitchen;
+            // ViewBag.NumberOfKitchenPrint = settings.NumberOfKitchenPrint;
 
 
             Order orderInvoice = _unitOfWork.OrderRepository.GetById(a => a.Id == id,
@@ -402,15 +402,51 @@ namespace ResturantPL.Controllers
             {
                 if (viewModel.OrderMenuItems.Count() < 1)
                 {
+                    ViewBag.MenuItems = _unitOfWork.MenuItemRepository.GetAll(a => a.Include(a => a.MenuSection));
+                    ViewBag.MenuItems = _unitOfWork.MenuItemRepository.GetAll(a => a.Include(a => a.MenuSection));
+                    ViewBag.Settings = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
+                    ViewBag.CurrentUser = CurrentUser();
+                    ViewBag.Customers = new SelectList(_unitOfWork.CustomerRepository.GetAll(), "Id", "Name");
+                    ViewBag.Tables = new SelectList(_unitOfWork.TableRepository.GetAll().Where(a => a.IsPending == false), "Id", "Name");
+                    ViewBag.Tayars = new SelectList(_unitOfWork.EmployeeRepository.GetAll().Where(a => a.UserType == "طيار"), "EmployeeId", "FullName");
+
+                    Order lastOrder1 = await _unitOfWork.OrderRepository.GetLast(item => item.Id);
+                    if (lastOrder1 == null)
+                    {
+                        ViewBag.OrderCode = 1;
+                    }
+                    else
+                    {
+                        int orderCode = int.Parse(lastOrder1.OrderCode) + 1;
+                        ViewBag.OrderCode = orderCode;
+                    }
+
+
                     return View(viewModel);
                 }
 
-                ViewBag.Settings = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
+
                 ViewBag.MenuItems = _unitOfWork.MenuItemRepository.GetAll(a => a.Include(a => a.MenuSection));
+                ViewBag.MenuItems = _unitOfWork.MenuItemRepository.GetAll(a => a.Include(a => a.MenuSection));
+                ViewBag.Settings = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
                 ViewBag.CurrentUser = CurrentUser();
                 ViewBag.Customers = new SelectList(_unitOfWork.CustomerRepository.GetAll(), "Id", "Name");
                 ViewBag.Tables = new SelectList(_unitOfWork.TableRepository.GetAll().Where(a => a.IsPending == false), "Id", "Name");
                 ViewBag.Tayars = new SelectList(_unitOfWork.EmployeeRepository.GetAll().Where(a => a.UserType == "طيار"), "EmployeeId", "FullName");
+
+                Order lastOrder1 = await _unitOfWork.OrderRepository.GetLast(item => item.Id);
+                if (lastOrder1 == null)
+                {
+                    ViewBag.OrderCode = 1;
+                }
+                else
+                {
+                    int orderCode = int.Parse(lastOrder1.OrderCode) + 1;
+                    ViewBag.OrderCode = orderCode;
+                }
+
+
+
                 Order lastOrder = await _unitOfWork.OrderRepository.GetLast(item => item.Id);
                 if (lastOrder == null)
                 {
@@ -714,7 +750,7 @@ namespace ResturantPL.Controllers
         {
             var orders = _unitOfWork.OnlineOrderRepository.GetAll().Where(a => a.IsPending == true);
 
-     
+
             return View(orders);
         }
 

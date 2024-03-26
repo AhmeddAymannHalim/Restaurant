@@ -45,8 +45,9 @@
     <thead>
         <tr style="font-size:20px;">
             <th>اسم المورد</th>
-            <th>مدين</th>
             <th>دائن</th>
+            <th>مدين</th>
+            <th>الرصيد</th>
             <th>التاريخ</th>
             <th>البيان</th>
             <th></th>
@@ -57,7 +58,8 @@
 </table>
 <br />
 
-<a id="report" class="btn btn-primary"> تصدير الي PDF</a>
+<a id="report" class="btn btn-primary"> تصدير الي PDF</a> |
+<a asp-action="Index" asp-controller="Report">عودة للتقارير</a>
 
 @section Scripts {
     @{
@@ -88,7 +90,7 @@
 
                     error: function (xhr, status, error) {
                         $("#supplierTable tbody").empty();
-                        $("#supplierTable tbody").append("<tr><td colspan='6'>حدث خطأ أثناء جلب البيانات</td></tr>");
+                        $("#supplierTable tbody").append("<tr><td colspan='7'>حدث خطأ أثناء جلب البيانات</td></tr>");
                     }
                 });
             });
