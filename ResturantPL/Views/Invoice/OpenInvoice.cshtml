@@ -1,19 +1,5 @@
 ﻿@model InvoiceViewModel
-@*
-@functions {
-    public string GetArabicName(InvoiceType type)
-    {
-        switch (type)
-        {
-            case InvoiceType.Purchases:
-                return "مشتريات";
-            case InvoiceType.Returns:
-                return "مرتجعات";
-            default:
-                return type.ToString(); // Use default if Arabic name not specified
-        }
-    }
-} *@
+
 
 @{
     ViewData["Title"] = "OpenInvoice";
@@ -38,10 +24,6 @@
                 <option value="">اختر النوع</option>
                 <option value="@InvoiceType.Purchases">مشتريات</option>
                 <option value="@InvoiceType.Returns">مرتجعات</option>
-                @*  @foreach (var type in Enum.GetValues(typeof(InvoiceType)))
-                {
-                <option value="@type">@type</option>
-                } *@
             </select>
             <span asp-validation-for="InvoiceType" class="text-danger"></span>
         </div>
@@ -71,7 +53,7 @@
 
         <div class="form-group col-md-2">
             <label class="control-label">المنتج</label>
-            <select id="storeProductId" name="StoreProductId" class="form-control" > </select>
+            <select id="productId" name="ProductId" class="form-control" > </select>
         </div>
 
         <div class="form-group col-md-2">
@@ -253,9 +235,9 @@
                 $('#requiredQuantity').val('');
                 $('#buyPrice').val('');
                 $('#total').val('');
-                $('#allTotalPrice').val('');
-                $('#totalPrice').val('');
-                $('#invoiceTable tbody').empty(); // Clear all rows in the table
+                //$('#allTotalPrice').val('');
+                //$('#totalPrice').val('');
+                //$('#invoiceTable tbody').empty(); // Clear all rows in the table
             });
 
             $('#storeId').change(function () {
@@ -266,13 +248,13 @@
                     type: 'GET',
                     data: { storeId: storeId },
                     success: function (data) {
-                        $('#storeProductId').empty();
+                        $('#productId').empty();
                         $('#availableQuantity').val(0);
                         $('#buyPrice').val(0)
-                        $('#storeProductId').append('<option value="">اختر الصنف</option>'); // Add "اختر الصنف" option
+                        $('#productId').append('<option value="">اختر الصنف</option>'); // Add "اختر الصنف" option
                         $.each(data, function (index, prod) {
-                            $('#storeProductId').append($('<option>', {
-                                value: prod.id, // Assuming productId is the correct property name
+                            $('#productId').append($('<option>', {
+                                value: prod.productId, // Assuming productId is the correct property name
                                 text: prod.productName // Assuming product.name is the correct property name
                             }));
                         });
@@ -286,13 +268,17 @@
 
 
 
-            $('#storeProductId').change(function () {
-                var storeProductId = $(this).val();
+            $('#productId').change(function () {
+                var productId = $(this).val();
+                var storeId = $('#storeId').val();
 
                 $.ajax({
                     url: '/Invoice/ProductQuantity',
                     type: 'GET',
-                    data: { storeProductId: storeProductId },
+                    data: {
+                        productId: productId,
+                        storeId: storeId
+                    },
                     success: function (data) {
                         $('#availableQuantity').val(data);
                         $('#requiredQuantity').val('');
@@ -324,20 +310,24 @@
                 var discountedTotalPrice = totalPrice - parseFloat($('#discount').val());
                 $('#allTotalPrice').val(totalPrice.toFixed(2));
                 $('#totalPrice').val(discountedTotalPrice.toFixed(2));
+
+                var paid = $('#paid').val();
+                var remained = discountedTotalPrice - paid;
+                $('#remain').val(remained.toFixed(2));
             }
 
             // Event listener for the "Add Product" button
             $('#addProduct').click(function () {
                 // Get input values
-                var storeProductId = $('#storeProductId').val();
-                var productName = $('#storeProductId option:selected').text();
+                var productId = $('#productId').val();
+                var productName = $('#productId option:selected').text();
                 var unitPriceId = $('#unitPriceId').val();
                 var unitPriceName = $('#unitPriceId option:selected').text();
                 var requiredQuantity = $('#requiredQuantity').val();
                 var buyPrice = $('#buyPrice').val();
                 var totalPrice = requiredQuantity * buyPrice;
 
-                if (storeProductId.trim() === '' || unitPriceId.trim() === '' || requiredQuantity.trim() === '' || buyPrice.trim() === '' ||
+                if (productId.trim() === '' || unitPriceId.trim() === '' || requiredQuantity.trim() === '' || buyPrice.trim() === '' ||
                     isNaN(parseFloat(requiredQuantity)) || isNaN(parseFloat(buyPrice))) {
                     alert('برجاء اضافة بيانات المنتج و عدم ترك الخانات فارغة.');
                     return; // Exit the function early if any field is empty or not numeric
@@ -346,7 +336,7 @@
 
                 // Append a new row to the table with the captured values
                 var newRow = '<tr>' +
-                    '<td hidden>' + storeProductId + '</td>' +
+                    '<td hidden>' + productId + '</td>' +
                     '<td>' + productName + '</td>' +
                     '<td hidden>' + unitPriceId + '</td>' +
                     '<td>' + unitPriceName + '</td>' +
@@ -383,7 +373,7 @@
 
                 // Loop through each selected item in the table
                 $('#invoiceTable tbody tr').each(function () {
-                    var storeProductId = $(this).find('td:eq(0)').text();
+                    var productId = $(this).find('td:eq(0)').text();
                     var unitPriceId = $(this).find('td:eq(2)').text();
                     var quantity = parseInt($(this).find('td:eq(4)').text());
                     var priceForUnit = parseFloat($(this).find('td:eq(5)').text());
@@ -392,8 +382,8 @@
                     // Create hidden input fields for each property of the InvoiceItemViewModel
                     $('<input>').attr({
                         type: 'hidden',
-                        name: 'InvoiceItems[' + index + '].StoreProductId',
-                        value: storeProductId
+                        name: 'InvoiceItems[' + index + '].productId',
+                        value: productId
                     }).appendTo('#invoiceForm');
 
                     $('<input>').attr({

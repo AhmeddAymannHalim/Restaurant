@@ -134,7 +134,7 @@
                     var quantity = parseInt($(this).val()) || 0;
                     totalPrice += itemPrice * quantity;
                 });
-                $('.total-price-input').val('$' + totalPrice.toFixed(2) + ' + سعر خدمة التوصيل');
+                $('.total-price-input').val('LE ' + totalPrice.toFixed(2) + ' + سعر خدمة التوصيل');
             }
 
             $('#orderForm').on('input', '.quantity-input', function () {
@@ -145,7 +145,7 @@
                     var quantity = parseInt($(this).val()) || 0;
                     totalPrice += itemPrice * quantity;
                 });
-                $('.total-price-input').val('$' + totalPrice.toFixed(2) + ' + سعر خدمة التوصيل');
+                $('.total-price-input').val('LE ' + totalPrice.toFixed(2) + ' + سعر خدمة التوصيل');
             });
 
 

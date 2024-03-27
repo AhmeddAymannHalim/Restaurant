@@ -23,6 +23,17 @@ namespace ResturantPL.Controllers
             return View(expenses);
         }
 
+        public IActionResult Details(int id)
+        {
+            ExitExpense item = _unitOfWork.ExitExpenseRepository.GetById(a => a.Id == id, new string[] { "User", "Expense" });
+            if (item != null)
+            {
+                return View(item);
+            }
+            return NotFound();
+        }
+
+
 
         [HttpGet]
         public IActionResult Create()
@@ -61,6 +72,7 @@ namespace ResturantPL.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
+            ViewBag.Expenses = new SelectList(_unitOfWork.ExpenseRepository.GetAll(), "Id", "Name");
             var expense = await _unitOfWork.ExitExpenseRepository.GetByIdAsync(id);
             if (expense != null)
             {
@@ -78,6 +90,10 @@ namespace ResturantPL.Controllers
             {
                 if (ModelState.IsValid)
                 {
+
+                    expens.Date = DateTime.Now;
+                    expens.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
                     _unitOfWork.ExitExpenseRepository.Update(expens);
 
                     _unitOfWork.Complete();

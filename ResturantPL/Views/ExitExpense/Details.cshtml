@@ -1,0 +1,45 @@
+﻿@model Restaurant.Data.Models.ExitExpense
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1 class="text-center">تفاصيل خروج مصروف</h1>
+<hr />
+
+<div>
+ 
+    <dl class="row">
+        
+        <dt class = "col-sm-2">
+           تاريخ خروج المصروف
+        </dt>
+        <dd class = "col-sm-9">
+            @Html.DisplayFor(model => model.Date)
+        </dd>
+       
+        <dt class = "col-sm-2">
+         المصروف
+        </dt>
+        <dd class = "col-sm-9">
+            @Html.DisplayFor(model => model.Expense.Name)
+        </dd>
+        <dt class="col-sm-2">
+            المبلغ
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Price)
+        </dd>
+
+        <dt class = "col-sm-2">
+            اسم المستخدم
+        </dt>
+        <dd class = "col-sm-9">
+            @Html.DisplayFor(model => model.User.FullName)
+        </dd>
+    </dl>
+</div>
+<div>
+    @Html.ActionLink("تعديل", "Edit", new {  id =Model.Id}) |
+    <a asp-action="Index">عودة للمصروفات</a>
+</div>

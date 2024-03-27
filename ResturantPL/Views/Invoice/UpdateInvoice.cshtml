@@ -1,0 +1,447 @@
+﻿@model UpdateInvoiceViewModel
+
+
+@{
+    ViewData["Title"] = "Update Invoice";
+    // Layout = "";
+}
+
+<h1 class="text-center">تعديل الفاتورة</h1>
+<hr />
+
+<div style="direction:rtl;">
+    <form id="invoiceForm" asp-action="UpdateInvoice" method="Post" class="row m-3">
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <div class="form-group col-md-2">
+            <label asp-for="InvoiceCode" class="control-label">كود الفاتورة</label>
+            <input asp-for="Id" class="form-control" hidden />
+            <input asp-for="InvoiceCode" class="form-control" readonly />
+            <span asp-validation-for="InvoiceCode" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-2">
+            <label asp-for="InvoiceType" class="control-label">نوع الفاتورة</label>
+            <select asp-for="InvoiceType" class="form-control" required>
+                <option value="">اختر النوع</option>
+                <option value="@InvoiceType.Purchases">مشتريات</option>
+                <option value="@InvoiceType.Returns">مرتجعات</option>
+            </select>
+            <span asp-validation-for="InvoiceType" class="text-danger"></span>
+        </div>
+
+
+
+        <div class="form-group col-md-2">
+            <label asp-for="SupplierId" class="control-label">المورد</label>
+            <select id="supplierId" asp-for="SupplierId" class="form-control" asp-items="ViewBag.Supplier" required>
+                <option value="">اختر المورد</option>
+            </select>
+            <span asp-validation-for="SupplierId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-2">
+            <label class="control-label">مدين</label>
+            <input id="balance" class="form-control" value="@ViewBag.Balance" readonly />
+        </div>
+
+        <div class="form-group col-md-2">
+            <label asp-for="StoreId" class="control-label">المخزن</label>
+            <select id="storeId" asp-for="StoreId" class="form-control" asp-items="ViewBag.Store" required>
+                <option value="">اختر المخزن</option>
+            </select>
+            <span asp-validation-for="StoreId" class="text-danger"></span>
+        </div>
+
+
+     
+        <div class="form-group col-md-2">
+            <label class="control-label">المنتج</label>
+            <select id="productId" name="ProductId" class="form-control" asp-items="@ViewBag.Products">
+                <option >اختر المنتج</option>
+            </select>
+        </div>
+
+        <div class="form-group col-md-2">
+            <label class="control-label">الكمية المتاحة</label>
+            <input id="availableQuantity" class="form-control" readonly />
+        </div>
+        <div class="form-group col-md-2">
+            <label class="control-label">الكمية المطلوبة</label>
+            <input id="requiredQuantity" name="Quantity" type="number" class="form-control" />
+        </div>
+
+
+        <div class="form-group col-md-2">
+            <label class="control-label">سعر الشراء</label>
+            <input id="buyPrice" name="Price" class="form-control" />
+
+        </div>
+        <div class="form-group col-md-2">
+            <label class="control-label">الوحدة</label>
+            <select id="unitPriceId" name="UnitPriceId" class="form-control" asp-items="ViewBag.UntiPrice">
+            </select>
+        </div>
+
+        <div class="form-group col-md-2">
+            <label class="control-label">الاجمالي</label>
+            <input id="total" name="Total" type="number" class="form-control" readonly />
+        </div>
+
+
+
+        <div class="form-group col-md-2">
+            <label class="control-label">اضافة منتج</label>
+            <input id="addProduct" type="button" value="اضافة منتج" class="btn btn-primary form-control" />
+        </div>
+
+        <div class="form-group col-md-12 mt-3 mb-1">
+            <div style="border: 3px solid white; min-height:200px;" id="items">
+
+                <table id="invoiceTable" class="table table-hover text-center table-bordered table-striped-columns table-dark">
+                    <thead>
+                        <tr>
+                            <th hidden>ID</th>
+                            <th>
+                                اسم المنتج
+                            </th>
+                            <th>
+                                الوحدة
+                            </th>
+                            <th>
+                                الكمية
+                            </th>
+                            <th>
+                                سعر الشراء
+                            </th>
+                            <th>
+                                اجمالي الشراء
+                            </th>
+                            <th></th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var item in Model.InvoiceItems)
+                        {
+                            <tr>
+                                <td hidden> @item.ProductId  </td>
+                                <td>  @item.ProductName </td>
+                                <td hidden>  @item.UnitPriceId </td>
+                                <td> @item.UnitPriceName </td>
+                                <td> @item.Quantity </td>
+                                <td> @item.Price </td>
+                                <td> @item.Total</td>
+                                <td><button class="btn btn-danger cancelRow">الغاء</button></td>
+                            </tr>
+                        }
+
+
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+
+
+
+
+        <div class="form-group col-md-2">
+            <label class="control-label">الاجمالي الكلي</label>
+            <input id="allTotalPrice" class="form-control" type="number" value="@ViewBag.AllTotalPrice" readonly />
+        </div>
+        <div class="form-group col-md-2">
+            <label class="control-label">الخصم</label>
+            <input id="discount" asp-for="Discount" name="Discount" class="form-control" type="number"/>
+        </div>
+
+        <div class="form-group col-md-2">
+            <label class="control-label">المدفوع</label>
+            <input id="paid" asp-for="Paid" name="Paid" class="form-control" type="number" />
+        </div>
+        <div class="form-group col-md-2">
+            <label class="control-label">المتبقي</label>
+            <input id="remain" name="Remaining" value="@ViewBag.Remain" class="form-control" readonly type="number" />
+
+        </div>
+
+        <div class="form-group col-md-2">
+            <label asp-for="PayType" class="control-label">طريقة الدفع</label>
+            <select id="payType" asp-for="PayType" class="form-control">
+                <option value="@PayType.Cash">كاش</option>
+                <option value="@PayType.Later">آجل</option>
+            </select>
+            <span asp-validation-for="PayType" class="text-danger"></span>
+        </div>
+
+
+        <div class="form-group col-md-2">
+            <label class="control-label">الاجمالي بعد الخصم</label>
+            <input id="totalPrice" asp-for="TotalPrice" class="form-control" readonly />
+        </div>
+
+
+
+        <div class="form-group col-md-12">
+            <label class="control-label">تعديل الفاتورة</label>
+            <input id="addInvoiceBtn" type="submit" value="تعديل الفاتورة" class="btn btn-primary form-control" />
+        </div>
+
+
+
+        <div class="form-group col-md-2 mt-3">
+            <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a> |
+            <a asp-action="Invoices">عودة للفواتير</a>
+        </div>
+
+    </form>
+
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+            $('#requiredQuantity, #buyPrice, #discount, #paid').on('input', function () {
+                var requiredQuantity = $('#requiredQuantity').val();
+                var buyPrice = $('#buyPrice').val();
+                var discount = $('#discount').val();
+                var paid = $('#paid').val();
+                var allTotalPrice = $('#allTotalPrice').val();
+
+                var total = requiredQuantity * buyPrice;
+                $('#total').val(total.toFixed(2));
+
+                var totalPrice = allTotalPrice - discount;
+                $('#totalPrice').val(totalPrice.toFixed(2));
+
+                var remained = totalPrice - paid;
+                $('#remain').val(remained.toFixed(2));
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+
+            $('#supplierId').change(function () {
+                // Get the selected SupplierId
+                var supplierId = $(this).val();
+
+                // Make AJAX request to fetch SupplierBalance
+                $.ajax({
+                    url: '/Invoice/SupplierBalance',
+                    type: 'GET',
+                    data: { supplierId: supplierId },
+                    success: function (data) {
+                        // Update the balance input field with the retrieved SupplierBalance
+                        $('#balance').val(data);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+
+        $(document).ready(function () {
+            $('#storeId').change(function () {
+                // Clear all input values
+                $('#requiredQuantity').val('');
+                $('#buyPrice').val('');
+                $('#total').val('');
+                //$('#allTotalPrice').val('');
+                //$('#totalPrice').val('');
+                //$('#invoiceTable tbody').empty(); // Clear all rows in the table
+            });
+
+            $('#storeId').change(function () {
+                var storeId = $(this).val();
+                // console.log(storeId)
+                $.ajax({
+                    url: '/Menu/GetProductsByStore',
+                    type: 'GET',
+                    data: { storeId: storeId },
+                    success: function (data) {
+                        $('#productId').empty();
+                        $('#availableQuantity').val(0);
+                        $('#buyPrice').val(0)
+                        $('#productId').append('<option value="">اختر الصنف</option>'); // Add "اختر الصنف" option
+                        $.each(data, function (index, prod) {
+                            $('#productId').append($('<option>', {
+                                value: prod.productId, // Assuming productId is the correct property name
+                                text: prod.productName // Assuming product.name is the correct property name
+                            }));
+                        });
+
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+
+
+
+            $('#productId').change(function () {
+                var productId = $(this).val();
+                var storeId = $('#storeId').val();
+
+                $.ajax({
+                    url: '/Invoice/ProductQuantity',
+                    type: 'GET',
+                    data: {
+                        productId: productId,
+                        storeId: storeId
+                    },
+                    success: function (data) {
+                        $('#availableQuantity').val(data);
+                        $('#requiredQuantity').val('');
+                        $('#buyPrice').val('');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+        });
+
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Function to calculate total price
+            function calculateTotalPrice() {
+                var totalPrice = 0;
+                $('#invoiceTable tbody tr').each(function () {
+                    var rowTotalPrice = parseFloat($(this).find('td:eq(6)').text());
+                    totalPrice += rowTotalPrice;
+                });
+                return totalPrice;
+            }
+
+            // Function to update the total price and discounted total price
+            function updateTotalPrice() {
+                var totalPrice = calculateTotalPrice();
+                var discountedTotalPrice = totalPrice - parseFloat($('#discount').val());
+                $('#allTotalPrice').val(totalPrice.toFixed(2));
+                $('#totalPrice').val(discountedTotalPrice.toFixed(2));
+
+                var paid = $('#paid').val();
+                var remained = discountedTotalPrice - paid;
+                $('#remain').val(remained.toFixed(2));
+
+            }
+
+            // Event listener for the "Add Product" button
+            $('#addProduct').click(function () {
+                // Get input values
+                var productId = $('#productId').val();
+                var productName = $('#productId option:selected').text();
+                var unitPriceId = $('#unitPriceId').val();
+                var unitPriceName = $('#unitPriceId option:selected').text();
+                var requiredQuantity = $('#requiredQuantity').val();
+                var buyPrice = $('#buyPrice').val();
+                var totalPrice = requiredQuantity * buyPrice;
+
+
+
+             
+
+
+                if (productId.trim() === '' || unitPriceId.trim() === '' || requiredQuantity.trim() === '' || buyPrice.trim() === '' ||
+                    isNaN(parseFloat(requiredQuantity)) || isNaN(parseFloat(buyPrice))) {
+                    alert('برجاء اضافة بيانات المنتج و عدم ترك الخانات فارغة.');
+                    return; // Exit the function early if any field is empty or not numeric
+                }
+
+
+                // Append a new row to the table with the captured values
+                var newRow = '<tr>' +
+                    '<td hidden>' + productId + '</td>' +
+                    '<td>' + productName + '</td>' +
+                    '<td hidden>' + unitPriceId + '</td>' +
+                    '<td>' + unitPriceName + '</td>' +
+                    '<td>' + requiredQuantity + '</td>' +
+                    '<td>' + buyPrice + '</td>' +
+                    '<td>' + totalPrice + '</td>' +
+                    '<td><button class="btn btn-danger cancelRow">الغاء</button></td>' +
+                    '</tr>';
+                $('#invoiceTable tbody').append(newRow);
+
+                // Update total price
+                updateTotalPrice();
+            });
+
+            // Event listener for the "Cancel" button in each row
+            $(document).on('click', '.cancelRow', function () {
+                $(this).closest('tr').remove();
+                // Update total price
+                updateTotalPrice();
+            });
+
+            // Event listener for the "discount" input
+            $('#discount').on('input', function () {
+                // Update total price
+                updateTotalPrice();
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#invoiceForm').submit(function () {
+                // Initialize index
+                var index = 0;
+
+                // Loop through each selected item in the table
+                $('#invoiceTable tbody tr').each(function () {
+                    var productId = $(this).find('td:eq(0)').text();
+                    var unitPriceId = $(this).find('td:eq(2)').text();
+                    var quantity = parseInt($(this).find('td:eq(4)').text());
+                    var priceForUnit = parseFloat($(this).find('td:eq(5)').text());
+                    var totalPrice = parseFloat($(this).find('td:eq(6)').text());
+
+                    // Create hidden input fields for each property of the InvoiceItemViewModel
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'InvoiceItems[' + index + '].productId',
+                        value: productId
+                    }).appendTo('#invoiceForm');
+
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'InvoiceItems[' + index + '].unitPriceId',
+                        value: unitPriceId
+                    }).appendTo('#invoiceForm');
+
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'InvoiceItems[' + index + '].Quantity',
+                        value: quantity
+                    }).appendTo('#invoiceForm');
+
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'InvoiceItems[' + index + '].Price',
+                        value: priceForUnit
+                    }).appendTo('#invoiceForm');
+
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'InvoiceItems[' + index + '].Total',
+                        value: totalPrice
+                    }).appendTo('#invoiceForm');
+
+                    // Increment index
+                    index++;
+                });
+            });
+        });
+    </script>
+}
+

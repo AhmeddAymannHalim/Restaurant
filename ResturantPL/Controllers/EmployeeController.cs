@@ -10,6 +10,7 @@ using Service.UnitOfWork;
 using ResturantPL.Helper;
 using ResturantPL.ViewModels;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace ResturantPL.Controllers
 {
@@ -77,17 +78,9 @@ namespace ResturantPL.Controllers
             ViewBag.JobList = new SelectList(jobs, "JobId", "Name");
             ViewBag.SalaryType = new SelectList(salaryTypes, "Id", "Type");
 
-            Employee lastCode = await _unitOfWork.EmployeeRepository.GetLast(item => item.EmployeeId);
+            var lastCode = (await _unitOfWork.EmployeeRepository.GetLast(item => item.EmployeeId))?.Code;
+            ViewBag.Code = string.IsNullOrEmpty(lastCode) ? 1 : int.Parse(lastCode) + 1;
 
-            if (lastCode == null)
-            {
-                ViewBag.Code = 1;
-            }
-            else
-            {
-                int empCode = int.Parse(lastCode.Code) + 1;
-                ViewBag.Code = empCode;
-            }
 
 
 
@@ -104,21 +97,46 @@ namespace ResturantPL.Controllers
                 ViewBag.BranchList = new SelectList(_unitOfWork.BrancheRepository.GetAll(), "Id", "Name");
                 ViewBag.JobList = new SelectList(_unitOfWork.JobRepository.GetAll(), "JobId", "Name");
                 ViewBag.SalaryType = new SelectList(_unitOfWork.SalaryTypeRepository.GetAll(), "Id", "Type");
-                Employee lastCode = await _unitOfWork.EmployeeRepository.GetLast(item => item.EmployeeId);
 
-                if (lastCode == null)
-                {
-                    ViewBag.Code = 1;
-                }
-                else
-                {
-                    int empCode = int.Parse(lastCode.Code) + 1;
-                    ViewBag.Code = empCode;
-                }
+                var lastCode = (await _unitOfWork.EmployeeRepository.GetLast(item => item.EmployeeId))?.Code;
+                ViewBag.Code = string.IsNullOrEmpty(lastCode) ? 1 : int.Parse(lastCode) + 1;
 
 
                 if (ModelState.IsValid)
                 {
+                    bool firstNameExist = _unitOfWork.EmployeeRepository.Any(t => t.FirstName == model.FirstName);
+                    bool lastNameExist = _unitOfWork.EmployeeRepository.Any(t => t.LastName == model.LastName);
+                    bool nationalIdExist = _unitOfWork.EmployeeRepository.Any(t => t.NationalID == model.NationalID);
+                    bool mobileNumber = _unitOfWork.EmployeeRepository.Any(t => t.MobileNumber == model.MobileNumber);
+                    bool phoneNumber = _unitOfWork.EmployeeRepository.Any(t => t.PhoneNumber == model.PhoneNumber);
+
+                    if (firstNameExist && lastNameExist)
+                    {
+                        ModelState.AddModelError("", "هذا الموظف موجود بالفعل من فضلك قم بتغيير الاسم الاول او الاخير");
+                        return View(model);
+                    }
+                    if (nationalIdExist)
+                    {
+                        ModelState.AddModelError("NationalID", "هذا الرقم القومي موجود بالفعل لدي موظف آخر");
+                        return View(model);
+                    }
+
+                    if (mobileNumber)
+                    {
+                        ModelState.AddModelError("MobileNumber", "هذا الرقم موجود بالفعل");
+                        return View(model);
+                    }
+
+                    if (phoneNumber)
+                    {
+                        ModelState.AddModelError("PhoneNumber", "هذا الرقم موجود بالفعل");
+                        return View(model);
+                    }
+
+
+
+
+
                     Job job = _unitOfWork.JobRepository.GetById(model.JobId);
                     var employee = _mapper.Map<Employee>(model);
                     employee.UserType = job.Name;
@@ -141,6 +159,11 @@ namespace ResturantPL.Controllers
             }
         }
 
+        public IActionResult CheckExists()
+        {
+            bool dataExist = _unitOfWork.EmployeeRepository.Any();
+            return Json(new { exists = dataExist });
+        }
 
 
         public IActionResult UpdateEmployee(int id)

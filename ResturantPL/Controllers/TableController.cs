@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Restaurant.Data.Models;
 using ResturantPL.Helper;
 using Service.UnitOfWork;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ResturantPL.Controllers
 {
@@ -35,6 +37,15 @@ namespace ResturantPL.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    bool tableExists = _unitOfWork.TableRepository.Any(t => t.Name == table.Name);
+
+                    if (tableExists)
+                    {
+                        ModelState.AddModelError("Name", "هذا الاسم موجود بالفعل");
+                        return View(table);
+                    }
+
+
                     await _unitOfWork.TableRepository.AddAsync(table);
                     _unitOfWork.Complete();
 
@@ -128,6 +139,16 @@ namespace ResturantPL.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    bool tableExists = _unitOfWork.TableRepository.Any(t => t.Name == table.Name);
+
+                    if (tableExists)
+                    {
+                        ModelState.AddModelError("Name", "هذا الاسم موجود بالفعل");
+                        return View(table);
+                    }
+
+
+
                     _unitOfWork.TableRepository.Update(table);
 
                     _unitOfWork.Complete();

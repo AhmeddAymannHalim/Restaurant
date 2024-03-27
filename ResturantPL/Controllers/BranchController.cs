@@ -4,6 +4,8 @@ using Restaurant.Data.Models;
 using Service.UnitOfWork;
 using ResturantPL.Helper;
 using ResturantPL.ViewModels;
+using Microsoft.EntityFrameworkCore;
+using Service.Repositories;
 
 namespace ResturantPL.Controllers
 {
@@ -41,10 +43,17 @@ namespace ResturantPL.Controllers
             }
         }
 
-
-
-        public IActionResult AddBranch()
+        public IActionResult CheckExists()
         {
+            bool dataExist = _unitOfWork.BrancheRepository.Any();
+            return Json(new { exists = dataExist });
+        }
+
+        public async Task<IActionResult> AddBranch()
+        {
+            var lastCode = (await _unitOfWork.BrancheRepository.GetLast(item => item.Id))?.Code;
+            ViewBag.Code = string.IsNullOrEmpty(lastCode) ? 1 : int.Parse(lastCode) + 1;
+
             return View();
         }
 
@@ -53,6 +62,9 @@ namespace ResturantPL.Controllers
         {
             try
             {
+                var lastCode = (await _unitOfWork.BrancheRepository.GetLast(item => item.Id))?.Code;
+                ViewBag.Code = string.IsNullOrEmpty(lastCode) ? 1 : int.Parse(lastCode) + 1;
+
                 if (ModelState.IsValid)
                 {
                     Branche branche = _mapper.Map<Branche>(model);
@@ -112,7 +124,7 @@ namespace ResturantPL.Controllers
 
 
 
-           
+
         public IActionResult Delete(int id)
         {
             var obj = _unitOfWork.BrancheRepository.GetById(id);
@@ -123,7 +135,7 @@ namespace ResturantPL.Controllers
                     _unitOfWork.BrancheRepository.Delete(obj);
                     return Json(new { success = true });
                 }
-                catch (Exception )
+                catch (Exception)
                 {
                     return Json(new { success = false, errorMessage = "لا يمكنك حذف الفرع لارتباطه بالموظفين" });
                 }

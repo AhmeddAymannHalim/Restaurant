@@ -44,6 +44,15 @@ namespace ResturantPL.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    bool typeExist = _unitOfWork.SalaryTypeRepository.Any(t => t.Type == model.Type);
+
+                    if (typeExist)
+                    {
+                        ModelState.AddModelError("Type", "هذا النوع من الرواتب موجود بالفعل");
+                        return View(model);
+                    }
+
+
                     await _unitOfWork.SalaryTypeRepository.AddAsync(model);
                     return RedirectToAction("Index");
                 }

@@ -95,7 +95,7 @@
                 <td>
                     @Html.ActionLink("تعديل", "UpdateEmployee", new { id = item.EmployeeId }) |
                     @Html.ActionLink("التفاصيل", "DetailsEmployee", new { id = item.EmployeeId }) |
-                    <a onclick="Delete('/Employee/Delete/@item.EmployeeId')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
+                    <a onclick="Delete('/Employee/Delete/@item.EmployeeId')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a> | 
                     @{
                         bool userExists = false;
                         foreach (var user in users)

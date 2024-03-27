@@ -49,18 +49,9 @@ namespace ResturantPL.Controllers
         [HttpGet]
         public async Task<IActionResult> AddJob()
         {
-            Job lastCode = await _unitOfWork.JobRepository.GetLast(item => item.JobId);
-
-            if (lastCode == null)
-            {
-                ViewBag.Code = 1;
-            }
-            else
-            {
-                int jobCode = int.Parse(lastCode.Code) + 1;
-                ViewBag.Code = jobCode;
-            }
-
+           
+            var lastCode = (await _unitOfWork.JobRepository.GetLast(item => item.JobId))?.Code;
+            ViewBag.Code = string.IsNullOrEmpty(lastCode) ? 1 : int.Parse(lastCode) + 1;
 
             return View();
 
@@ -72,17 +63,8 @@ namespace ResturantPL.Controllers
         {
             try
             {
-                Job lastCode = await _unitOfWork.JobRepository.GetLast(item => item.JobId);
-
-                if (lastCode == null)
-                {
-                    ViewBag.Code = 1;
-                }
-                else
-                {
-                    int jobCode = int.Parse(lastCode.Code) + 1;
-                    ViewBag.Code = jobCode;
-                }
+                var lastCode = (await _unitOfWork.JobRepository.GetLast(item => item.JobId))?.Code;
+                ViewBag.Code = string.IsNullOrEmpty(lastCode) ? 1 : int.Parse(lastCode) + 1;
 
 
                 if (ModelState.IsValid)
@@ -99,7 +81,11 @@ namespace ResturantPL.Controllers
             }
         }
 
-
+        public IActionResult CheckExists()
+        {
+            bool dataExist = _unitOfWork.BrancheRepository.Any();
+            return Json(new { exists = dataExist });
+        }
 
 
         [HttpGet]
@@ -201,6 +187,10 @@ namespace ResturantPL.Controllers
             }
             return RedirectToAction("Jobs");
         }
+
+
+
+
 
     }
 }

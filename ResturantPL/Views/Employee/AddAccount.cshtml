@@ -19,8 +19,8 @@
         </div>
         <div class="form-group col-md-5">
             <label asp-for="Email" class="control-label">الايميل</label>
-            <input asp-for="Email" class="form-control" />
-            <span asp-validation-for="Email" class="text-danger"></span>
+            <input asp-for="Email" type="email" class="form-control" />
+            <span id="emailError" asp-validation-for="Email" class="text-danger"></span>
         </div>
        
         <div class="form-group col-md-5">
@@ -36,7 +36,7 @@
 
         <div class="text-center mt-3">
             <input type="submit" value="اضافة" class="btn btn-success" />
-            <a asp-action="Employees" asp-controller="User" class="btn btn-primary">عودة للموظفين</a>
+            <a asp-action="Employees" asp-controller="Employee" class="btn btn-primary">عودة للموظفين</a>
         </div>
 
 
@@ -49,5 +49,20 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        $(document).ready(function () {
+            $('form').submit(function () {
+                var email = $('#Email').val();
+                if (email.indexOf('.com') === -1) {
+                    $('#emailError').text('الايميل يجب ان يحتوي علي  ".com"');
+                    return false; // Prevent form submission
+                } else {
+                    $('#emailError').text('');
+                    return true; // Allow form submission
+                }
+            });
+        });
+    </script>
 }
 

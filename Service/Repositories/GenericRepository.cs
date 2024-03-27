@@ -195,7 +195,22 @@ namespace Service.Repositories
             return query.SingleOrDefault();
         }
 
+        public bool Any()
+        {
+            return _context.Set<T>().Any();
+        }
 
+        public bool Any(Expression<Func<T, bool>> predicate = null)
+        {
+            if (predicate == null)
+            {
+                return _context.Set<T>().Any();
+            }
+            else
+            {
+                return _context.Set<T>().Any(predicate);
+            }
+        }
 
         //public IEnumerable<T> GetBetweenDates(Func<T, DateTime> dateSelector, DateTime startDate, DateTime endDate)
         //{
@@ -230,7 +245,7 @@ namespace Service.Repositories
         //    return query.ToList();
         //}
 
-        
+
 
     }
 }

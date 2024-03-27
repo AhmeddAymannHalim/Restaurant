@@ -42,6 +42,8 @@ namespace Service.IRepositories
         //Func<IQueryable<T>, IQueryable<T>> include = null,
         //Func<IQueryable<T>, IQueryable<T>> thenInclude = null);
 
+        public bool Any();
 
+        public bool Any(Expression<Func<T, bool>> predicate = null);
     }
 }

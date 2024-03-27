@@ -104,6 +104,7 @@
                     </td>
                     <td>
                         @Html.ActionLink("التفاصيل", "DetailsInvoice", new { id = item.Id }) |
+                        @Html.ActionLink("تعديل", "UpdateInvoice", new { id = item.Id }) |
                         <a onclick="Delete('/Invoice/Delete/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">حذف</a>
                     </td>
                 </tr>
