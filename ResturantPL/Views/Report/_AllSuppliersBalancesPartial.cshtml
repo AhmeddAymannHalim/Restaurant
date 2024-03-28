@@ -9,7 +9,7 @@
             <td>@item.TotalDeptor</td>
             <td>@item.TotalCreditor</td>
             <td>@item.Total</td>
-            @* <td>@item.Date.ToString("yyyy-MM-dd")</td> *@
+            <td class="text-primary">@item.LastBalance</td>
             <td class="text-danger">@item.LastTotalDeptor</td>
             <td class="text-danger">@item.LastTotalCreditor</td>
             <td class="text-danger">@item.LastTotal</td>
@@ -19,11 +19,11 @@
     }
     <tr>
         <td class="text-primary"><strong>اجمالي أرصدة الموردرين</strong> </td>
-        <td colspan="7"><strong>@Model.Total</strong></td>
+        <td colspan="8"><strong>@Model.Total</strong></td>
     </tr>
 
 }
 else
 {
-    <tr><td colspan='8'>لا توجد نتائج للعرض</td></tr>
+    <tr><td colspan='9'>لا توجد نتائج للعرض</td></tr>
 }

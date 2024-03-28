@@ -14,6 +14,7 @@ namespace Restaurant.Data.Models
         public string PhoneNumber { get; set; }
         public string MobileNumber { get; set; }
         public decimal Balance { get; set; }
+        public decimal? LastBalance { get; set; }
 
 
         public virtual ICollection<Invoice> Invoices { get; set; }

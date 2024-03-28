@@ -337,9 +337,9 @@ namespace ResturantPL.Controllers
             .OrderByDescending(a => a.Date)
             .ToList();
 
-            decimal lastTotalDeptor = lastBalances.Sum(b => b.Deptor);
+            decimal lastTotalDeptor = lastBalances.Sum(b => b.Deptor) + (sup.LastBalance ?? 0);
             decimal lastTotalCreditor = lastBalances.Sum(b => b.Creditor);
-            decimal lastOverallBalance = lastTotalDeptor - lastTotalCreditor;
+            decimal lastOverallBalance = lastTotalDeptor  - lastTotalCreditor;
             decimal currentBalance = lastOverallBalance;
 
             var purchases = _unitOfWork.InvoiceRepository
@@ -424,7 +424,8 @@ namespace ResturantPL.Controllers
                 LastTotal = lastOverallBalance,
                 AllTotalCreditor = allTotalCreditor,
                 AllTotalDeptor = allTotalDeptor,
-                Balance = balance
+                Balance = balance,
+                LastBalance = sup.LastBalance ?? 0,
             };
 
             return PartialView("_AllSupplierBalancesPartial", supplierTotalViewModel);
@@ -699,7 +700,7 @@ namespace ResturantPL.Controllers
             .OrderByDescending(a => a.Date)
             .ToList();
 
-            decimal lastTotalDeptor = lastBalances.Sum(b => b.Deptor);
+            decimal lastTotalDeptor = lastBalances.Sum(b => b.Deptor) + (sup.LastBalance ?? 0);
             decimal lastTotalCreditor = lastBalances.Sum(b => b.Creditor);
             decimal lastOverallBalance = lastTotalDeptor - lastTotalCreditor;
             decimal currentBalance = lastOverallBalance;
@@ -784,7 +785,8 @@ namespace ResturantPL.Controllers
                 LastTotal = lastOverallBalance,
                 AllTotalCreditor = allTotalCreditor,
                 AllTotalDeptor = allTotalDeptor,
-                Balance = balance
+                Balance = balance,
+                LastBalance = sup.LastBalance ?? 0
             };
 
             var viewAsPdf = new ViewAsPdf
@@ -896,7 +898,7 @@ namespace ResturantPL.Controllers
                 .OrderByDescending(a => a.Date)
                 .ToList();
 
-                decimal lastTotalDeptor = lastBalances.Sum(b => b.Deptor);
+                decimal lastTotalDeptor = lastBalances.Sum(b => b.Deptor) + (supplier.LastBalance ?? 0);
                 decimal lastTotalCreditor = lastBalances.Sum(b => b.Creditor);
                 decimal lastOverallBalance = lastTotalDeptor - lastTotalCreditor;
 
@@ -946,7 +948,8 @@ namespace ResturantPL.Controllers
                     LastTotalDeptor = lastTotalDeptor,
                     LastTotal = lastOverallBalance,
 
-                    AllTotal = lastOverallBalance + overallBalance
+                    AllTotal = lastOverallBalance + overallBalance,
+                    LastBalance = supplier.LastBalance ?? 0
                 };
 
                 supplierViewModels.Add(supplierViewModel);
@@ -1055,7 +1058,7 @@ namespace ResturantPL.Controllers
                 .OrderByDescending(a => a.Date)
                 .ToList();
 
-                decimal lastTotalDeptor = lastBalances.Sum(b => b.Deptor);
+                decimal lastTotalDeptor = lastBalances.Sum(b => b.Deptor) + +(supplier.LastBalance ?? 0);
                 decimal lastTotalCreditor = lastBalances.Sum(b => b.Creditor);
                 decimal lastOverallBalance = lastTotalDeptor - lastTotalCreditor;
 
@@ -1105,7 +1108,8 @@ namespace ResturantPL.Controllers
                     LastTotalCreditor = lastTotalCreditor,
                     LastTotalDeptor = lastTotalDeptor,
                     LastTotal = lastOverallBalance,
-                    AllTotal = lastOverallBalance + overallBalance
+                    AllTotal = lastOverallBalance + overallBalance,
+                    LastBalance = supplier.LastBalance ?? 0
                 };
 
                 supplierViewModels.Add(supplierViewModel);

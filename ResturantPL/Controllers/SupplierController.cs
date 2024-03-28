@@ -50,7 +50,7 @@ namespace ResturantPL.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    supplier.Balance = 0;
+                    supplier.LastBalance = supplier.Balance;
                     await _unitOfWork.SupplierRepository.AddAsync(supplier);
 
                     return RedirectToAction("Index");

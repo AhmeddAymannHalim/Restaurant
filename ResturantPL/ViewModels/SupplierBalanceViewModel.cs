@@ -31,6 +31,7 @@
         public decimal AllTotalDeptor { get; set; }
         public decimal AllTotalCreditor { get; set; }
         public decimal Balance { get; set; }
+        public decimal LastBalance { get; set; }
 
     }
 
@@ -49,6 +50,7 @@
         public decimal LastTotalCreditor { get; set; }
         public decimal LastTotal { get; set; }
         public decimal AllTotal { get; set; }
+        public decimal LastBalance { get; set; }
 
     }
 }

@@ -1171,6 +1171,7 @@ namespace Restaurant.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Type")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -1347,6 +1348,9 @@ namespace Restaurant.Data.Migrations
                     b.Property<decimal>("Balance")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal?>("LastBalance")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("MobileNumber")
                         .HasColumnType("nvarchar(max)");
 
@@ -1373,6 +1377,7 @@ namespace Restaurant.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<byte>("NumOfPersons")

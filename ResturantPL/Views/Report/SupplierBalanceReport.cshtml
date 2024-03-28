@@ -81,6 +81,13 @@
         @if (Model.balances.Count() > 0)
         {
             <tr>
+                <td class="text-danger"><strong>الرصيد الافتتاحي</strong></td>
+                <td>@Model.LastBalance</td>
+                <td>0</td>
+                <td>@Model.LastBalance</td>
+                <td colspan="2"></td>
+            </tr>
+            <tr>
                 <td class="text-danger"><strong>الحساب السابق</strong></td>
                 <td>@Model.LastTotalDeptor</td>
                 <td>@Model.LastTotalCreditor</td>

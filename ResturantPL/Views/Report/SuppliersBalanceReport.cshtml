@@ -55,6 +55,7 @@
             <th>اجمالي الدائن</th>
             <th>اجمالي المدين</th>
             <th>الاجمالي الحالي</th>
+            <th>الرصيد الافتتاحي</th>
             <th>الدائن السابق</th>
             <th>المدين السابق</th>
             <th>الاجمالي السابق</th>
@@ -73,6 +74,7 @@
                     <td>@item.TotalDeptor</td>
                     <td>@item.TotalCreditor</td>
                     <td>@item.Total</td>
+                    <td>@item.LastBalance</td>
                     <td>@item.LastTotalDeptor</td>
                     <td>@item.LastTotalCreditor</td>
                     <td>@item.LastTotal</td>
@@ -82,13 +84,13 @@
             }
             <tr>
                 <td class="text-danger"><strong>اجمالي أرصدة الموردرين</strong> </td>
-                <td colspan="7"><strong>@Model.Total</strong></td>
+                <td colspan="8"><strong>@Model.Total</strong></td>
             </tr>
 
         }
         else
         {
-            <tr><td colspan='8'>لا توجد نتائج للعرض</td></tr>
+            <tr><td colspan='9'>لا توجد نتائج للعرض</td></tr>
         }
 
     </tbody>

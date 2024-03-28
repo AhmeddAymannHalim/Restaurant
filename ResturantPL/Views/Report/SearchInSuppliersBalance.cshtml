@@ -43,11 +43,11 @@
             <th>اجمالي الدائن</th>
             <th>اجمالي المدين</th>
             <th>الاجمالي الحالي</th>
+            <th class="text-primary">الرصيد الافتتاحي</th>
             <th class="text-danger">الدائن السابق</th>
             <th class="text-danger">المدين السابق</th>
             <th class="text-danger">الاجمالي السابق</th>
             <th class="text-success">الاجمالي الكلي</th>
-
         </tr>
     </thead>
     <tbody>
@@ -85,7 +85,7 @@
 
                     error: function (xhr, status, error) {
                         $("#supplierTable tbody").empty();
-                        $("#supplierTable tbody").append("<tr><td colspan='7'>حدث خطأ أثناء جلب البيانات</td></tr>");
+                        $("#supplierTable tbody").append("<tr><td colspan='8'>حدث خطأ أثناء جلب البيانات</td></tr>");
                     }
                 });
             });
