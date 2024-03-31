@@ -43,7 +43,7 @@ namespace ResturantPL.Controllers
         {
             //ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll(), "EmployeeId", "FirstName");
             ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll()
-                  .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" || a.UserType == "أمين مخزن"), "EmployeeId", "FullName");
+                     .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" || a.UserType == "امين مخازن" || a.UserType == "أمين مخازن" || a.UserType == "أمين مخزن"), "EmployeeId", "FullName");
 
             return View();
         }
@@ -55,6 +55,15 @@ namespace ResturantPL.Controllers
         {
             try
             {
+                //if (store.StorekeeperId == null)
+                //{
+                //    ModelState.AddModelError("", "برجاء اضافة موظفين ينتمون لوظيفة امين مخزن");
+                //    ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll()
+                //   .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" || a.UserType == "امين مخازن" || a.UserType == "أمين مخازن" || a.UserType == "أمين مخزن"), "EmployeeId", "FullName");
+
+                //    return View(store);
+                //}
+
                 ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll()
                     .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" ||a.UserType == "امين مخازن" ||a.UserType == "أمين مخازن" || a.UserType == "أمين مخزن"), "EmployeeId", "FullName");
                 var products = _unitOfWork.ProductRepository.GetAll();
