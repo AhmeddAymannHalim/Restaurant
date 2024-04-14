@@ -50,6 +50,34 @@ namespace ResturantPL.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    string nameWithoutSpaces = supplier.Name.Replace(" ", "");
+
+                    bool nameExist = _unitOfWork.SupplierRepository.Any(t => t.Name.Replace(" ", "") == nameWithoutSpaces);
+                    bool phoneNumber = _unitOfWork.SupplierRepository.Any(t => t.PhoneNumber == supplier.PhoneNumber);
+                    bool mobileNumber = _unitOfWork.SupplierRepository.Any(t => t.MobileNumber == supplier.MobileNumber);
+
+                    if (nameExist)
+                    {
+                        ModelState.AddModelError("Name", "هذا المورد موجود بالفعل من فضلك قم بتغيير الاسم");
+
+                        return View(supplier);
+                    }
+                    if (mobileNumber)
+                    {
+                        ModelState.AddModelError("MobileNumber", "هذا الرقم موجود بالفعل");
+
+                        return View(supplier);
+                    }
+
+                    if (phoneNumber)
+                    {
+                        ModelState.AddModelError("PhoneNumber", "هذا الرقم موجود بالفعل");
+
+                        return View(supplier);
+                    }
+
+
+
                     supplier.LastBalance = supplier.Balance;
                     await _unitOfWork.SupplierRepository.AddAsync(supplier);
 

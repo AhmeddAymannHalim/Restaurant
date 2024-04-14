@@ -104,15 +104,20 @@ namespace ResturantPL.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    bool firstNameExist = _unitOfWork.EmployeeRepository.Any(t => t.FirstName == model.FirstName);
-                    bool lastNameExist = _unitOfWork.EmployeeRepository.Any(t => t.LastName == model.LastName);
+
+                    string firstNameWithoutSpaces = model.FirstName.Replace(" ", "");
+                    string lastNameWithoutSpaces = model.LastName.Replace(" ", "");
+
+                    bool firstNameExist = _unitOfWork.EmployeeRepository.Any(t => t.FirstName.Replace(" ", "") == firstNameWithoutSpaces);
+                    bool lastNameExist = _unitOfWork.EmployeeRepository.Any(t => t.LastName.Replace(" ", "") == lastNameWithoutSpaces);
                     bool nationalIdExist = _unitOfWork.EmployeeRepository.Any(t => t.NationalID == model.NationalID);
                     bool mobileNumber = _unitOfWork.EmployeeRepository.Any(t => t.MobileNumber == model.MobileNumber);
                     bool phoneNumber = _unitOfWork.EmployeeRepository.Any(t => t.PhoneNumber == model.PhoneNumber);
 
                     if (firstNameExist && lastNameExist)
                     {
-                        ModelState.AddModelError("", "هذا الموظف موجود بالفعل من فضلك قم بتغيير الاسم الاول او الاخير");
+                        ModelState.AddModelError("FirstName", "هذا الموظف موجود بالفعل من فضلك قم بتغيير الاسم الاول");
+                        ModelState.AddModelError("LastName", "هذا الموظف موجود بالفعل من فضلك قم بتغيير الاسم الاخير");
                         return View(model);
                     }
                     if (nationalIdExist)
@@ -127,7 +132,7 @@ namespace ResturantPL.Controllers
                         return View(model);
                     }
 
-                    if (phoneNumber)
+                    if (phoneNumber && model.PhoneNumber != null)
                     {
                         ModelState.AddModelError("PhoneNumber", "هذا الرقم موجود بالفعل");
                         return View(model);

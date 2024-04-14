@@ -13,7 +13,7 @@ namespace ResturantPL.Controllers
     {
         private readonly IHubContext<OrderHub> _orderHubContext;
         private readonly IUnitOfWork _unitOfWork;
-       
+
         public KitchenController(IUnitOfWork unitOfWork, IHubContext<OrderHub> orderHubContext)
         {
             _unitOfWork = unitOfWork;
@@ -22,41 +22,41 @@ namespace ResturantPL.Controllers
 
         public IActionResult Index()
         {
-            var kitchens = _unitOfWork.kitchenRepository.GetAll();           
+            var kitchens = _unitOfWork.kitchenRepository.GetAll();
             return View(kitchens);
         }
         public IActionResult KitchenOrders()
         {
-           var orders = _unitOfWork.OrderRepository
-               .GetAll
-               (
-                   a => a.Include(a => a.Seller),
-                   a => a.Include(a => a.Receiver),
-                   a => a.Include(a => a.Table),
-                   a => a.Include(a => a.Employee),                  
-                   a => a.Include(a => a.OrderMenuItems)
-                   .ThenInclude(o=>o.MenuItem)                  
-                )
-                .Where(a => a.Complete == false)
-               .OrderByDescending(a => a.OrderDate)
-               .ToList();
+            var orders = _unitOfWork.OrderRepository
+                .GetAll
+                (
+                    a => a.Include(a => a.Seller),
+                    a => a.Include(a => a.Receiver),
+                    a => a.Include(a => a.Table),
+                    a => a.Include(a => a.Employee),
+                    a => a.Include(a => a.OrderMenuItems)
+                    .ThenInclude(o => o.MenuItem)
+                 )
+                 .Where(a => a.Complete == false)
+                .OrderByDescending(a => a.OrderDate)
+                .ToList();
             return View(orders);
         }
         public IActionResult KitchenOrderDetails(int id)
         {
             Order orderInvoice = _unitOfWork.OrderRepository.GetById(a => a.Id == id,
                new string[] { "Seller", "Receiver", "Table", "Customer", "Employee", "OrderMenuItems" },
-               new string[] { "OrderMenuItems.MenuItem" });            
+               new string[] { "OrderMenuItems.MenuItem" });
             if (orderInvoice != null)
             {
-                
+
                 return View(orderInvoice);
             }
             else
             {
                 return View(new Order());
             }
-           
+
         }
         public IActionResult Details(int id)
         {
@@ -64,18 +64,27 @@ namespace ResturantPL.Controllers
             return View(kitchen);
         }
 
+        public IActionResult CompleteOrder(int id)
+        {
+            var order = _unitOfWork.OrderRepository.GetById(id);
+            order.Complete = true;
+            _unitOfWork.OrderRepository.Update(order);
+            return Json(true);
+        }
+
         public IActionResult CreateAsync(int id)
         {
             var kitchen = _unitOfWork.kitchenRepository.GetById(id);
-            if (kitchen is not  null) {
-              
+            if (kitchen is not null)
+            {
+
                 return View(kitchen);
             }
             else
             {
                 return View(new kitchen());
             }
-           
+
         }
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAsync(kitchen model)
@@ -91,7 +100,7 @@ namespace ResturantPL.Controllers
             {
                 await _unitOfWork.kitchenRepository.AddAsync(model);
             }
-           
+
             TempData["success"] = "تمت العملية بنجاح";
             return RedirectToAction(nameof(Index));
 

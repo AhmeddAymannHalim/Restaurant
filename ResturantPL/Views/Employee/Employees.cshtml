@@ -16,6 +16,9 @@
     <thead>
         <tr>
             <th>
+                كود الموظف
+            </th>
+            <th>
                 الاسم
             </th>
             <th>
@@ -23,9 +26,6 @@
             </th>
             <th>
                 رقم الموبايل
-            </th>
-            <th>
-                رقم الهاتف
             </th>
             <th>
                 العنوان
@@ -55,6 +55,9 @@
         {
             <tr>
                 <td>
+                    @item.Code
+                </td>
+                <td>
                     @item.FirstName @item.LastName
                 </td>
                 <td>
@@ -63,9 +66,7 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.MobileNumber)
                 </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.PhoneNumber)
-                </td>
+          
                 <td>
                     @item.Country @item.City @item.Street
                 </td>

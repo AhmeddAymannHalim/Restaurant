@@ -9,7 +9,7 @@
     <div class="col-md-4">
         <form asp-action="Create" method="post">
 
-            <div asp-validation-summary="All" class="text-danger"> </div>
+            <div asp-validation-summary="ModelOnly" class="text-danger"> </div>
 
             <div class="form-group">
                 <label asp-for="Name">اسم المخزن</label>
@@ -31,7 +31,7 @@
 
             <div class="form-group">
                 <label asp-for="PhoneNumber">رقم الهاتف</label>
-                <input asp-for="PhoneNumber" class="form-control" required maxlength="11" />
+                <input asp-for="PhoneNumber" class="form-control" maxlength="11" />
                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
            

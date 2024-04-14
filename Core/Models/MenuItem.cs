@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Data.Models
 {
+    public enum Size
+    {
+        Small, Medium, Large, Syrian_Bread, regular
+    }
+
+
     public class MenuItem
     {
         public int Id { get; set; }
@@ -18,7 +24,7 @@ namespace Restaurant.Data.Models
         public decimal Price { get; set; }
         public bool IsReady { get; set; }
         public decimal Benefit { get; set; }
-
+        public Size? Size { get; set; }
         public virtual Store Store { get; set; }
         public virtual MenuSection MenuSection { get; set; }
         public virtual ICollection<MenuItemComponent> Components { get; set; }

@@ -43,6 +43,14 @@ namespace ResturantPL.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    string nameWithoutSpaces = model.Name.Replace(" ", "");
+                    bool nameExist = _unitOfWork.ProductRepository.Any(t => t.Name.Replace(" ", "") == nameWithoutSpaces);
+                    if (nameExist)
+                    {
+                        ModelState.AddModelError("Name", "هذا الصنف موجود بالفعل من فضلك قم بتغيير الاسم");
+                        return View(model);
+                    }
+
                     await _unitOfWork.ProductRepository.AddAsync(model);
 
                     var stores = _unitOfWork.StoreRepository.GetAll();

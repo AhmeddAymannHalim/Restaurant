@@ -88,13 +88,21 @@ else
         <tr>
             <td class="mainRow">  نوع الدفع</td>
 
-            @if (Model.PayType == PayType.Cash)
+            @if (Model.PayType == PayTypes.Cash)
             {
                 <td>كاش</td>
             }
-            else
+            else if (Model.PayType == PayTypes.Later)
             {
                 <td>آجل</td>
+            }
+            else if (Model.PayType == PayTypes.Visa)
+            {
+                <td>فيزا</td>
+            }
+            else
+            {
+                <td>نقدي</td>
             }
         </tr>
 

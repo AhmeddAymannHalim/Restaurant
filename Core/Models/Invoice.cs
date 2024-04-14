@@ -13,10 +13,12 @@ namespace Restaurant.Data.Models
     }
 
 
-    public enum PayType
+    public enum PayTypes
     {
         Cash,
-        Later
+        Later,
+        Money,
+        Visa
     }
     public class Invoice
     {
@@ -27,7 +29,7 @@ namespace Restaurant.Data.Models
         public decimal TotalPrice { get; set; }
         public decimal Paid { get; set; }
         public decimal Remaining { get; set; }
-        public PayType PayType { get; set; }
+        public PayTypes PayType { get; set; }
         public InvoiceType InvoiceType { get; set; }
 
 

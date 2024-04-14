@@ -82,14 +82,21 @@
 
 
             <div class="form-group col-md-3">
-                <label class="control-label">خصم</label>
-                <input type="number" value="@ViewBag.Settings.OrderDiscount" step="0.01" id="discount" name="Discount" class="form-control" required />
+                <label class="control-label">خصم بالقيمة</label>
+                @* <input type="number" value="@ViewBag.Settings.OrderDiscount" step="0.01" id="discount" name="Discount" class="form-control" required /> *@
+                <input type="number" value="0" step="0.01" id="discount" name="Discount" class="form-control" required />
+            </div>
+
+            <div class="form-group col-md-3">
+                <label class="control-label">خصم بالنسبة</label>
+                <input type="number" value="0" step="0.01" id="discountPercent" class="form-control" required />
             </div>
 
             <div class="form-group col-md-3">
                 <label class="control-label">اجمالي السعر</label>
                 <input id="totalPrice" name="TotalPrice" class="form-control" required readonly />
             </div>
+
 
 
             <div class="form-group col-md-3">
@@ -172,6 +179,37 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        $(document).ready(function () {
+            var customerId = $('#customerId');
+            var $customerOptions = $productList.find('option');
+
+            customerId.on('input', function () {
+                var searchText = $(this).val().trim().toLowerCase();
+
+                $customerOptions.show();
+
+                if (searchText) {
+                    $customerOptions.each(function () {
+                        var optionText = $(this).text().toLowerCase();
+                        if (optionText.indexOf(searchText) === -1) {
+                            $(this).hide();
+                        }
+                    });
+                }
+                $productList.attr('size', $productList.find('option:visible').length + 1);
+            });
+
+            $('#storeList').change(function () {
+                $productList.val('').trigger('input');
+            });
+            $productList.change(function () {
+            });
+        });
+
+    </script>
+
+
 
     <script>
         $(document).ready(function () {
@@ -179,7 +217,7 @@
             var modal = $('#myModal');
 
             modal.on('shown.bs.modal', function () {
-                
+
                 $('#modalPassword').focus();
             });
         });
@@ -219,7 +257,7 @@
         });
     </script>
 
-  
+
     <script>
         $(document).ready(function () {
             // Function to handle click on item buttons
@@ -239,6 +277,22 @@
                     // If the item doesn't exist, add it with quantity 1
                     addItem(itemId, itemName, itemPrice, 1);
                 }
+
+                var subtotal = 0;
+                $('#selectedItemsTable tbody tr').each(function () {
+                    var price = parseFloat($(this).find('.total-price').text().replace('$', ''));
+                    subtotal += price;
+                });
+
+
+                var tax = parseFloat($('#tax').val()) || 0;
+                var service = parseFloat($('#service').val()) || 0;
+
+                var totalPrice = subtotal + tax + service;
+                var discountPercent = $('#discountPercent').val();
+                var discount = (discountPercent / 100) * totalPrice;
+                $('#discount').val(discount.toFixed(2));
+
 
                 calculateTotalPrice();
             });
@@ -328,8 +382,52 @@
             });
 
 
+            $('#discountPercent').on('input', function () {
+                var subtotal = 0;
+                $('#selectedItemsTable tbody tr').each(function () {
+                    var price = parseFloat($(this).find('.total-price').text().replace('$', ''));
+                    subtotal += price;
+                });
 
 
+                var tax = parseFloat($('#tax').val()) || 0;
+                var service = parseFloat($('#service').val()) || 0;
+                var discountPercent = parseFloat($(this).val()) || 0;
+                var totalPrice = subtotal + tax + service;
+
+
+                var discount = (discountPercent / 100) * totalPrice;
+
+                // Update discount percent field
+                $('#discount').val(discount.toFixed(2));
+
+                calculateTotalPrice();
+            });
+
+            $('#discount').on('input', function () {
+                // Calculate discount percentage based on the discount value
+                var subtotal = 0;
+                $('#selectedItemsTable tbody tr').each(function () {
+                    var price = parseFloat($(this).find('.total-price').text().replace('$', ''));
+                    subtotal += price;
+                });
+
+                var tax = parseFloat($('#tax').val()) || 0;
+                var service = parseFloat($('#service').val()) || 0;
+                var discount = parseFloat($(this).val()) || 0;
+                var totalPrice = subtotal + tax + service;
+
+
+                var discountPercent = (discount / totalPrice) * 100;
+
+                // Update discount percent field
+                $('#discountPercent').val(discountPercent.toFixed(2));
+                calculateTotalPrice();
+            });
+
+            $('#selectedItemsTable tbody').on('input', '.quantity', function () {
+                calculateTotalPrice();
+            });
 
             function calculateTotalPrice() {
                 var subtotal = 0;
@@ -350,12 +448,18 @@
                         // Calculate tax and total price after retrieving tax rate
                         var tax = subtotal * taxRate;
                         var discount = parseFloat($('#discount').val()) || 0;
+                        var discountPercent = parseFloat($('#discountPercent').val()) || 0;
                         var service = parseFloat($('#service').val()) || 0;
-                        var totalPrice = subtotal + tax + service - discount;
+                        // var totalPrice = subtotal * (1 - discountPercent / 100) + tax + service;
+                        var totalPrice = subtotal + tax + service;
+                        var discountedTotalPrice = totalPrice * (1 - discountPercent / 100);
+
+
 
                         // Set tax and total price fields
                         $('#tax').val(tax.toFixed(2));
-                        $('#totalPrice').val(totalPrice.toFixed(2));
+                        $('#totalPrice').val(discountedTotalPrice.toFixed(2));
+                        //$('#totalPriceWithoutDiscount').val(totalPrice.toFixed(2));
                     },
                     error: function (xhr, status, error) {
                         console.error(error);
@@ -376,16 +480,16 @@
                 $('#cash').val('false');
             });
 
-           
+
             $('#payInvoiceBtn').click(function () {
-                
+
                 $('#cash').val('true');
             });
 
 
 
             $('#orderForm').submit(function () {
-               
+
                 var index = 0;
 
                 // Loop through each selected item in the table

@@ -53,7 +53,15 @@ namespace Restaurant.Data
         public DbSet<ApplicationSetting> ApplicationSettings { get; set; }
         public DbSet<PrinterSetting> PrinterSettings { get; set; }
         public DbSet<PrinterForSection> PrinterForSections { get; set; }
-        
+
+
+        // Account Guide
+        public DbSet<Account> Accounts { get; set; }
+        public DbSet<AccountsType> AccountTypes { get; set; }
+        public DbSet<AccountState> AccountStates { get; set; }
+        public DbSet<PayType> PayTypes { get; set; }
+        public DbSet<SellType> SellTypes { get; set; }
+        public DbSet<Currency> Currencies { get; set; }
 
 
 
@@ -69,11 +77,7 @@ namespace Restaurant.Data
         public DbSet<kitchen> Kitchens { get; set; }
 
 
-
-
-
-
-
+       
 
 
 

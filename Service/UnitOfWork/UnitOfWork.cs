@@ -10,9 +10,9 @@ namespace Service.UnitOfWork
     {
         private readonly ApplicationDbContext _context;
 
-        public IGenericRepository<IndexSettings> IndexRepository { get ; set; }
-        public IGenericRepository<ChefItem> ChefItemRepository { get ; set ; }
-        public IGenericRepository<GalleryItem> GalleryItemRepository { get ; set ; }
+        public IGenericRepository<IndexSettings> IndexRepository { get; set; }
+        public IGenericRepository<ChefItem> ChefItemRepository { get; set; }
+        public IGenericRepository<GalleryItem> GalleryItemRepository { get; set; }
 
         // By Daif Hamdan
         public IGenericRepository<Branche> BrancheRepository { get; set; }
@@ -28,8 +28,8 @@ namespace Service.UnitOfWork
         public IGenericRepository<PaymentInvoiceCustomer> PaymentInvoiceCustomerRepository { get; set; }
         public IGenericRepository<PaymentInvoiceSupplier> PaymentInvoiceSupplierRepository { get; set; }
         public IGenericRepository<StoreProduct> StoreProductRepository { get; set; }
-        public IGenericRepository<MenuItem> MenuItemRepository { get ; set ; }
-        public IGenericRepository<MenuItemComponent> MenuItemComponentRepository { get ; set ; }
+        public IGenericRepository<MenuItem> MenuItemRepository { get; set; }
+        public IGenericRepository<MenuItemComponent> MenuItemComponentRepository { get; set; }
         public IGenericRepository<Order> OrderRepository { get; set; }
         public IGenericRepository<OrderMenuItem> OrderMenuItemRepository { get; set; }
         public IGenericRepository<OnlineOrder> OnlineOrderRepository { get; set; }
@@ -44,6 +44,15 @@ namespace Service.UnitOfWork
         public IGenericRepository<PrinterForSection> PrinterForSectionRepository { get; set; }
         public IGenericRepository<ApplicationUser> UserRepository { get; set; }
         public IGenericRepository<IdentityRole> RoleRepository { get; set; }
+        public IGenericRepository<Account> AccountRepository { get; set; }
+        public IGenericRepository<AccountState> AccountStateRepository { get; set; }
+        public IGenericRepository<AccountsType> AccountTypeRepository { get; set; }
+        public IGenericRepository<Currency> CurrencyRepository { get; set; }
+        public IGenericRepository<PayType> PayTypeRepository { get; set; }
+        public IGenericRepository<SellType> SellTypeRepository { get; set; }
+
+
+
 
 
         // By Yasser
@@ -97,6 +106,12 @@ namespace Service.UnitOfWork
             PrinterForSectionRepository = new GenericRepository<PrinterForSection>(_context);
             UserRepository = new GenericRepository<ApplicationUser>(_context);
             RoleRepository = new GenericRepository<IdentityRole>(_context);
+            AccountRepository = new GenericRepository<Account>(_context);
+            AccountStateRepository = new GenericRepository<AccountState>(_context);
+            AccountTypeRepository = new GenericRepository<AccountsType>(_context);
+            CurrencyRepository = new GenericRepository<Currency>(_context);
+            PayTypeRepository = new GenericRepository<PayType>(_context);
+            SellTypeRepository = new GenericRepository<SellType>(_context);
 
 
 
@@ -108,9 +123,10 @@ namespace Service.UnitOfWork
             DepositRepository = new GenericRepository<Deposit>(_context);
 
 
+
             //Mahmoud
-            kitchenRepository=new GenericRepository<kitchen>(_context);
-    }
+            kitchenRepository = new GenericRepository<kitchen>(_context);
+        }
 
         public int Complete()
         {

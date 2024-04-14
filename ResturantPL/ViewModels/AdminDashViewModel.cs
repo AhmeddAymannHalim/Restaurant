@@ -37,6 +37,7 @@ namespace ResturantPL.ViewModels
         public ICollection<Scrounge> Scrounges { get; set; } = new List<Scrounge>();//
         public ICollection<ExitExpense> ExitExpenses { get; set; } = new List<ExitExpense>();//
         public ICollection<Salary> Salaries { get; set; } = new List<Salary>();//
+        public ICollection<Order> kitchenOrders { get; set; } = new List<Order>();//
 
 
     }

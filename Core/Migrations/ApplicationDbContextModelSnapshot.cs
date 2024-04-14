@@ -155,6 +155,120 @@ namespace Restaurant.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Restaurant.Data.Models.Account", b =>
+                {
+                    b.Property<int>("AccId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AccId"), 1L, 1);
+
+                    b.Property<string>("AccArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("AccCheckDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AccCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("AccCredit")
+                        .HasColumnType("float");
+
+                    b.Property<string>("AccCustomerCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("AccDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("AccDebit")
+                        .HasColumnType("float");
+
+                    b.Property<byte>("AccDebitOrCreditOrWithout")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("AccEnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("AccLevel")
+                        .HasColumnType("int");
+
+                    b.Property<double?>("AccMaxDebit")
+                        .HasColumnType("float");
+
+                    b.Property<bool?>("AccMustCostCenter")
+                        .HasColumnType("bit");
+
+                    b.Property<short>("AccNsons")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("AccRemarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("AccStateId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("AccTurnningYesOrNo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("AccTypeId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<bool?>("Class")
+                        .HasColumnType("bit");
+
+                    b.Property<short>("CurrencyId")
+                        .HasColumnType("smallint");
+
+                    b.Property<int?>("FinalAccId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ParentAccId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AccId");
+
+                    b.HasIndex("AccStateId");
+
+                    b.HasIndex("AccTypeId");
+
+                    b.HasIndex("CurrencyId");
+
+                    b.ToTable("Accounts");
+                });
+
+            modelBuilder.Entity("Restaurant.Data.Models.AccountState", b =>
+                {
+                    b.Property<byte>("Id")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AccountStates");
+                });
+
+            modelBuilder.Entity("Restaurant.Data.Models.AccountsType", b =>
+                {
+                    b.Property<byte>("AccTypeId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("AccTypeArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AccTypeEnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("AccTypeId");
+
+                    b.ToTable("AccountTypes");
+                });
+
             modelBuilder.Entity("Restaurant.Data.Models.ApplicationSetting", b =>
                 {
                     b.Property<int>("Id")
@@ -359,6 +473,25 @@ namespace Restaurant.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ChefItem");
+                });
+
+            modelBuilder.Entity("Restaurant.Data.Models.Currency", b =>
+                {
+                    b.Property<short>("CurrencyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<short>("CurrencyId"), 1L, 1);
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("CurrencyId");
+
+                    b.ToTable("Currencies");
                 });
 
             modelBuilder.Entity("Restaurant.Data.Models.Customer", b =>
@@ -757,6 +890,9 @@ namespace Restaurant.Data.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int?>("Size")
+                        .HasColumnType("int");
+
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
 
@@ -1065,6 +1201,31 @@ namespace Restaurant.Data.Migrations
                     b.ToTable("PaymentInvoiceSupplier");
                 });
 
+            modelBuilder.Entity("Restaurant.Data.Models.PayType", b =>
+                {
+                    b.Property<int>("PayTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PayTypeId"), 1L, 1);
+
+                    b.Property<string>("PayTypeArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayTypeCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayTypeEnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayTypeNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("PayTypeId");
+
+                    b.ToTable("PayTypes");
+                });
+
             modelBuilder.Entity("Restaurant.Data.Models.PrinterForSection", b =>
                 {
                     b.Property<int>("Id")
@@ -1212,6 +1373,34 @@ namespace Restaurant.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Scrounges");
+                });
+
+            modelBuilder.Entity("Restaurant.Data.Models.SellType", b =>
+                {
+                    b.Property<int>("SellTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SellTypeId"), 1L, 1);
+
+                    b.Property<bool?>("SellDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<double?>("SellPlusPrice")
+                        .HasColumnType("float");
+
+                    b.Property<string>("SellTypeArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SellTypeEnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShowOrNot")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("SellTypeId");
+
+                    b.ToTable("SellTypes");
                 });
 
             modelBuilder.Entity("Restaurant.Data.Models.Store", b =>
@@ -1453,6 +1642,33 @@ namespace Restaurant.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Restaurant.Data.Models.Account", b =>
+                {
+                    b.HasOne("Restaurant.Data.Models.AccountState", "AccState")
+                        .WithMany("Accounts")
+                        .HasForeignKey("AccStateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Restaurant.Data.Models.AccountsType", "AccType")
+                        .WithMany("Accounts")
+                        .HasForeignKey("AccTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Restaurant.Data.Models.Currency", "Currency")
+                        .WithMany("Accounts")
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AccState");
+
+                    b.Navigation("AccType");
+
+                    b.Navigation("Currency");
                 });
 
             modelBuilder.Entity("Restaurant.Data.Models.ApplicationUser", b =>
@@ -1829,11 +2045,26 @@ namespace Restaurant.Data.Migrations
                     b.Navigation("Store");
                 });
 
+            modelBuilder.Entity("Restaurant.Data.Models.AccountState", b =>
+                {
+                    b.Navigation("Accounts");
+                });
+
+            modelBuilder.Entity("Restaurant.Data.Models.AccountsType", b =>
+                {
+                    b.Navigation("Accounts");
+                });
+
             modelBuilder.Entity("Restaurant.Data.Models.Branche", b =>
                 {
                     b.Navigation("ApplicationUsers");
 
                     b.Navigation("Employees");
+                });
+
+            modelBuilder.Entity("Restaurant.Data.Models.Currency", b =>
+                {
+                    b.Navigation("Accounts");
                 });
 
             modelBuilder.Entity("Restaurant.Data.Models.Customer", b =>

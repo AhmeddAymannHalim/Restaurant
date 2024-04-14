@@ -12,7 +12,7 @@ namespace ResturantPL.ViewModels
         public decimal Remaining { get; set; }
 
         public InvoiceType InvoiceType { get; set; }
-        public PayType PayType { get; set; }
+        public PayTypes PayType { get; set; }
         public int SupplierId { get; set; }
         public int StoreId { get; set; }
 
@@ -41,7 +41,7 @@ namespace ResturantPL.ViewModels
         public decimal Remaining { get; set; }
 
         public InvoiceType InvoiceType { get; set; }
-        public PayType PayType { get; set; }
+        public PayTypes PayType { get; set; }
         public int SupplierId { get; set; }
         public int StoreId { get; set; }
 

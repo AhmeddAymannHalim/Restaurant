@@ -84,14 +84,23 @@
                         <td>مرتجعات</td>
                     }
 
-                    @if (item.PayType == PayType.Cash)
+                    @if (item.PayType == PayTypes.Cash)
                     {
                         <td>كاش </td>
                     }
-                    else
+                    else if (item.PayType == PayTypes.Later)
                     {
                         <td>آجل</td>
                     }
+                    else if (item.PayType == PayTypes.Visa)
+                    {
+                        <td>فيزا</td>
+                    }
+                    else
+                    {
+                        <td>نقدي</td>
+                    }
+
 
                     <td>
                         @Html.DisplayFor(modelItem => item.Supplier.Name)

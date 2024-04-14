@@ -4,6 +4,7 @@ namespace ResturantPL.ViewModels
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using Microsoft.AspNetCore.Http;
+    using Restaurant.Data.Models;
 
     public class MenuItemViewModel
     {
@@ -16,6 +17,9 @@ namespace ResturantPL.ViewModels
 
         [Display(Name = "القسم")]
         public int MenuSectionId { get; set; }
+
+        [Display(Name = "الحجم")]
+        public Size? Size { get; set; }
 
         [StringLength(500, ErrorMessage = "The description must be at most 500 characters long.")]
         [Display(Name = "وصف المنتج")]

@@ -578,7 +578,7 @@ namespace ResturantPL.Controllers
                     return RedirectToAction("Details", new { id = Order.Id });
                 }
                 // Notify clients that a new order has been added
-                await _orderHubContext.Clients.All.SendAsync("RefreshOrders");
+               // await _orderHubContext.Clients.All.SendAsync("RefreshOrders");
                 return View(viewModel);
             }
             catch (Exception ex)

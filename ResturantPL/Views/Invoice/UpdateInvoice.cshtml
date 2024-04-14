@@ -125,18 +125,20 @@
                         @foreach (var item in Model.InvoiceItems)
                         {
                             <tr>
-                                <td hidden> @item.ProductId  </td>
-                                <td>  @item.ProductName </td>
-                                <td hidden>  @item.UnitPriceId </td>
-                                <td> @item.UnitPriceName </td>
-                                <td> @item.Quantity </td>
-                                <td> @item.Price </td>
-                                <td> @item.Total</td>
-                                <td><button class="btn btn-danger cancelRow">الغاء</button></td>
+                                <td hidden>@item.ProductId</td>
+                                <td>@item.ProductName</td>
+                                <td hidden>@item.UnitPriceId</td>
+                                <td>@item.UnitPriceName</td>
+                                <td>@item.Quantity</td>
+                                <td>@item.Price</td>
+                                <td>@item.Total</td>
+                                <td>
+                                    <button class="btn btn-danger cancelRow">الغاء</button>
+                                    <button class="btn btn-primary editRow">تعديل</button>
+                                </td>
                             </tr>
                         }
-
-
+                      
                     </tbody>
 
                 </table>
@@ -169,8 +171,10 @@
         <div class="form-group col-md-2">
             <label asp-for="PayType" class="control-label">طريقة الدفع</label>
             <select id="payType" asp-for="PayType" class="form-control">
-                <option value="@PayType.Cash">كاش</option>
-                <option value="@PayType.Later">آجل</option>
+                <option value="@PayTypes.Cash">كاش</option>
+                <option value="@PayTypes.Later">آجل</option>
+                <option value="@PayTypes.Money">نقدي</option>
+                <option value="@PayTypes.Visa">فيزا</option>
             </select>
             <span asp-validation-for="PayType" class="text-danger"></span>
         </div>
@@ -325,6 +329,16 @@
                 return totalPrice;
             }
 
+
+            function EraseFields() {
+                $('#availableQuantity').val('');
+                $('#requiredQuantity').val('');
+                $('#buyPrice').val('');
+                $('#total').val('');
+
+            }
+
+
             // Function to update the total price and discounted total price
             function updateTotalPrice() {
                 var totalPrice = calculateTotalPrice();
@@ -370,12 +384,16 @@
                     '<td>' + requiredQuantity + '</td>' +
                     '<td>' + buyPrice + '</td>' +
                     '<td>' + totalPrice + '</td>' +
-                    '<td><button class="btn btn-danger cancelRow">الغاء</button></td>' +
+                    '<td>' +
+                    '<button class="btn btn-danger cancelRow">الغاء</button>' +
+                    '<button class="btn btn-primary editRow">تعديل</button>' +
+                    '</td>' +
                     '</tr>';
                 $('#invoiceTable tbody').append(newRow);
 
                 // Update total price
                 updateTotalPrice();
+                EraseFields();
             });
 
             // Event listener for the "Cancel" button in each row
@@ -390,9 +408,35 @@
                 // Update total price
                 updateTotalPrice();
             });
+
+
+            $(document).on('click', '.editRow', function () {
+                var row = $(this).closest('tr');
+                var productId = row.find('td:eq(0)').text();
+                var unitPriceId = row.find('td:eq(2)').text();
+                var requiredQuantity = row.find('td:eq(4)').text();
+                var buyPrice = row.find('td:eq(5)').text();
+                var total = row.find('td:eq(6)').text();
+
+                // Set values in the input fields for editing
+                $('#productId').val(productId);
+                $('#unitPriceId').val(unitPriceId); // Add this line to set unitPriceId
+                $('#requiredQuantity').val(requiredQuantity);
+                $('#buyPrice').val(buyPrice);
+                $('#total').val(total);
+
+                // Remove the row being edited
+                row.remove();
+
+                // Update total price
+                updateTotalPrice();
+            });
+
+
+
         });
     </script>
-    <script>
+    <script> 
         $(document).ready(function () {
             $('#invoiceForm').submit(function () {
                 // Initialize index

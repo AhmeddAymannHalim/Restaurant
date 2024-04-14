@@ -14,11 +14,11 @@ namespace ResturantPL.ViewModels
         public string Code { get; set; }
         [Required, MaxLength(11), Display(Name = "رقم الهاتف")]
         public string Phone1 { get; set; }
-        [Required, MaxLength(11), Display(Name = "رقم الهاتف 2")]
+        [ MaxLength(11), Display(Name = "رقم الهاتف 2")]
         public string Phone2 { get; set; }
-        [Required, MaxLength(11), Display(Name = "رقم الموبايل")]
+        [ MaxLength(11), Display(Name = "رقم الموبايل")]
         public string Mobile1 { get; set; }
-        [Required, MaxLength(11), Display(Name = "رقم الموبايل 2")]
+        [ MaxLength(11), Display(Name = "رقم الموبايل 2")]
         public string Mobile2 { get; set; }
 
         public List<Employee> EmployeeList { get; set; } = new List<Employee>();

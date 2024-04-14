@@ -37,7 +37,9 @@ namespace ResturantPL.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    bool tableExists = _unitOfWork.TableRepository.Any(t => t.Name == table.Name);
+                    string nameWithoutSpaces = table.Name.Replace(" ", "");
+
+                    bool tableExists = _unitOfWork.TableRepository.Any(t => t.Name.Replace(" ", "") == nameWithoutSpaces);
 
                     if (tableExists)
                     {
@@ -49,7 +51,7 @@ namespace ResturantPL.Controllers
                     await _unitOfWork.TableRepository.AddAsync(table);
                     _unitOfWork.Complete();
 
-                    return RedirectToAction("Index");
+                    return RedirectToAction("Create");
                 }
                 return View(table);
             }

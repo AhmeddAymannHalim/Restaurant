@@ -162,3 +162,17 @@ th {
     background-color: gold;
     color: black;
 }
+.box {
+    position: relative;
+}
+
+    .box i {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .box .data {
+        margin-top: 20px; /* Adjust as needed */
+    }

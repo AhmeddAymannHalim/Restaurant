@@ -1,0 +1,396 @@
+﻿@model MenuItemViewModel
+
+@{
+    ViewData["Title"] = "Add Size";
+
+    MenuItem item = ViewBag.ItemDetail as MenuItem;
+}
+<div style="direction:rtl;">
+
+
+    <h1 class="text-center">اضافة حجم لمنتج في المنيو</h1>
+    <hr />
+
+
+    <form id="menuForm" asp-action="AddSize" class="row m-3" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <div class="form-group col-md-3">
+            <label asp-for="Name" class="control-label"></label>
+            <input id="name" name="Name" value="@item.Name" class="form-control" readonly />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label" asp-for="MenuSectionId">القسم</label>
+            <select asp-for="MenuSectionId" value="@item.MenuSectionId" class="form-control" required asp-items="ViewBag.MenuSections">
+                <option value="">اختر القسم</option>
+            </select>
+            <span asp-validation-for="MenuSectionId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-3">
+            <label class="control-label" asp-for="Size">الحجم</label>
+            <select asp-for="Size" id="size" class="form-control">
+                <option value="">اختر الحجم</option>
+                <option value="@Size.Small">صغير</option>
+                <option value="@Size.Medium">متوسط</option>
+                <option value="@Size.Large">كبير</option>
+                <option value="@Size.Syrian_Bread">عيش سوري</option>
+                @*  <option value="@Size.regular">عادي</option> *@
+            </select>
+            <span asp-validation-for="Size" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-3">
+            <label class="control-label" asp-for="Description" class="control-label"></label>
+            <input asp-for="Description" value="@item.Description" class="form-control" required />
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label" asp-for="Image">الصورة</label>
+            <input type="file" accept="image/*" asp-for="Image" value="@item.Description" class="form-control" required />
+            <span asp-validation-for="Image" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-3">
+            <label class="control-label" asp-for="StoreId">المخزن</label>
+            <select id="storeList" asp-for="StoreId" class="form-control" asp-items="ViewBag.Stores" required>
+                <option value="">اختر المخزن</option>
+            </select>
+            <input id="storeId" class="form-control" hidden />
+        </div>
+
+        <div class="form-group col-md-3">
+            <label class="control-label">الصنف</label>
+            <select id="productList" name="StoreProductId" class="form-control">
+                <option value="">اختر الصنف</option>
+            </select>
+        </div>
+
+
+        <div class="form-group col-md-3">
+            <label class="control-label">الكمية المتاحة</label>
+            <input id="availableQuantity" class="form-control" readonly />
+        </div>
+
+        <div class="form-group col-md-3">
+            <label class="control-label">سعر الشراء</label>
+            <input id="buyPrice" class="form-control" readonly />
+        </div>
+
+
+        <div class="form-group col-md-3">
+            <label class="control-label">الكمية المطلوبة</label>
+            <input id="quantity" name="Quantity" class="form-control" />
+        </div>
+
+
+        <div class="form-group col-md-3">
+            <label class="control-label">التكلفة</label>
+            <input id="cost" name="Cost" class="form-control" readonly />
+        </div>
+
+        <div class="form-group col-md-3">
+            <label asp-for="TotalCost" class="control-label"></label>
+            <input id="totalCost" asp-for="TotalCost" class="form-control" value="0" readonly />
+            <span asp-validation-for="TotalCost" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-3">
+            <label asp-for="Price" class="control-label"></label>
+            <input id="price" asp-for="Price" class="form-control" type="number" value="0" required />
+            <span asp-validation-for="Price" class="text-danger"></span>
+        </div>
+
+
+        <div class="form-group col-md-3">
+            <label asp-for="Benefit" class="control-label">الربح</label>
+            <input id="benefit" asp-for="Benefit" class="form-control" readonly />
+            <span asp-validation-for="Benefit" class="text-danger"></span>
+        </div>
+
+
+        <div class="form-group col-md-3">
+            <label class="control-label">اضافة مكون</label>
+            <input id="addComponent" type="button" value="اضافة مكون" class="btn btn-primary form-control" />
+        </div>
+
+        <div class="form-group col-md-3">
+            <label class="control-label">حفظ المنتج</label>
+            <input type="submit" value="حفظ المنتج" class="btn btn-success form-control" />
+        </div>
+
+        <div class="form-group col-md-12 mt-3 mb-1">
+            <div style="border: 3px solid white; min-height:200px;" id="items">
+                <table id="componentTable" class="table table-hover text-center table-bordered table-striped-columns table-dark">
+                    <thead>
+                        <tr>
+                            <th hidden>
+                                storeProductId
+                            </th>
+                            <th>
+                                اسم العنصر
+                            </th>
+                            <th>
+                                الكمية
+                            </th>
+                            <th>
+                                التكلفة
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <div class="form-group col-md-2 mt-3">
+            <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a> |
+            <a asp-action="Index">عودة للمنيو</a>
+        </div>
+
+    </form>
+
+
+</div>
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+
+
+    <script>
+        $(document).ready(function () {
+            var $productList = $('#productList');
+            var $productOptions = $productList.find('option');
+
+            $productList.on('input', function () {
+                var searchText = $(this).val().trim().toLowerCase();
+
+                $productOptions.show();
+
+                if (searchText) {
+                    $productOptions.each(function () {
+                        var optionText = $(this).text().toLowerCase();
+                        if (optionText.indexOf(searchText) === -1) {
+                            $(this).hide();
+                        }
+                    });
+                }
+                $productList.attr('size', $productList.find('option:visible').length + 1);
+            });
+
+            $('#storeList').change(function () {
+                $productList.val('').trigger('input');
+            });
+            $productList.change(function () {
+            });
+        });
+
+    </script>
+
+
+    <script>
+        $(document).ready(function () {
+            // Input event for quantity field
+            $('#quantity').on('input', function () {
+                var quantity = $('#quantity').val();
+                var buyPrice = $('#buyPrice').val();
+                var productCost = quantity * buyPrice;
+                $('#cost').val(productCost.toFixed(2));
+            });
+
+            // Change event for store list
+            $('#storeList').change(function () {
+                // Clear all input values
+                $('#benefit').val('');
+                $('#price').val(0);
+                $('#cost').val('');
+                $('#totalCost').val('');
+                $('#quantity').val('');
+                $('#componentTable tbody').empty(); // Clear all rows in the table
+
+                // Retrieve products by store using AJAX
+                var storeId = $(this).val();
+                $.ajax({
+                    url: '/Menu/GetProductsByStore',
+                    type: 'GET',
+                    data: { storeId: storeId },
+                    success: function (data) {
+                        // Populate product list dropdown
+                        $('#productList').empty().append('<option value="">اختر الصنف</option>');
+                        $.each(data, function (index, prod) {
+                            $('#productList').append($('<option>', {
+                                value: prod.id,
+                                text: prod.productName
+                            }));
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+
+            // Change event for product list
+            $('#productList').change(function () {
+                // Retrieve price by product using AJAX
+                var storeProductId = $(this).val();
+                $.ajax({
+                    url: '/Menu/GetPriceByProduct',
+                    type: 'GET',
+                    data: { productId: storeProductId },
+                    success: function (data) {
+                        $('#availableQuantity').val(data.quantity);
+                        $('#buyPrice').val(data.priceForUnit);
+                        $('#quantity').val('');
+                        $('#cost').val('');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+
+            // Function to calculate total cost and benefit
+            function calculateTotalCostAndBenefit() {
+                var totalCost = 0;
+                $('#componentTable tbody tr').each(function () {
+                    var rowQuantity = parseFloat($(this).find('td:eq(2)').text());
+                    var rowCost = parseFloat($(this).find('td:eq(3)').text());
+                    totalCost += rowCost;
+                });
+                $('#totalCost').val(totalCost.toFixed(2));
+
+                var price = parseFloat($('#price').val());
+                var benefit = price - totalCost;
+                $('#benefit').val(benefit.toFixed(2));
+
+                // if (benefit < 0) {
+                //     alert("احذر التكلفة أكبر من سعر البيع");
+                // }
+            }
+
+            // Event listener for the "Add Component" button
+            $('#addComponent').click(function () {
+                var productId = $('#productList').val();
+                var productName = $('#productList option:selected').text();
+                var quantity = $('#quantity').val();
+                var cost = $('#cost').val();
+
+                // Check if any of the fields are empty
+                if (productId.trim() === '' || productName.trim() === '' || quantity.trim() === '' || cost.trim() === '') {
+                    alert('برجاء اضافة المكون و عدم ترك الخانات فارغة');
+                    return; // Exit the function early if any field is empty
+                }
+
+                // Append a new row to the table with the captured values
+                var newRow = '<tr>' +
+                    '<td hidden>' + productId + '</td>' +
+                    '<td>' + productName + '</td>' +
+                    '<td>' + quantity + '</td>' +
+                    '<td>' + cost + '</td>' +
+                    '<td><button class="btn btn-danger cancelRow">الغاء</button></td>' +
+                    '</tr>';
+                $('#componentTable tbody').append(newRow);
+
+                // Update total cost and benefit
+                calculateTotalCostAndBenefit();
+            });
+
+            // Event listener for the "Cancel" button in each row
+            $(document).on('click', '.cancelRow', function () {
+                $(this).closest('tr').remove();
+                // Update total cost and benefit
+                calculateTotalCostAndBenefit();
+            });
+
+            // Event listener for quantity and price inputs
+            $('#quantity, #price').on('input', function () {
+                // Update total cost and benefit
+                calculateTotalCostAndBenefit();
+            });
+
+
+            $('#size').change(function () { 
+                // Retrieve MenuItem name and size from the form
+                var menuItemName = $('#name').val();
+                var menuItemSize = $('#size').val();
+
+                $.ajax({                    
+                    url: '/Menu/CheckSize', 
+                    type: 'GET',            
+                    data: { name: menuItemName, size: menuItemSize },
+                    success: function (response) {
+                        if (response) {
+                            alert('يوجد منتج بنفس الاسم والحجم.');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+
+
+            // Submit event for the menu form
+            $('#menuForm').submit(function () {
+                var index = 0;
+
+                // Loop through each selected item in the table
+                $('#componentTable tbody tr').each(function () {
+                    var storeProductId = $(this).find('td:eq(0)').text();
+                    var quantity = parseFloat($(this).find('td:eq(2)').text());
+                    var cost = parseFloat($(this).find('td:eq(3)').text());
+
+                    // Create hidden input fields for each property of the MenuItemComponent
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'MenuItemComponents[' + index + '].StoreProductId',
+                        value: storeProductId
+                    }).appendTo('#menuForm');
+
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'MenuItemComponents[' + index + '].Quantity',
+                        value: quantity
+                    }).appendTo('#menuForm');
+
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'MenuItemComponents[' + index + '].Cost',
+                        value: cost
+                    }).appendTo('#menuForm');
+
+                    // Increment index
+                    index++;
+                });
+
+                var totalCost = parseFloat($('#totalCost').val());
+                var price = parseFloat($('#price').val());
+                var benefit = price - totalCost;
+
+                // Check if benefit is less than 0
+                if (benefit < 0) {
+
+                    var confirmation = confirm("احذر التكلفة أكبر من سعر البيع. هل تريد المتابعة؟");
+                    if (!confirmation) {
+
+                        event.preventDefault();
+                    }
+                }
+
+            });
+        });
+    </script>
+}
+
+
+
+
+

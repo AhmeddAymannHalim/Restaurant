@@ -88,7 +88,6 @@
                     @if (User.Identity.IsAuthenticated && !User.IsInRole("User"))
                     {
                         <li><a class="nav-link scrollto" asp-action="AdminDash" asp-controller="Account">لوحة التحكم</a></li>
-                        <li><a class="nav-link scrollto" asp-action="KitchenOrders" asp-controller="kitchen">المطبخ</a></li>
                     }
 
                     <li><a class="nav-link scrollto" asp-action="Menu" asp-controller="OnlineOrder">المنيو</a></li>

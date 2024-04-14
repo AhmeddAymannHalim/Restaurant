@@ -66,13 +66,21 @@
             نوع الدفع
         </dt>
 
-        @if (Model.PayType == PayType.Cash)
+        @if (Model.PayType == PayTypes.Cash)
         {
             <dd class="col-sm-8">كاش</dd>
         }
-        else
+        else if (Model.PayType == PayTypes.Later)
         {
             <dd class="col-sm-8">آجل</dd>
+        }
+        else if (Model.PayType == PayTypes.Visa)
+        {
+            <dd class="col-sm-8">فيزا</dd>
+        }
+        else 
+        {
+            <dd class="col-sm-8">نقدي</dd>
         }
 
         <dt class="col-sm-3">

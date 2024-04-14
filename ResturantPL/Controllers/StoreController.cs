@@ -55,17 +55,42 @@ namespace ResturantPL.Controllers
         {
             try
             {
-                //if (store.StorekeeperId == null)
-                //{
-                //    ModelState.AddModelError("", "برجاء اضافة موظفين ينتمون لوظيفة امين مخزن");
-                //    ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll()
-                //   .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" || a.UserType == "امين مخازن" || a.UserType == "أمين مخازن" || a.UserType == "أمين مخزن"), "EmployeeId", "FullName");
+                string nameWithoutSpaces = store.Name.Replace(" ", "");
 
-                //    return View(store);
-                //}
+                bool nameExist = _unitOfWork.StoreRepository.Any(t => t.Name.Replace(" ", "") == nameWithoutSpaces);
+                bool phoneNumber = _unitOfWork.StoreRepository.Any(t => t.PhoneNumber == store.PhoneNumber);
+                bool mobileNumber = _unitOfWork.StoreRepository.Any(t => t.MobileNumber == store.MobileNumber);
+
+                if (nameExist)
+                {
+                    ModelState.AddModelError("Name", "هذا المخزن موجود بالفعل من فضلك قم بتغيير الاسم");
+                    ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll()
+                   .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" || a.UserType == "امين مخازن" || a.UserType == "أمين مخازن" || a.UserType == "أمين مخزن"), "EmployeeId", "FullName");
+
+                    return View(store);
+                }
+                if (mobileNumber)
+                {
+                    ModelState.AddModelError("MobileNumber", "هذا الرقم موجود بالفعل");
+                    ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll()
+                 .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" || a.UserType == "امين مخازن" || a.UserType == "أمين مخازن" || a.UserType == "أمين مخزن"), "EmployeeId", "FullName");
+
+                    return View(store);
+                }
+
+                if (phoneNumber)
+                {
+                    ModelState.AddModelError("PhoneNumber", "هذا الرقم موجود بالفعل");
+                    ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll()
+                 .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" || a.UserType == "امين مخازن" || a.UserType == "أمين مخازن" || a.UserType == "أمين مخزن"), "EmployeeId", "FullName");
+
+                    return View(store);
+                }
+
+
 
                 ViewBag.Employees = new SelectList(_unitOfWork.EmployeeRepository.GetAll()
-                    .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" ||a.UserType == "امين مخازن" ||a.UserType == "أمين مخازن" || a.UserType == "أمين مخزن"), "EmployeeId", "FullName");
+                    .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" || a.UserType == "امين مخازن" || a.UserType == "أمين مخازن" || a.UserType == "أمين مخزن"), "EmployeeId", "FullName");
                 var products = _unitOfWork.ProductRepository.GetAll();
 
                 if (ModelState.IsValid)
@@ -110,15 +135,15 @@ namespace ResturantPL.Controllers
             return NotFound();
         }
         [HttpGet]
-        public IActionResult Inventory(int id,DateTime startDate,DateTime endDate)
+        public IActionResult Inventory(int id, DateTime startDate, DateTime endDate)
         {
-            var store = _unitOfWork.StoreRepository.GetById(a => a.Id == id, new string[] {  "StoreProducts" });
+            var store = _unitOfWork.StoreRepository.GetById(a => a.Id == id, new string[] { "StoreProducts" });
             decimal total = 0;
             foreach (var item in store.StoreProducts)
             {
-                total+= item.Quantity*item.PriceForUnit;
+                total += item.Quantity * item.PriceForUnit;
             }
-           ViewBag.Total=total;
+            ViewBag.Total = total;
             return View(store);
         }
 

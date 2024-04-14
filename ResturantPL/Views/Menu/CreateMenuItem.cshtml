@@ -6,142 +6,191 @@
 <div style="direction:rtl;">
 
 
-<h1 class="text-center">اضافة منتج للمنيو</h1>
-<hr />
+    <h1 class="text-center">اضافة منتج للمنيو</h1>
+    <hr />
 
 
-<form id="menuForm" asp-action="CreateMenuItem" class="row m-3" enctype="multipart/form-data">
-    <div asp-validation-summary="All" class="text-danger"></div>
+    <form id="menuForm" asp-action="CreateMenuItem" class="row m-3" enctype="multipart/form-data">
+        <div asp-validation-summary="All" class="text-danger"></div>
 
-    <div class="form-group col-md-3">
-        <label asp-for="Name" class="control-label"></label>
-        <input asp-for="Name" class="form-control" required/>
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
-    <div class="form-group col-md-3">
+        <div class="form-group col-md-3">
+            <label asp-for="Name" class="control-label"></label>
+            <input asp-for="Name" class="form-control" required />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="form-group col-md-3">
             <label class="control-label" asp-for="MenuSectionId">القسم</label>
             <select asp-for="MenuSectionId" class="form-control" required asp-items="ViewBag.MenuSections">
-            <option value="">اختر القسم</option>
-        </select>
+                <option value="">اختر القسم</option>
+            </select>
             <span asp-validation-for="MenuSectionId" class="text-danger"></span>
-    </div>
-    <div class="form-group col-md-3">
-        <label class="control-label" asp-for="Description" class="control-label"></label>
-        <input asp-for="Description" class="form-control" required />
-        <span asp-validation-for="Description" class="text-danger"></span>
-    </div>
-    <div class="form-group col-md-3">
-        <label class="control-label" asp-for="Image">الصورة</label>
-        <input type="file" accept="image/*" asp-for="Image" class="form-control" required/>
-        <span asp-validation-for="Image" class="text-danger"></span>
-    </div>
-
-    <div class="form-group col-md-3">
-        <label class="control-label" asp-for="StoreId">المخزن</label>
-        <select id="storeList" asp-for="StoreId" class="form-control" asp-items="ViewBag.Stores" required>
-            <option value="">اختر المخزن</option>
-        </select>
-        <input id="storeId" class="form-control" hidden />
-    </div>
-
-    <div class="form-group col-md-3">
-        <label class="control-label">الصنف</label>
-        <select id="productList" name="StoreProductId" class="form-control"  >
-            <option value="">اختر الصنف</option>
-        </select>
-    </div>
-
-
-    <div class="form-group col-md-3">
-        <label class="control-label">الكمية المتاحة</label>
-        <input id="availableQuantity" class="form-control" readonly />
-    </div>
-
-    <div class="form-group col-md-3">
-        <label class="control-label">سعر الشراء</label>
-        <input id="buyPrice" class="form-control" readonly />
-    </div>
-
-
-    <div class="form-group col-md-3">
-        <label class="control-label">الكمية المطلوبة</label>
-        <input id="quantity" name="Quantity" class="form-control"  />
-    </div>
-
-
-    <div class="form-group col-md-3">
-        <label class="control-label">التكلفة</label>
-        <input id="cost" name="Cost" class="form-control" readonly />
-    </div>
-
-    <div class="form-group col-md-3">
-        <label asp-for="TotalCost" class="control-label"></label>
-        <input id="totalCost" asp-for="TotalCost" class="form-control" value="0" readonly />
-        <span asp-validation-for="TotalCost" class="text-danger"></span>
-    </div>
-
-    <div class="form-group col-md-3">
-        <label asp-for="Price" class="control-label"></label>
-        <input id="price" asp-for="Price" class="form-control" type="number" value="0" required/>
-        <span asp-validation-for="Price" class="text-danger"></span>
-    </div>
-  
-
-    <div class="form-group col-md-3">
-        <label asp-for="Benefit" class="control-label">الربح</label>
-        <input id="benefit" asp-for="Benefit" class="form-control" readonly />
-        <span asp-validation-for="Benefit" class="text-danger"></span>
-    </div>
-
-  
-    <div class="form-group col-md-3">
-        <label class="control-label">اضافة مكون</label>
-        <input id="addComponent" type="button" value="اضافة مكون" class="btn btn-primary form-control" />
-    </div>
-
-    <div class="form-group col-md-3">
-        <label class="control-label">حفظ المنتج</label>
-        <input type="submit" value="حفظ المنتج" class="btn btn-success form-control" />
-    </div>
-
-    <div class="form-group col-md-12 mt-3 mb-1">
-        <div style="border: 3px solid white; min-height:200px;" id="items">
-            <table id="componentTable" class="table table-hover text-center table-bordered table-striped-columns table-dark">
-                <thead>
-                    <tr>
-                        <th hidden>
-                            storeProductId
-                        </th>
-                        <th>
-                            اسم العنصر
-                        </th>
-                        <th>
-                            الكمية
-                        </th>
-                        <th>
-                            التكلفة
-                        </th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                   
-                </tbody>
-            </table>
+        </div>  
+        
+        <div class="form-group col-md-3">
+            <label class="control-label" asp-for="Size">الحجم</label>
+            <select asp-for="Size" class="form-control"  >
+                <option value="">اختر الحجم</option>
+                <option value="@Size.Small">صغير</option>
+                <option value="@Size.Medium">متوسط</option>
+                <option value="@Size.Large">كبير</option>
+                <option value="@Size.Syrian_Bread">عيش سوري</option>
+               @*  <option value="@Size.regular">عادي</option> *@
+            </select>
+            <span asp-validation-for="Size" class="text-danger"></span>
         </div>
-    </div>
+
+        <div class="form-group col-md-3">
+            <label class="control-label" asp-for="Description" class="control-label"></label>
+            <input asp-for="Description" class="form-control" required />
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label" asp-for="Image">الصورة</label>
+            <input type="file" accept="image/*" asp-for="Image" class="form-control" required />
+            <span asp-validation-for="Image" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-3">
+            <label class="control-label" asp-for="StoreId">المخزن</label>
+            <select id="storeList" asp-for="StoreId" class="form-control" asp-items="ViewBag.Stores" required>
+                <option value="">اختر المخزن</option>
+            </select>
+            <input id="storeId" class="form-control" hidden />
+        </div>
+
+        <div class="form-group col-md-3">
+            <label class="control-label">الصنف</label>
+            <select id="productList" name="StoreProductId" class="form-control">
+                <option value="">اختر الصنف</option>
+            </select>
+        </div>
 
 
-    <div class="form-group col-md-2 mt-3">
-        <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a> |
-        <a asp-action="Index">عودة للمنيو</a>
-    </div>
+        <div class="form-group col-md-3">
+            <label class="control-label">الكمية المتاحة</label>
+            <input id="availableQuantity" class="form-control" readonly />
+        </div>
 
-</form>
+        <div class="form-group col-md-3">
+            <label class="control-label">سعر الشراء</label>
+            <input id="buyPrice" class="form-control" readonly />
+        </div>
+
+
+        <div class="form-group col-md-3">
+            <label class="control-label">الكمية المطلوبة</label>
+            <input id="quantity" name="Quantity" class="form-control" />
+        </div>
+
+
+        <div class="form-group col-md-3">
+            <label class="control-label">التكلفة</label>
+            <input id="cost" name="Cost" class="form-control" readonly />
+        </div>
+
+        <div class="form-group col-md-3">
+            <label asp-for="TotalCost" class="control-label"></label>
+            <input id="totalCost" asp-for="TotalCost" class="form-control" value="0" readonly />
+            <span asp-validation-for="TotalCost" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-3">
+            <label asp-for="Price" class="control-label"></label>
+            <input id="price" asp-for="Price" class="form-control" type="number" value="0" required />
+            <span asp-validation-for="Price" class="text-danger"></span>
+        </div>
+
+
+        <div class="form-group col-md-3">
+            <label asp-for="Benefit" class="control-label">الربح</label>
+            <input id="benefit" asp-for="Benefit" class="form-control" readonly />
+            <span asp-validation-for="Benefit" class="text-danger"></span>
+        </div>
+
+
+        <div class="form-group col-md-3">
+            <label class="control-label">اضافة مكون</label>
+            <input id="addComponent" type="button" value="اضافة مكون" class="btn btn-primary form-control" />
+        </div>
+
+        <div class="form-group col-md-3">
+            <label class="control-label">حفظ المنتج</label>
+            <input type="submit" value="حفظ المنتج" class="btn btn-success form-control" />
+        </div>
+
+        <div class="form-group col-md-12 mt-3 mb-1">
+            <div style="border: 3px solid white; min-height:200px;" id="items">
+                <table id="componentTable" class="table table-hover text-center table-bordered table-striped-columns table-dark">
+                    <thead>
+                        <tr>
+                            <th hidden>
+                                storeProductId
+                            </th>
+                            <th>
+                                اسم العنصر
+                            </th>
+                            <th>
+                                الكمية
+                            </th>
+                            <th>
+                                التكلفة
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <div class="form-group col-md-2 mt-3">
+            <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a> |
+            <a asp-action="Index">عودة للمنيو</a>
+        </div>
+
+    </form>
 
 
 </div>
 @section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+            var $productList = $('#productList');
+            var $productOptions = $productList.find('option');
+
+            $productList.on('input', function () {
+                var searchText = $(this).val().trim().toLowerCase();
+
+                $productOptions.show();
+
+                if (searchText) {
+                    $productOptions.each(function () {
+                        var optionText = $(this).text().toLowerCase();
+                        if (optionText.indexOf(searchText) === -1) {
+                            $(this).hide();
+                        }
+                    });
+                }
+                $productList.attr('size', $productList.find('option:visible').length + 1);
+            });
+
+            $('#storeList').change(function () {
+                $productList.val('').trigger('input');
+            });
+            $productList.change(function () {
+            });
+        });
+
+    </script>
+
+
     <script>
         $(document).ready(function () {
             // Input event for quantity field

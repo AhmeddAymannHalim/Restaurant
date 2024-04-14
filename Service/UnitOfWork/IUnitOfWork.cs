@@ -41,6 +41,12 @@ namespace Service.UnitOfWork
         public IGenericRepository<PrinterForSection> PrinterForSectionRepository { get; set; }
         public IGenericRepository<ApplicationUser> UserRepository { get; set; }
         public IGenericRepository<IdentityRole> RoleRepository { get; set; }
+        public IGenericRepository<Account> AccountRepository { get; set; }
+        public IGenericRepository<AccountState> AccountStateRepository { get; set; }
+        public IGenericRepository<AccountsType> AccountTypeRepository { get; set; }
+        public IGenericRepository<Currency> CurrencyRepository { get; set; }
+        public IGenericRepository<PayType> PayTypeRepository { get; set; }
+        public IGenericRepository<SellType> SellTypeRepository { get; set; }
 
 
 

@@ -14,7 +14,7 @@
             <p class="float-end">الطباخين المميزين فى المطعم</p>
             <br />
             <br />
-            @if (!User.IsInRole("User"))
+            @if (User.Identity.IsAuthenticated && !User.IsInRole("User"))
             {
                 <a asp-action="ChefAdd" asp-controller="Home" class="btn-menu animated fadeInUp scrollto float-end m-5">إضافه طباخ</a>
             }
@@ -40,7 +40,7 @@
                         </div>
 
                     </div>
-                    @if (!User.IsInRole("User"))
+                    @if (User.Identity.IsAuthenticated && !User.IsInRole("User"))
                     {
                         <div>
                             <a asp-action="ChefUpdate" asp-controller="Home" asp-route-id="@item.Id" class="btn-menu animated fadeInUp scrollto float-end m-1">تعديل العنصر</a>

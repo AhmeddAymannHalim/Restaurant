@@ -44,6 +44,14 @@ namespace ResturantPL.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    string nameWithoutSpaces = model.Type.Replace(" ", "");
+
+                    bool nameExist = _unitOfWork.SalaryTypeRepository.Any(t => t.Type.Replace(" ", "") == nameWithoutSpaces);
+                    if (nameExist)
+                    {
+                        ModelState.AddModelError("Type", "هذا النوع من الرواتب موجود بالفعل من فضلك قم بتغيير الاسم");
+                        return View(model);
+                    }
                     bool typeExist = _unitOfWork.SalaryTypeRepository.Any(t => t.Type == model.Type);
 
                     if (typeExist)

@@ -35,6 +35,25 @@
             <dd class="col-sm-9">
                 @Html.DisplayFor(model => model.Description)
             </dd>
+            @if (Model.Size != Size.regular)
+            {
+                <dt class="col-sm-2">
+                    حجم المنتج
+                </dt>
+                <dd class="col-sm-9">
+                    @{
+                        string sizeLabel = Model.Size switch
+                        {
+                            Size.Small => "صغير",
+                            Size.Medium => "متوسط",
+                            Size.Large => "كبير",
+                            Size.Syrian_Bread => "عيش سوري",
+                            _ => "عادي"
+                        };
+                    }
+                    @sizeLabel
+                </dd>
+            }
             <dt class="col-sm-2">
                 المخزن
             </dt>

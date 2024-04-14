@@ -45,7 +45,7 @@
                         
                         <td class="align-middle">@order.CustomerName</td>
                         <td class="align-middle">
-                            <a type="button" asp-action="KitchenOrderDetails" asp-route-id="@order.Id" asp-route-isCheef="true" class="btn btn-warning text-light">
+                            <a type="button" id="complete" data-order-id="@order.Id" asp-action="KitchenOrderDetails" asp-route-id="@order.Id" asp-route-isCheef="true" class="btn btn-warning text-light">
                                 عرض التفاصيل
                             </a>
                         </td>
@@ -89,6 +89,32 @@
 @section Scripts{
     <script src="~/modules/kitchen.js"></script>
 }
+
+<script>
+    $(document).ready(function () {
+        // Click event handler for the "complete" button
+        $(document).on("click", "#complete", function () {
+            var orderId = $(this).data("order-id");
+
+            // Send AJAX request to complete the order
+            $.ajax({
+                url: "/Kitchen/CompleteOrder", // URL of the controller action
+                type: "POST", // HTTP method
+                data: { id: orderId }, // Data to send
+                success: function (response) {
+                    // Handle success response if needed
+                    console.log(response);
+                    // Refresh the orders after completion
+                    connection.invoke("RefreshOrders");
+                },
+                error: function (xhr, status, error) {
+                    // Handle error response if needed
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
 
 
 

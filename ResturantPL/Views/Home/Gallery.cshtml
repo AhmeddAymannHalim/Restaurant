@@ -15,7 +15,10 @@
             <p class="float-end">بعض الصور المميزه للمطعم</p>
             <br />
             <br />
-            <a asp-action="GalleryAdd" asp-controller="Home" class="btn-menu animated fadeInUp scrollto float-end m-5">إضافه صوره</a>
+            @if (User.Identity.IsAuthenticated && !User.IsInRole("User"))
+            {
+                <a asp-action="GalleryAdd" asp-controller="Home" class="btn-menu animated fadeInUp scrollto float-end m-5">إضافه صوره</a>
+            }
         </div>
     </div>
     <br />
@@ -25,9 +28,9 @@
     <div class="container-fluid" data-aos="fade-up" data-aos-delay="100">
 
         <div class="row g-0">
-            @foreach(var item in Model)
+            @foreach (var item in Model)
             {
-                
+
                 <div class="col-lg-3 col-md-4 m-2">
                     <div class="gallery-item">
                         <a href="@item.PictureUrl" class="gallery-lightbox" data-gall="gallery-item">
@@ -36,12 +39,15 @@
                     </div>
 
                     <div>
-                        <a asp-action="GalleryDelete" asp-controller="Home" asp-route-id="@item.Id" class="btn-menu animated fadeInUp scrollto float-end m-1">حذف الصوره</a>
+                        @if (User.Identity.IsAuthenticated && !User.IsInRole("User"))
+                        {
+                            <a asp-action="GalleryDelete" asp-controller="Home" asp-route-id="@item.Id" class="btn-menu animated fadeInUp scrollto float-end m-1">حذف الصوره</a>
+                        }
                     </div>
                 </div>
             }
 
-           
+
 
         </div>
 

@@ -130,8 +130,12 @@
             <label class="control-label">الاجمالي الكلي</label>
             <input id="allTotalPrice" class="form-control" type="number" value="0" readonly/>
         </div>
-        <div class="form-group col-md-2">
-            <label class="control-label">الخصم</label>
+        <div class="form-group col-md-1">
+            <label class="control-label">الخصم بالنسبة</label>
+            <input id="discountPercent" class="form-control" type="number" value="0" />
+        </div>
+         <div class="form-group col-md-2">
+            <label class="control-label">الخصم بالقيمة</label>
             <input id="discount" asp-for="Discount" name="Discount" class="form-control" type="number" value="0" />
         </div>
 
@@ -145,11 +149,13 @@
 
         </div>
 
-        <div class="form-group col-md-2">
+        <div class="form-group col-md-1">
             <label asp-for="PayType" class="control-label">طريقة الدفع</label>
             <select id="payType" asp-for="PayType" class="form-control">
-                <option value="@PayType.Cash">كاش</option>
-                <option value="@PayType.Later">آجل</option>
+                <option value="@PayTypes.Cash">كاش</option>
+                <option value="@PayTypes.Later">آجل</option>
+                <option value="@PayTypes.Money">نقدي</option>
+                <option value="@PayTypes.Visa">فيزا</option>
             </select>
             <span asp-validation-for="PayType" class="text-danger"></span>
         </div>
@@ -201,6 +207,23 @@
 
                 var remained = totalPrice - paid;
                 $('#remain').val(remained.toFixed(2)); 
+            });
+
+            $('#discountPercent').on('input', function () {
+                var discountPercent = $(this).val();
+
+                var allTotalPrice = parseFloat($('#allTotalPrice').val());
+                var discountAmount = (discountPercent / 100) * allTotalPrice;
+
+                $('#discount').val(discountAmount.toFixed(2));
+
+                var totalPrice = allTotalPrice - discountAmount;
+                $('#totalPrice').val(totalPrice.toFixed(2));
+
+                var remained = totalPrice - paid;
+                $('#remain').val(remained.toFixed(2));
+
+                updateTotalPrice();
             });
         });
     </script>
@@ -292,8 +315,32 @@
         });
 
     </script>
+
+
+
     <script>
         $(document).ready(function () {
+            // Event listener for the "discount" input
+            $('#discount, #discountPercent').on('input', function () {
+                var discount = parseFloat($('#discount').val());
+                var discountPercent = parseFloat($('#discountPercent').val());
+
+                if (!isNaN(discount)) {
+                    // If discount is entered manually, update the other field with the calculated percentage
+                    var totalPrice = calculateTotalPrice();
+                    var calculatedDiscountPercent = (discount / totalPrice) * 100;
+                    $('#discountPercent').val(calculatedDiscountPercent.toFixed(2));
+                } else if (!isNaN(discountPercent)) {
+                    // If discount percentage is entered, calculate the discount amount
+                    var totalPrice = calculateTotalPrice();
+                    var calculatedDiscount = (discountPercent / 100) * totalPrice;
+                    $('#discount').val(calculatedDiscount.toFixed(2));
+                }
+
+                // Update total price
+                updateTotalPrice();
+            });
+
             // Function to calculate total price
             function calculateTotalPrice() {
                 var totalPrice = 0;
@@ -306,14 +353,26 @@
 
             // Function to update the total price and discounted total price
             function updateTotalPrice() {
+
+                var discountPercent = parseFloat($('#discountPercent').val());
                 var totalPrice = calculateTotalPrice();
-                var discountedTotalPrice = totalPrice - parseFloat($('#discount').val());
+                var calculatedDiscount = (discountPercent / 100) * totalPrice;
+                
+                var discountedTotalPrice = totalPrice - calculatedDiscount;
+                var paid = parseFloat($('#paid').val());
+                var remained = discountedTotalPrice - paid;
+
                 $('#allTotalPrice').val(totalPrice.toFixed(2));
                 $('#totalPrice').val(discountedTotalPrice.toFixed(2));
-
-                var paid = $('#paid').val();
-                var remained = discountedTotalPrice - paid;
                 $('#remain').val(remained.toFixed(2));
+            }
+
+            function EraseFields() {
+                $('#availableQuantity').val('');
+                $('#requiredQuantity').val('');
+                $('#buyPrice').val('');
+                $('#total').val('');
+
             }
 
             // Event listener for the "Add Product" button
@@ -347,8 +406,10 @@
                     '</tr>';
                 $('#invoiceTable tbody').append(newRow);
 
+              
                 // Update total price
                 updateTotalPrice();
+                EraseFields();
             });
 
             // Event listener for the "Cancel" button in each row

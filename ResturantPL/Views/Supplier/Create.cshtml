@@ -15,7 +15,7 @@
         <form asp-action="Create" method="post">
 
             @*For Server Side Validation Data Annotation*@
-            <div asp-validation-summary="All" class="text-danger"> </div>
+            <div asp-validation-summary="ModelOnly" class="text-danger"> </div>
 
             <div class="form-group">
                 <label asp-for="Name">اسم المورد</label>
@@ -33,7 +33,7 @@
 
             <div class="form-group">
                 <label asp-for="MobileNumber">رقم الموبايل</label>
-                <input asp-for="MobileNumber" class="form-control" maxlength="11" minlength="11" />
+                <input asp-for="MobileNumber" class="form-control" required maxlength="11" minlength="11" />
                 @*For Server Side Validation Data Annotation*@
                 <span asp-validation-for="MobileNumber" class="text-danger"></span>
             </div>

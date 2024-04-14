@@ -67,6 +67,15 @@ namespace ResturantPL.Controllers
 
                 if (ModelState.IsValid)
                 {
+                    string modelNameWithoutSpaces = model.Name.Replace(" ", "");
+                    bool nameExist = _unitOfWork.BrancheRepository.Any(t => t.Name.Replace(" ", "") == modelNameWithoutSpaces);
+
+                    if (nameExist)
+                    {
+                        ModelState.AddModelError("Name", "هذا الفرع موجود بالفعل من فضلك قم بتغيير الاسم");
+                        return View(model);
+                    }
+
                     Branche branche = _mapper.Map<Branche>(model);
                     await _unitOfWork.BrancheRepository.AddAsync(branche);
                     return RedirectToAction("Index");

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Restaurant.Data.Models;
 using ResturantPL.Helper;
 using Service.UnitOfWork;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ResturantPL.Controllers
 {
@@ -51,6 +52,38 @@ namespace ResturantPL.Controllers
             {
                 if (ModelState.IsValid)
                 {
+
+                    string nameWithoutSpaces = customer.Name.Replace(" ", "");
+
+                    bool nameExist = _unitOfWork.CustomerRepository.Any(t => t.Name.Replace(" ", "") == nameWithoutSpaces);
+                    bool mobileNumber = _unitOfWork.CustomerRepository.Any(t => t.MobileNumber == customer.MobileNumber);
+                    bool phoneNumber = _unitOfWork.CustomerRepository.Any(t => t.PhoneNumber == customer.PhoneNumber);
+
+                    if (nameExist)
+                    {
+                        ModelState.AddModelError("Name", "هذا العميل موجود بالفعل من فضلك قم بتغيير الاسم");
+                        return View(customer);
+                    }
+
+                    if (mobileNumber)
+                    {
+                        ModelState.AddModelError("MobileNumber", "هذا الرقم موجود بالفعل");
+                        return View(customer);
+                    }
+
+                    if (phoneNumber)
+                    {
+                        ModelState.AddModelError("PhoneNumber", "هذا الرقم موجود بالفعل");
+                        return View(customer);
+                    }
+
+
+
+
+
+
+
+
                     await _unitOfWork.CustomerRepository.AddAsync(customer);
 
                     return RedirectToAction("Index");

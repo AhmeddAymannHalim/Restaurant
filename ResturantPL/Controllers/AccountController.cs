@@ -76,6 +76,8 @@ namespace ResturantPL.Controllers
                 Scrounges = _unitOfWork.ScroungeRepository.GetAll().ToList(),
                 ExitExpenses = _unitOfWork.ExitExpenseRepository.GetAll().ToList(),
                 Salaries = _unitOfWork.SalaryRepository.GetAll().ToList(),
+                kitchenOrders = _unitOfWork.OrderRepository.GetAll().Where(a => a.Complete == false).ToList()
+
             };
 
             return View(adminViewModel);
@@ -204,28 +206,28 @@ namespace ResturantPL.Controllers
                         var result = await _userManager.CheckPasswordAsync(user, signInViewModel.Password);
                         if (result)
                         {
-                            
+
                             var roles = await _userManager.GetRolesAsync(user);
 
-                           
+
                             var claims = new List<Claim>
                             {
-                                new Claim(ClaimTypes.NameIdentifier, user.Id), 
-                                new Claim(ClaimTypes.Name, user.UserName), 
+                                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                                new Claim(ClaimTypes.Name, user.UserName),
                                 new Claim(ClaimTypes.Email, user.Email),
                             };
 
-                           
+
                             foreach (var role in roles)
                             {
                                 claims.Add(new Claim(ClaimTypes.Role, role));
                             }
 
-                          
+
                             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                             var principal = new ClaimsPrincipal(identity);
 
-                           
+
                             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
                             return RedirectToAction("Index", "Home");
