@@ -46,35 +46,35 @@ namespace ResturantPL.Controllers
 
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Customer customer)
+        public async Task<IActionResult> Create(Customer model)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
 
-                    string nameWithoutSpaces = customer.Name.Replace(" ", "");
+                    string nameWithoutSpaces = model.Name.Replace(" ", "");
 
                     bool nameExist = _unitOfWork.CustomerRepository.Any(t => t.Name.Replace(" ", "") == nameWithoutSpaces);
-                    bool mobileNumber = _unitOfWork.CustomerRepository.Any(t => t.MobileNumber == customer.MobileNumber);
-                    bool phoneNumber = _unitOfWork.CustomerRepository.Any(t => t.PhoneNumber == customer.PhoneNumber);
+                    bool mobileNumber = _unitOfWork.CustomerRepository.Any(t => t.MobileNumber == model.MobileNumber || t.PhoneNumber == model.MobileNumber);
+                    bool phoneNumber = _unitOfWork.CustomerRepository.Any(t => t.PhoneNumber == model.PhoneNumber || t.MobileNumber == model.PhoneNumber);
 
                     if (nameExist)
                     {
                         ModelState.AddModelError("Name", "هذا العميل موجود بالفعل من فضلك قم بتغيير الاسم");
-                        return View(customer);
+                        return View(model);
                     }
 
                     if (mobileNumber)
                     {
                         ModelState.AddModelError("MobileNumber", "هذا الرقم موجود بالفعل");
-                        return View(customer);
+                        return View(model);
                     }
 
                     if (phoneNumber)
                     {
                         ModelState.AddModelError("PhoneNumber", "هذا الرقم موجود بالفعل");
-                        return View(customer);
+                        return View(model);
                     }
 
 
@@ -84,11 +84,11 @@ namespace ResturantPL.Controllers
 
 
 
-                    await _unitOfWork.CustomerRepository.AddAsync(customer);
+                    await _unitOfWork.CustomerRepository.AddAsync(model);
 
                     return RedirectToAction("Index");
                 }
-                return View(customer);
+                return View(model);
             }
             catch (Exception ex)
             {

@@ -53,8 +53,8 @@ namespace ResturantPL.Controllers
                     string nameWithoutSpaces = supplier.Name.Replace(" ", "");
 
                     bool nameExist = _unitOfWork.SupplierRepository.Any(t => t.Name.Replace(" ", "") == nameWithoutSpaces);
-                    bool phoneNumber = _unitOfWork.SupplierRepository.Any(t => t.PhoneNumber == supplier.PhoneNumber);
-                    bool mobileNumber = _unitOfWork.SupplierRepository.Any(t => t.MobileNumber == supplier.MobileNumber);
+                    bool mobileNumber = _unitOfWork.SupplierRepository.Any(t => t.MobileNumber == supplier.MobileNumber || t.PhoneNumber == supplier.MobileNumber);
+                    bool phoneNumber = _unitOfWork.SupplierRepository.Any(t => t.PhoneNumber == supplier.PhoneNumber || t.MobileNumber == supplier.PhoneNumber);
 
                     if (nameExist)
                     {

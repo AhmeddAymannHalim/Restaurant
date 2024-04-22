@@ -36,7 +36,7 @@
                         @foreach (var item in items.Where(i => i.MenuSection.Name == menuSection))
                         {
                             <button class="btn btn-info mealBtn" data-id="@item.Id" style="margin:2px; width:95px; height:135px;">
-                                <img src="@item.ImageUrl" alt="@item.Name" style="width: 80%; height: 50%;">
+                                <img src="@item.ImageUrl" alt="image" style="width: 80%; height: 50%;">
                                 <span>@item.Name</span> <span>$@item.Price</span>
                             </button>
                         }

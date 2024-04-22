@@ -2,8 +2,7 @@
 
 
 @{
-    ViewData["Title"] = "OpenInvoice";
-    // Layout = "";
+    ViewData["Title"] = "New Invoice";
 }
 
 <h1 class="text-center">الفاتورة</h1>
@@ -391,22 +390,30 @@
                     alert('برجاء اضافة بيانات المنتج و عدم ترك الخانات فارغة.');
                     return; // Exit the function early if any field is empty or not numeric
                 }
+                var existingRow = $('#invoiceTable tbody').find('td:contains("' + productId + '")').closest('tr');
+                if (existingRow.length > 0) {
+                    var row = $('#invoiceTable tbody').find('td:contains("' + productId + '")').closest('tr');
+                    row.find('td:eq(2)').text(unitPriceId);
+                    row.find('td:eq(3)').text(unitPriceName);
+                    row.find('td:eq(4)').text(requiredQuantity);
+                    row.find('td:eq(5)').text(buyPrice);
+                    row.find('td:eq(6)').text(totalPrice);
+                } else {
 
+                    // Append a new row to the table with the captured values
+                    var newRow = '<tr>' +
+                        '<td hidden>' + productId + '</td>' +
+                        '<td>' + productName + '</td>' +
+                        '<td hidden>' + unitPriceId + '</td>' +
+                        '<td>' + unitPriceName + '</td>' +
+                        '<td>' + requiredQuantity + '</td>' +
+                        '<td>' + buyPrice + '</td>' +
+                        '<td>' + totalPrice + '</td>' +
+                        '<td><button class="btn btn-danger cancelRow">الغاء</button></td>' +
+                        '</tr>';
+                    $('#invoiceTable tbody').append(newRow);
 
-                // Append a new row to the table with the captured values
-                var newRow = '<tr>' +
-                    '<td hidden>' + productId + '</td>' +
-                    '<td>' + productName + '</td>' +
-                    '<td hidden>' + unitPriceId + '</td>' +
-                    '<td>' + unitPriceName + '</td>' +
-                    '<td>' + requiredQuantity + '</td>' +
-                    '<td>' + buyPrice + '</td>' +
-                    '<td>' + totalPrice + '</td>' +
-                    '<td><button class="btn btn-danger cancelRow">الغاء</button></td>' +
-                    '</tr>';
-                $('#invoiceTable tbody').append(newRow);
-
-              
+                }
                 // Update total price
                 updateTotalPrice();
                 EraseFields();

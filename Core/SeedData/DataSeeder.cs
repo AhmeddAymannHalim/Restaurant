@@ -35,12 +35,12 @@ namespace Restaurant.Data.SeedData
             {
                 var jobs = new[]
                 {
-                    new Job { Name = "كاشير", Code = "7456" },
-                    new Job { Name = "طيار", Code = "1425" },
-                    new Job { Name = "امين مخزن", Code = "5241" },
-                    new Job { Name = "جرسون", Code = "9841" },
-                    new Job { Name = "طباخ", Code = "3452" },
-                    new Job { Name = "نادل الصالة", Code = "4245" },
+                    new Job { Name = "كاشير", Code = "1" },
+                    new Job { Name = "طيار", Code = "2" },
+                    new Job { Name = "امين مخزن", Code = "3" },
+                    new Job { Name = "جرسون", Code = "4" },
+                    new Job { Name = "طباخ", Code = "5" },
+                    new Job { Name = "نادل الصالة", Code = "6" },
                 };
                 context.Jobs.AddRange(jobs);
                 await context.SaveChangesAsync();
