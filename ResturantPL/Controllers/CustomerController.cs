@@ -36,7 +36,7 @@ namespace ResturantPL.Controllers
             return NotFound();
         }
 
-        
+
         [HttpGet]
         public IActionResult Create()
         {
@@ -52,36 +52,34 @@ namespace ResturantPL.Controllers
             {
                 if (ModelState.IsValid)
                 {
-
                     string nameWithoutSpaces = model.Name.Replace(" ", "");
 
                     bool nameExist = _unitOfWork.CustomerRepository.Any(t => t.Name.Replace(" ", "") == nameWithoutSpaces);
-                    bool mobileNumber = _unitOfWork.CustomerRepository.Any(t => t.MobileNumber == model.MobileNumber || t.PhoneNumber == model.MobileNumber);
-                    bool phoneNumber = _unitOfWork.CustomerRepository.Any(t => t.PhoneNumber == model.PhoneNumber || t.MobileNumber == model.PhoneNumber);
-
                     if (nameExist)
                     {
                         ModelState.AddModelError("Name", "هذا العميل موجود بالفعل من فضلك قم بتغيير الاسم");
                         return View(model);
                     }
 
-                    if (mobileNumber)
+                    if (model.MobileNumber != null)
                     {
-                        ModelState.AddModelError("MobileNumber", "هذا الرقم موجود بالفعل");
-                        return View(model);
+                        bool mobileNumber = _unitOfWork.CustomerRepository.Any(t => t.MobileNumber == model.MobileNumber || t.PhoneNumber == model.MobileNumber);
+                        if (mobileNumber)
+                        {
+                            ModelState.AddModelError("MobileNumber", "هذا الرقم موجود بالفعل");
+                            return View(model);
+                        }
                     }
 
-                    if (phoneNumber)
+                    if (model.PhoneNumber != null)
                     {
-                        ModelState.AddModelError("PhoneNumber", "هذا الرقم موجود بالفعل");
-                        return View(model);
+                        bool phoneNumber = _unitOfWork.CustomerRepository.Any(t => t.PhoneNumber == model.PhoneNumber || t.MobileNumber == model.PhoneNumber);
+                        if (phoneNumber)
+                        {
+                            ModelState.AddModelError("PhoneNumber", "هذا الرقم موجود بالفعل");
+                            return View(model);
+                        }
                     }
-
-
-
-
-
-
 
 
                     await _unitOfWork.CustomerRepository.AddAsync(model);

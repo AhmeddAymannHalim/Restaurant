@@ -53,28 +53,39 @@ namespace ResturantPL.Controllers
                     string nameWithoutSpaces = supplier.Name.Replace(" ", "");
 
                     bool nameExist = _unitOfWork.SupplierRepository.Any(t => t.Name.Replace(" ", "") == nameWithoutSpaces);
-                    bool mobileNumber = _unitOfWork.SupplierRepository.Any(t => t.MobileNumber == supplier.MobileNumber || t.PhoneNumber == supplier.MobileNumber);
-                    bool phoneNumber = _unitOfWork.SupplierRepository.Any(t => t.PhoneNumber == supplier.PhoneNumber || t.MobileNumber == supplier.PhoneNumber);
-
                     if (nameExist)
                     {
                         ModelState.AddModelError("Name", "هذا المورد موجود بالفعل من فضلك قم بتغيير الاسم");
 
                         return View(supplier);
                     }
-                    if (mobileNumber)
-                    {
-                        ModelState.AddModelError("MobileNumber", "هذا الرقم موجود بالفعل");
 
-                        return View(supplier);
+
+                    if (supplier.PhoneNumber != null)
+                    {
+                        bool phoneNumber = _unitOfWork.SupplierRepository.Any(t => t.PhoneNumber == supplier.PhoneNumber || t.MobileNumber == supplier.PhoneNumber);
+                        if (phoneNumber)
+                        {
+                            ModelState.AddModelError("PhoneNumber", "هذا الرقم موجود بالفعل");
+
+                            return View(supplier);
+                        }
                     }
 
-                    if (phoneNumber)
+                    if (supplier.MobileNumber != null)
                     {
-                        ModelState.AddModelError("PhoneNumber", "هذا الرقم موجود بالفعل");
+                        bool mobileNumber = _unitOfWork.SupplierRepository.Any(t => t.MobileNumber == supplier.MobileNumber || t.PhoneNumber == supplier.MobileNumber);
+                        if (mobileNumber)
+                        {
+                            ModelState.AddModelError("MobileNumber", "هذا الرقم موجود بالفعل");
 
-                        return View(supplier);
+                            return View(supplier);
+                        }
                     }
+
+                    
+
+
 
 
 
