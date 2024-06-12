@@ -43,12 +43,16 @@
 
         @if (Model.ReceiverId != null)
         {
-            <dt class="col-sm-3">
-                م الشيفت المستلم
-            </dt>
-            <dd class="col-sm-8">
-                @Model.Receiver.FullName
-            </dd>
+            @if (Model.Type != OrderType.TakeAway)
+            {
+                <dt class="col-sm-3">
+                    م الشيفت المستلم
+                </dt>
+                <dd class="col-sm-8">
+                    @Model.Receiver.FullName
+                </dd>
+            }
+
         }
 
         @if (Model.Type == OrderType.TakeAway)
@@ -184,13 +188,13 @@
 
 
         <dt class="col-sm-3">
-            تم الدفع
+           حالة الدفع
         </dt>
 
         @if (Model.Cash == true)
         {
             <dd class="col-sm-8">
-                نعم
+                تم الدفع
             </dd>
         }
         else
@@ -209,14 +213,14 @@
         </dd>
 
         <dt class="col-sm-3">
-            المنتجات
+            الطلبات
         </dt>
         <dd class="col-sm-8">
             <table class="mt-3 table table-bordered table-light text-dark text-center">
                 <thead>
                     <tr>
-                        <th>اسم المنتج</th>
-                        <th>كمية المنتج</th>
+                        <th>اسم الطلب</th>
+                        <th>كمية الطلب</th>
                         <th>سعر الوحدة</th>
                         <th>الاجمالي</th>
                     </tr>

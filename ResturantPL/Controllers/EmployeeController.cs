@@ -400,6 +400,109 @@ namespace ResturantPL.Controllers
         }
 
 
+        public IActionResult NewAccount()
+        {
+            var userCodes = _userManager.Users.Select(u => u.Code).ToList();
+            var employees = new List<Employee>();
+            foreach (var code in userCodes)
+            {
+                 employees = _unitOfWork.EmployeeRepository.GetAll()
+                               .Where(e => e.Code != code).ToList();
+            }
+
+            ViewBag.Employees = new SelectList(employees, "EmployeeId", "FullName");
+            return View();
+        }
+
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> NewAccount(NewAccountForEmployeeViewModel model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    Employee employee = GetEmployee(model.EmployeeId);
+                    ApplicationUser user = new ApplicationUser()
+                    {
+                        FirstName = employee.FirstName,
+                        LastName = employee.LastName,
+                        Country = employee.Country,
+                        City = employee.City,
+                        Street = employee.Street,
+                        Age = employee.Age,
+                        Image = employee.Image,
+                        PhoneNumber = employee.PhoneNumber,
+                        MobileNumber = employee.MobileNumber,
+                        UserType = employee.UserType,
+                        Code = employee.Code,
+                        Email = model.Email,
+                        UserName = model.UserName
+                    };
+
+                    var result = await _userManager.CreateAsync(user, model.Password);
+                    if (result.Succeeded)
+                    {
+                        var found = await _roleManager.FindByNameAsync(user.UserType);
+                        if (found == null)
+                        {
+                            var addRole = await _roleManager.CreateAsync(new IdentityRole(user.UserType));
+                            if (addRole.Succeeded)
+                            {
+                                var role = await _userManager.AddToRoleAsync(user, user.UserType);
+                                if (role.Succeeded)
+                                {
+                                    return RedirectToAction("EmployeeAccounts");
+                                }
+                                else
+                                {
+                                    foreach (var error in role.Errors)
+                                    {
+                                        ModelState.AddModelError("", error.Description);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                foreach (var error in addRole.Errors)
+                                {
+                                    ModelState.AddModelError("", error.Description);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var role = await _userManager.AddToRoleAsync(user, user.UserType);
+                            if (role.Succeeded)
+                            {
+                                return RedirectToAction("EmployeeAccounts");
+                            }
+                            else
+                            {
+                                foreach (var error in role.Errors)
+                                {
+                                    ModelState.AddModelError("", error.Description);
+                                }
+                            }
+                        }
+
+                    }
+                    foreach (var res in result.Errors)
+                    {
+                        ModelState.AddModelError("", res.Description);
+                    }
+
+                }
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                return View("Error", ErrorMessage.Error(ex.Message));
+            }
+        }
+
+
         public IActionResult AddAccount(Employee model)
         {
             AddAccountForEmployee viewModel = new AddAccountForEmployee()

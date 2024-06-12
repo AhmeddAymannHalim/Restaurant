@@ -130,7 +130,7 @@ namespace ResturantPL.Controllers
 
         }
 
-
+        [Authorize]
         public IActionResult PendingOrders()
         {
             var orders = _unitOfWork.OnlineOrderRepository.GetAll()

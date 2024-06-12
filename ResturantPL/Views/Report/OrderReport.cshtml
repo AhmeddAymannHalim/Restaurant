@@ -60,10 +60,14 @@
             <td class="mainRow">تاريخ الفاتورة</td>
             <td>@Model.OrderDate.ToString("dd-MM-yyyy  hh:mm tt")</td>
         </tr>
-        <tr>
-            <td class="mainRow">موظف الشيفت البائع</td>
-            <td>@Model.Seller.FullName</td>
-        </tr>
+        @if (Model.Type != OrderType.TakeAway)
+        {
+            <tr>
+                <td class="mainRow">موظف الشيفت البائع</td>
+                <td>@Model.Seller.FullName</td>
+            </tr>
+        }
+
         @if (Model.ReceiverId != null)
         {
             <tr>
@@ -138,10 +142,10 @@
             </tr>
         }
         <tr>
-            <td class="mainRow">تم الدفع</td>
+            <td class="mainRow">حالة الدفع</td>
             @if (Model.Cash)
             {
-                <td>نعم</td>
+                <td>تم الدفع</td>
             }
             else
             {
@@ -153,13 +157,13 @@
             <td>@Model.TotalPrice</td>
         </tr>
         <tr>
-            <td class="mainRow">المنتجات</td>
+            <td class="mainRow">الطلبات</td>
             <td>
                 <table class="mt-3 table table-bordered table-light text-dark">
                     <thead>
                         <tr>
-                            <th>اسم المنتج</th>
-                            <th>كمية المنتج</th>
+                            <th>اسم الطلب</th>
+                            <th>كمية الطلب</th>
                             <th>سعر الوحدة</th>
                             <th>الاجمالي</th>
                         </tr>
