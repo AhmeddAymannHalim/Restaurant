@@ -1,12 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Restaurant.Data.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Restaurant.DAL.Models;
 
-namespace Restaurant.Data.SeedData
+namespace Restaurant.DAL.SeedData
 {
     public static class DataSeeder
     {
@@ -35,12 +30,12 @@ namespace Restaurant.Data.SeedData
             {
                 var jobs = new[]
                 {
-                    new Job { Name = "كاشير", Code = "1" },
-                    new Job { Name = "طيار", Code = "2" },
-                    new Job { Name = "امين مخزن", Code = "3" },
-                    new Job { Name = "جرسون", Code = "4" },
-                    new Job { Name = "طباخ", Code = "5" },
-                    new Job { Name = "نادل الصالة", Code = "6" },
+                    new Job { ArName = "كاشير", EnName = "Cashier", Code = "1" },
+                    new Job { ArName = "طيار", EnName = "Delivery Driver", Code = "2" },
+                    new Job { ArName = "امين مخزن", EnName = "Storekeeper", Code = "3" },
+                    new Job { ArName = "جرسون", EnName = "Waiter", Code = "4" },
+                    new Job { ArName = "طباخ", EnName = "Cook", Code = "5" },
+                    new Job { ArName = "نادل الصالة", EnName = "Hall Waiter", Code = "6" },
                 };
                 context.Jobs.AddRange(jobs);
                 await context.SaveChangesAsync();
@@ -53,7 +48,7 @@ namespace Restaurant.Data.SeedData
             {
                 var indexes = new[]
                 {
-                    new IndexSettings { Name = "الاكلات الشهية", Description = "جميع الاطعمة و المشويات", Email = "di.hamdan55@gmail.com", StartDay = "السبت", EndDay = "السبت", Phone = "01010164599", Locaion = "القاهرة رمسيس شارع الفجالة", StartHour = "9", EndHour = "12", ImageUrl = null, VedioUrl = null }
+                    new IndexSettings { ArName = "الاكلات الشهية", EnName = "Delicious Meals", Description = "جميع الاطعمة و المشويات", Email = "di.hamdan55@gmail.com", StartDay = "السبت", EndDay = "السبت", Phone = "01010164599", Locaion = "القاهرة رمسيس شارع الفجالة", StartHour = "9", EndHour = "12", ImageUrl = null, VedioUrl = null }
                 };
                 context.IndexSettings.AddRange(indexes);
                 await context.SaveChangesAsync();
@@ -66,13 +61,13 @@ namespace Restaurant.Data.SeedData
             {
                 var tables = new[]
                 {
-                    new Table { Name = "طاولة رقم 1 ", IsPending = false, NumOfPersons = 4},
-                    new Table { Name = "طاولة رقم 2 ", IsPending = false, NumOfPersons = 6},
-                    new Table { Name = "طاولة رقم 3 ", IsPending = false, NumOfPersons = 8},
-                    new Table { Name = "طاولة رقم 4 ", IsPending = false, NumOfPersons = 3},
-                    new Table { Name = "طاولة رقم 5 ", IsPending = false, NumOfPersons = 2},
-                    new Table { Name = "طاولة رقم 6 ", IsPending = false, NumOfPersons = 4},
-                    new Table { Name = "طاولة رقم 7 ", IsPending = false, NumOfPersons = 3},
+                    new Table { ArName = "طاولة رقم 1 ", EnName = "Table No. 1 ", IsPending = false, NumOfPersons = 4},
+                    new Table { ArName = "طاولة رقم 2 ", EnName = "Table No. 2 ", IsPending = false, NumOfPersons = 6},
+                    new Table { ArName = "طاولة رقم 3 ", EnName = "Table No. 3 ", IsPending = false, NumOfPersons = 8},
+                    new Table { ArName = "طاولة رقم 4 ", EnName = "Table No. 4 ", IsPending = false, NumOfPersons = 3},
+                    new Table { ArName = "طاولة رقم 5 ", EnName = "Table No. 5 ", IsPending = false, NumOfPersons = 2},
+                    new Table { ArName = "طاولة رقم 6 ", EnName = "Table No. 6 ", IsPending = false, NumOfPersons = 4},
+                    new Table { ArName = "طاولة رقم 7 ", EnName = "Table No. 7 ", IsPending = false, NumOfPersons = 3},
                 };
                 context.Tables.AddRange(tables);
                 await context.SaveChangesAsync();
@@ -85,11 +80,11 @@ namespace Restaurant.Data.SeedData
             {
                 var types = new[]
                 {
-                    new SalaryType { Type = "سنوي"},
-                    new SalaryType { Type = "شهري"},
-                    new SalaryType { Type = "اسبوعي"},
-                    new SalaryType { Type = "يومي"},
-                    new SalaryType { Type = "تدريب مجاني"},
+                    new SalaryType { ArName = "سنوي", EnName = "Yearly" },
+                    new SalaryType { ArName = "شهري", EnName = "Monthly" },
+                    new SalaryType { ArName = "اسبوعي", EnName = "Weekly" },
+                    new SalaryType { ArName = "يومي", EnName = "Daily" },
+                    new SalaryType { ArName = "تدريب مجاني", EnName = "Free Training" },
                 };
                 context.SalaryTypes.AddRange(types);
                 await context.SaveChangesAsync();
@@ -102,14 +97,14 @@ namespace Restaurant.Data.SeedData
             {
                 var units = new[]
                 {
-                    new UnitPrice { Name = "كيلو"},
-                    new UnitPrice { Name = "جرام"},
-                    new UnitPrice { Name = "طن"},
-                    new UnitPrice { Name = "علبة"},
-                    new UnitPrice { Name = "لتر"},
-                    new UnitPrice { Name = "كيس"},
-                    new UnitPrice { Name = "قطعة"},
-                    new UnitPrice { Name = "زجاجة"},
+                    new UnitPrice { ArName = "كيلو", EnName = "Kilogram"},
+                    new UnitPrice { ArName = "جرام", EnName = "Gram"},
+                    new UnitPrice { ArName = "طن", EnName = "Ton"},
+                    new UnitPrice { ArName = "علبة", EnName = "Box"},
+                    new UnitPrice { ArName = "لتر", EnName = "Liter"},
+                    new UnitPrice { ArName = "كيس", EnName = "Bag"},
+                    new UnitPrice { ArName = "قطعة", EnName = "Piece"},
+                    new UnitPrice { ArName = "زجاجة", EnName = "Bottle"},
                 };
                 context.UnitPrices.AddRange(units);
                 await context.SaveChangesAsync();

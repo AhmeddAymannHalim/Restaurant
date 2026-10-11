@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Restaurant.Data;
-using Restaurant.Data.Models;
-using Service.IRepositories;
+using Restaurant.DAL;
+using Restaurant.DAL.Models;
+using Restaurant.DAL.IRepositories;
 
-namespace Service.Repositories
+namespace Restaurant.DAL.Repositories
 {
     public class InvoiceItemRepository : GenericRepository<InvoiceItem>, IInvoiceItemRepository
     {

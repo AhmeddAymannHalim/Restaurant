@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Restaurant.Data.Models;
+using Restaurant.DAL.Models;
 
-namespace Restaurant.Data
+namespace Restaurant.DAL
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {

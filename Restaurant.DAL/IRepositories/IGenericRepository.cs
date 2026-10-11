@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace Service.IRepositories
+namespace Restaurant.DAL.IRepositories
 {
     public interface IGenericRepository<T> where T : class
     {

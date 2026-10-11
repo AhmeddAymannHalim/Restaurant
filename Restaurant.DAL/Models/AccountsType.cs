@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
-namespace Restaurant.Data.Models;
+namespace Restaurant.DAL.Models;
 
 public partial class AccountsType
 {
-    [Key]
     public byte AccTypeId { get; set; }
     public string AccTypeArName { get; set; } = null!;
     public string AccTypeEnName { get; set; } = null!;

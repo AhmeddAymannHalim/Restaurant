@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Restaurant.Data.Models.Order>
+﻿@model IEnumerable<Restaurant.DAL.Models.Order>
 
 @{
     ViewData["Title"] = "Hall Orders";
@@ -69,7 +69,7 @@
                     @Html.DisplayFor(modelItem => item.CustomerName)
                 </td>
                 <td>
-                    @item.Table.Name
+                    @item.Table.ArName
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.TotalPrice)

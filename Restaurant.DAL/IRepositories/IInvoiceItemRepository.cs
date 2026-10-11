@@ -1,6 +1,6 @@
-﻿using Restaurant.Data.Models;
+﻿using Restaurant.DAL.Models;
 
-namespace Service.IRepositories
+namespace Restaurant.DAL.IRepositories
 {
     public interface IInvoiceItemRepository : IGenericRepository<InvoiceItem>
     {

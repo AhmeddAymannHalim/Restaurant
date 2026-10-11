@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Restaurant.Data.Models.PaymentInvoiceCustomer>
+﻿@model IEnumerable<Restaurant.DAL.Models.PaymentInvoiceCustomer>
 
 @{
     ViewData["Title"] = "IndexSupplier";
@@ -37,7 +37,7 @@
         {
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Customer.Name)
+                    @Html.DisplayFor(modelItem => item.Customer.ArName)
                 </td>
 
                 <td>

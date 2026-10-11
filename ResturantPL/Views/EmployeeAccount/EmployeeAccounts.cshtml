@@ -1,0 +1,101 @@
+﻿@model IEnumerable<ApplicationUser>
+
+@{
+    ViewData["Title"] = "EmployeeAccounts";
+}
+
+
+
+<h1 class="text-center">الموظفين</h1>
+<hr />
+
+<p>
+    <a asp-action="NewAccount" asp-controller="EmployeeAccount">اضافة حساب جديد لموظف </a>
+</p>
+
+<table class="table table-hover text-center table-bordered table-striped-columns table-dark">
+    <thead>
+        <tr>
+            <th>
+                الاسم
+            </th>
+       
+            <th>
+                الايميل
+            </th>
+            <th>
+                الوظيفة
+            </th>
+            <th>
+                رقم الموبايل
+            </th>
+            <th>
+                رقم الهاتف
+            </th>
+            <th>
+                العنوان
+            </th>
+
+            <th>
+                الصورة
+            </th>
+            <th>
+                السن
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @item.FirstName @item.LastName
+                </td>
+                <td>
+                    @item.Email
+                </td>
+                <td>
+                    @item.UserType
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.MobileNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PhoneNumber)
+                </td>
+
+                <td>
+                    @item.Country @item.City @item.Street
+                </td>
+
+                <td>
+                    @if (item.Image != null)
+                    {
+                        <img src="@item.Image" alt="image" class="rounded-circle img-thumbnail" width="60" />
+                    }
+                    else
+                    {
+                        <img src="~/Employee Images/User_Image.png" class="rounded-circle img-thumbnail" width="60" />
+                    }
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Age)
+                </td>
+               <td>
+                    <a asp-action="UpdateUserAccount" asp-route-id="@item.Id">تعديل</a> |
+                    <a class="text-danger" asp-action="Delete" asp-controller="User" asp-route-userId="@item.Id"><strong>حذف</strong></a>
+               </td>
+
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<div>
+    <a asp-action="Index" asp-controller="Employee"> عودة للموظفين</a> |
+    <a asp-action="AdminDash" asp-controller="Account">عودة للوحة التحكم</a>
+</div>
+
+

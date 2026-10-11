@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Shared.Helpers;
+using Shared.ViewModels.Commons;
 using ResturantPL.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -8,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ResturantPL.Helper;
-using Restaurant.Data.Models;
+using Restaurant.DAL.Models;
 
 namespace ResturantPL.Controllers
 {

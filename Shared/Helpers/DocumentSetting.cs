@@ -1,4 +1,4 @@
-﻿namespace ResturantPL.Helper
+namespace Shared.Helpers
 {
     public static class DocumentSetting
     {
@@ -16,7 +16,7 @@
                 file.CopyTo(FileStream);
             }
 
-            return Path.Combine( $"/{FolderName}",FileName); //file path according to view
+            return $"/{FolderName}/{FileName}"; // url path (always forward slashes)
         }
 
         public static void DeleteFile(string path)

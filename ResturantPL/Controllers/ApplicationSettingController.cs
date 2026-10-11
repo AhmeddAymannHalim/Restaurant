@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis;
-using Restaurant.Data.Models;
+﻿using Shared.Helpers;
+using Microsoft.AspNetCore.Mvc;
+using Restaurant.DAL.Models;
 using ResturantPL.Helper;
 using ResturantPL.ViewModels;
-using Service.UnitOfWork;
+using Restaurant.DAL.UnitOfWork;
 using System.Drawing.Printing;
 using System.Xml.Linq;
 
@@ -50,7 +50,8 @@ namespace ResturantPL.Controllers
             IndexSettingsViewModel model = new IndexSettingsViewModel()
             {
                 Id = setting.Id,
-                Name = setting.Name,
+                ArName = setting.ArName,
+                EnName = setting.EnName,
                 Description = setting.Description,
                 Email = setting.Email,
                 Phone = setting.Phone,
@@ -74,7 +75,8 @@ namespace ResturantPL.Controllers
             {
                 IndexSettings old = _unitOfWork.IndexRepository.GetById(setting.Id);
                 old.Id = setting.Id;
-                old.Name = setting.Name;
+                old.ArName = setting.ArName;
+                old.EnName = setting.EnName;
                 old.Description = setting.Description;
                 old.Email = setting.Email;
                 old.Phone = setting.Phone;

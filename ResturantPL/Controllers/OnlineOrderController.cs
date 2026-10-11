@@ -1,15 +1,17 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Shared.Helpers;
+using Shared.ViewModels.Commons;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Restaurant.Data.Models;
+using Restaurant.DAL.Models;
 using ResturantPL.Helper;
 using ResturantPL.Hubs;
 using ResturantPL.ViewModels;
-using Service.Repositories;
-using Service.UnitOfWork;
+using Restaurant.DAL.Repositories;
+using Restaurant.DAL.UnitOfWork;
 using System.Security.Claims;
 
 namespace ResturantPL.Controllers

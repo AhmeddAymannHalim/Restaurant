@@ -1,0 +1,57 @@
+@model ScroungeViewModel
+@{
+    var isNew = Model.Id == 0;
+    ViewBag.Title = isNew ? L["NewScrounge"].Value : L["UpdateScrounge"].Value;
+}
+
+<h1 class="text-center">@ViewBag.Title</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Upsert" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="EmployeeId" class="control-label">@L["Employee"]</label>
+                <select asp-for="EmployeeId" class="form-control" asp-items="Model.Employees">
+                    <option value="">@L["Select"]</option>
+                </select>
+                <span asp-validation-for="EmployeeId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="State" class="control-label">@L["State"]</label>
+                <select asp-for="State" class="form-control" asp-items="Html.GetEnumSelectList<Shared.Enums.MoneyState>()"></select>
+                <span asp-validation-for="State" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Amount" class="control-label">@L["Amount"]</label>
+                <input asp-for="Amount" type="number" step="0.01" class="form-control" />
+                <span asp-validation-for="Amount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Info" class="control-label">@L["Info"]</label>
+                <input asp-for="Info" class="form-control" />
+                <span asp-validation-for="Info" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="@L["Save"]" class="btn btn-primary" /> |
+                <a asp-action="Index">@L["Back"]</a>
+                @if (!isNew)
+                {
+                    <text> | </text>
+                    <a onclick="Delete('/Scrounge/Delete/@Model.Id', '@Url.Action("Index")')" class="text-danger" style="font-weight:bold; cursor:pointer;">@L["Delete"]</a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/lib/sweetalert/sweetalert.min.js"></script>
+    <script src="~/modules/deleteobjects.js"></script>
+}

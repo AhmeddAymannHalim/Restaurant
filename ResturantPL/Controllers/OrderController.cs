@@ -1,19 +1,20 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Shared.Helpers;
+using Shared.ViewModels.Commons;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json;
-using Restaurant.Data.Models;
-using Service.UnitOfWork;
+using Restaurant.DAL.Models;
+using Restaurant.DAL.UnitOfWork;
 using ResturantPL.ViewModels;
 using System.Security.Claims;
 using ResturantPL.Helper;
-using Service.Repositories;
+using Restaurant.DAL.Repositories;
 using Rotativa.AspNetCore;
 using Microsoft.AspNetCore.SignalR;
 using ResturantPL.Hubs;
-using NuGet.Protocol.Core.Types;
 using System.Linq.Expressions;
 using System.Globalization;
 using Microsoft.AspNetCore.Authorization;
@@ -533,7 +534,7 @@ namespace ResturantPL.Controllers
                             return View(viewModel);
                         }
 
-                        Restaurant.Data.Models.Table table = _unitOfWork.TableRepository.GetById(viewModel.TableId);
+                        Restaurant.DAL.Models.Table table = _unitOfWork.TableRepository.GetById(viewModel.TableId);
                         Order.TableId = viewModel.TableId;
                         Order.EmployeeId = null;
                         table.IsPending = true;
@@ -695,7 +696,7 @@ namespace ResturantPL.Controllers
                     OrderFrom.ReceiverId = CurrentUser().Id;
                     await _unitOfWork.OrderRepository.UpdateAsync(OrderFrom);
 
-                    Restaurant.Data.Models.Table table = _unitOfWork.TableRepository.GetById(OrderFrom.TableId);
+                    Restaurant.DAL.Models.Table table = _unitOfWork.TableRepository.GetById(OrderFrom.TableId);
                     table.IsPending = false;
                     await _unitOfWork.TableRepository.UpdateAsync(table);
 
@@ -722,7 +723,7 @@ namespace ResturantPL.Controllers
                 {
                     if (order.Cash == false && order.Type == OrderType.Hall)
                     {
-                        Restaurant.Data.Models.Table table = _unitOfWork.TableRepository.GetById(order.TableId);
+                        Restaurant.DAL.Models.Table table = _unitOfWork.TableRepository.GetById(order.TableId);
                         table.IsPending = false;
 
                         await _unitOfWork.TableRepository.UpdateAsync(table);

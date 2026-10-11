@@ -1,4 +1,4 @@
-﻿@model Restaurant.Data.Models.Invoice
+﻿@model Restaurant.DAL.Models.Invoice
 
 @{
     ViewData["Title"] = "Invoice report";
@@ -108,11 +108,11 @@ else
 
         <tr>
             <td class="mainRow">المورد</td>
-            <td>@Model.Supplier.Name</td>
+            <td>@Model.Supplier.ArName</td>
         </tr>
          <tr>
             <td class="mainRow">المخزن</td>
-            <td>@Model.Store.Name</td>
+            <td>@Model.Store.ArName</td>
         </tr>
 
 
@@ -133,7 +133,7 @@ else
                     {
                         <tr>
                             <td>@item.StoreProduct.ProductName</td>
-                            <td>@item.UnitPrice.Name</td>
+                            <td>@item.UnitPrice.ArName</td>
                             <td>@item.Quantity</td>
                             <td>@item.Price</td>
                             <td>@item.Total</td>

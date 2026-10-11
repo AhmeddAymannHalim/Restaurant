@@ -1,4 +1,4 @@
-﻿namespace Restaurant.Data.Models
+namespace Restaurant.DAL.Models
 {
     public class Employee
     {
@@ -15,6 +15,7 @@
         public byte Age { get; set; }
         public string UserType { get; set; }
         public string Code { get; set; }
+        public bool HasAccount { get; set; }
 
 
         public string NationalID { get; set; }

@@ -1,0 +1,72 @@
+@model dynamic
+@{
+    int current = (int)Model.PageNo;
+    int total = (int)Model.NoOfPages;
+
+    // Preserve SearchString and every other filter while replacing only pageNo.
+    var routeValues = new Dictionary<string, string>();
+    foreach (var kv in Context.Request.Query)
+    {
+        if (!string.Equals(kv.Key, "pageNo", StringComparison.OrdinalIgnoreCase))
+        {
+            routeValues[kv.Key] = kv.Value.ToString();
+        }
+    }
+
+    string actionName = ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
+
+    string PageUrl(int page)
+    {
+        var rv = new Dictionary<string, string>(routeValues) { ["pageNo"] = page.ToString() };
+        return Url.Action(actionName, rv);
+    }
+
+    const int window = 2;
+    int startPage = Math.Max(1, current - window);
+    int endPage = Math.Min(total, current + window);
+}
+@if (total > 1)
+{
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center flex-wrap">
+            <li class="page-item @(current == 1 ? "disabled" : "")">
+                <a class="page-link" href="@PageUrl(1)" title="@L["First"]" aria-label="@L["First"]">&laquo;&laquo;</a>
+            </li>
+            <li class="page-item @(current == 1 ? "disabled" : "")">
+                <a class="page-link" href="@PageUrl(Math.Max(1, current - 1))">@L["Previous"]</a>
+            </li>
+
+            @if (startPage > 1)
+            {
+                <li class="page-item"><a class="page-link" href="@PageUrl(1)">1</a></li>
+                if (startPage > 2)
+                {
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                }
+            }
+
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                <li class="page-item @(i == current ? "active" : "")">
+                    <a class="page-link" href="@PageUrl(i)">@i</a>
+                </li>
+            }
+
+            @if (endPage < total)
+            {
+                if (endPage < total - 1)
+                {
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                }
+                <li class="page-item"><a class="page-link" href="@PageUrl(total)">@total</a></li>
+            }
+
+            <li class="page-item @(current == total ? "disabled" : "")">
+                <a class="page-link" href="@PageUrl(Math.Min(total, current + 1))">@L["Next"]</a>
+            </li>
+            <li class="page-item @(current == total ? "disabled" : "")">
+                <a class="page-link" href="@PageUrl(total)" title="@L["Last"]" aria-label="@L["Last"]">&raquo;&raquo;</a>
+            </li>
+        </ul>
+    </nav>
+}

@@ -1,15 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Restaurant.Data.Models;
-using ResturantPL.Helper;
-using ResturantPL.ViewModels;
-using Service.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Razor;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.AspNetCore.Mvc.Abstractions;
+using Restaurant.DAL.Models;
+using Restaurant.DAL.UnitOfWork;
+using ResturantPL.ViewModels;
+using Shared.Helpers;
 
 namespace ResturantPL.Controllers
 {

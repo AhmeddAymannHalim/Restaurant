@@ -1,5 +1,7 @@
 ﻿using ResturantPL.Helper;
-using Restaurant.Data.Models;
+using Shared.Helpers;
+using Shared.ViewModels.Commons;
+using Restaurant.DAL.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -8,7 +10,7 @@ using ResturantPL.ViewModels;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Service.UnitOfWork;
+using Restaurant.DAL.UnitOfWork;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using System.Collections.Generic;
@@ -43,44 +45,9 @@ namespace ResturantPL.Controllers
         }
 
         [Authorize(Roles = "Admin,Manager,كاشير")]
-        public async Task<IActionResult> AdminDash()
+        public IActionResult AdminDash()
         {
-            ViewBag.CurrentAdmin = CurrentUser();
-            AdminDashViewModel adminViewModel = new AdminDashViewModel()
-            {
-                Users = _userManager.Users.ToList(),
-                Roles = _roleManager.Roles.ToList(),
-                Branches = _unitOfWork.BrancheRepository.GetAll().ToList(),
-                ChefItems = _unitOfWork.ChefItemRepository.GetAll().ToList(),
-                Customers = _unitOfWork.CustomerRepository.GetAll().ToList(),
-                Employees = _unitOfWork.EmployeeRepository.GetAll().ToList(),
-                EmployeeAccounts = await _userManager.Users.Where(a => a.UserType != "User").ToListAsync(),
-                Expenses = _unitOfWork.ExpenseRepository.GetAll().ToList(),
-                Invoices = _unitOfWork.InvoiceRepository.GetAll().ToList(),
-                InvoiceItems = _unitOfWork.InvoiceItemRepository.GetAll().ToList(),
-                PaymentInvoiceSuppliers = _unitOfWork.PaymentInvoiceSupplierRepository.GetAll().ToList(),
-                PaymentInvoiceCustomers = _unitOfWork.PaymentInvoiceCustomerRepository.GetAll().ToList(),
-                Jobs = _unitOfWork.JobRepository.GetAll().ToList(),
-                Products = _unitOfWork.ProductRepository.GetAll().ToList(),
-                SalaryTypes = _unitOfWork.SalaryTypeRepository.GetAll().ToList(),
-                Stores = _unitOfWork.StoreRepository.GetAll().ToList(),
-                Suppliers = _unitOfWork.SupplierRepository.GetAll().ToList(),
-                Tables = _unitOfWork.TableRepository.GetAll().ToList(),
-                UnitPrice = _unitOfWork.UnitPriceRepository.GetAll().ToList(),
-                IndexSettings = _unitOfWork.IndexRepository.GetAll().ToList(),
-                MenuItems = _unitOfWork.MenuItemRepository.GetAll().ToList(),
-                MenuSections = _unitOfWork.MenuSectionRepository.GetAll().ToList(),
-                StoreConverts = _unitOfWork.StoreConvertRepository.GetAll().ToList(),
-                Deposits = _unitOfWork.DepositRepository.GetAll().ToList(),
-                kitchens = _unitOfWork.kitchenRepository.GetAll().ToList(),
-                Scrounges = _unitOfWork.ScroungeRepository.GetAll().ToList(),
-                ExitExpenses = _unitOfWork.ExitExpenseRepository.GetAll().ToList(),
-                Salaries = _unitOfWork.SalaryRepository.GetAll().ToList(),
-                kitchenOrders = _unitOfWork.OrderRepository.GetAll().Where(a => a.Complete == false).ToList()
-
-            };
-
-            return View(adminViewModel);
+            return RedirectToAction("Index", "Dashboard");
         }
 
 

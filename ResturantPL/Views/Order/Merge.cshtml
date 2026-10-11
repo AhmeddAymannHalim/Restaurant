@@ -1,4 +1,4 @@
-﻿@model Restaurant.Data.Models.Order
+﻿@model Restaurant.DAL.Models.Order
 
 @{
     ViewData["Title"] = "Merge";
@@ -13,7 +13,7 @@
 
         <div class="col-md-5">
             <table class="mt-3 table table-bordered table-light text-dark">
-                <h3 class="text-center">@Model.Table.Name</h3>
+                <h3 class="text-center">@Model.Table.ArName</h3>
                 <thead>
                     <tr>
                         <th>اسم المنتج</th>
@@ -26,7 +26,7 @@
                     @foreach (var item in Model.OrderMenuItems)
                     {
                         <tr>
-                            <td>@item.MenuItem.Name</td>
+                            <td>@item.MenuItem.ArName</td>
                             <td>@item.Quantity</td>
                             <td>@item.PriceForUnit</td>
                             <td>@item.Price</td>

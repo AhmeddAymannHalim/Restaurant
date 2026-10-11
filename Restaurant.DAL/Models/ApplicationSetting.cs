@@ -1,5 +1,5 @@
 ﻿
-namespace Restaurant.Data.Models
+namespace Restaurant.DAL.Models
 {
     public class ApplicationSetting
     {

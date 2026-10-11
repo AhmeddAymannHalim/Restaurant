@@ -1,0 +1,54 @@
+@model DepositViewModel
+@{
+    var isNew = Model.Id == 0;
+    ViewBag.Title = isNew ? L["NewDeposit"].Value : L["UpdateDeposit"].Value;
+}
+
+<h1 class="text-center">@ViewBag.Title</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Upsert" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="ProcessCode" class="control-label">@L["Code"]</label>
+                <input asp-for="ProcessCode" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label asp-for="DeposerName" class="control-label">@L["Depositor"]</label>
+                <input asp-for="DeposerName" class="form-control" />
+                <span asp-validation-for="DeposerName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Amount" class="control-label">@L["Amount"]</label>
+                <input asp-for="Amount" type="number" step="0.01" class="form-control" />
+                <span asp-validation-for="Amount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label">@L["Description"]</label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="@L["Save"]" class="btn btn-primary" /> |
+                <a asp-action="Index">@L["Back"]</a>
+                @if (!isNew)
+                {
+                    <text> | </text>
+                    <a onclick="Delete('/Deposit/Delete/@Model.Id', '@Url.Action("Index")')" class="text-danger" style="font-weight:bold; cursor:pointer;">@L["Delete"]</a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/lib/sweetalert/sweetalert.min.js"></script>
+    <script src="~/modules/deleteobjects.js"></script>
+}

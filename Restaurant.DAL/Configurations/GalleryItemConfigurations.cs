@@ -1,4 +1,4 @@
-﻿using Restaurant.Data.Models;
+﻿using Restaurant.DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Restaurant.Data.Configurations
+namespace Restaurant.DAL.Configurations
 {
     public class GalleryItemConfigurations : IEntityTypeConfiguration<GalleryItem>
     {

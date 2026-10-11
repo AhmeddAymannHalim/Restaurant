@@ -8,8 +8,8 @@
             <td>@Html.DisplayFor(modelItem => item.InvoiceCode) </td>
             <td>@(item.InvoiceType == InvoiceType.Purchases ? "مشتريات" : "مرتجعات")</td>
             <td>@item.InvoiceDate.ToString("yyyy-MM-dd")</td>
-            <td>@item.Supplier.Name</td>
-            <td>@item.Store.Name</td>
+            <td>@item.Supplier.ArName</td>
+            <td>@item.Store.ArName</td>
             <td>@item.InvoiceItems.Count()</td>
             <td>@item.TotalPrice</td>
             <td>

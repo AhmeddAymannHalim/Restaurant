@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Shared.Helpers;
+using Shared.ViewModels.Commons;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
-using Restaurant.Data.Models;
-using Service.UnitOfWork;
+using Restaurant.DAL.Models;
+using Restaurant.DAL.UnitOfWork;
 using ResturantPL.ViewModels;
 using ResturantPL.Helper;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ResturantPL.Controllers
 {
@@ -188,7 +189,7 @@ namespace ResturantPL.Controllers
                     ProductName = product.ProductName,
                     ProductId = item.StoreProduct.ProductId,
                     UnitPriceId = item.UnitPriceId,
-                    UnitPriceName = unit.Name,
+                    UnitPriceName = unit.ArName,
                     Quantity = item.Quantity,
                     Price = item.Price,
                     Total = item.Total

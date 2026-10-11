@@ -1,5 +1,5 @@
 ﻿
-using Restaurant.Data.Models;
+using Restaurant.DAL.Models;
 using System.Net;
 using System.Net.Mail;
 

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
-namespace Restaurant.Data.Models;
+namespace Restaurant.DAL.Models;
 
 public partial class PayType
 {

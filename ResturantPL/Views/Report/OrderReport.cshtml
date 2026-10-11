@@ -1,4 +1,4 @@
-﻿@model Restaurant.Data.Models.Order
+﻿@model Restaurant.DAL.Models.Order
 
 @{
     ViewData["Title"] = "Order Report";
@@ -98,7 +98,7 @@
         {
             <tr>
                 <td class="mainRow">اسم الطاولة</td>
-                <td>@Model.Table.Name</td>
+                <td>@Model.Table.ArName</td>
             </tr>
         }
         @if (Model.Type == OrderType.Delivery || Model.Type == OrderType.Delivery_Online)
@@ -172,7 +172,7 @@
                         @foreach (var item in Model.OrderMenuItems)
                         {
                             <tr>
-                                <td>@item.MenuItem.Name</td>
+                                <td>@item.MenuItem.ArName</td>
                                 <td>@item.Quantity</td>
                                 <td>@item.PriceForUnit</td>
                                 <td>@item.Price</td>

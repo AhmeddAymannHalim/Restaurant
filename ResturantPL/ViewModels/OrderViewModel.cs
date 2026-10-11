@@ -1,4 +1,4 @@
-﻿using Restaurant.Data.Models;
+﻿using Restaurant.DAL.Models;
 
 namespace ResturantPL.ViewModels
 {

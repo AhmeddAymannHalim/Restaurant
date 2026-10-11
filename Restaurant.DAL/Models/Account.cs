@@ -1,11 +1,9 @@
-﻿using Restaurant.Data.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using Restaurant.DAL.Models;
 
-namespace Restaurant.Data.Models;
+namespace Restaurant.DAL.Models;
 
 public class Account
 {
-    [Key]
     public int AccId { get; set; }
     public string AccCode { get; set; } = null!;
     public string AccArName { get; set; } = null!;

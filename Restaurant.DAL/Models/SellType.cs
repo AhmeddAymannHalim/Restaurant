@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Restaurant.Data.Models;
+namespace Restaurant.DAL.Models;
 
 public partial class SellType
 {

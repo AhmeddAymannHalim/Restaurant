@@ -1,11 +1,10 @@
-using Service.UnitOfWork;
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ResturantPL.Helper;
-using Restaurant.Data;
-using Restaurant.Data.Models;
-using Restaurant.Data.SeedData;
+using Restaurant.DAL;
+using Restaurant.DAL.Models;
+using Restaurant.DAL.SeedData;
 using Rotativa.AspNetCore;
 using ResturantPL.Hubs;
 using System.Security.Claims;
@@ -19,22 +18,12 @@ namespace ResturantPL
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddControllersWithViews();
+            builder.AddWebServices();
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
             });
-
-
-            builder.Services.AddHttpsRedirection(options =>
-            {
-                options.HttpsPort = 44373;
-                options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
-            });
-
-            builder.Services.AddAutoMapper(typeof(Profiler));
             builder.Services.AddSignalR();
-            builder.Services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
 
             // Identity setup
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -91,6 +80,7 @@ namespace ResturantPL
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseRequestLocalization(app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Builder.RequestLocalizationOptions>>().Value);
             app.UseCors("CorsPolicy");
             app.UseSession();
             app.UseRotativa();

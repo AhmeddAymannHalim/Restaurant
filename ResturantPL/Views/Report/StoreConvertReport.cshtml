@@ -1,4 +1,4 @@
-﻿@model Restaurant.Data.Models.StoreConvert
+﻿@model Restaurant.DAL.Models.StoreConvert
 
 @{
     ViewData["Title"] = "Store Convert Report";
@@ -65,11 +65,11 @@
 
         <tr>
             <td class="mainRow">المخزن المنقول منه</td>
-            <td>@Model.FromStore.Name</td>
+            <td>@Model.FromStore.ArName</td>
         </tr>
         <tr>
             <td class="mainRow">المخزن المنقول اليه</td>
-            <td>@Model.ToStore.Name</td>
+            <td>@Model.ToStore.ArName</td>
         </tr>
 
 
