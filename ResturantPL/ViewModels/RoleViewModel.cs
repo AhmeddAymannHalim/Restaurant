@@ -1,4 +1,4 @@
-﻿using Restaurant.Data.Models;
+﻿using Restaurant.DAL.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.VisualBasic;
 using System;

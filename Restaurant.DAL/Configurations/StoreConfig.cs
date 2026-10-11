@@ -1,0 +1,17 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Restaurant.DAL.Models;
+
+namespace Restaurant.DAL.Configurations;
+
+public class StoreConfig : IEntityTypeConfiguration<Store>
+{
+    public void Configure(EntityTypeBuilder<Store> builder)
+    {
+        builder.Property(a => a.ArName).IsRequired().HasMaxLength(100);
+        builder.Property(a => a.EnName).IsRequired().HasMaxLength(100);
+        builder.Property(a => a.Address).HasMaxLength(250);
+        builder.Property(a => a.PhoneNumber).HasMaxLength(11);
+        builder.Property(a => a.MobileNumber).HasMaxLength(11);
+    }
+}

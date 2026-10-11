@@ -1,0 +1,64 @@
+@model PaginatedResult<ProductViewModel>
+@{
+    ViewBag.Title = L["Products"].Value;
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
+}
+
+<h1 class="text-center">@L["Products"]</h1>
+<hr />
+
+<p>
+    <a asp-action="Upsert">@L["NewProduct"]</a>
+</p>
+
+<form asp-action="Index" method="get" class="d-flex gap-2 mb-3">
+    <input id="Product-search" type="search" class="form-control w-auto" name="searchString" value="@Model.SearchString" placeholder="@L["SearchHere"]" />
+    <button type="submit" class="btn btn-primary">@L["Search"]</button>
+</form>
+
+<table id="Product-table" class="table table-hover text-center table-bordered table-striped-columns table-dark">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>@L["Name"]</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Data.Any())
+        {
+            var counter = ((Model.PageNo - 1) * Model.PageSize) + 1;
+            foreach (var item in Model.Data)
+            {
+                <tr>
+                    <td>@counter</td>
+                    <td>@(isArabic ? item.ArName : item.EnName)</td>
+                    <td>
+                        <a asp-action="Upsert" asp-route-id="@item.Id">@L["Edit"]</a> |
+                        <a onclick="Delete('/Product/Delete/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">@L["Delete"]</a>
+                    </td>
+                </tr>
+                counter++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="3">@L["NoData"]</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="app-table-pagination">
+    @await Html.PartialAsync("_Pagination", Model)
+</div>
+
+<div>
+    <a asp-action="Index" asp-controller="Dashboard">@L["BackToDashboard"]</a>
+</div>
+
+@section Scripts {
+    <script src="~/lib/sweetalert/sweetalert.min.js"></script>
+    <script src="~/modules/deleteobjects.js"></script>
+}

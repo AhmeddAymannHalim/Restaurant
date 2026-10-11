@@ -1,4 +1,4 @@
-﻿@model Restaurant.Data.Models.PaymentInvoiceSupplier
+﻿@model Restaurant.DAL.Models.PaymentInvoiceSupplier
 
 @{
     ViewData["Title"] = "Supplier Invoice Edit";
@@ -17,7 +17,7 @@
                 <input asp-for="SupplierId" class="form-control" hidden />
                 <input asp-for="Date" class="form-control" hidden />
                 <label class="control-label">اسم المورد</label>
-                <input type="text" class="form-control" value="@Model.Supplier.Name" readonly />
+                <input type="text" class="form-control" value="@Model.Supplier.ArName" readonly />
             </div>
            
 

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Restaurant.Data.Models.Invoice>
+﻿@model IEnumerable<Restaurant.DAL.Models.Invoice>
 
 @{
     ViewData["Title"] = "Invoices";
@@ -103,10 +103,10 @@
 
 
                     <td>
-                        @Html.DisplayFor(modelItem => item.Supplier.Name)
+                        @Html.DisplayFor(modelItem => item.Supplier.ArName)
                     </td>
                     <td>
-                        @Html.DisplayFor(modelItem => item.Store.Name)
+                        @Html.DisplayFor(modelItem => item.Store.ArName)
                     </td>
                     <td>
                         @item.InvoiceItems.Count()

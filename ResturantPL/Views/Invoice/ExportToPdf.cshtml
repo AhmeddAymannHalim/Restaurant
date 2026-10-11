@@ -1,4 +1,4 @@
-﻿@model Restaurant.Data.Models.Invoice
+﻿@model Restaurant.DAL.Models.Invoice
 
 @{
     ViewData["Title"] = "Invoice Details (PDF)";
@@ -125,13 +125,13 @@
             المورد
         </dt>
         <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.Supplier.Name)
+            @Html.DisplayFor(model => model.Supplier.ArName)
         </dd>
         <dt class="col-sm-3">
             المخزن
         </dt>
         <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.Store.Name)
+            @Html.DisplayFor(model => model.Store.ArName)
         </dd>
         <dt class="col-sm-3">
             المنتجات
@@ -151,7 +151,7 @@
                 {
                     <tr>
                         <td>@item.StoreProduct.ProductName</td>
-                        <td>@item.UnitPrice.Name</td>
+                        <td>@item.UnitPrice.ArName</td>
                         <td>@item.Quantity</td>
                         <td>@item.Price</td>
                         <td>@item.Total</td>

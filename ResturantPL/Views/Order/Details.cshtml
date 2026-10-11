@@ -1,4 +1,4 @@
-﻿@model Restaurant.Data.Models.Order
+﻿@model Restaurant.DAL.Models.Order
 
 @{
     ViewData["Title"] = "Details";
@@ -73,7 +73,7 @@
                 اسم الطاولة
             </dt>
             <dd class="col-sm-8">
-                @Html.DisplayFor(model => model.Table.Name)
+                @Html.DisplayFor(model => model.Table.ArName)
             </dd>
             <dt class="col-sm-3">
                 نوع الفاتورة
@@ -229,7 +229,7 @@
                     @foreach (var item in Model.OrderMenuItems)
                     {
                         <tr>
-                            <td>@item.MenuItem.Name</td>
+                            <td>@item.MenuItem.ArName</td>
                             <td>@item.Quantity</td>
                             <td>@item.PriceForUnit</td>
                             <td>@item.Price</td>

@@ -1,0 +1,122 @@
+@model EmployeeViewModel
+@{
+    var isNew = Model.Id == 0;
+    ViewBag.Title = isNew ? L["NewEmployee"].Value : L["UpdateEmployee"].Value;
+}
+
+<h1 class="text-center">@ViewBag.Title</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Upsert" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Image" />
+            <div class="form-group">
+                <label asp-for="Code" class="control-label">@L["Code"]</label>
+                <input asp-for="Code" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label asp-for="FirstName" class="control-label">@L["FirstName"]</label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="LastName" class="control-label">@L["LastName"]</label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MobileNumber" class="control-label">@L["Mobile"]</label>
+                <input asp-for="MobileNumber" class="form-control" />
+                <span asp-validation-for="MobileNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PhoneNumber" class="control-label">@L["Phone"]</label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="NationalID" class="control-label">@L["NationalID"]</label>
+                <input asp-for="NationalID" class="form-control" />
+                <span asp-validation-for="NationalID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Age" class="control-label">@L["Age"]</label>
+                <input asp-for="Age" type="number" class="form-control" />
+                <span asp-validation-for="Age" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Country" class="control-label">@L["Country"]</label>
+                <input asp-for="Country" class="form-control" />
+                <span asp-validation-for="Country" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="City" class="control-label">@L["City"]</label>
+                <input asp-for="City" class="form-control" />
+                <span asp-validation-for="City" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Street" class="control-label">@L["Street"]</label>
+                <input asp-for="Street" class="form-control" />
+                <span asp-validation-for="Street" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BrancheId" class="control-label">@L["Branch"]</label>
+                <select asp-for="BrancheId" class="form-control" asp-items="Model.Branches">
+                    <option value="">@L["Select"]</option>
+                </select>
+                <span asp-validation-for="BrancheId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="JobId" class="control-label">@L["Job"]</label>
+                <select asp-for="JobId" class="form-control" asp-items="Model.Jobs">
+                    <option value="">@L["Select"]</option>
+                </select>
+                <span asp-validation-for="JobId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SalaryTypeId" class="control-label">@L["SalaryType"]</label>
+                <select asp-for="SalaryTypeId" class="form-control" asp-items="Model.SalaryTypes">
+                    <option value="">@L["Select"]</option>
+                </select>
+                <span asp-validation-for="SalaryTypeId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Salary" class="control-label">@L["Salary"]</label>
+                <input asp-for="Salary" type="number" step="0.01" class="form-control" />
+                <span asp-validation-for="Salary" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ImageFile" class="control-label">@L["Image"]</label>
+                @if (!string.IsNullOrEmpty(Model.Image))
+                {
+                    <div class="mb-2">
+                        <img src="@Model.Image" alt="@Model.FirstName" class="rounded" style="width:80px; height:80px; object-fit:cover;" />
+                    </div>
+                }
+                <input asp-for="ImageFile" type="file" accept="image/*" class="form-control" />
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="@L["Save"]" class="btn btn-primary" /> |
+                <a asp-action="Index">@L["Back"]</a>
+                @if (!isNew)
+                {
+                    <text> | </text>
+                    <a onclick="Delete('/Employee/Delete/@Model.Id', '@Url.Action("Index")')" class="text-danger" style="font-weight:bold; cursor:pointer;">@L["Delete"]</a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/lib/sweetalert/sweetalert.min.js"></script>
+    <script src="~/modules/deleteobjects.js"></script>
+}

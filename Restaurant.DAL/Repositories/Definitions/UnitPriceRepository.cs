@@ -1,0 +1,97 @@
+using Microsoft.EntityFrameworkCore;
+using Restaurant.DAL.IRepositories.Definitions;
+using Restaurant.DAL.Models;
+using Shared.Enums;
+using Shared.ViewModels.Commons;
+using Shared.ViewModels.Definitions;
+
+namespace Restaurant.DAL.Repositories.Definitions;
+
+public class UnitPriceRepository : IUnitPriceRepository
+{
+    private readonly ApplicationDbContext _context;
+
+    public UnitPriceRepository(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<PaginatedResult<UnitPrice>> GetPagedUnitPricesAsync(PageRequest request)
+    {
+        var query = _context.UnitPrices.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(request.SearchString))
+        {
+            var search = request.SearchString.Trim().ToLower();
+            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search));
+        }
+
+        var total = await query.CountAsync();
+        var data = await query
+            .OrderBy(a => a.Id)
+            .Skip(request.Offset)
+            .Take(request.PageSize)
+            .ToListAsync();
+
+        return PaginatedResult<UnitPrice>.Create(data, total, request);
+    }
+
+    public async Task<UnitPrice> GetUnitPriceByIdAsync(int id)
+    {
+        return await _context.UnitPrices.FindAsync(id);
+    }
+
+    public async Task<ResultMessage> UpsertUnitPriceAsync(UnitPrice entity)
+    {
+        try
+        {
+            if (entity.Id == 0)
+            {
+                await _context.UnitPrices.AddAsync(entity);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                var existing = await _context.UnitPrices.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
+                if (existing is null)
+                {
+                    return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                }
+
+                _context.UnitPrices.Update(entity);
+                await _context.SaveChangesAsync();
+            }
+
+            return new ResultMessage { Success = true };
+        }
+        catch (Exception ex)
+        {
+            return new ResultMessage { Success = false, Message = ex.Message };
+        }
+    }
+
+    public async Task<ResultMessage> DeleteUnitPriceAsync(int id)
+    {
+        try
+        {
+            var entity = await _context.UnitPrices.FindAsync(id);
+            if (entity is null)
+            {
+                return new ResultMessage { Success = true };
+            }
+
+            _context.UnitPrices.Remove(entity);
+            await _context.SaveChangesAsync();
+
+            return new ResultMessage { Success = true };
+        }
+        catch (DbUpdateException)
+        {
+            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+        }
+        catch (Exception ex)
+        {
+            return new ResultMessage { Success = false, Message = ex.Message };
+        }
+    }
+}

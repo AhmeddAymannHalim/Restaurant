@@ -1,5 +1,5 @@
 ﻿
-function Delete(url) {
+function Delete(url, redirectUrl) {
     swal({
         title: "هل انت متأكد",
         text: "بمجرد الحذف لن تتمكن من استعادته مجددا",
@@ -19,9 +19,13 @@ function Delete(url) {
                                 icon: "success",
                             });
 
-                            location.reload();
+                            if (redirectUrl) {
+                                window.location.href = redirectUrl;
+                            } else {
+                                location.reload();
+                            }
                         } else {
-                            swal("فشلت العملية", "", "error");
+                            swal("فشلت العملية", result.errorMessage || "", "error");
                         }
                     },
                     error: function () {

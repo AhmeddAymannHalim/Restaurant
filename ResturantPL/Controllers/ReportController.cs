@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Shared.Enums;
+using Microsoft.AspNetCore.Identity;
+using ResturantPL.Helper;
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.Data.Models;
+using Restaurant.DAL.Models;
 using ResturantPL.ViewModels;
 using Rotativa.AspNetCore;
-using Service.UnitOfWork;
+using Restaurant.DAL.UnitOfWork;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
-using static NuGet.Packaging.PackagingConstants;
 
 namespace ResturantPL.Controllers
 {
@@ -96,7 +97,7 @@ namespace ResturantPL.Controllers
             var viewAsPdf = new ViewAsPdf
             {
                 Model = model,
-                FileName = "تقرير طلبات بين تاريخين.pdf"
+                FileName = PdfFile.Name("تقرير طلبات بين تاريخين.pdf")
             };
             return viewAsPdf;
         }
@@ -158,7 +159,7 @@ namespace ResturantPL.Controllers
             var viewAsPdf = new ViewAsPdf
             {
                 Model = model,
-                FileName = "تقرير الايداعات بين تاريخين.pdf"
+                FileName = PdfFile.Name("تقرير الايداعات بين تاريخين.pdf")
             };
             return viewAsPdf;
         }
@@ -214,7 +215,7 @@ namespace ResturantPL.Controllers
             var viewAsPdf = new ViewAsPdf
             {
                 Model = model,
-                FileName = "تقرير المصروفات بين تاريخين.pdf"
+                FileName = PdfFile.Name("تقرير المصروفات بين تاريخين.pdf")
             };
             return viewAsPdf;
         }
@@ -270,7 +271,7 @@ namespace ResturantPL.Controllers
             var viewAsPdf = new ViewAsPdf
             {
                 Model = model,
-                FileName = "تقرير سندات صرف الموردين بين تاريخين.pdf"
+                FileName = PdfFile.Name("تقرير سندات صرف الموردين بين تاريخين.pdf")
             };
             return viewAsPdf;
         }
@@ -413,7 +414,7 @@ namespace ResturantPL.Controllers
 
             SupplierTotalViewModel supplierTotalViewModel = new SupplierTotalViewModel()
             {
-                Name = sup.Name,
+                Name = sup.ArName,
                 Date = DateTime.Now,
                 balances = balances,
                 TotalDeptor = totalDeptor,
@@ -630,7 +631,7 @@ namespace ResturantPL.Controllers
 
         //    SupplierTotalViewModel supplierTotalViewModel = new SupplierTotalViewModel()
         //    {
-        //        Name = sup.Name,
+        //        Name = sup.ArName,
         //        Date = DateTime.Now,
         //        balances = balances,
         //        TotalDeptor = totalDeptor,
@@ -772,7 +773,7 @@ namespace ResturantPL.Controllers
 
             SupplierTotalViewModel supplierTotalViewModel = new SupplierTotalViewModel()
             {
-                Name = sup.Name,
+                Name = sup.ArName,
                 Date = DateTime.Now,
                 FromDate = startDate.Date,
                 ToDate = endDate.Date,
@@ -792,7 +793,7 @@ namespace ResturantPL.Controllers
             var viewAsPdf = new ViewAsPdf
             {
                 Model = supplierTotalViewModel,
-                FileName = $"تقرير كشف حساب المورد {sup.Name} بين تاريخين.pdf"
+                FileName = PdfFile.Name($"تقرير كشف حساب المورد {sup.ArName} بين تاريخين.pdf")
             };
             return viewAsPdf;
         }
@@ -938,7 +939,7 @@ namespace ResturantPL.Controllers
 
                 var supplierViewModel = new SuppliersTotalViewModel()
                 {
-                    Name = supplier.Name,
+                    Name = supplier.ArName,
                     Date = DateTime.Now,
                     TotalDeptor = totalDeptor,
                     TotalCreditor = totalCreditor,
@@ -1099,7 +1100,7 @@ namespace ResturantPL.Controllers
                 // Step 3: Construct the view model for each supplier
                 var supplierViewModel = new SuppliersTotalViewModel()
                 {
-                    Name = supplier.Name,
+                    Name = supplier.ArName,
                     Date = DateTime.Now,
                     TotalDeptor = totalDeptor,
                     TotalCreditor = totalCreditor,
@@ -1127,7 +1128,7 @@ namespace ResturantPL.Controllers
             var viewAsPdf = new ViewAsPdf
             {
                 Model = model,
-                FileName = $"تقرير كشف حساب الموردين بين تاريخين.pdf"
+                FileName = PdfFile.Name($"تقرير كشف حساب الموردين بين تاريخين.pdf")
             };
             return viewAsPdf;
         }
@@ -1238,7 +1239,7 @@ namespace ResturantPL.Controllers
             var viewAsPdf = new ViewAsPdf
             {
                 Model = model,
-                FileName = "تقرير مصروفات الموظفين بين تاريخين.pdf"
+                FileName = PdfFile.Name("تقرير مصروفات الموظفين بين تاريخين.pdf")
             };
             return viewAsPdf;
         }
@@ -1294,7 +1295,7 @@ namespace ResturantPL.Controllers
             var viewAsPdf = new ViewAsPdf
             {
                 Model = model,
-                FileName = "تقرير مرتبات الموظفين بين تاريخين.pdf"
+                FileName = PdfFile.Name("تقرير مرتبات الموظفين بين تاريخين.pdf")
             };
             return viewAsPdf;
         }
@@ -1345,7 +1346,7 @@ namespace ResturantPL.Controllers
             var viewAsPdf = new ViewAsPdf
             {
                 Model = orders,
-                FileName = "تقرير طلبات بين تاريخين.pdf"
+                FileName = PdfFile.Name("تقرير طلبات بين تاريخين.pdf")
             };
             return viewAsPdf;
         }
@@ -1452,7 +1453,7 @@ namespace ResturantPL.Controllers
             var viewAsPdf = new ViewAsPdf
             {
                 Model = model,
-                FileName = "تقرير الفواتير بين تاريخين.pdf"
+                FileName = PdfFile.Name("تقرير الفواتير بين تاريخين.pdf")
             };
             return viewAsPdf;
         }
@@ -1525,7 +1526,7 @@ namespace ResturantPL.Controllers
             var viewAsPdf = new ViewAsPdf
             {
                 Model = model,
-                FileName = $"تقرير طلبات الطيار {employee.FullName} بين تاريخين.pdf"
+                FileName = PdfFile.Name($"تقرير طلبات الطيار {employee.FullName} بين تاريخين.pdf")
             };
             return viewAsPdf;
         }
@@ -1604,7 +1605,7 @@ namespace ResturantPL.Controllers
             var viewAsPdf = new ViewAsPdf
             {
                 Model = moneySafe,
-                FileName = "تقرير حركة الخزينة بين تاريخين.pdf"
+                FileName = PdfFile.Name("تقرير حركة الخزينة بين تاريخين.pdf")
             };
             return viewAsPdf;
         }
@@ -1629,6 +1630,7 @@ namespace ResturantPL.Controllers
             var order = _unitOfWork.OrderRepository.GetById(a => a.Id == orderId,
                 new string[] { "Seller", "Receiver", "Table", "Customer", "Employee", "OrderMenuItems" },
                 new string[] { "OrderMenuItems.MenuItem" });
+            if (order is null) return NotFound();
 
             //if (order.Complete == false)
             //{
@@ -1640,7 +1642,7 @@ namespace ResturantPL.Controllers
             {
                 Model = order,
                 //ViewName = "OrderReport",
-                FileName = $"{order.CustomerName}.pdf"
+                FileName = PdfFile.Name($"{order.CustomerName}.pdf")
             };
             return viewAsPdf;
         }
@@ -1651,11 +1653,12 @@ namespace ResturantPL.Controllers
             Invoice invoice = _unitOfWork.InvoiceRepository.
                  GetById(a => a.Id == invoiceId, new string[] { "Supplier", "InvoiceItems", "Store" }
                  , new string[] { "InvoiceItems.StoreProduct", "InvoiceItems.UnitPrice" });
+            if (invoice is null) return NotFound();
 
             var viewAsPdf = new ViewAsPdf
             {
                 Model = invoice,
-                FileName = $"فاتورة رقم {invoice.InvoiceCode}.pdf"
+                FileName = PdfFile.Name($"فاتورة رقم {invoice.InvoiceCode}.pdf")
             };
             return viewAsPdf;
         }
@@ -1665,11 +1668,12 @@ namespace ResturantPL.Controllers
         {
             StoreConvert invoice = _unitOfWork.StoreConvertRepository.
                  GetById(a => a.Id == invoiceId, new string[] { "FromStore", "ToStore", "StoreConvertProducts" }, new string[] { "StoreConvertProducts.StoreProduct" });
+            if (invoice is null) return NotFound();
 
             var viewAsPdf = new ViewAsPdf
             {
                 Model = invoice,
-                FileName = $"فاتورة نقل اصناف رقم {invoice.ConvertCode}.pdf"
+                FileName = PdfFile.Name($"فاتورة نقل اصناف رقم {invoice.ConvertCode}.pdf")
             };
             return viewAsPdf;
         }
@@ -1679,10 +1683,11 @@ namespace ResturantPL.Controllers
         {
             PaymentInvoiceSupplier invoice = _unitOfWork.PaymentInvoiceSupplierRepository.
                 GetById(a => a.Id == invoiceId, new string[] { "Supplier" });
+            if (invoice is null) return NotFound();
             var viewAsPdf = new ViewAsPdf
             {
                 Model = invoice,
-                FileName = $"فاتورة تسديد المورد : {invoice.Supplier.Name}.pdf"
+                FileName = PdfFile.Name($"فاتورة تسديد المورد : {invoice.Supplier.ArName}.pdf")
             };
             return viewAsPdf;
         }
@@ -1692,10 +1697,11 @@ namespace ResturantPL.Controllers
         {
             PaymentInvoiceCustomer invoice = _unitOfWork.PaymentInvoiceCustomerRepository
                 .GetById(a => a.Id == invoiceId, new string[] { "Customer" });
+            if (invoice is null) return NotFound();
             var viewAsPdf = new ViewAsPdf
             {
                 Model = invoice,
-                FileName = $"فاتورة تسديد العميل : {invoice.Customer.Name}.pdf"
+                FileName = PdfFile.Name($"فاتورة تسديد العميل : {invoice.Customer.ArName}.pdf")
             };
             return viewAsPdf;
         }
@@ -1709,7 +1715,7 @@ namespace ResturantPL.Controllers
             var viewAsPdf = new ViewAsPdf
             {
                 Model = model,
-                FileName = $"فاتورة انهاء شيفت : {model.Name}.pdf"
+                FileName = PdfFile.Name($"فاتورة انهاء شيفت : {model.Name}.pdf")
             };
             return viewAsPdf;
         }

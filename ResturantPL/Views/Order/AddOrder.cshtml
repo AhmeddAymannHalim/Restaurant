@@ -3,7 +3,7 @@
     Layout = "_Layout1";
     var user = ViewBag.CurrentUser;
     var items = ViewBag.MenuItems as List<MenuItem>;
-    var distinctMenuSections = items.Select(i => i.MenuSection.Name).Distinct();
+    var distinctMenuSections = items.Select(i => i.MenuSection.ArName).Distinct();
 }
 
 
@@ -35,11 +35,11 @@
             {
                 <div class="collapse collapse-horizontal" id="@menuSection">
                     <div class="card-body" style="width: 500px;">
-                        @foreach (var item in items.Where(i => i.MenuSection.Name == menuSection))
+                        @foreach (var item in items.Where(i => i.MenuSection.ArName == menuSection))
                         {
                             <button class="btn btn-info mealBtn" data-id="@item.Id" style="margin:2px; width:95px; height:135px;">
-                                <img src="@item.ImageUrl" alt="@item.Name" style="width: 80%; height: 50%;">
-                                <span>@item.Name</span> <span>$@item.Price</span>
+                                <img src="@item.ImageUrl" alt="@item.ArName" style="width: 80%; height: 50%;">
+                                <span>@item.ArName</span> <span>$@item.Price</span>
                             </button>
                         }
                     </div>
@@ -145,7 +145,7 @@
                     {
                         <tr data-id="@item.MenuItem.Id">
                             <td hidden>@item.MenuItem.Id</td>
-                            <td>@item.MenuItem.Name</td>
+                            <td>@item.MenuItem.ArName</td>
                             <td class="quantity">@item.Quantity</td>
                             <td>@item.PriceForUnit</td>
                             <td class="total-price">@item.Price</td>

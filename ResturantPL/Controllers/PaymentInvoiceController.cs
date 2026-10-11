@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Shared.Helpers;
+using Shared.ViewModels.Commons;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Restaurant.Data.Models;
+using Restaurant.DAL.Models;
 using ResturantPL.Helper;
-using Service.UnitOfWork;
+using Restaurant.DAL.UnitOfWork;
 
 namespace ResturantPL.Controllers
 {

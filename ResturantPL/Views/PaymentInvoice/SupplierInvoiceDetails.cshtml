@@ -1,4 +1,4 @@
-﻿@model Restaurant.Data.Models.PaymentInvoiceSupplier
+﻿@model Restaurant.DAL.Models.PaymentInvoiceSupplier
 
 @{
     ViewData["Title"] = "SupplierInvoiceDetails";
@@ -16,7 +16,7 @@
 <div class="container">
 
 
-    <h1>سند صرف / @Model.Supplier.Name</h1>
+    <h1>سند صرف / @Model.Supplier.ArName</h1>
     <hr />
 
 
@@ -26,7 +26,7 @@
             اسم المورد
         </dt>
         <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.Supplier.Name)
+            @Html.DisplayFor(model => model.Supplier.ArName)
         </dd>
 
         <dt class="col-sm-3">

@@ -14,9 +14,14 @@
                 <input asp-for="Id"  hidden />
 
             <div class="form-group col-md-4">
-                <label asp-for="Name" class="control-label">اسم المطعم</label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+                <label asp-for="ArName" class="control-label">اسم المطعم (عربي)</label>
+                <input asp-for="ArName" class="form-control" />
+                <span asp-validation-for="ArName" class="text-danger"></span>
+            </div>
+            <div class="form-group col-md-4">
+                <label asp-for="EnName" class="control-label">اسم المطعم (English)</label>
+                <input asp-for="EnName" class="form-control" />
+                <span asp-validation-for="EnName" class="text-danger"></span>
             </div>
             <div class="form-group col-md-4">
                 <label asp-for="Description" class="control-label">وصف المطعم</label>

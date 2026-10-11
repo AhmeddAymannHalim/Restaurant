@@ -1,11 +1,8 @@
-﻿@*  @if (ViewData["Title"] == "Home")
-{
-
-  @model IndexSettings
+@{
+    var isArabicLayout = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar";
 }
-  *@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@(isArabicLayout ? "ar" : "en")" dir="@(isArabicLayout ? "rtl" : "ltr")">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -35,6 +32,7 @@
 
     <!-- Template Main CSS File -->
     <link href="~/assets/css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" />
     <!-- Vendor CSS Files -->
     <link href="~/assets/vendor/animate.css/animate.min.css" rel="stylesheet">
     <link href="~/assets/vendor/aos/aos.css" rel="stylesheet">
@@ -51,17 +49,20 @@
 
 
 
+    <link rel="stylesheet" href="~/css/backoffice.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/website.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
     <!-- ======= Top Bar ======= -->
     <div id="topbar" class="d-flex align-items-center fixed-top">
         <div class="container d-flex justify-content-center justify-content-md-between">
 
-            @if (Model != null && Model.GetType() == typeof(IndexSettings))
+            @if (Model is WebsiteViewModel site)
             {
                 <div class="contact-info d-flex align-items-center">
-                    <i class="bi bi-clock d-flex align-items-center ms-4"><span> @Model.StartDay - @Model.EndDay : @Model.StartHour صباحا - @Model.EndHour مساءا</span></i>
-                    <i class="bi bi-phone d-flex align-items-center"> <span> @Model.Phone </span> </i>
+                    <i class="bi bi-clock d-flex align-items-center ms-4"><span> @site.StartDay - @site.EndDay : @site.StartHour - @site.EndHour</span></i>
+                    <i class="bi bi-phone d-flex align-items-center"> <span> @site.Phone </span> </i>
                 </div>
             }
 
@@ -75,31 +76,33 @@
             <nav id="navbar" class="navbar order-last order-lg-0">
                 <ul>
 
+                    <li><a class="nav-link scrollto" asp-controller="SetLanguage" asp-action="SetLanguage" asp-route-culture="@(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar" ? "en" : "ar")" asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)">@(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar" ? "English" : "العربية")</a></li>
+
                     @if (User.Identity.IsAuthenticated)
                     {
                         <img src="~/Images/chefs-1.jpg" alt="image" class="rounded-circle m-3" style="width:40px" />
-                        <li><a class="nav-link scrollto float-end text-danger" asp-action="SignOut" asp-controller="Account">تسجيل الخروج</a></li>
+                        <li><a class="nav-link scrollto float-end text-danger" asp-action="SignOut" asp-controller="Account">@L["SignOut"]</a></li>
                     }
                     else
                     {
-                        <li><a class="nav-link scrollto float-end text-primary" asp-action="SignIn" asp-controller="Account">تسجيل الدخول</a></li>
+                        <li><a class="nav-link scrollto float-end text-primary" asp-action="SignIn" asp-controller="Account">@L["SignIn"]</a></li>
                     }
 
                     @if (User.Identity.IsAuthenticated && !User.IsInRole("User"))
                     {
-                        <li><a class="nav-link scrollto" asp-action="AdminDash" asp-controller="Account">لوحة التحكم</a></li>
+                        <li><a class="nav-link scrollto" asp-action="Index" asp-controller="Dashboard">@L["Dashboard"]</a></li>
                     }
 
-                    <li><a class="nav-link scrollto" asp-action="Menu" asp-controller="OnlineOrder">المنيو</a></li>
-                    <li><a class="nav-link scrollto" asp-action="PendingOrders" asp-controller="OnlineOrder">طلباتي</a></li>
-                    <li><a class="nav-link scrollto" asp-action="Gallery" asp-controller="Home">معرض الصور</a></li>
-                    <li><a class="nav-link scrollto" asp-action="Chefs" asp-controller="Home">فريق المطبخ</a></li>
-                    <li><a class="nav-link scrollto active" asp-action="Index" asp-controller="Home">الصفحه الرئيسيه</a></li>
+                    <li><a class="nav-link scrollto" asp-action="Menu" asp-controller="OnlineOrder">@L["Menu"]</a></li>
+                    <li><a class="nav-link scrollto" asp-action="PendingOrders" asp-controller="OnlineOrder">@L["MyOrders"]</a></li>
+                    <li><a class="nav-link scrollto" href="/#gallery">@L["Gallery"]</a></li>
+                    <li><a class="nav-link scrollto" href="/#chefs">@L["Chefs"]</a></li>
+                    <li><a class="nav-link scrollto active" asp-action="Index" asp-controller="Home">@L["Home"]</a></li>
 
                 </ul>
                 <i class="bi bi-list mobile-nav-toggle"></i>
             </nav>
-            <a asp-action="Basket" asp-controller="OnlineOrder" class="book-a-table-btn scrollto d-none d-lg-flex">احجز طلبك الان</a>
+            <a asp-action="Basket" asp-controller="OnlineOrder" class="book-a-table-btn scrollto d-none d-lg-flex">@L["BookOrderNow"]</a>
 
         </div>
     </header>
@@ -107,12 +110,19 @@
 
     <main role="main" class="m-3 pb-3">
         <div style="height:133px;"></div>
-        <div style="direction:rtl;">
+        <div style="direction:@(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar" ? "rtl" : "ltr");">
             @RenderBody()
         </div>
 
     </main>
 
+
+    @if (User.Identity.IsAuthenticated && !User.IsInRole("User") && ViewData["HideDashboardFab"] == null)
+    {
+        <a class="bo-fab" asp-controller="Dashboard" asp-action="Index">
+            <i class="bi bi-speedometer2" aria-hidden="true"></i> @L["Dashboard"]
+        </a>
+    }
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -134,6 +144,8 @@
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>
     <!-- Template Main JS File -->
     <script src="~/assets/js/main.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
+    <partial name="_NotificationPartial" />
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

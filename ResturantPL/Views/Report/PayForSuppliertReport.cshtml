@@ -1,4 +1,4 @@
-﻿@model Restaurant.Data.Models.PaymentInvoiceSupplier
+﻿@model Restaurant.DAL.Models.PaymentInvoiceSupplier
 
 @{
     ViewData["Title"] = "Supplier Invoice Report";
@@ -43,7 +43,7 @@
 
 
 
-<h1>فاتورة تسديد المورد / @Model.Supplier.Name</h1>
+<h1>فاتورة تسديد المورد / @Model.Supplier.ArName</h1>
 <hr />
 
 
@@ -57,7 +57,7 @@
     <tbody>
         <tr>
             <td class="mainRow">اسم المورد</td>
-            <td>@Model.Supplier.Name</td>
+            <td>@Model.Supplier.ArName</td>
         </tr>
         <tr>
             <td class="mainRow">كود العملية</td>

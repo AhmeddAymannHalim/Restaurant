@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Restaurant.Data.Models.StoreConvert>
+﻿@model IEnumerable<Restaurant.DAL.Models.StoreConvert>
 
 @{
     ViewData["Title"] = "Store Converts";
@@ -48,10 +48,10 @@
                         @Html.DisplayFor(modelItem => item.ConvertDate)
                     </td>
                     <td>
-                        @Html.DisplayFor(modelItem => item.FromStore.Name)
+                        @Html.DisplayFor(modelItem => item.FromStore.ArName)
                     </td>
                     <td>
-                        @Html.DisplayFor(modelItem => item.ToStore.Name)
+                        @Html.DisplayFor(modelItem => item.ToStore.ArName)
                     </td>
                     <td>
                         @item.StoreConvertProducts.Count()

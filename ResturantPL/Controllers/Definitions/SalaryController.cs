@@ -1,0 +1,147 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Claims;
+using Microsoft.Extensions.Localization;
+using Restaurant.BLL.Services.IServices.Commons;
+using Restaurant.BLL.Services.IServices.Definitions;
+using Shared;
+using Shared.Helpers;
+using Shared.Helpers.Localization;
+using Shared.ViewModels.Commons;
+using Shared.ViewModels.Definitions;
+
+namespace ResturantPL.Controllers.Definitions
+{
+    [Authorize]
+    public class SalaryController : Controller
+    {
+        private readonly ISalaryService _service;
+        private readonly ILookupService _lookup;
+        private readonly IToastrService _toastr;
+        private readonly IStringLocalizer<SharedResource> _localizer;
+
+        public SalaryController(ISalaryService service, ILookupService lookup, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
+        {
+            _service = service;
+            _lookup = lookup;
+            _toastr = toastr;
+            _localizer = localizer;
+        }
+
+        public async Task<IActionResult> Index([FromQuery] PageRequest request)
+        {
+            try
+            {
+                request ??= new PageRequest();
+                var result = await _service.GetPagedSalariesAsync(request);
+
+                return View(result);
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
+        }
+
+        public async Task<IActionResult> Upsert(int? id)
+        {
+            try
+            {
+                var model = new SalaryViewModel();
+                if (id.HasValue && id.Value > 0)
+                {
+                    model = await _service.GetSalaryByIdAsync(id.Value);
+                    if (model == null)
+                    {
+                        _toastr.Error(_localizer["RecordNotFound"].Value);
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+                else
+                {
+                    model.SalaryCode = await _service.NewSalaryCodeAsync();
+                }
+
+                await PopulateData(model);
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Upsert(SalaryViewModel model)
+        {
+            try
+            {
+                var isNew = model.Id == 0;
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (!ModelState.IsValid)
+                {
+                    await PopulateData(model);
+                    _toastr.Error(_localizer["ValidationError"].Value);
+                    return View("Upsert", model);
+                }
+
+                var result = await _service.UpsertSalaryAsync(model, userId);
+                if (result.Success)
+                {
+                    _toastr.Success(_localizer[isNew ? "SavedSuccessfully" : "UpdatedSuccessfully"].Value);
+                    return RedirectToAction(nameof(Index), new { searchString = model.SalaryCode });
+                }
+
+                await PopulateData(model);
+                _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                return View("Upsert", model);
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var result = await _service.DeleteSalaryAsync(id);
+                if (result.Success)
+                {
+                    return Json(new { success = true });
+                }
+
+                return Json(new { success = false, errorMessage = _localizer[result.Message].Value });
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, errorMessage = _localizer["SomethingWentError"].Value });
+            }
+        }
+
+        // AJAX: salary summary of the employee between two dates
+        [HttpGet]
+        public async Task<IActionResult> EmployeeExpenses(int employeeId, DateTime startDate, DateTime endDate)
+        {
+            var expenses = await _service.GetEmployeeExpensesAsync(employeeId, startDate, endDate);
+            if (expenses == null)
+            {
+                return NotFound();
+            }
+
+            return Json(expenses);
+        }
+
+        private async Task PopulateData(SalaryViewModel model)
+        {
+            var employees = await _lookup.EmployeeLookupAsync();
+            model.Employees = new SelectList(employees, "Id", "ArName", model.EmployeeId);
+            await Task.CompletedTask;
+        }
+    }
+}

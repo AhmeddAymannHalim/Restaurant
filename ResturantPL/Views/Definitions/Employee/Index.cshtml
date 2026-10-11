@@ -1,0 +1,89 @@
+@model PaginatedResult<EmployeeViewModel>
+@{
+    ViewBag.Title = L["Employees"].Value;
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
+}
+
+<h1 class="text-center">@L["Employees"]</h1>
+<hr />
+
+<p>
+    <a asp-action="Upsert">@L["NewEmployee"]</a> |
+    <a asp-action="EmployeeAccounts" asp-controller="EmployeeAccount">@L["EmployeeAccounts"]</a>
+</p>
+
+<form asp-action="Index" method="get" class="d-flex gap-2 mb-3">
+    <input id="Employee-search" type="search" class="form-control w-auto" name="searchString" value="@Model.SearchString" placeholder="@L["SearchHere"]" />
+    <button type="submit" class="btn btn-primary">@L["Search"]</button>
+</form>
+
+<table id="Employee-table" class="table table-hover text-center table-bordered table-striped-columns table-dark">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>@L["Code"]</th>
+            <th>@L["Image"]</th>
+            <th>@L["Name"]</th>
+            <th>@L["Job"]</th>
+            <th>@L["Mobile"]</th>
+            <th>@L["Address"]</th>
+            <th>@L["Age"]</th>
+            <th>@L["SalaryType"]</th>
+            <th>@L["Salary"]</th>
+            <th>@L["Branch"]</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Data.Any())
+        {
+            var counter = ((Model.PageNo - 1) * Model.PageSize) + 1;
+            foreach (var item in Model.Data)
+            {
+                <tr>
+                    <td>@counter</td>
+                    <td>@item.Code</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.Image))
+                        {
+                            <img src="@item.Image" alt="@item.FirstName" class="rounded-circle" style="width:40px; height:40px; object-fit:cover;" />
+                        }
+                    </td>
+                    <td>@item.FirstName @item.LastName</td>
+                    <td>@(isArabic ? item.JobArName : item.JobEnName)</td>
+                    <td>@item.MobileNumber</td>
+                    <td>@item.Country - @item.City - @item.Street</td>
+                    <td>@item.Age</td>
+                    <td>@(isArabic ? item.SalaryTypeArName : item.SalaryTypeEnName)</td>
+                    <td>@item.Salary</td>
+                    <td>@(isArabic ? item.BranchArName : item.BranchEnName)</td>
+                    <td>
+                        <a asp-action="Upsert" asp-route-id="@item.Id">@L["Edit"]</a> |
+                        <a onclick="Delete('/Employee/Delete/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">@L["Delete"]</a> |
+                        <a asp-action="CheckAccount" asp-controller="EmployeeAccount" asp-route-id="@item.Id">@(item.HasAccount ? L["EditAccount"] : L["AddAccount"])</a>
+                    </td>
+                </tr>
+                counter++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="12">@L["NoData"]</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="app-table-pagination">
+    @await Html.PartialAsync("_Pagination", Model)
+</div>
+
+<div>
+    <a asp-action="Index" asp-controller="Dashboard">@L["BackToDashboard"]</a>
+</div>
+
+@section Scripts {
+    <script src="~/lib/sweetalert/sweetalert.min.js"></script>
+    <script src="~/modules/deleteobjects.js"></script>
+}

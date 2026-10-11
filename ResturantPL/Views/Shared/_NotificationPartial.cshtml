@@ -1,0 +1,40 @@
+@using Newtonsoft.Json
+@using Shared.Constants
+@using Shared.Enums.Others
+
+@{
+    bool isArabicCulture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar";
+    string toastPosition = isArabicCulture ? "toast-top-left" : "toast-top-right";
+}
+
+<script type="text/javascript">
+    toastr.options = {
+        "closeButton": false,
+        "progressBar": true,
+        "positionClass": "@toastPosition",
+        "timeOut": 5000,
+        "extendedTimeOut": 2000
+    };
+</script>
+
+@{
+    IList<ToastrData> toasters = TempData.ContainsKey(ToastrDefaults.ToasterList)
+        ? JsonConvert.DeserializeObject<IList<ToastrData>>(TempData[ToastrDefaults.ToasterList].ToString())
+        : null;
+    if (toasters is not null)
+    {
+        foreach (var toastrData in toasters)
+        {
+            var method = toastrData.Type switch
+            {
+                ToastrType.Success => "success",
+                ToastrType.Info => "info",
+                ToastrType.Warning => "warning",
+                _ => "error"
+            };
+            <script type="text/javascript">
+                toastr['@method'](`@Html.Raw(toastrData.Message)`);
+            </script>
+        }
+    }
+}

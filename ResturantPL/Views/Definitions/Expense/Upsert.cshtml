@@ -1,0 +1,50 @@
+@model ExpenseViewModel
+@{
+    var isNew = Model.Id == 0;
+    ViewBag.Title = isNew ? L["NewExpense"].Value : L["UpdateExpense"].Value;
+}
+
+<h1 class="text-center">@ViewBag.Title</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Upsert" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="ArName" class="control-label">@L["ArabicName"]</label>
+                <input asp-for="ArName" class="form-control" />
+                <span asp-validation-for="ArName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EnName" class="control-label">@L["EnglishName"]</label>
+                <input asp-for="EnName" class="form-control" />
+                <span asp-validation-for="EnName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Price" class="control-label">@L["Price"]</label>
+                <input asp-for="Price" type="number" step="0.01" class="form-control" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="@L["Save"]" class="btn btn-primary" /> |
+                <a asp-action="Index">@L["Back"]</a>
+                @if (!isNew)
+                {
+                    <text> | </text>
+                    <a onclick="Delete('/Expense/Delete/@Model.Id', '@Url.Action("Index")')" class="text-danger" style="font-weight:bold; cursor:pointer;">@L["Delete"]</a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/lib/sweetalert/sweetalert.min.js"></script>
+    <script src="~/modules/deleteobjects.js"></script>
+}

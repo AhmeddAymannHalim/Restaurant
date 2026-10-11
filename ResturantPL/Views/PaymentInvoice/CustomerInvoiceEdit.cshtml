@@ -1,4 +1,4 @@
-﻿@model Restaurant.Data.Models.PaymentInvoiceCustomer
+﻿@model Restaurant.DAL.Models.PaymentInvoiceCustomer
 
 @{
     ViewData["Title"] = "Customer Invoice Edit";
@@ -17,7 +17,7 @@
                 <input asp-for="CustomerId" class="form-control" hidden />
                 <input asp-for="Date" class="form-control" hidden />
                 <label class="control-label">اسم العميل</label>
-                <input type="text" class="form-control" value="@Model.Customer.Name" readonly />
+                <input type="text" class="form-control" value="@Model.Customer.ArName" readonly />
             </div>
 
 
