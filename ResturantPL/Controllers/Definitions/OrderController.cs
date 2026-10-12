@@ -295,6 +295,34 @@ namespace ResturantPL.Controllers.Definitions
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> RejectOnline(int id, string reason)
+        {
+            try
+            {
+                var result = await _service.RejectOnlineOrderAsync(id, reason);
+                if (result.Success)
+                {
+                    await _hub.Clients.All.SendAsync("RefreshOnlineOrders");
+                    return Json(new { success = true });
+                }
+
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer[result.Message].Value
+                });
+            }
+            catch (Exception)
+            {
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer["SomethingWentError"].Value
+                });
+            }
+        }
+
         private async Task<IActionResult> ShowMove(int id)
         {
             try

@@ -47,6 +47,7 @@
                         <strong>@order.TotalPrice.ToString("N2")</strong>
                         <span>
                             <a asp-action="Upsert" asp-route-onlineOrderId="@order.Id" class="btn-ad btn-ad-primary"><i class="fas fa-check" aria-hidden="true"></i> @L["AcceptOrder"]</a>
+                            <button type="button" onclick="RejectOnlineOrder(@order.Id)" class="btn-ad btn-ad-danger"><i class="fas fa-ban" aria-hidden="true"></i> @L["RejectOrder"]</button>
                             <button type="button" onclick="Delete('/Order/CancelOnline/@order.Id')" class="btn-ad btn-ad-danger"><i class="fas fa-xmark" aria-hidden="true"></i> @L["CancelOrder"]</button>
                         </span>
                     </footer>
@@ -64,5 +65,24 @@
             connection.on("RefreshOnlineOrders", function () { location.reload(); });
             connection.start();
         } catch (e) { }
+
+        function RejectOnlineOrder(id) {
+            var reason = prompt('@L["RejectionReasonPrompt"]');
+            if (reason === null || reason.trim() === '') {
+                return;
+            }
+
+            $.ajax({
+                url: '/Order/RejectOnline/' + id + '?reason=' + encodeURIComponent(reason),
+                type: 'POST',
+                success: function (result) {
+                    if (result.success) {
+                        location.reload();
+                    } else {
+                        alert(result.errorMessage);
+                    }
+                }
+            });
+        }
     </script>
 }

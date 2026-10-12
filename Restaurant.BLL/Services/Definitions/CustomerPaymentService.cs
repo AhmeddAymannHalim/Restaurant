@@ -2,6 +2,7 @@ using AutoMapper;
 using Restaurant.BLL.Services.IServices.Definitions;
 using Restaurant.DAL.Models;
 using Restaurant.DAL.UnitOfWork;
+using Shared.Enums;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
 
@@ -52,5 +53,48 @@ public class CustomerPaymentService : ICustomerPaymentService
     public async Task<ResultMessage> DeletePaymentAsync(int id)
     {
         return await _unitOfWork.CustomerPayments.DeletePaymentAsync(id);
+    }
+
+    public async Task<PaymentRefundRequestViewModel> GetRefundRequestAsync(int paymentId)
+    {
+        var payment = await _unitOfWork.CustomerPayments.GetPaymentByIdAsync(paymentId);
+        if (payment is null)
+        {
+            return null;
+        }
+
+        var refunds = _mapper.Map<List<PaymentRefundViewModel>>(await _unitOfWork.CustomerPayments.GetRefundsForPaymentAsync(paymentId));
+        var reserved = refunds.Where(a => a.Status != RefundStatus.Rejected).Sum(a => a.Amount);
+
+        return new PaymentRefundRequestViewModel
+        {
+            OriginalPaymentId = payment.Id,
+            OriginalPaymentCode = payment.ProcessCode,
+            OriginalPaymentAmount = payment.Paid,
+            RemainingRefundable = payment.Paid - reserved,
+            Refunds = refunds
+        };
+    }
+
+    public async Task<ResultMessage> RequestRefundAsync(PaymentRefundRequestViewModel model, string requestedByUserId)
+    {
+        var entity = new PaymentRefund
+        {
+            OriginalPaymentId = model.OriginalPaymentId,
+            Amount = model.Amount,
+            Reason = model.Reason
+        };
+
+        return await _unitOfWork.CustomerPayments.RequestRefundAsync(entity, requestedByUserId);
+    }
+
+    public async Task<ResultMessage> ApproveRefundAsync(int refundId, string approvedByUserId)
+    {
+        return await _unitOfWork.CustomerPayments.ApproveRefundAsync(refundId, approvedByUserId);
+    }
+
+    public async Task<ResultMessage> RejectRefundAsync(int refundId, string approvedByUserId)
+    {
+        return await _unitOfWork.CustomerPayments.RejectRefundAsync(refundId, approvedByUserId);
     }
 }

@@ -8,7 +8,7 @@ builder.Services
     .AddPersistence(builder.Configuration)
     .AddEmail(builder.Configuration)
     .AddAuthenticationAndIdentity(builder.Configuration)
-    .AddCorsAndSession()
+    .AddAppSession()
     .AddSignalR();
 
 var app = builder.Build();

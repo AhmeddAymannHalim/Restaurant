@@ -19,8 +19,8 @@ public class ReportRepository : IReportRepository
 
     public async Task<ReportViewModel> BuildAsync(ReportRequest request)
     {
-        var from = (request.FromDate ?? DateTime.Today).Date;
-        var to = (request.ToDate ?? DateTime.Today).Date;
+        var from = (request.FromDate ?? DefaultDateRange.Start).Date;
+        var to = (request.ToDate ?? DefaultDateRange.End).Date;
 
         if (to < from)
         {
@@ -500,7 +500,22 @@ public class ReportRepository : IReportRepository
             })
             .ToListAsync();
 
-        var all = orders.Concat(payments).ToList();
+        var refunds = await _context.PaymentRefunds
+            .AsNoTracking()
+            .Where(a => a.OriginalPayment.CustomerId == customerId
+                && a.Status == RefundStatus.Approved
+                && a.ApprovedAt >= from)
+            .Select(a => new CustomerMovement
+            {
+                Date = a.ApprovedAt.Value,
+                Info = "PaymentRefund",
+                Code = a.OriginalPayment.ProcessCode,
+                Debit = a.Amount,
+                Credit = 0
+            })
+            .ToListAsync();
+
+        var all = orders.Concat(payments).Concat(refunds).ToList();
         var opening = customer.Balance - all.Sum(a => a.Debit - a.Credit);
         var inPeriod = all
             .Where(a => a.Date < end)

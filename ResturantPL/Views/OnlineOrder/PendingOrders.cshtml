@@ -23,7 +23,7 @@
                 <div class="ws-orders">
                     @foreach (var item in Model)
                     {
-                        <article class="ws-order @(item.IsPending ? "is-waiting" : "is-accepted")">
+                        <article class="ws-order @(item.Status switch { OnlineOrderStatus.Pending => "is-waiting", OnlineOrderStatus.Rejected => "is-rejected", _ => "is-accepted" })">
                             <div class="ws-order-main">
                                 <h2>#@item.Id</h2>
                                 <time datetime="@item.OrderDate.ToString("s")">@item.OrderDate.ToString("yyyy-MM-dd HH:mm")</time>
@@ -34,7 +34,7 @@
                                 <span>@(item.TableId.HasValue ? (isArabic ? item.TableArName : item.TableEnName) : item.Address)</span>
                             </div>
 
-                            <span class="ws-status">@L[item.IsPending ? "StatusWaiting" : "StatusAccepted"]</span>
+                            <span class="ws-status">@L[item.Status switch { OnlineOrderStatus.Pending => "StatusWaiting", OnlineOrderStatus.Rejected => "StatusRejected", _ => "StatusAccepted" }]</span>
 
                             <div class="ws-order-total">@item.TotalPrice.ToString("N2") <small>@L["Currency"]</small></div>
 

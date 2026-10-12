@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Shared.Enums;
 
 namespace Restaurant.DAL.Models
 {
@@ -17,6 +18,8 @@ namespace Restaurant.DAL.Models
         public decimal TotalPrice { get; set; }
         public DateTime OrderDate { get; set; }
         public bool IsPending { get; set; }
+        public OnlineOrderStatus Status { get; set; } = OnlineOrderStatus.Pending;
+        public string RejectionReason { get; set; }
         public int? TableId { get; set; }
         public int? DeliveryZoneId { get; set; }
         public decimal DeliveryFee { get; set; }

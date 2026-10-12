@@ -10,7 +10,6 @@ namespace ResturantPL.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public const string CorsPolicyName = "CorsPolicy";
     public const string StaffPolicy = "Staff";
     public const string ManagementPolicy = "Management";
     public const string AdminPolicy = "Admin";
@@ -81,13 +80,8 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddCorsAndSession(this IServiceCollection services)
+    public static IServiceCollection AddAppSession(this IServiceCollection services)
     {
-        services.AddCors(options => options.AddPolicy(CorsPolicyName, policy => policy
-            .AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader()));
-
         services.AddSession(options =>
         {
             options.IdleTimeout = TimeSpan.FromMinutes(30);

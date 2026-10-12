@@ -73,6 +73,7 @@ public class PosMenuItemViewModel
     public int SectionId { get; set; }
     public string SectionArName { get; set; }
     public string SectionEnName { get; set; }
+    public bool IsAvailable { get; set; } = true;
 }
 
 public class OrderMoveViewModel
@@ -100,6 +101,33 @@ public class ShiftDashboardViewModel
     public int PendingCount => PendingMineCount + PendingOthersCount;
     public decimal MoneyInDrawer => CollectedTotal + CollectedFromOthers.Amount;
     public int MoneyInDrawerCount => CollectedCount + CollectedFromOthers.Count;
+
+    public ShiftCloseReportViewModel LastShiftReport { get; set; }
+}
+
+public class ShiftCloseReportViewModel
+{
+    public DateTime ClosedAt { get; set; }
+    public decimal ExpectedCash { get; set; }
+    public decimal CountedCash { get; set; }
+    public decimal Variance { get; set; }
+    public bool HadIncompleteOrders { get; set; }
+}
+
+public class IncompleteCashOrderViewModel
+{
+    public int Id { get; set; }
+    public string OrderCode { get; set; }
+    public string TableArName { get; set; }
+    public string TableEnName { get; set; }
+    public decimal TotalPrice { get; set; }
+}
+
+public class ShiftCloseConfirmViewModel
+{
+    public string Password { get; set; }
+    public decimal CountedCash { get; set; }
+    public List<IncompleteCashOrderViewModel> IncompleteOrders { get; set; } = new();
 }
 
 public class ShiftRowViewModel
@@ -113,6 +141,8 @@ public class PendingOnlineOrderViewModel
 {
     public int Id { get; set; }
     public bool IsPending { get; set; }
+    public OnlineOrderStatus Status { get; set; }
+    public string RejectionReason { get; set; }
     public string CustomerId { get; set; }
     public string CustomerName { get; set; }
     public string Address { get; set; }

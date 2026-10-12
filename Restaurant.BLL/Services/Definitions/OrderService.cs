@@ -108,9 +108,14 @@ public class OrderService : IOrderService
         return await _unitOfWork.Orders.DeleteOrderAsync(id);
     }
 
-    public async Task<ResultMessage> FinishShiftAsync(string userId)
+    public async Task<IEnumerable<IncompleteCashOrderViewModel>> GetIncompleteCashOrdersAsync(string userId)
     {
-        return await _unitOfWork.Orders.FinishShiftAsync(userId);
+        return _mapper.Map<List<IncompleteCashOrderViewModel>>(await _unitOfWork.Orders.GetIncompleteCashOrdersAsync(userId));
+    }
+
+    public async Task<ResultMessage> FinishShiftAsync(string userId, decimal countedCash)
+    {
+        return await _unitOfWork.Orders.FinishShiftAsync(userId, countedCash);
     }
 
     public async Task<IEnumerable<OrderViewModel>> GetKitchenOrdersAsync()
@@ -136,5 +141,10 @@ public class OrderService : IOrderService
     public async Task<ResultMessage> CancelOnlineOrderAsync(int id)
     {
         return await _unitOfWork.Orders.CancelOnlineOrderAsync(id);
+    }
+
+    public async Task<ResultMessage> RejectOnlineOrderAsync(int id, string reason)
+    {
+        return await _unitOfWork.Orders.RejectOnlineOrderAsync(id, reason);
     }
 }

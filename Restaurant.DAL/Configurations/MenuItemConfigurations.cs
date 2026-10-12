@@ -13,6 +13,7 @@ public class MenuItemConfigurations : IEntityTypeConfiguration<MenuItem>
         builder.Property(a => a.ArDescription).HasColumnName("Description").HasMaxLength(150);
         builder.Property(a => a.EnDescription).HasMaxLength(150);
         builder.Property(a => a.ShowOnWebsite).HasColumnName("IsReady");
+        builder.Property(a => a.IsAvailable).HasDefaultValue(true);
         builder.Property(a => a.ImageUrl).HasMaxLength(100);
         builder.Property(a => a.Price).HasPrecision(18, 2);
 

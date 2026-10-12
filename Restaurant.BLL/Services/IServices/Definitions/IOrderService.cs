@@ -17,11 +17,13 @@ public interface IOrderService
     Task<ResultMessage> MoveItemAsync(OrderMoveViewModel model);
     Task<ResultMessage> MergeOrderAsync(OrderMoveViewModel model);
     Task<ResultMessage> DeleteOrderAsync(int id);
-    Task<ResultMessage> FinishShiftAsync(string userId);
+    Task<IEnumerable<IncompleteCashOrderViewModel>> GetIncompleteCashOrdersAsync(string userId);
+    Task<ResultMessage> FinishShiftAsync(string userId, decimal countedCash);
     Task<bool> VerifyShiftPasswordAsync(string password);
     Task<IEnumerable<OrderViewModel>> GetKitchenOrdersAsync();
     Task<ResultMessage> CompleteOrderAsync(int id);
 
     Task<IEnumerable<PendingOnlineOrderViewModel>> GetPendingOnlineOrdersAsync();
     Task<ResultMessage> CancelOnlineOrderAsync(int id);
+    Task<ResultMessage> RejectOnlineOrderAsync(int id, string reason);
 }

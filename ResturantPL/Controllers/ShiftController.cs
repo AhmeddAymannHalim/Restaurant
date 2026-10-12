@@ -6,6 +6,7 @@ using ResturantPL.Helper;
 using Shared;
 using Shared.Helpers.Localization;
 using Shared.ViewModels.Commons;
+using Shared.ViewModels.Definitions;
 using System.Security.Claims;
 
 namespace ResturantPL.Controllers
@@ -51,7 +52,7 @@ namespace ResturantPL.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> End(string password)
+        public async Task<IActionResult> End(string password, decimal countedCash, bool confirmOverride = false)
         {
             try
             {
@@ -61,7 +62,29 @@ namespace ResturantPL.Controllers
                     return RedirectToAction("Index", "Order");
                 }
 
-                await _service.FinishShiftAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (!confirmOverride)
+                {
+                    var incompleteOrders = (await _service.GetIncompleteCashOrdersAsync(userId)).ToList();
+                    if (incompleteOrders.Count > 0)
+                    {
+                        return View("ConfirmEnd", new ShiftCloseConfirmViewModel
+                        {
+                            Password = password,
+                            CountedCash = countedCash,
+                            IncompleteOrders = incompleteOrders
+                        });
+                    }
+                }
+
+                var result = await _service.FinishShiftAsync(userId, countedCash);
+                if (!result.Success)
+                {
+                    _toastr.Error(_localizer[result.Message ?? "ErrorWhileSaving"].Value);
+                    return RedirectToAction("Index", "Order");
+                }
+
                 HttpContext.Session.SetString("IsAuthenticated", "false");
                 _toastr.Success(_localizer["ShiftEnded"].Value);
 

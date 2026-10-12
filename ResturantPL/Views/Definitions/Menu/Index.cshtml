@@ -33,6 +33,7 @@
             <th>@L["TotalCost"]</th>
             <th>@L["Price"]</th>
             <th>@L["Benefit"]</th>
+            <th>@L["Availability"]</th>
             <th></th>
         </tr>
     </thead>
@@ -56,6 +57,7 @@
                     <td>@item.TotalCost.ToString("0.00")</td>
                     <td>@item.Price.ToString("0.00")</td>
                     <td>@item.Benefit.ToString("0.00")</td>
+                    <td>@(item.IsAvailable ? L["Yes"] : L["No"])</td>
                     <td class="ad-row-actions">
                         <a asp-action="Upsert" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Edit"]" aria-label="@L["Edit"]"><i class="fas fa-pen" aria-hidden="true"></i></a>
                         <button type="button" onclick="Delete('/Menu/Delete/@item.Id')" class="btn-ad btn-ad-danger btn-icon" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button>
@@ -67,7 +69,7 @@
         else
         {
             <tr>
-                <td colspan="9" class="ad-empty">@L["NoData"]</td>
+                <td colspan="10" class="ad-empty">@L["NoData"]</td>
             </tr>
         }
     </tbody>

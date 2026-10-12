@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
+using Shared.Enums;
 using Shared.ViewModels.Commons;
 
 namespace Restaurant.DAL.Repositories.Definitions;
@@ -144,10 +145,196 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
                 return new ResultMessage { Success = true };
             }
 
+            if (await _context.PaymentRefunds.AnyAsync(a => a.OriginalPaymentId == id))
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "CannotDeletePaymentWithRefunds"
+                };
+            }
+
             var partner = await _context.Customers.FindAsync(payment.CustomerId);
             partner.Balance += payment.Paid;
 
             _context.PaymentInvoiceCustomer.Remove(payment);
+            await _context.SaveChangesAsync();
+
+            return new ResultMessage { Success = true };
+        }
+        catch (Exception ex)
+        {
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
+        }
+    }
+
+    public async Task<IEnumerable<PaymentRefund>> GetRefundsForPaymentAsync(int paymentId)
+    {
+        return await _context.PaymentRefunds.AsNoTracking()
+            .Include(a => a.OriginalPayment)
+            .Include(a => a.RequestedByUser)
+            .Include(a => a.ApprovedByUser)
+            .Where(a => a.OriginalPaymentId == paymentId)
+            .OrderByDescending(a => a.RequestedAt)
+            .ToListAsync();
+    }
+
+    private async Task<decimal> GetRemainingRefundableAsync(int paymentId, int excludeRefundId = 0)
+    {
+        var payment = await _context.PaymentInvoiceCustomer.AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == paymentId);
+        if (payment is null)
+        {
+            return 0;
+        }
+
+        var approved = await _context.PaymentRefunds.AsNoTracking()
+            .Where(a => a.OriginalPaymentId == paymentId
+                && a.Status == RefundStatus.Approved
+                && a.Id != excludeRefundId)
+            .SumAsync(a => a.Amount);
+
+        return payment.Paid - approved;
+    }
+
+    public async Task<ResultMessage> RequestRefundAsync(PaymentRefund entity, string requestedByUserId)
+    {
+        try
+        {
+            var payment = await _context.PaymentInvoiceCustomer.FirstOrDefaultAsync(a => a.Id == entity.OriginalPaymentId);
+            if (payment is null)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RecordNotFound"
+                };
+            }
+
+            if (entity.Amount <= 0)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RefundAmountMustBePositive"
+                };
+            }
+
+            var pendingAndApproved = await _context.PaymentRefunds.AsNoTracking()
+                .Where(a => a.OriginalPaymentId == entity.OriginalPaymentId && a.Status != RefundStatus.Rejected)
+                .SumAsync(a => a.Amount);
+
+            if (entity.Amount > payment.Paid - pendingAndApproved)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RefundExceedsRemainingAmount"
+                };
+            }
+
+            var refund = new PaymentRefund
+            {
+                OriginalPaymentId = entity.OriginalPaymentId,
+                Amount = entity.Amount,
+                Reason = entity.Reason,
+                RequestedByUserId = requestedByUserId,
+                Status = RefundStatus.Pending
+            };
+
+            await _context.PaymentRefunds.AddAsync(refund);
+            await _context.SaveChangesAsync();
+
+            return new ResultMessage { Success = true };
+        }
+        catch (Exception ex)
+        {
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
+        }
+    }
+
+    public async Task<ResultMessage> ApproveRefundAsync(int refundId, string approvedByUserId)
+    {
+        try
+        {
+            var refund = await _context.PaymentRefunds.FirstOrDefaultAsync(a => a.Id == refundId);
+            if (refund is null)
+            {
+                return new ResultMessage { Success = true };
+            }
+
+            if (refund.Status != RefundStatus.Pending)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RefundAlreadyProcessed"
+                };
+            }
+
+            var remaining = await GetRemainingRefundableAsync(refund.OriginalPaymentId, refund.Id);
+            if (refund.Amount > remaining)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RefundExceedsRemainingAmount"
+                };
+            }
+
+            var payment = await _context.PaymentInvoiceCustomer.FindAsync(refund.OriginalPaymentId);
+            var customer = await _context.Customers.FindAsync(payment.CustomerId);
+            customer.Balance += refund.Amount;
+
+            refund.Status = RefundStatus.Approved;
+            refund.ApprovedByUserId = approvedByUserId;
+            refund.ApprovedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            return new ResultMessage { Success = true };
+        }
+        catch (Exception ex)
+        {
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
+        }
+    }
+
+    public async Task<ResultMessage> RejectRefundAsync(int refundId, string approvedByUserId)
+    {
+        try
+        {
+            var refund = await _context.PaymentRefunds.FirstOrDefaultAsync(a => a.Id == refundId);
+            if (refund is null)
+            {
+                return new ResultMessage { Success = true };
+            }
+
+            if (refund.Status != RefundStatus.Pending)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RefundAlreadyProcessed"
+                };
+            }
+
+            refund.Status = RefundStatus.Rejected;
+            refund.ApprovedByUserId = approvedByUserId;
+            refund.ApprovedAt = DateTime.Now;
+
             await _context.SaveChangesAsync();
 
             return new ResultMessage { Success = true };

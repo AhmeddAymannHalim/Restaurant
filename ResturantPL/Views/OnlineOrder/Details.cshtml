@@ -12,10 +12,21 @@
                 <p>@Model.OrderDate.ToString("yyyy-MM-dd HH:mm")</p>
             </header>
 
-            <ol class="ws-track @(Model.IsPending ? "is-waiting" : "is-accepted")">
-                <li class="is-done"><span></span>@L["StatusWaiting"]</li>
-                <li class="@(Model.IsPending ? "" : "is-done")"><span></span>@L["StatusAccepted"]</li>
-            </ol>
+            @if (Model.Status == OnlineOrderStatus.Rejected)
+            {
+                <ol class="ws-track is-rejected">
+                    <li class="is-done"><span></span>@L["StatusWaiting"]</li>
+                    <li class="is-done is-rejected-step"><span></span>@L["StatusRejected"]</li>
+                </ol>
+                <p class="ws-rejection-reason"><strong>@L["RejectionReasonLabel"]:</strong> @Model.RejectionReason</p>
+            }
+            else
+            {
+                <ol class="ws-track @(Model.IsPending ? "is-waiting" : "is-accepted")">
+                    <li class="is-done"><span></span>@L["StatusWaiting"]</li>
+                    <li class="@(Model.IsPending ? "" : "is-done")"><span></span>@L["StatusAccepted"]</li>
+                </ol>
+            }
 
             <div class="ws-split">
                 <div class="ws-receipt-items">

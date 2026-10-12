@@ -23,7 +23,6 @@ public static class WebApplicationExtensions
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
-        app.UseCors(ServiceCollectionExtensions.CorsPolicyName);
         app.UseSession();
         app.UseRotativa();
         app.UseRouting();

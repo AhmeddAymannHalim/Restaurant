@@ -11,4 +11,9 @@ public interface ICustomerPaymentService
     Task<decimal> GetBalanceAsync(int partnerId);
     Task<ResultMessage> UpsertPaymentAsync(PaymentViewModel model);
     Task<ResultMessage> DeletePaymentAsync(int id);
+
+    Task<PaymentRefundRequestViewModel> GetRefundRequestAsync(int paymentId);
+    Task<ResultMessage> RequestRefundAsync(PaymentRefundRequestViewModel model, string requestedByUserId);
+    Task<ResultMessage> ApproveRefundAsync(int refundId, string approvedByUserId);
+    Task<ResultMessage> RejectRefundAsync(int refundId, string approvedByUserId);
 }

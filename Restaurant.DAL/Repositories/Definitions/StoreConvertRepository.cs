@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
+using Shared.Enums;
 using Shared.ViewModels.Commons;
 
 namespace Restaurant.DAL.Repositories.Definitions;
@@ -93,6 +94,7 @@ public class StoreConvertRepository : IStoreConvertRepository
                 .ToList();
 
             var lines = new List<StoreConvertProduct>();
+            var movements = new List<(int StoreId, int ProductId, decimal Delta)>();
             foreach (var item in wanted)
             {
                 var from = await _context.StoreProducts.FirstOrDefaultAsync(a => a.StoreId == convert.FromStoreId
@@ -125,6 +127,8 @@ public class StoreConvertRepository : IStoreConvertRepository
                     StoreProduct = from,
                     Quantity = item.Quantity
                 });
+                movements.Add((convert.FromStoreId, item.ProductId, -item.Quantity));
+                movements.Add((convert.ToStoreId, item.ProductId, item.Quantity));
             }
 
             var entity = new StoreConvert
@@ -135,6 +139,18 @@ public class StoreConvertRepository : IStoreConvertRepository
                 ToStoreId = convert.ToStoreId,
                 StoreConvertProducts = lines
             };
+
+            foreach (var (storeId, productId, delta) in movements)
+            {
+                await _context.StoreProductMovements.AddAsync(new StoreProductMovement
+                {
+                    StoreId = storeId,
+                    ProductId = productId,
+                    QuantityDelta = delta,
+                    Source = StockMovementSource.StoreConvert,
+                    ReferenceCode = entity.ConvertCode
+                });
+            }
 
             await _context.StoreConverts.AddAsync(entity);
             await _context.SaveChangesAsync();
@@ -190,6 +206,23 @@ public class StoreConvertRepository : IStoreConvertRepository
 
                 to.Quantity -= line.Quantity;
                 line.StoreProduct.Quantity += line.Quantity;
+
+                await _context.StoreProductMovements.AddAsync(new StoreProductMovement
+                {
+                    StoreId = convert.ToStoreId,
+                    ProductId = line.StoreProduct.ProductId,
+                    QuantityDelta = -line.Quantity,
+                    Source = StockMovementSource.StoreConvert,
+                    ReferenceCode = convert.ConvertCode
+                });
+                await _context.StoreProductMovements.AddAsync(new StoreProductMovement
+                {
+                    StoreId = line.StoreProduct.StoreId,
+                    ProductId = line.StoreProduct.ProductId,
+                    QuantityDelta = line.Quantity,
+                    Source = StockMovementSource.StoreConvert,
+                    ReferenceCode = convert.ConvertCode
+                });
             }
 
             _context.StoreConverts.Remove(convert);

@@ -1,3 +1,5 @@
+using Shared.Helpers;
+
 namespace Shared.ViewModels.Commons;
 
 public sealed class PageRequest
@@ -22,8 +24,8 @@ public sealed class PageRequest
     }
 
     public string SearchString { get; set; }
-    public DateTime? FromDate { get; set; }
-    public DateTime? ToDate { get; set; }
+    public DateTime? FromDate { get; set; } = DefaultDateRange.Start;
+    public DateTime? ToDate { get; set; } = DefaultDateRange.End;
     public string Type { get; set; }
     public string Status { get; set; }
     public string Sort { get; set; }

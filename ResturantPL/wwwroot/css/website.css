@@ -944,6 +944,10 @@
     border-inline-start-color: #6fae7a;
 }
 
+.ws-order.is-rejected {
+    border-inline-start-color: #c0564e;
+}
+
 .ws-order-main h2 {
     margin: 0;
     font-family: "Playfair Display", serif;
@@ -979,6 +983,12 @@
     border-color: #6fae7a;
     background: rgba(111, 174, 122, .14);
     color: #a9d9b1;
+}
+
+.is-rejected .ws-status {
+    border-color: #c0564e;
+    background: rgba(192, 86, 78, .14);
+    color: #e0a39d;
 }
 
 .ws-order-total {
@@ -1056,6 +1066,25 @@
 .ws-track li.is-done span {
     border-color: var(--gold);
     background: var(--gold);
+}
+
+.ws-track li.is-rejected-step {
+    color: #e0a39d;
+}
+
+.ws-track li.is-rejected-step::before,
+.ws-track li.is-rejected-step span {
+    border-color: #c0564e;
+    background: #c0564e;
+}
+
+.ws-rejection-reason {
+    margin-top: 1rem;
+    padding: .6rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #c0564e;
+    background: rgba(192, 86, 78, .1);
+    color: #e0a39d;
 }
 
 .ws-receipt-row {

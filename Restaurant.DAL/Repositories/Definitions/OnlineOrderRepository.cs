@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
+using Shared.Enums;
 using Shared.ViewModels.Commons;
 
 namespace Restaurant.DAL.Repositories.Definitions;
@@ -121,6 +122,7 @@ public class OnlineOrderRepository : IOnlineOrderRepository
                 MobileNumber = order.MobileNumber,
                 OrderDate = DateTime.Now,
                 IsPending = true,
+                Status = OnlineOrderStatus.Pending,
                 DeliveryZoneId = zoneId,
                 DeliveryFee = deliveryFee,
                 Tax = tax,

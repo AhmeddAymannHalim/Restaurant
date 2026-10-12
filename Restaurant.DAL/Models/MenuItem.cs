@@ -14,6 +14,7 @@ public class MenuItem
     public int StoreId { get; set; }
     public decimal Price { get; set; }
     public bool ShowOnWebsite { get; set; } = true;
+    public bool IsAvailable { get; set; } = true;
     public Size? Size { get; set; }
 
     public virtual Store Store { get; set; }

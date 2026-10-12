@@ -1,0 +1,53 @@
+@model ShiftCloseConfirmViewModel
+@{
+    ViewBag.Title = L["ConfirmEndShift"].Value;
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i></span>
+        <h1>@L["ConfirmEndShift"]</h1>
+    </div>
+    <div class="ad-card-body">
+        <p class="text-danger">@L["IncompleteCashOrdersWarning"]</p>
+
+        <div class="ad-table-wrap">
+            <table class="ad-table">
+                <thead>
+                    <tr>
+                        <th>@L["OrderCode"]</th>
+                        <th>@L["Table"]</th>
+                        <th>@L["Amount"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model.IncompleteOrders)
+                    {
+                        <tr>
+                            <td>@order.OrderCode</td>
+                            <td>@(isArabic ? order.TableArName : order.TableEnName)</td>
+                            <td>@order.TotalPrice.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <form asp-action="End" method="post" class="ad-form mt-3">
+            <input type="hidden" name="password" value="@Model.Password" />
+            <input type="hidden" name="countedCash" value="@Model.CountedCash.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="confirmOverride" value="true" />
+
+            <div class="form-check">
+                <input id="ack" type="checkbox" class="form-check-input" required />
+                <label for="ack" class="form-check-label">@L["ConfirmCloseShiftAnyway"]</label>
+            </div>
+
+            <div class="ad-form-actions">
+                <a asp-controller="Order" asp-action="Index" class="btn-ad btn-ad-ghost">@L["Cancel"]</a>
+                <button type="submit" class="btn-ad btn-ad-danger"><i class="fas fa-flag-checkered" aria-hidden="true"></i> @L["EndShift"]</button>
+            </div>
+        </form>
+    </div>
+</div>

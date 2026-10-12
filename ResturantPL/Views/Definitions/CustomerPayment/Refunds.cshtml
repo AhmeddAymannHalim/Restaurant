@@ -1,0 +1,113 @@
+@model PaymentRefundRequestViewModel
+@{
+    ViewBag.Title = L["Refunds"].Value;
+    var isManager = User.IsInRole("Admin") || User.IsInRole("Manager");
+    var invariant = CultureInfo.InvariantCulture;
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-rotate-left" aria-hidden="true"></i></span>
+        <h1>@L["Refunds"] <small>@Model.OriginalPaymentCode</small></h1>
+        <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+    </div>
+    <div class="ad-card-body">
+        <div class="shift-totals">
+            <div class="shift-tile">
+                <span>@L["Paid"]</span>
+                <strong>@Model.OriginalPaymentAmount.ToString("N2")</strong>
+            </div>
+            <div class="shift-tile">
+                <span>@L["RemainingRefundable"]</span>
+                <strong>@Model.RemainingRefundable.ToString("N2")</strong>
+            </div>
+        </div>
+
+        <div class="ad-table-wrap">
+            <table class="ad-table">
+                <thead>
+                    <tr>
+                        <th>@L["Amount"]</th>
+                        <th>@L["Reason"]</th>
+                        <th>@L["RequestedBy"]</th>
+                        <th>@L["RequestedAt"]</th>
+                        <th>@L["ApprovedBy"]</th>
+                        <th>@L["Status"]</th>
+                        @if (isManager)
+                        {
+                            <th></th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Refunds.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="ad-empty">@L["NoData"]</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var refund in Model.Refunds)
+                        {
+                            <tr>
+                                <td class="num">@refund.Amount.ToString("N2")</td>
+                                <td>@refund.Reason</td>
+                                <td>@refund.RequestedByUserName</td>
+                                <td>@refund.RequestedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>@refund.ApprovedByUserName</td>
+                                <td>@L["RefundStatus." + refund.Status]</td>
+                                @if (isManager)
+                                {
+                                    <td class="ad-row-actions">
+                                        @if (refund.Status == RefundStatus.Pending)
+                                        {
+                                            <form asp-action="ApproveRefund" method="post" class="d-inline">
+                                                <input type="hidden" name="id" value="@refund.Id" />
+                                                <input type="hidden" name="paymentId" value="@Model.OriginalPaymentId" />
+                                                <button type="submit" class="btn-ad btn-ad-primary btn-icon" title="@L["Approve"]"><i class="fas fa-check" aria-hidden="true"></i></button>
+                                            </form>
+                                            <form asp-action="RejectRefund" method="post" class="d-inline">
+                                                <input type="hidden" name="id" value="@refund.Id" />
+                                                <input type="hidden" name="paymentId" value="@Model.OriginalPaymentId" />
+                                                <button type="submit" class="btn-ad btn-ad-danger btn-icon" title="@L["Reject"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                                            </form>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.RemainingRefundable > 0)
+        {
+            <h2 class="mt-3">@L["RequestRefund"]</h2>
+            <form asp-action="RequestRefund" method="post" class="ad-form">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="OriginalPaymentId" />
+
+                <div class="form-group">
+                    <label asp-for="Amount" class="control-label">@L["Amount"]</label>
+                    <input asp-for="Amount" type="number" step="any" min="0.01" max="@Model.RemainingRefundable.ToString(invariant)" class="form-control" />
+                    <span asp-validation-for="Amount" class="text-danger"></span>
+                </div>
+                <div class="form-group ad-full">
+                    <label asp-for="Reason" class="control-label">@L["Reason"]</label>
+                    <input asp-for="Reason" class="form-control" />
+                    <span asp-validation-for="Reason" class="text-danger"></span>
+                </div>
+
+                <div class="ad-form-actions">
+                    <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -10,6 +10,7 @@ using Shared.Helpers;
 using Shared.Helpers.Localization;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
+using System.Security.Claims;
 
 namespace ResturantPL.Controllers.Definitions
 {
@@ -151,6 +152,105 @@ namespace ResturantPL.Controllers.Definitions
         public async Task<IActionResult> Balance(int partnerId)
         {
             return Json(await _service.GetBalanceAsync(partnerId));
+        }
+
+        public async Task<IActionResult> Refunds(int paymentId)
+        {
+            try
+            {
+                var model = await _service.GetRefundRequestAsync(paymentId);
+                if (model == null)
+                {
+                    _toastr.Error(_localizer["RecordNotFound"].Value);
+                    return RedirectToAction(nameof(Index));
+                }
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RequestRefund(PaymentRefundRequestViewModel model)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    _toastr.Error(_localizer["ValidationError"].Value);
+                    return RedirectToAction(nameof(Refunds), new { paymentId = model.OriginalPaymentId });
+                }
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var result = await _service.RequestRefundAsync(model, userId);
+                if (result.Success)
+                {
+                    _toastr.Success(_localizer["SavedSuccessfully"].Value);
+                }
+                else
+                {
+                    _toastr.Error(_localizer[result.Message ?? "ErrorWhileSaving"].Value);
+                }
+
+                return RedirectToAction(nameof(Refunds), new { paymentId = model.OriginalPaymentId });
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Policy = "Management")]
+        public async Task<IActionResult> ApproveRefund(int id, int paymentId)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var result = await _service.ApproveRefundAsync(id, userId);
+                if (result.Success)
+                {
+                    _toastr.Success(_localizer["UpdatedSuccessfully"].Value);
+                }
+                else
+                {
+                    _toastr.Error(_localizer[result.Message ?? "ErrorWhileUpdating"].Value);
+                }
+
+                return RedirectToAction(nameof(Refunds), new { paymentId });
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Policy = "Management")]
+        public async Task<IActionResult> RejectRefund(int id, int paymentId)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var result = await _service.RejectRefundAsync(id, userId);
+                if (result.Success)
+                {
+                    _toastr.Success(_localizer["UpdatedSuccessfully"].Value);
+                }
+                else
+                {
+                    _toastr.Error(_localizer[result.Message ?? "ErrorWhileUpdating"].Value);
+                }
+
+                return RedirectToAction(nameof(Refunds), new { paymentId });
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
         }
 
         private async Task PopulateData(PaymentViewModel model)

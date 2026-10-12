@@ -151,6 +151,11 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.PartnerId))
             .ForMember(dest => dest.Customer, opt => opt.Ignore());
 
+        CreateMap<PaymentRefund, PaymentRefundViewModel>()
+            .ForMember(dest => dest.OriginalPaymentCode, opt => opt.MapFrom(src => src.OriginalPayment.ProcessCode))
+            .ForMember(dest => dest.RequestedByUserName, opt => opt.MapFrom(src => src.RequestedByUser.FullName))
+            .ForMember(dest => dest.ApprovedByUserName, opt => opt.MapFrom(src => src.ApprovedByUser.FullName));
+
         CreateMap<StoreConvert, StoreConvertViewModel>()
             .ForMember(dest => dest.FromStoreArName, opt => opt.MapFrom(src => src.FromStore.ArName))
             .ForMember(dest => dest.FromStoreEnName, opt => opt.MapFrom(src => src.FromStore.EnName))
@@ -171,6 +176,10 @@ public class AutoMapper : Profile
         CreateMap<StoreConvertItemViewModel, StoreConvertProduct>()
             .ForMember(dest => dest.StoreProduct, opt => opt.MapFrom(src => new StoreProduct { ProductId = src.ProductId }))
             .ForMember(dest => dest.StoreConvert, opt => opt.Ignore());
+
+        CreateMap<Order, IncompleteCashOrderViewModel>()
+            .ForMember(dest => dest.TableArName, opt => opt.MapFrom(src => src.Table.ArName))
+            .ForMember(dest => dest.TableEnName, opt => opt.MapFrom(src => src.Table.EnName));
 
         CreateMap<Order, OrderViewModel>()
             .ForMember(dest => dest.SellerName, opt => opt.MapFrom(src => src.Seller.FullName))

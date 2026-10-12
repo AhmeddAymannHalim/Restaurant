@@ -262,7 +262,16 @@ public class InvoiceRepository : IInvoiceRepository
         foreach (var item in invoice.InvoiceItems)
         {
             var stock = await GetStockAsync(invoice.StoreId, item.ProductId);
-            stock.Quantity += isPurchase ? item.Quantity : -item.Quantity;
+            var delta = isPurchase ? item.Quantity : -item.Quantity;
+            stock.Quantity += delta;
+            await _context.StoreProductMovements.AddAsync(new StoreProductMovement
+            {
+                StoreId = invoice.StoreId,
+                ProductId = item.ProductId,
+                QuantityDelta = delta,
+                Source = StockMovementSource.Invoice,
+                ReferenceCode = invoice.InvoiceCode
+            });
 
             if (isPurchase)
             {
@@ -282,7 +291,16 @@ public class InvoiceRepository : IInvoiceRepository
         foreach (var item in invoice.InvoiceItems)
         {
             var stock = await GetStockAsync(invoice.StoreId, item.ProductId);
-            stock.Quantity -= isPurchase ? item.Quantity : -item.Quantity;
+            var delta = isPurchase ? -item.Quantity : item.Quantity;
+            stock.Quantity += delta;
+            await _context.StoreProductMovements.AddAsync(new StoreProductMovement
+            {
+                StoreId = invoice.StoreId,
+                ProductId = item.ProductId,
+                QuantityDelta = delta,
+                Source = StockMovementSource.Invoice,
+                ReferenceCode = invoice.InvoiceCode
+            });
         }
 
         var supplier = await _context.Suppliers.FindAsync(invoice.SupplierId);

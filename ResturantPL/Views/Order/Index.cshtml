@@ -11,9 +11,32 @@
     </div>
     <form asp-controller="Shift" asp-action="End" method="post" class="ad-filters shift-end">
         <input name="password" type="password" class="form-control w-auto" placeholder="@L["Setting_Password"]" autocomplete="off" required />
+        <input name="countedCash" type="number" step="0.01" min="0" class="form-control w-auto" placeholder="@L["CountedCash"]" required />
         <button type="submit" class="btn-ad btn-ad-danger"><i class="fas fa-flag-checkered" aria-hidden="true"></i> @L["EndShift"]</button>
     </form>
     <div class="ad-card-body">
+        @if (Model.LastShiftReport is not null)
+        {
+            <div class="ad-table-wrap shift-last-report">
+                <table class="ad-table">
+                    <caption>@L["LastShiftReport"] (@Model.LastShiftReport.ClosedAt.ToString("g"))</caption>
+                    <thead>
+                        <tr>
+                            <th>@L["ExpectedCash"]</th>
+                            <th>@L["CountedCash"]</th>
+                            <th>@L["Variance"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>@Model.LastShiftReport.ExpectedCash.ToString("N2")</td>
+                            <td>@Model.LastShiftReport.CountedCash.ToString("N2")</td>
+                            <td class="@(Model.LastShiftReport.Variance == 0 ? "" : "text-danger")">@Model.LastShiftReport.Variance.ToString("N2")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        }
         <div class="shift-totals">
             <div class="shift-tile">
                 <span>@L["MoneyInDrawer"]</span>

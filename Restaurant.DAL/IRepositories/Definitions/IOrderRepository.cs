@@ -19,7 +19,8 @@ public interface IOrderRepository
     Task<ResultMessage> MoveItemAsync(int orderMenuItemId, int targetTableId);
     Task<ResultMessage> MergeOrderAsync(int id, int targetTableId);
     Task<ResultMessage> DeleteOrderAsync(int id);
-    Task<ResultMessage> FinishShiftAsync(string userId);
+    Task<IEnumerable<Order>> GetIncompleteCashOrdersAsync(string userId);
+    Task<ResultMessage> FinishShiftAsync(string userId, decimal countedCash);
     Task<bool> VerifyShiftPasswordAsync(string password);
 
     Task<IEnumerable<Order>> GetKitchenOrdersAsync();
@@ -28,4 +29,5 @@ public interface IOrderRepository
     Task<IEnumerable<OnlineOrder>> GetPendingOnlineOrdersAsync();
     Task<OnlineOrder> GetOnlineOrderAsync(int id);
     Task<ResultMessage> CancelOnlineOrderAsync(int id);
+    Task<ResultMessage> RejectOnlineOrderAsync(int id, string reason);
 }

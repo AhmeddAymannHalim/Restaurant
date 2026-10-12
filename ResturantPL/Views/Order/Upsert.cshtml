@@ -30,7 +30,7 @@
                 <div class="pos-items">
                     @foreach (var item in Model.Menu)
                     {
-                        <button type="button" class="pos-item" data-id="@item.Id" data-section="@item.SectionId" data-price="@item.Price.ToString(invariant)" data-name="@(isArabic ? item.ArName : item.EnName)">
+                        <button type="button" class="pos-item @(item.IsAvailable ? "" : "is-unavailable")" data-id="@item.Id" data-section="@item.SectionId" data-price="@item.Price.ToString(invariant)" data-name="@(isArabic ? item.ArName : item.EnName)" disabled="@(item.IsAvailable ? null : "disabled")" title="@(item.IsAvailable ? null : L["MenuItemNotAvailable"].Value)">
                             @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
                             {
                                 <img src="@item.ImageUrl" alt="" loading="lazy" />
@@ -234,6 +234,9 @@
 
             $('.pos-item').on('click', function () {
                 var b = $(this);
+                if (b.is(':disabled') || b.hasClass('is-unavailable')) {
+                    return;
+                }
                 addItem(b.data('id'), b.data('name'), b.data('price'));
             });
 

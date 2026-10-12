@@ -58,6 +58,19 @@ public class OrderRepository : IOrderRepository
         var onAccount = open.Where(a => a.OnAccount
             && (a.SellerId == userId || a.ReceiverId == userId)).ToList();
 
+        var lastReport = await _context.ShiftCloseReports.AsNoTracking()
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.Id)
+            .Select(a => new ShiftCloseReportViewModel
+            {
+                ClosedAt = a.ClosedAt,
+                ExpectedCash = a.ExpectedCash,
+                CountedCash = a.CountedCash,
+                Variance = a.Variance,
+                HadIncompleteOrders = a.HadIncompleteOrders
+            })
+            .FirstOrDefaultAsync();
+
         return new ShiftDashboardViewModel
         {
             Collected = Rows(paidTypes, collected),
@@ -72,7 +85,8 @@ public class OrderRepository : IOrderRepository
             {
                 Count = onAccount.Count,
                 Amount = onAccount.Sum(a => a.TotalPrice)
-            }
+            },
+            LastShiftReport = lastReport
         };
     }
 
@@ -199,6 +213,11 @@ public class OrderRepository : IOrderRepository
                 return Fail("RecordNotFound");
             }
 
+            if (menu.Any(a => !a.IsAvailable))
+            {
+                return Fail("MenuItemNotAvailable");
+            }
+
             Customer customer = null;
             if (order.OnAccount)
             {
@@ -304,6 +323,7 @@ public class OrderRepository : IOrderRepository
                 }
             }
 
+            var movements = new List<StoreProductMovement>();
             foreach (var need in needs)
             {
                 var stock = await _context.StoreProducts.FirstOrDefaultAsync(a => a.StoreId == need.Key.StoreId
@@ -314,6 +334,13 @@ public class OrderRepository : IOrderRepository
                 }
 
                 stock.Quantity -= need.Value;
+                movements.Add(new StoreProductMovement
+                {
+                    StoreId = need.Key.StoreId,
+                    ProductId = need.Key.ProductId,
+                    QuantityDelta = -need.Value,
+                    Source = StockMovementSource.Order
+                });
             }
 
             if (mergeInto is not null)
@@ -326,13 +353,25 @@ public class OrderRepository : IOrderRepository
                 Recalculate(mergeInto, settings);
 
                 var waiting = await _context.OnlineOrders.FirstOrDefaultAsync(a => a.Id == onlineOrderId.Value);
+                if (waiting is not null && waiting.Status == OnlineOrderStatus.Rejected)
+                {
+                    return Fail("OnlineOrderRejected");
+                }
                 if (waiting is null || !waiting.IsPending)
                 {
                     return Fail("RecordNotFound");
                 }
 
                 waiting.IsPending = false;
+                waiting.Status = OnlineOrderStatus.Accepted;
                 mergeInto.Complete = false;
+
+                foreach (var movement in movements)
+                {
+                    movement.ReferenceCode = mergeInto.OrderCode;
+                }
+                await _context.StoreProductMovements.AddRangeAsync(movements);
+
                 await _context.SaveChangesAsync();
 
                 return new ResultMessage
@@ -408,13 +447,24 @@ public class OrderRepository : IOrderRepository
             if (onlineOrderId.HasValue)
             {
                 var online = await _context.OnlineOrders.FirstOrDefaultAsync(a => a.Id == onlineOrderId.Value);
+                if (online is not null && online.Status == OnlineOrderStatus.Rejected)
+                {
+                    return Fail("OnlineOrderRejected");
+                }
                 if (online is null || !online.IsPending)
                 {
                     return Fail("RecordNotFound");
                 }
 
                 online.IsPending = false;
+                online.Status = OnlineOrderStatus.Accepted;
             }
+
+            foreach (var movement in movements)
+            {
+                movement.ReferenceCode = entity.OrderCode;
+            }
+            await _context.StoreProductMovements.AddRangeAsync(movements);
 
             await _context.Orders.AddAsync(entity);
             await _context.SaveChangesAsync();
@@ -595,6 +645,14 @@ public class OrderRepository : IOrderRepository
                     if (stock is not null)
                     {
                         stock.Quantity += quantity;
+                        await _context.StoreProductMovements.AddAsync(new StoreProductMovement
+                        {
+                            StoreId = storeId,
+                            ProductId = productId,
+                            QuantityDelta = quantity,
+                            Source = StockMovementSource.OrderCancellation,
+                            ReferenceCode = order.OrderCode
+                        });
                     }
                 }
             }
@@ -624,15 +682,41 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task<ResultMessage> FinishShiftAsync(string userId)
+    public async Task<IEnumerable<Order>> GetIncompleteCashOrdersAsync(string userId)
+    {
+        return await _context.Orders.AsNoTracking()
+            .Include(a => a.Table)
+            .Where(a => a.Cash && !a.FinishShift && a.ReceiverId == userId && !a.Complete)
+            .OrderBy(a => a.OrderDate)
+            .ToListAsync();
+    }
+
+    public async Task<ResultMessage> FinishShiftAsync(string userId, decimal countedCash)
     {
         try
         {
+            if (countedCash < 0)
+            {
+                return Fail("CountedCashInvalid");
+            }
+
+            var hadIncompleteOrders = await _context.Orders.AnyAsync(a => a.Cash && !a.FinishShift && a.ReceiverId == userId && !a.Complete);
+            var expectedCash = (await GetShiftDashboardAsync(userId)).MoneyInDrawer;
+
             var orders = await _context.Orders.Where(a => a.Cash && !a.FinishShift && a.ReceiverId == userId).ToListAsync();
             foreach (var order in orders)
             {
                 order.FinishShift = true;
             }
+
+            await _context.ShiftCloseReports.AddAsync(new ShiftCloseReport
+            {
+                UserId = userId,
+                ExpectedCash = expectedCash,
+                CountedCash = countedCash,
+                Variance = countedCash - expectedCash,
+                HadIncompleteOrders = hadIncompleteOrders
+            });
 
             await _context.SaveChangesAsync();
 
@@ -720,6 +804,32 @@ public class OrderRepository : IOrderRepository
             if (online is not null)
             {
                 _context.OnlineOrders.Remove(online);
+                await _context.SaveChangesAsync();
+            }
+
+            return new ResultMessage { Success = true };
+        }
+        catch (Exception ex)
+        {
+            return Fail(ex.Message);
+        }
+    }
+
+    public async Task<ResultMessage> RejectOnlineOrderAsync(int id, string reason)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                return Fail("RejectionReasonRequired");
+            }
+
+            var online = await _context.OnlineOrders.FirstOrDefaultAsync(a => a.Id == id && a.IsPending);
+            if (online is not null)
+            {
+                online.IsPending = false;
+                online.Status = OnlineOrderStatus.Rejected;
+                online.RejectionReason = reason.Trim();
                 await _context.SaveChangesAsync();
             }
 

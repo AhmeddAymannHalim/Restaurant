@@ -43,6 +43,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ProductCategory> ProductCategories { get; set; }
     public DbSet<UnitPrice> UnitPrices { get; set; }
     public DbSet<StoreProduct> StoreProducts { get; set; }
+    public DbSet<StoreProductMovement> StoreProductMovements { get; set; }
     public DbSet<StoreConvert> StoreConverts { get; set; }
     public DbSet<StoreConvertProduct> StoreConvertProducts { get; set; }
 
@@ -52,12 +53,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<InvoiceItem> InvoiceItems { get; set; }
     public DbSet<PaymentInvoiceSupplier> PaymentInvoiceSupplier { get; set; }
     public DbSet<PaymentInvoiceCustomer> PaymentInvoiceCustomer { get; set; }
+    public DbSet<PaymentRefund> PaymentRefunds { get; set; }
 
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderMenuItem> OrderMenuItems { get; set; }
     public DbSet<OrderIngredient> OrderIngredients { get; set; }
     public DbSet<OnlineOrder> OnlineOrders { get; set; }
     public DbSet<OnlineOrderMenuItem> OnlineOrderMenuItems { get; set; }
+    public DbSet<ShiftCloseReport> ShiftCloseReports { get; set; }
 
     public DbSet<Expense> Expenses { get; set; }
     public DbSet<ExitExpense> ExitExpenses { get; set; }
