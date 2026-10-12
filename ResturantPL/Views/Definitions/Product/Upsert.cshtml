@@ -4,12 +4,13 @@
     ViewBag.Title = isNew ? L["NewProduct"].Value : L["UpdateProduct"].Value;
 }
 
-<h1 class="text-center">@ViewBag.Title</h1>
-<hr />
-
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Upsert" method="post">
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-box" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title</h1>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Upsert" method="post" class="ad-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <div class="form-group">
@@ -22,24 +23,50 @@
                 <input asp-for="EnName" class="form-control" />
                 <span asp-validation-for="EnName" class="text-danger"></span>
             </div>
+            <div class="form-group">
+                <label asp-for="ProductCategoryId" class="control-label">@L["ProductCategory"]</label>
+                <select asp-for="ProductCategoryId" class="form-select">
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.Categories)
+                    {
+                        <option value="@item.Id" selected="@(Model.ProductCategoryId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+                <span asp-validation-for="ProductCategoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Cost" class="control-label">@L["UnitCost"]</label>
+                <input asp-for="Cost" type="number" step="0.01" min="0" class="form-control" />
+                <span asp-validation-for="Cost" class="text-danger"></span>
+                <small class="text-muted">@L["CostHint"]</small>
+            </div>
 
-            <div class="form-group mt-3">
-                <input type="submit" value="@L["Save"]" class="btn btn-primary" /> |
-                <a asp-action="Index">@L["Back"]</a>
-                @if (!isNew)
+            <fieldset class="form-group">
+                <legend class="control-label">@L["StockPerStore"]</legend>
+                @for (var i = 0; i < Model.Stocks.Count; i++)
                 {
-                    <text> | </text>
-                    <a onclick="Delete('/Product/Delete/@Model.Id', '@Url.Action("Index")')" class="text-danger" style="font-weight:bold; cursor:pointer;">@L["Delete"]</a>
+                    <div class="input-group mb-2">
+                        <span class="input-group-text">@(LanguageHelper.IsArabic() ? Model.Stocks[i].StoreArName : Model.Stocks[i].StoreEnName)</span>
+                        <input type="hidden" asp-for="Stocks[i].StoreId" />
+                        <input asp-for="Stocks[i].Quantity" type="number" step="0.001" min="0" class="form-control" />
+                    </div>
+                    <span asp-validation-for="Stocks[i].Quantity" class="text-danger"></span>
                 }
+                <small class="text-muted">@L["StockHint"]</small>
+            </fieldset>
+
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+            @if (!isNew)
+            {
+                <button type="button" onclick="Delete('/Product/Delete/@Model.Id', '@Url.Action("Index")')" class="btn-ad btn-ad-danger push" ><i class="fas fa-trash" aria-hidden="true"></i> @L["Delete"]</button>
+            }
             </div>
         </form>
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-    <script src="~/modules/deleteobjects.js"></script>
+    <partial name="_ValidationScriptsPartial" />
 }

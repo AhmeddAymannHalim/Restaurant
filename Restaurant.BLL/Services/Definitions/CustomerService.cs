@@ -22,7 +22,9 @@ public class CustomerService : ICustomerService
     {
         var result = await _unitOfWork.Customers.GetPagedCustomersAsync(request);
 
-        return PaginatedResult<CustomerViewModel>.Create(_mapper.Map<List<CustomerViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<CustomerViewModel>.Create(_mapper.Map<List<CustomerViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<CustomerViewModel> GetCustomerByIdAsync(int id)

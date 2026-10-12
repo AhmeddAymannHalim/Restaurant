@@ -8,7 +8,6 @@ public interface IMenuItemRepository
 {
     Task<PaginatedResult<MenuItem>> GetPagedMenuItemsAsync(PageRequest request);
     Task<MenuItem> GetMenuItemByIdAsync(int id);
-    Task<MenuItem> GetNewSizeFromAsync(int baseId);
     Task<ResultMessage> UpsertMenuItemAsync(MenuItem entity, IFormFile imageFile);
     Task<ResultMessage> DeleteMenuItemAsync(int id);
 }

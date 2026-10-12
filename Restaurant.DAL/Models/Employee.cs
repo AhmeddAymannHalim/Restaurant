@@ -17,19 +17,17 @@ namespace Restaurant.DAL.Models
         public string Code { get; set; }
         public bool HasAccount { get; set; }
 
-
         public string NationalID { get; set; }
         public int SalaryTypeId { get; set; }
         public decimal Salary { get; set; }
         public int BrancheId { get; set; }
         public int JobId { get; set; }
 
-
         public virtual Branche Branche { get; set; }
         public virtual SalaryType SalaryType { get; set; }
         public virtual Job Job { get; set; }
         public virtual ICollection<Salary> Salaries { get; set; }
+        public virtual ICollection<Scrounge> Scrounges { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
-
     }
 }

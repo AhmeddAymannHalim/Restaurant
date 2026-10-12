@@ -1,12 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
-using Restaurant.DAL.Models;
+using Shared.Enums;
 using Shared.ViewModels.Definitions;
 
 namespace Restaurant.DAL.Repositories.Definitions;
 
 public class DashboardRepository : IDashboardRepository
 {
+    private const int ListLimit = 12;
+
     private readonly ApplicationDbContext _context;
 
     public DashboardRepository(ApplicationDbContext context)
@@ -19,59 +21,121 @@ public class DashboardRepository : IDashboardRepository
         var user = await _context.Users
             .AsNoTracking()
             .Where(a => a.Id == userId)
-            .Select(a => new { a.FirstName, a.LastName, a.Image })
+            .Select(a => new
+            {
+                a.FirstName,
+                a.LastName,
+                a.Image
+            })
             .FirstOrDefaultAsync();
 
-        // Only counts are loaded - never whole tables.
+        var shift = await _context.Orders
+            .AsNoTracking()
+            .Where(a => !a.FinishShift)
+            .Select(a => new
+            {
+                a.Type,
+                a.Cash,
+                a.Complete,
+                a.TotalPrice
+            })
+            .ToListAsync();
+
+        var unpaid = shift.Where(a => !a.Cash).ToList();
+
         var model = new DashboardViewModel
         {
             UserName = user == null ? string.Empty : (user.FirstName + " " + user.LastName).Trim(),
             UserImage = user?.Image,
-
-            PendingKitchenOrders = await _context.Orders.AsNoTracking().CountAsync(a => !a.Complete),
-            Invoices = await _context.Invoices.AsNoTracking().CountAsync(),
-            StoreConverts = await _context.StoreConverts.AsNoTracking().CountAsync(),
-            SupplierPayments = await _context.Set<PaymentInvoiceSupplier>().AsNoTracking().CountAsync(),
-            CustomerPayments = await _context.Set<PaymentInvoiceCustomer>().AsNoTracking().CountAsync(),
-
-            Branches = await _context.Branches.AsNoTracking().CountAsync(),
-            Jobs = await _context.Jobs.AsNoTracking().CountAsync(),
-            Employees = await _context.Employees.AsNoTracking().CountAsync(),
-            EmployeeAccounts = await _context.Users.AsNoTracking().CountAsync(a => a.UserType != "User"),
-            SalaryTypes = await _context.SalaryTypes.AsNoTracking().CountAsync(),
-            Users = await _context.Users.AsNoTracking().CountAsync(),
-            Roles = await _context.Roles.AsNoTracking().CountAsync(),
-
-            Kitchens = await _context.Kitchens.AsNoTracking().CountAsync(),
-            MenuSections = await _context.MenuSections.AsNoTracking().CountAsync(),
-            MenuItems = await _context.MenuItems.AsNoTracking().CountAsync(),
-            Tables = await _context.Tables.AsNoTracking().CountAsync(),
-
-            Stores = await _context.Stores.AsNoTracking().CountAsync(),
-            Products = await _context.Products.AsNoTracking().CountAsync(),
-            UnitPrices = await _context.UnitPrices.AsNoTracking().CountAsync(),
-
-            Suppliers = await _context.Suppliers.AsNoTracking().CountAsync(),
-            Customers = await _context.Customers.AsNoTracking().CountAsync(),
-
-            Expenses = await _context.Expenses.AsNoTracking().CountAsync(),
-            ExitExpenses = await _context.ExitExpenses.AsNoTracking().CountAsync(),
-            Deposits = await _context.Deposits.AsNoTracking().CountAsync(a => !a.IsDeleted),
-            Scrounges = await _context.Scrounges.AsNoTracking().CountAsync(),
-            Salaries = await _context.Salaries.AsNoTracking().CountAsync()
+            ShiftOrders = shift.Count,
+            ShiftSales = shift.Where(a => a.Cash).Sum(a => a.TotalPrice),
+            InKitchen = await _context.Orders.AsNoTracking().CountAsync(a => !a.Complete),
+            WaitingOnline = await _context.OnlineOrders.AsNoTracking().CountAsync(a => a.IsPending),
+            AwaitingPayment = unpaid.Count,
+            AwaitingPaymentAmount = unpaid.Sum(a => a.TotalPrice)
         };
 
-        model.TopCustomers = await _context.Customers
+        var inKitchenByType = await _context.Orders
             .AsNoTracking()
-            .OrderByDescending(a => a.Balance)
-            .Take(8)
-            .Select(a => new DashboardCustomerItem
+            .Where(a => !a.Complete)
+            .GroupBy(a => a.Type)
+            .Select(a => new
+            {
+                Type = a.Key,
+                Count = a.Count()
+            })
+            .ToListAsync();
+
+        var types = new[] { OrderType.Hall, OrderType.TakeAway, OrderType.Delivery, OrderType.Delivery_Online };
+        model.ByType = types.Select(type => new DashboardTypeRow
+        {
+            Type = type,
+            InKitchen = inKitchenByType.Where(a => a.Type == type).Sum(a => a.Count),
+            Unpaid = unpaid.Count(a => a.Type == type),
+            Paid = shift.Count(a => a.Cash && a.Type == type)
+        }).ToList();
+
+        model.OnlineRequests = await _context.OnlineOrders
+            .AsNoTracking()
+            .Where(a => a.IsPending)
+            .OrderBy(a => a.OrderDate)
+            .Take(ListLimit)
+            .Select(a => new DashboardOnlineItem
             {
                 Id = a.Id,
-                ArName = a.ArName,
-                EnName = a.EnName,
+                CustomerName = a.CustomerName,
                 MobileNumber = a.MobileNumber,
-                Balance = a.Balance
+                Address = a.Address,
+                TableId = a.TableId,
+                TableArName = a.Table.ArName,
+                TableEnName = a.Table.EnName,
+                TotalPrice = a.TotalPrice,
+                OrderDate = a.OrderDate,
+                Items = a.OnlineOrderMenuItems.Select(i => new DashboardLine
+                {
+                    ArName = i.MenuItem.ArName,
+                    EnName = i.MenuItem.EnName,
+                    Quantity = i.Quantity
+                }).ToList()
+            })
+            .ToListAsync();
+
+        model.Kitchen = await _context.Orders
+            .AsNoTracking()
+            .Where(a => !a.Complete)
+            .OrderBy(a => a.OrderDate)
+            .Take(ListLimit)
+            .Select(a => new DashboardKitchenItem
+            {
+                Id = a.Id,
+                OrderCode = a.OrderCode,
+                Type = a.Type,
+                TableArName = a.Table.ArName,
+                TableEnName = a.Table.EnName,
+                OrderDate = a.OrderDate,
+                Items = a.OrderMenuItems.Select(i => new DashboardLine
+                {
+                    ArName = i.MenuItem.ArName,
+                    EnName = i.MenuItem.EnName,
+                    Quantity = i.Quantity
+                }).ToList()
+            })
+            .ToListAsync();
+
+        model.Unpaid = await _context.Orders
+            .AsNoTracking()
+            .Where(a => !a.Cash && !a.FinishShift)
+            .OrderBy(a => a.OrderDate)
+            .Take(ListLimit)
+            .Select(a => new DashboardUnpaidItem
+            {
+                Id = a.Id,
+                OrderCode = a.OrderCode,
+                Type = a.Type,
+                TableArName = a.Table.ArName,
+                TableEnName = a.Table.EnName,
+                TotalPrice = a.TotalPrice,
+                OrderDate = a.OrderDate
             })
             .ToListAsync();
 

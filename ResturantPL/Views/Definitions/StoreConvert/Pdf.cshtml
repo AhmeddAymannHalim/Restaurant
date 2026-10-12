@@ -1,0 +1,37 @@
+@model StoreConvertViewModel
+@{
+    Layout = null;
+    var isArabic = LanguageHelper.IsArabic();
+}
+<!DOCTYPE html>
+<html lang="@(isArabic ? "ar" : "en")" dir="@(isArabic ? "rtl" : "ltr")">
+<head>
+    <meta charset="utf-8" />
+    <title>@L["StoreConverts"] @Model.ConvertCode</title>
+    <style>
+        body { font-family: "Segoe UI", Tahoma, Arial, sans-serif; color: #111; font-size: 13px; margin: 28px; }
+        h1 { margin: 0 0 14px; font-size: 22px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+        th, td { border: 1px solid #bbb; padding: 7px 10px; text-align: start; }
+        th { background: #112233; color: #fff; }
+        .meta td { background: #f6f8fa; }
+    </style>
+</head>
+<body>
+    <h1>@L["StoreConverts"] - @Model.ConvertCode</h1>
+    <table class="meta">
+        <tr><td>@L["InvoiceDate"]</td><td>@Model.ConvertDate.ToString("yyyy-MM-dd HH:mm")</td></tr>
+        <tr><td>@L["FromStore"]</td><td>@(isArabic ? Model.FromStoreArName : Model.FromStoreEnName)</td></tr>
+        <tr><td>@L["ToStore"]</td><td>@(isArabic ? Model.ToStoreArName : Model.ToStoreEnName)</td></tr>
+    </table>
+    <table>
+        <thead><tr><th>@L["Product"]</th><th>@L["Quantity"]</th></tr></thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr><td>@(isArabic ? item.ProductArName : item.ProductEnName)</td><td>@item.Quantity.ToString("0.###", CultureInfo.InvariantCulture)</td></tr>
+            }
+        </tbody>
+    </table>
+</body>
+</html>

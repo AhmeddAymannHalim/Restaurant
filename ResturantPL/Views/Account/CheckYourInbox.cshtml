@@ -1,8 +1,13 @@
-﻿
 @{
-    ViewData["Title"] = "CheckYourInbox";
+    ViewData["Title"] = L["Auth_InboxTitle"].Value;
     Layout = "~/Views/Shared/_AuthenticationLayout.cshtml";
+    var isReset = (ViewBag.Type as string) == "reset";
 }
 
-<h1>Email has been sent to you please CheckYourInbox <a href="https://mail.google.com/">click here</a> </h1>
-
+<div class="auth-card" style="text-align:center">
+    <div class="status-icon">&#9993;</div>
+    <h1 class="auth-title">@L["Auth_InboxTitle"]</h1>
+    <p class="auth-sub">@(isReset ? L["Auth_InboxReset"] : L["Auth_InboxConfirm"])</p>
+    <a href="https://mail.google.com/" target="_blank" rel="noopener" class="btn-auth">@L["Auth_OpenGmail"]</a>
+    <div class="auth-links"><p><a asp-action="SignIn">@L["Auth_Back"]</a></p></div>
+</div>

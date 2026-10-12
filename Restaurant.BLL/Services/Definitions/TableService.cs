@@ -22,7 +22,9 @@ public class TableService : ITableService
     {
         var result = await _unitOfWork.Tables.GetPagedTablesAsync(request);
 
-        return PaginatedResult<TableViewModel>.Create(_mapper.Map<List<TableViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<TableViewModel>.Create(_mapper.Map<List<TableViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<TableViewModel> GetTableByIdAsync(int id)

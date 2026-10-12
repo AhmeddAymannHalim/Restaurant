@@ -1,0 +1,32 @@
+@model PaymentViewModel
+@{
+    Layout = null;
+    var isArabic = LanguageHelper.IsArabic();
+}
+<!DOCTYPE html>
+<html lang="@(isArabic ? "ar" : "en")" dir="@(isArabic ? "rtl" : "ltr")">
+<head>
+    <meta charset="utf-8" />
+    <title>@L["SupplierPayments"] @Model.ProcessCode</title>
+    <style>
+        body { font-family: "Segoe UI", Tahoma, Arial, sans-serif; color: #111; font-size: 14px; margin: 30px; }
+        h1 { margin: 0 0 18px; font-size: 24px; }
+        table { width: 100%; border-collapse: collapse; }
+        td { border: 1px solid #bbb; padding: 10px 12px; }
+        td:first-child { width: 30%; background: #f1f1f1; font-weight: 600; }
+        .amount { font-size: 20px; font-weight: 700; }
+        .sign { display: table; width: 100%; margin-top: 70px; }
+        .sign div { display: table-cell; width: 50%; text-align: center; border-top: 1px solid #777; padding-top: 6px; }
+    </style>
+</head>
+<body>
+    <h1>@L["SupplierPayments"] - @Model.ProcessCode</h1>
+    <table>
+        <tr><td>@L["InvoiceDate"]</td><td>@Model.Date.ToString("yyyy-MM-dd HH:mm")</td></tr>
+        <tr><td>@L["Supplier"]</td><td>@(isArabic ? Model.PartnerArName : Model.PartnerEnName)</td></tr>
+        <tr><td>@L["Description"]</td><td>@Model.Description</td></tr>
+        <tr><td>@L["Paid"]</td><td class="amount">@Model.Paid.ToString("N2")</td></tr>
+    </table>
+    <div class="sign"><div>@L["Receiver"]</div><div>@L["Signature"]</div></div>
+</body>
+</html>

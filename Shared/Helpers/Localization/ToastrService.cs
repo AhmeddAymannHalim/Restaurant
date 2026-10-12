@@ -13,8 +13,6 @@ namespace Shared.Helpers.Localization
         void Error(string message);
     }
 
-
-
     public class ToastrService : IToastrService
     {
         #region Fields
@@ -23,7 +21,8 @@ namespace Shared.Helpers.Localization
         #endregion
 
         #region Ctor
-        public ToastrService(IHttpContextAccessor httpContextAccessor,
+        public ToastrService(
+            IHttpContextAccessor httpContextAccessor,
             ITempDataDictionaryFactory tempDataDictionaryFactory)
         {
             _httpContextAccessor = httpContextAccessor;

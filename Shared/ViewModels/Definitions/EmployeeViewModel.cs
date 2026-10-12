@@ -1,3 +1,4 @@
+using Shared.ViewModels.Commons;
 namespace Shared.ViewModels.Definitions;
 
 public class EmployeeViewModel
@@ -21,7 +22,6 @@ public class EmployeeViewModel
     public string Image { get; set; }
     public IFormFile ImageFile { get; set; }
 
-    // Index columns
     public string JobArName { get; set; }
     public string JobEnName { get; set; }
     public string BranchArName { get; set; }
@@ -30,8 +30,7 @@ public class EmployeeViewModel
     public string SalaryTypeEnName { get; set; }
     public bool HasAccount { get; set; }
 
-    // Lookups for the Upsert form
-    public SelectList Branches { get; set; }
-    public SelectList Jobs { get; set; }
-    public SelectList SalaryTypes { get; set; }
+    public IEnumerable<LookupItem> Branches { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> Jobs { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> SalaryTypes { get; set; } = new List<LookupItem>();
 }

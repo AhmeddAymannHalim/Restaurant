@@ -55,7 +55,11 @@ public class UnitPriceRepository : IUnitPriceRepository
                 var existing = await _context.UnitPrices.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
-                    return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "RecordNotFound"
+                    };
                 }
 
                 _context.UnitPrices.Update(entity);
@@ -66,7 +70,11 @@ public class UnitPriceRepository : IUnitPriceRepository
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -87,11 +95,19 @@ public class UnitPriceRepository : IUnitPriceRepository
         }
         catch (DbUpdateException)
         {
-            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "CannotDeleteLinkedRecord"
+            };
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 }

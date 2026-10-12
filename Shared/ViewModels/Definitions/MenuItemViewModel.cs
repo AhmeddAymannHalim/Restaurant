@@ -1,3 +1,4 @@
+using Shared.ViewModels.Commons;
 using Shared.Enums;
 
 namespace Shared.ViewModels.Definitions;
@@ -11,40 +12,48 @@ public class MenuItemViewModel
     public string MenuSectionArName { get; set; }
     public string MenuSectionEnName { get; set; }
     public Size? Size { get; set; }
-    public string Description { get; set; }
+    public string ArDescription { get; set; }
+    public string EnDescription { get; set; }
+    public bool ShowOnWebsite { get; set; } = true;
     public string ImageUrl { get; set; }
     public IFormFile ImageFile { get; set; }
     public int StoreId { get; set; }
     public string StoreArName { get; set; }
     public string StoreEnName { get; set; }
-    public decimal TotalCost { get; set; }
     public decimal Price { get; set; }
+
+    public decimal TotalCost { get; set; }
     public decimal Benefit { get; set; }
 
     public List<MenuItemComponentViewModel> Components { get; set; } = new();
 
-    // Lookups for the Upsert form
-    public SelectList MenuSections { get; set; }
-    public SelectList Stores { get; set; }
+    public IEnumerable<LookupItem> MenuSections { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> Stores { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> Products { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> Categories { get; set; } = new List<LookupItem>();
 }
 
 public class MenuItemComponentViewModel
 {
     public int Id { get; set; }
-    public int StoreProductId { get; set; }
-    public string ProductName { get; set; }
+    public int ProductId { get; set; }
+    public string ProductArName { get; set; }
+    public string ProductEnName { get; set; }
     public decimal Quantity { get; set; }
+    public decimal UnitCost { get; set; }
     public decimal Cost { get; set; }
 }
 
-// Returned by the AJAX endpoints that feed the component picker (and the invoice screens).
 public class StoreProductLookupItem
 {
     public int Id { get; set; }
     public int ProductId { get; set; }
     public int StoreId { get; set; }
-    public string ProductName { get; set; }
-    public string StoreName { get; set; }
+    public int? ProductCategoryId { get; set; }
+    public string ProductArName { get; set; }
+    public string ProductEnName { get; set; }
+    public string StoreArName { get; set; }
+    public string StoreEnName { get; set; }
     public decimal Quantity { get; set; }
-    public decimal PriceForUnit { get; set; }
+    public decimal Cost { get; set; }
 }

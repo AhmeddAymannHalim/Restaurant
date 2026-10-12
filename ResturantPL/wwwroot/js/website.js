@@ -1,11 +1,8 @@
-/* Public home page: the menu loads each category over AJAX (cached after the first visit),
-   the gold pill slides to the chosen tab, and sections rise into view once. */
 (function () {
     "use strict";
 
     document.documentElement.classList.add("js");
 
-    // ---- rise-in on scroll ----
     var reveals = document.querySelectorAll(".ws-reveal");
     if ("IntersectionObserver" in window) {
         var io = new IntersectionObserver(function (entries) {
@@ -21,7 +18,6 @@
         reveals.forEach(function (el) { el.classList.add("is-in"); });
     }
 
-    // ---- menu ----
     var root = document.querySelector("[data-ws-menu]");
     if (!root) { return; }
 
@@ -32,6 +28,12 @@
     var cache = {};
     var current = null;
     var ticket = 0;
+    var sizeNames = {};
+    try {
+        sizeNames = JSON.parse(root.dataset.sizes || "{}");
+    } catch (e) {
+        sizeNames = {};
+    }
 
     function esc(text) {
         var d = document.createElement("div");
@@ -51,15 +53,19 @@
         var image = item.imageUrl
             ? '<img src="' + esc(item.imageUrl) + '" alt="' + esc(name) + '" loading="lazy" />'
             : "";
-        var size = item.size ? '<span class="ws-dish-size">' + esc(item.size) + "</span>" : "";
-        var desc = item.description ? '<p class="ws-dish-desc">' + esc(item.description) + "</p>" : "";
+        var size = item.size ? '<span class="ws-dish-size">' + esc(sizeNames[item.size] || item.size) + "</span>" : "";
+        var text = arabic ? (item.arDescription || item.enDescription) : (item.enDescription || item.arDescription);
+        var desc = text ? '<p class="ws-dish-desc">' + esc(text) + "</p>" : "";
 
         return '<article class="ws-dish" style="--i:' + index + '">' +
             '<div class="ws-dish-img">' + image + "</div>" +
             '<div class="ws-dish-body">' +
             '<div class="ws-dish-head"><h3 class="ws-dish-name">' + esc(name) + '</h3>' +
             '<span class="ws-dish-price">' + price + " " + esc(root.dataset.currency) + "</span></div>" +
-            size + desc + "</div></article>";
+            size + desc +
+            '<button type="button" class="ws-dish-add" data-cart-add="' + esc(String(item.id)) + '">' +
+            '<i class="bi bi-bag-plus" aria-hidden="true"></i> ' + esc(root.dataset.add) + "</button>" +
+            "</div></article>";
     }
 
     function show(items) {
@@ -81,11 +87,10 @@
         current = key;
 
         var render = function (items) {
-            if (mine !== ticket) { return; } // a newer click already took over
+            if (mine !== ticket) { return; }
             show(items);
         };
 
-        // old dishes leave, then the new ones pour in
         list.classList.add("is-leaving");
         var wait = new Promise(function (resolve) { setTimeout(resolve, 170); });
 
@@ -134,9 +139,14 @@
 
     var first = root.querySelector(".ws-tab.is-on");
     if (first) {
-        // wait for the web fonts so the pill measures the final tab widths
         (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function () { movePill(first); });
         movePill(first);
     }
     load(first ? first.dataset.section : "");
+})();
+
+(function () {
+    if (window.GLightbox) {
+        GLightbox({ selector: ".glightbox" });
+    }
 })();

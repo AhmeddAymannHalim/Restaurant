@@ -8,7 +8,8 @@ namespace Restaurant.BLL.Validations.SalaryType;
 
 public class SalaryTypeVmValidator : AbstractValidator<SalaryTypeViewModel>
 {
-    public SalaryTypeVmValidator(IStringLocalizer<SharedResource> localizer,
+    public SalaryTypeVmValidator(
+        IStringLocalizer<SharedResource> localizer,
         IValidatorService<Restaurant.DAL.Models.SalaryType> validator)
     {
         var required = localizer["Val.RequiredField"].Value;

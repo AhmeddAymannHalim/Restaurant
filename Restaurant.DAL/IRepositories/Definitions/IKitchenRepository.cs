@@ -6,8 +6,8 @@ namespace Restaurant.DAL.IRepositories.Definitions;
 
 public interface IKitchenRepository
 {
-    Task<PaginatedResult<kitchen>> GetPagedKitchensAsync(PageRequest request);
-    Task<kitchen> GetKitchenByIdAsync(int id);
-    Task<ResultMessage> UpsertKitchenAsync(kitchen entity);
+    Task<PaginatedResult<Kitchen>> GetPagedKitchensAsync(PageRequest request);
+    Task<Kitchen> GetKitchenByIdAsync(int id);
+    Task<ResultMessage> UpsertKitchenAsync(Kitchen entity);
     Task<ResultMessage> DeleteKitchenAsync(int id);
 }

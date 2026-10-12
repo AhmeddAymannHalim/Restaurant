@@ -1,146 +1,82 @@
-﻿@model OnlineOrder
-
+@model PendingOnlineOrderViewModel
 @{
-    ViewData["Title"] = "Details";
-    Layout = null;
+    ViewData["Title"] = L["Details"].Value + " #" + Model.Id;
+    var isArabic = LanguageHelper.IsArabic();
 }
 
-<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-<link href="~/css/invoicesstyle.css" rel="stylesheet" />
+<div class="ws" dir="@(isArabic ? "rtl" : "ltr")">
+    <section class="ws-page">
+        <div class="ws-wrap">
+            <header class="ws-page-head">
+                <h1>@L["MyOrders"] #@Model.Id</h1>
+                <p>@Model.OrderDate.ToString("yyyy-MM-dd HH:mm")</p>
+            </header>
 
+            <ol class="ws-track @(Model.IsPending ? "is-waiting" : "is-accepted")">
+                <li class="is-done"><span></span>@L["StatusWaiting"]</li>
+                <li class="@(Model.IsPending ? "" : "is-done")"><span></span>@L["StatusAccepted"]</li>
+            </ol>
 
-<style>
-    /* Define styles for the page content */
-    body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-        margin: 0;
-        background-color: #111;
-    }
-
-    .container {
-        max-width: 576px; /* Set the maximum width to fit within the paper size */
-        margin: 0 auto; /* Center the content horizontally */
-        background-color: #fff; /* White background for better readability */
-        padding: 20px; /* Add padding for spacing */
-        color: black;
-    }
-
-    h1 {
-        text-align: center;
-    }
-
-    dl {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-    }
-
-    dt, dd {
-        width: 45%; /* Set width for better alignment */
-        padding: 10px;
-        margin-bottom: 10px;
-        border: 1px solid #ccc; /* Add border for styling */
-        box-sizing: border-box;
-    }
-
-    dt {
-        background-color: #f2f2f2; /* Light gray background for dt elements */
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse; /* Collapse table borders */
-        margin-top: 20px; /* Add margin at the top */
-    }
-
-    th, td {
-        border: 1px solid #ccc; /* Add border for styling */
-        padding: 8px;
-        text-align: center;
-    }
-
-    th {
-        background-color: #f2f2f2; /* Light gray background for table header */
-    }
-</style>
-
-
-
-<div class="container">
-
-    <h1>تفاصيل فاتورة : @Model.CustomerName</h1>
-    <hr />
-
-    <dl>
-
-        <dt class="col-sm-3">
-            تاريخ الفاتورة
-        </dt>
-        <dd class="col-sm-8">
-            @Model.OrderDate.ToString("dd-MM-yyyy  hh:mm tt")
-        </dd>
-
-
-        <dt class="col-sm-3">
-            العنوان
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.Address)
-        </dd>
-        <dt class="col-sm-3">
-            رقم الهاتف
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.PhoneNumber)
-        </dd>
-        <dt class="col-sm-3">
-            رقم الموبايل
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.MobileNumber)
-        </dd>
-
-        <dt class="col-sm-3">
-            الاجمالي
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.TotalPrice) + مصاريف التوصيل
-        </dd>
-
-        <dt class="col-sm-3">
-            المنتجات
-        </dt>
-        <dd class="col-sm-8">
-            <table class="mt-3 table table-bordered table-light text-dark">
-                <thead>
-                    <tr>
-                        <th>اسم المنتج</th>
-                        <th>كمية المنتج</th>
-                        <th>سعر الوحدة</th>
-                        <th>الاجمالي</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model.OnlineOrderMenuItems)
+            <div class="ws-split">
+                <div class="ws-receipt-items">
+                    @foreach (var item in Model.Items)
                     {
-                        <tr>
-                            <td>@item.MenuItem.ArName</td>
-                            <td>@item.Quantity</td>
-                            <td>@item.PriceForUnit</td>
-                            <td>@item.Price</td>
-                        </tr>
+                        <div class="ws-receipt-row">
+                            <div>
+                                <h3 class="ws-cart-name">@(isArabic ? item.MenuItemArName : item.MenuItemEnName)</h3>
+                                <div class="ws-cart-meta">@item.Quantity.ToString("0.###", CultureInfo.InvariantCulture) x @item.PriceForUnit.ToString("N2") @L["Currency"]</div>
+                            </div>
+                            <strong>@item.Price.ToString("N2")</strong>
+                        </div>
                     }
-                </tbody>
-            </table>
-        </dd>
+                </div>
 
-    </dl>
+                <aside class="ws-ticket">
+                    <h2>@L["YourOrder"]</h2>
+                    <dl class="ws-facts">
+                        <dt>@L["CustomerName"]</dt>
+                        <dd>@Model.CustomerName</dd>
+                        @if (Model.TableId.HasValue)
+                        {
+                            <dt>@L["Table"]</dt>
+                            <dd>@(isArabic ? Model.TableArName : Model.TableEnName)</dd>
+                        }
+                        else
+                        {
+                            <dt>@L["Address"]</dt>
+                            <dd>@Model.Address</dd>
+                        }
+                        <dt>@L["MobileNumber"]</dt>
+                        <dd dir="ltr">@Model.MobileNumber</dd>
+                        @if (!string.IsNullOrWhiteSpace(Model.PhoneNumber))
+                        {
+                            <dt>@L["PhoneNumber"]</dt>
+                            <dd dir="ltr">@Model.PhoneNumber</dd>
+                        }
+                    </dl>
 
-    <div>
-        <a asp-action="PendingOrders" asp-controller="OnlineOrder">عودة لطلباتي</a>
-
-    </div>
-
+                    <dl class="ws-sums">
+                        <div><dt>@L["SubTotal"]</dt><dd>@Model.SubTotal.ToString("N2")</dd></div>
+                        @if (Model.Tax > 0)
+                        {
+                            <div><dt>@L["Tax"]</dt><dd>@Model.Tax.ToString("N2")</dd></div>
+                        }
+                        @if (Model.Service > 0)
+                        {
+                            <div><dt>@L["Service"]</dt><dd>@Model.Service.ToString("N2")</dd></div>
+                        }
+                        @if (!Model.TableId.HasValue && (Model.DeliveryFee > 0 || !string.IsNullOrEmpty(Model.DeliveryZoneArName)))
+                        {
+                            <div><dt>@L["DeliveryFee"]@(string.IsNullOrEmpty(Model.DeliveryZoneArName) ? "" : " (" + (isArabic ? Model.DeliveryZoneArName : Model.DeliveryZoneEnName) + ")")</dt><dd>@Model.DeliveryFee.ToString("N2")</dd></div>
+                        }
+                    </dl>
+                    <div class="ws-ticket-total">
+                        <span>@L["TotalPrice"]</span>
+                        <span>@Model.TotalPrice.ToString("N2") @L["Currency"]</span>
+                    </div>
+                    <a class="ws-link" asp-action="PendingOrders">@L["BackToMyOrders"]</a>
+                </aside>
+            </div>
+        </div>
+    </section>
 </div>

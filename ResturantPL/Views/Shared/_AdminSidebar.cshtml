@@ -1,0 +1,88 @@
+@using ResturantPL.Extensions
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var isManager = User.IsInRole("Admin") || User.IsInRole("Manager");
+
+    string Active(AdminMenu.Item item)
+    {
+        var sameController = string.Equals(controller, item.Controller, StringComparison.OrdinalIgnoreCase);
+        var shared = AdminMenu.Groups.SelectMany(g => g.Items).Count(i => i.Controller == item.Controller) > 1;
+
+        return sameController && (!shared || string.Equals(action, item.Action, StringComparison.OrdinalIgnoreCase)) ? "is-active" : "";
+    }
+}
+
+<div class="dash-scrim" data-side-close></div>
+
+<aside class="dash-side" id="dashSide" aria-label="@L["Dashboard"]">
+    <button type="button" class="dash-toggle" data-side-toggle aria-controls="dashSide" aria-expanded="true" title="@L["Menu"]">
+        <i class="fas fa-bars-staggered" aria-hidden="true"></i><span>@L["Menu"]</span>
+    </button>
+
+    @if (!User.IsInRole("User"))
+    {
+        <a class="dash-side-link @(string.Equals(controller, "Dashboard", StringComparison.OrdinalIgnoreCase) ? "is-active" : "")" asp-controller="Dashboard" asp-action="Index" title="@L["Dashboard"]">
+            <i class="fas fa-gauge-high" aria-hidden="true"></i><span>@L["Dashboard"]</span>
+        </a>
+    }
+
+    <label class="side-search">
+        <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+        <input id="sideFilter" type="search" placeholder="@L["FilterMenu"]" aria-label="@L["FilterMenu"]" autocomplete="off" />
+    </label>
+
+    <nav class="side-scroll" aria-label="@L["Definitions"]">
+        @{
+            var currentSection = string.Empty;
+        }
+        @foreach (var group in AdminMenu.Groups)
+        {
+            var items = group.Items.Where(i => isManager || !i.ManagementOnly).ToList();
+            if (items.Count == 0)
+            {
+                continue;
+            }
+
+            if (group.Section != currentSection)
+            {
+                currentSection = group.Section;
+                <div class="side-section">@L[group.Section]</div>
+            }
+
+            var isOpen = items.Any(i => Active(i) != "");
+            var panelId = "side-" + group.Title;
+
+            <section class="side-group @(isOpen ? "is-open" : "")">
+                <button type="button" class="side-parent" aria-expanded="@(isOpen ? "true" : "false")" aria-controls="@panelId" title="@L[group.Title]">
+                    <i class="fas @group.Icon" aria-hidden="true"></i>
+                    <span>@L[group.Title]</span>
+                    <i class="fas fa-chevron-down side-chevron" aria-hidden="true"></i>
+                </button>
+                <div class="side-children" id="@panelId">
+                    <div class="side-children-inner">
+                        @foreach (var item in items)
+                        {
+                            <a class="dash-side-link @Active(item)" asp-controller="@item.Controller" asp-action="@item.Action" title="@L[item.Label]">
+                                <i class="fas @item.Icon" aria-hidden="true"></i><span>@L[item.Label]</span>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </section>
+        }
+    </nav>
+
+    @if (isManager)
+    {
+        <a class="dash-side-link @(string.Equals(controller, "ApplicationSetting", StringComparison.OrdinalIgnoreCase) ? "is-active" : "")" asp-controller="ApplicationSetting" asp-action="Index" title="@L["Settings"]">
+            <i class="fas fa-gear" aria-hidden="true"></i><span>@L["Settings"]</span>
+        </a>
+    }
+    <a class="dash-side-link" asp-controller="Home" asp-action="Index" title="@L["Website"]">
+        <i class="fas fa-store" aria-hidden="true"></i><span>@L["Website"]</span>
+    </a>
+    <a class="dash-side-link is-exit" asp-controller="Account" asp-action="SignOut" title="@L["SignOut"]">
+        <i class="fas fa-right-from-bracket" aria-hidden="true"></i><span>@L["SignOut"]</span>
+    </a>
+</aside>

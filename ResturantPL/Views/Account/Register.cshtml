@@ -1,44 +1,58 @@
-﻿@model RegisterViewModel
+@model RegisterViewModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = L["Auth_CreateAccount"].Value;
     Layout = "~/Views/Shared/_AuthenticationLayout.cshtml";
 }
 
-<h1>Register</h1>
+<div class="auth-card wide">
+    <h1 class="auth-title">@L["Auth_RegisterTitle"]</h1>
+    <p class="auth-sub">@L["Auth_RegisterSub"]</p>
 
+    <div class="auth-alert" asp-validation-summary="ModelOnly"></div>
 
-<div class="align-content-center text-sm-center text-danger" asp-validation-summary="All"> </div>
-<div class="main-agileinfo">
-	<div class="agileits-top">
-		<form asp-action="Register" method="post">
-			<input class="text" type="text" asp-for="@Model.FirstName" placeholder="First Name" required="">
-			<span asp-validation-for="@Model.FirstName"></span>
-			<br />
-			<input class="text" type="text" asp-for="@Model.LastName" placeholder="Last Name" required="">
-			<span asp-validation-for="@Model.LastName"></span>
-			<input class="text email" type="email" asp-for="@Model.Email" placeholder="Email" required="">
-			<span asp-validation-for="@Model.Email"></span>
-			<input class="text" type="password" asp-for="@Model.Password" placeholder="Password" required="">
-			<span asp-validation-for="@Model.Password"></span>
-			<input class="text w3lpass" type="password" asp-for="@Model.ConfirmPassword" placeholder="Confirm Password" required="">
-			<span asp-validation-for="@Model.ConfirmPassword"></span>
-			<input class="text w3lpass" type="password" asp-for="@Model.PhoneNumber" placeholder="phone number" required="">
-			<span asp-validation-for="@Model.PhoneNumber"></span>
-			<div class="wthree-text">
-				<label class="anim">
-					<input type="checkbox" class="checkbox" asp-for="@Model.IsAgree" required="">
-					<span asp-validation-for="@Model.IsAgree"></span>
-					<span>I Agree To The Terms & Conditions</span>
-				</label>
-				<div class="clear"> </div>
-			</div>
-			<input type="submit" value="SIGNUP">
-		</form>
-		<p>Do you have an Account? <a asp-action="SignIn"> Login Now!</a></p>
-	</div>
+    <form asp-action="Register" method="post" novalidate>
+        <div class="row2">
+            <div class="field">
+                <input asp-for="FirstName" placeholder="@L["Auth_First"]" autocomplete="given-name" />
+                <span asp-validation-for="FirstName" class="field-error"></span>
+            </div>
+            <div class="field">
+                <input asp-for="LastName" placeholder="@L["Auth_Last"]" autocomplete="family-name" />
+                <span asp-validation-for="LastName" class="field-error"></span>
+            </div>
+        </div>
+        <div class="field">
+            <input asp-for="Email" type="email" placeholder="@L["Auth_Email"]" autocomplete="email" />
+            <span asp-validation-for="Email" class="field-error"></span>
+        </div>
+        <div class="field">
+            <input asp-for="PhoneNumber" type="tel" placeholder="@L["Auth_Phone"]" autocomplete="tel" />
+            <span asp-validation-for="PhoneNumber" class="field-error"></span>
+        </div>
+        <div class="row2">
+            <div class="field">
+                <input asp-for="Password" type="password" class="has-toggle" placeholder="@L["Auth_Password"]" autocomplete="new-password" />
+                <button type="button" class="toggle-pass" data-show="@L["Auth_Show"]" data-hide="@L["Auth_Hide"]">@L["Auth_Show"]</button>
+                <span asp-validation-for="Password" class="field-error"></span>
+            </div>
+            <div class="field">
+                <input asp-for="ConfirmPassword" type="password" placeholder="@L["Auth_ConfirmPassword"]" autocomplete="new-password" />
+                <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+            </div>
+        </div>
+        <label class="check"><input type="checkbox" asp-for="IsAgree" data-val="true" data-val-mustbetrue="@L["Auth_AgreeRequired"]" /> @L["Auth_Agree"]</label>
+        <span asp-validation-for="IsAgree" class="field-error" style="margin-top:-12px;margin-bottom:12px"></span>
+        <button type="submit" class="btn-auth">@L["Auth_SignUp"]</button>
+    </form>
+
+    <hr class="divider" />
+    <div class="auth-links"><p>@L["Auth_HaveAccount"] <a asp-action="SignIn">@L["Auth_SignIn"]</a></p></div>
 </div>
 
-@section ValidationScripts
-	{
-	<partial name="_ValidationScriptsPartial">   </partial>
+@section ValidationScripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $.validator.addMethod('mustbetrue', function (value, element) { return element.checked; });
+        $.validator.unobtrusive.adapters.addBool('mustbetrue');
+    </script>
 }

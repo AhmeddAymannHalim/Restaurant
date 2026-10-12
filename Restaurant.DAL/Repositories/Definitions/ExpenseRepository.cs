@@ -55,7 +55,11 @@ public class ExpenseRepository : IExpenseRepository
                 var existing = await _context.Expenses.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
-                    return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "RecordNotFound"
+                    };
                 }
 
                 _context.Expenses.Update(entity);
@@ -66,7 +70,11 @@ public class ExpenseRepository : IExpenseRepository
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -82,7 +90,11 @@ public class ExpenseRepository : IExpenseRepository
 
             if (await _context.ExitExpenses.AnyAsync(a => a.ExpenseId == id))
             {
-                return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "CannotDeleteLinkedRecord"
+                };
             }
             _context.Expenses.Remove(entity);
             await _context.SaveChangesAsync();
@@ -91,11 +103,19 @@ public class ExpenseRepository : IExpenseRepository
         }
         catch (DbUpdateException)
         {
-            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "CannotDeleteLinkedRecord"
+            };
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 }

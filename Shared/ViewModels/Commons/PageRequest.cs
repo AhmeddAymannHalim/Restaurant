@@ -22,10 +22,13 @@ public sealed class PageRequest
     }
 
     public string SearchString { get; set; }
+    public DateTime? FromDate { get; set; }
+    public DateTime? ToDate { get; set; }
+    public string Type { get; set; }
+    public string Status { get; set; }
     public string Sort { get; set; }
     public bool Descending { get; set; }
 
-    /// <summary>Returns a representable SQL offset without throwing on hostile page numbers.</summary>
     public bool TryGetOffset(out int offset)
     {
         try

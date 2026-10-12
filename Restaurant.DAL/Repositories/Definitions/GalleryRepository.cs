@@ -46,7 +46,11 @@ public class GalleryRepository : IGalleryRepository
                 : await _context.GalleryItem.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
             if (entity.Id != 0 && existing is null)
             {
-                return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RecordNotFound"
+                };
             }
 
             entity.PictureUrl = existing?.PictureUrl;
@@ -75,7 +79,11 @@ public class GalleryRepository : IGalleryRepository
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -101,11 +109,19 @@ public class GalleryRepository : IGalleryRepository
         }
         catch (DbUpdateException)
         {
-            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "CannotDeleteLinkedRecord"
+            };
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 }

@@ -19,6 +19,5 @@ namespace Restaurant.DAL.Models
         public virtual Employee Storekeeper { get; set; }
         public virtual ICollection<Invoice> Invoices { get; set; }
         public virtual ICollection<StoreProduct> StoreProducts { get; set; }
-
     }
 }

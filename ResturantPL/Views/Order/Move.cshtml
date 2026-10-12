@@ -1,56 +1,44 @@
-﻿@model Restaurant.DAL.Models.Order
-
+@model OrderViewModel
 @{
-    ViewData["Title"] = "Move";
-    Layout = "_Layout1";
+    ViewBag.Title = L["MoveItem"].Value;
+    var isArabic = LanguageHelper.IsArabic();
+    var tables = (IEnumerable<LookupItem>)ViewBag.Tables;
 }
 
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-right-left" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title <small>@Model.OrderCode</small></h1>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Move" method="post" class="ad-form">
+            <input type="hidden" name="Id" value="@Model.Id" />
 
-<form asp-action="Move">
-
-    <div class="row justify-content-between text-center m-5">
-        <input hidden asp-for="Id" />
-
-        <div class="col-md-5">
-            <table class="mt-3 table table-bordered table-light text-dark">
-                <h3 class="text-center">@Model.Table.ArName</h3>
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>اسم المنتج</th>
-                        <th>كمية المنتج</th>
-                        <th>سعر الوحدة</th>
-                        <th>الاجمالي</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model.OrderMenuItems)
+            <div class="form-group">
+                <label class="control-label" for="OrderMenuItemId">@L["Product"]</label>
+                <select id="OrderMenuItemId" name="OrderMenuItemId" class="form-select" required>
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.Items)
                     {
-                        <tr>
-                            <td><input type="radio" name="OrderMenuItemId" value="@item.Id" /></td>
-                            <td>@item.MenuItem.ArName</td>
-                            <td>@item.Quantity</td>
-                            <td>@item.PriceForUnit</td>
-                            <td>@item.Price</td>
-                        </tr>
+                        <option value="@item.Id">@(isArabic ? item.MenuItemArName : item.MenuItemEnName) x @item.Quantity.ToString("0.###", CultureInfo.InvariantCulture)</option>
                     }
-                </tbody>
-            </table>
-        </div>
-
-        <div class="col-md-5 mt-3">
-            <div class="form-group" id="tableIdField">
-                <h3 class="control-label">الطاولة المنقول اليها</h3>
-                <select id="OrderTableToId" name="OrderTableToId" class="form-control" asp-items="ViewBag.Tables" required>
-                    <option value="">اختر الطاولة</option>
                 </select>
             </div>
-        </div>
+            <div class="form-group">
+                <label class="control-label" for="TargetTableId">@L["TargetTable"]</label>
+                <select id="TargetTableId" name="TargetTableId" class="form-select" required>
+                    <option value="">@L["Select"]</option>
+                    @foreach (var table in tables)
+                    {
+                        <option value="@table.Id">@(isArabic ? table.ArName : table.EnName)</option>
+                    }
+                </select>
+            </div>
 
-
-        <div class="col-md-12 mt-3">
-
-            <button type="submit" class="btn btn-primary" style="width:300px;">نقل</button>
-        </div>
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                <a asp-action="List" asp-route-status="pending" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+            </div>
+        </form>
     </div>
-</form>
+</div>

@@ -1,5 +1,4 @@
-﻿//using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using Shared.Enums;
+﻿using Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +7,7 @@ using System.Threading.Tasks;
 
 namespace Restaurant.DAL.Models
 {
-
-public class Scrounge 
+public class Scrounge
     {
         public int Id { get; set; }
 
@@ -25,11 +23,7 @@ public class Scrounge
 
         public string UserId { get; set; }
 
-
-
-
         public ApplicationUser User { get; set; }
         public Employee Employee { get; set; }
-
     }
 }

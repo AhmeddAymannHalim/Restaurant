@@ -19,9 +19,18 @@ public class MenuItemRepository : IMenuItemRepository
         _context = context;
     }
 
+    private IQueryable<MenuItem> MenuItemsWithCost()
+    {
+        return _context.MenuItems
+            .Include(a => a.MenuSection)
+            .Include(a => a.Store)
+            .Include(a => a.Components)
+                .ThenInclude(a => a.Product);
+    }
+
     public async Task<PaginatedResult<MenuItem>> GetPagedMenuItemsAsync(PageRequest request)
     {
-        var query = _context.MenuItems.AsNoTracking().Include(a => a.MenuSection).AsQueryable();
+        var query = MenuItemsWithCost().AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
@@ -39,88 +48,65 @@ public class MenuItemRepository : IMenuItemRepository
         return PaginatedResult<MenuItem>.Create(data, total, request);
     }
 
-    // The item together with its components (the Upsert screen edits them as one unit).
     public async Task<MenuItem> GetMenuItemByIdAsync(int id)
     {
-        return await _context.MenuItems
-            .Include(a => a.Components)
-                .ThenInclude(a => a.StoreProduct)
-            .FirstOrDefaultAsync(a => a.Id == id);
-    }
-
-    // "Add a size": a new, unsaved item that starts as a copy of an existing one.
-    public async Task<MenuItem> GetNewSizeFromAsync(int baseId)
-    {
-        var entity = await _context.MenuItems
-            .AsNoTracking()
-            .Include(a => a.Components)
-                .ThenInclude(a => a.StoreProduct)
-            .FirstOrDefaultAsync(a => a.Id == baseId);
-        if (entity is null)
-        {
-            return null;
-        }
-
-        entity.Id = 0;
-        entity.Size = null;
-        foreach (var component in entity.Components)
-        {
-            component.Id = 0;
-        }
-
-        return entity;
+        return await MenuItemsWithCost().AsNoTracking().FirstOrDefaultAsync(a => a.Id == id);
     }
 
     public async Task<ResultMessage> UpsertMenuItemAsync(MenuItem entity, IFormFile imageFile)
     {
         try
         {
-            var components = (entity.Components ?? new List<MenuItemComponent>())
-                .Where(a => a.StoreProductId > 0 && a.Quantity > 0)
+            entity.Components = (entity.Components ?? new List<MenuItemComponent>())
+                .Where(a => a.ProductId > 0 && a.Quantity > 0)
+                .GroupBy(a => a.ProductId)
+                .Select(a => new MenuItemComponent
+                    {
+                        ProductId = a.Key,
+                        Quantity = a.Sum(x => x.Quantity)
+                    })
                 .ToList();
-            if (components.Count == 0)
+
+            if (entity.Components.Count == 0)
             {
-                return new ResultMessage { Success = false, Message = "MenuItemNeedsComponents" };
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "MenuItemNeedsComponents"
+                };
+            }
+
+            var productIds = entity.Components.Select(a => a.ProductId).ToList();
+            if (await _context.Products.CountAsync(a => productIds.Contains(a.Id)) != productIds.Count)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RecordNotFound"
+                };
             }
 
             entity.Size = entity.Size == Size.regular ? null : entity.Size;
 
-            var duplicate = await _context.MenuItems.AsNoTracking()
-                .AnyAsync(a => a.Id != entity.Id && a.ArName == entity.ArName && a.Size == entity.Size);
+            var duplicate = await _context.MenuItems.AnyAsync(a => a.Id != entity.Id
+                && a.ArName == entity.ArName
+                && a.Size == entity.Size);
             if (duplicate)
             {
-                return new ResultMessage { Success = false, Message = "MenuItemSizeExists" };
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "MenuItemSizeExists"
+                };
             }
-
-            var ids = components.Select(a => a.StoreProductId).Distinct().ToList();
-            var prices = await _context.StoreProducts.AsNoTracking()
-                .Where(a => ids.Contains(a.Id))
-                .ToDictionaryAsync(a => a.Id, a => a.PriceForUnit);
-            if (ids.Any(a => !prices.ContainsKey(a)))
-            {
-                return new ResultMessage { Success = false, Message = "RecordNotFound" };
-            }
-
-            var newComponents = components.Select(a => new MenuItemComponent
-            {
-                StoreProductId = a.StoreProductId,
-                Quantity = a.Quantity,
-                Cost = Math.Round(a.Quantity * prices[a.StoreProductId], 2)
-            }).ToList();
-
-            entity.TotalCost = newComponents.Sum(a => a.Cost);
-            entity.Benefit = entity.Price - entity.TotalCost;
-            entity.Components = newComponents;
 
             if (entity.Id == 0)
             {
-                // A new size keeps the picture it was posted with unless a new file comes in
                 if (imageFile != null)
                 {
                     entity.ImageUrl = DocumentSetting.UploadFile(imageFile, ImagesFolder);
                 }
 
-                entity.IsReady = true;
                 await _context.MenuItems.AddAsync(entity);
             }
             else
@@ -128,10 +114,13 @@ public class MenuItemRepository : IMenuItemRepository
                 var existing = await _context.MenuItems.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
-                    return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "RecordNotFound"
+                    };
                 }
 
-                entity.IsReady = existing.IsReady;
                 entity.ImageUrl = existing.ImageUrl;
 
                 if (imageFile != null)
@@ -144,9 +133,7 @@ public class MenuItemRepository : IMenuItemRepository
                     entity.ImageUrl = DocumentSetting.UploadFile(imageFile, ImagesFolder);
                 }
 
-                // The components are replaced as a whole
-                var oldComponents = await _context.Set<MenuItemComponent>().Where(a => a.MenuItemId == entity.Id).ToListAsync();
-                _context.Set<MenuItemComponent>().RemoveRange(oldComponents);
+                _context.MenuItemComponents.RemoveRange(_context.MenuItemComponents.Where(a => a.MenuItemId == entity.Id));
                 _context.MenuItems.Update(entity);
             }
 
@@ -156,7 +143,11 @@ public class MenuItemRepository : IMenuItemRepository
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -164,7 +155,7 @@ public class MenuItemRepository : IMenuItemRepository
     {
         try
         {
-            var entity = await _context.MenuItems.Include(a => a.Components).FirstOrDefaultAsync(a => a.Id == id);
+            var entity = await _context.MenuItems.FindAsync(id);
             if (entity is null)
             {
                 return new ResultMessage { Success = true };
@@ -177,11 +168,19 @@ public class MenuItemRepository : IMenuItemRepository
         }
         catch (DbUpdateException)
         {
-            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "CannotDeleteLinkedRecord"
+            };
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 }

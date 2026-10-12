@@ -1,0 +1,15 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+<script>
+    (function () {
+        var token = "@Antiforgery.GetAndStoreTokens(Context).RequestToken";
+        window.csrfToken = token;
+
+        if (window.jQuery) {
+            jQuery.ajaxPrefilter(function (options, original, xhr) {
+                if (!options.crossDomain && !/^(GET|HEAD|OPTIONS|TRACE)$/i.test(options.type || "GET")) {
+                    xhr.setRequestHeader("RequestVerificationToken", token);
+                }
+            });
+        }
+    })();
+</script>

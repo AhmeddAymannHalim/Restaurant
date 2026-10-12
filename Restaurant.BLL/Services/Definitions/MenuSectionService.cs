@@ -22,7 +22,9 @@ public class MenuSectionService : IMenuSectionService
     {
         var result = await _unitOfWork.MenuSections.GetPagedMenuSectionsAsync(request);
 
-        return PaginatedResult<MenuSectionViewModel>.Create(_mapper.Map<List<MenuSectionViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<MenuSectionViewModel>.Create(_mapper.Map<List<MenuSectionViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<MenuSectionViewModel> GetMenuSectionByIdAsync(int id)

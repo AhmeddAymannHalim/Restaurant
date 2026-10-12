@@ -14,133 +14,31 @@ namespace Restaurant.DAL.UnitOfWork
     {
         private readonly ApplicationDbContext _context;
 
-        public IGenericRepository<IndexSettings> IndexRepository { get; set; }
-        public IGenericRepository<ChefItem> ChefItemRepository { get; set; }
-        public IGenericRepository<GalleryItem> GalleryItemRepository { get; set; }
-
-        // By Daif Hamdan
-        public IGenericRepository<Branche> BrancheRepository { get; set; }
-        public IGenericRepository<Job> JobRepository { get; set; }
-        public IGenericRepository<Employee> EmployeeRepository { get; set; }
-        public IGenericRepository<SalaryType> SalaryTypeRepository { get; set; }
-        public IGenericRepository<Invoice> InvoiceRepository { get; set; }
-        public IInvoiceItemRepository InvoiceItemRepository { get; set; }
-        public IGenericRepository<Product> ProductRepository { get; set; }
-        public IGenericRepository<Supplier> SupplierRepository { get; set; }
-        public IGenericRepository<UnitPrice> UnitPriceRepository { get; set; }
-        public IGenericRepository<Store> StoreRepository { get; set; }
-        public IGenericRepository<PaymentInvoiceCustomer> PaymentInvoiceCustomerRepository { get; set; }
-        public IGenericRepository<PaymentInvoiceSupplier> PaymentInvoiceSupplierRepository { get; set; }
-        public IGenericRepository<StoreProduct> StoreProductRepository { get; set; }
-        public IGenericRepository<MenuItem> MenuItemRepository { get; set; }
-        public IGenericRepository<MenuItemComponent> MenuItemComponentRepository { get; set; }
-        public IGenericRepository<Order> OrderRepository { get; set; }
-        public IGenericRepository<OrderMenuItem> OrderMenuItemRepository { get; set; }
-        public IGenericRepository<OnlineOrder> OnlineOrderRepository { get; set; }
-        public IGenericRepository<OnlineOrderMenuItem> OnlineOrderMenuItemRepository { get; set; }
-        public IGenericRepository<MenuSection> MenuSectionRepository { get; set; }
-        public IGenericRepository<StoreConvert> StoreConvertRepository { get; set; }
-        public IGenericRepository<StoreConvertProduct> StoreConvertProductRepository { get; set; }
-        public IGenericRepository<ExitExpense> ExitExpenseRepository { get; set; }
-        public IGenericRepository<Salary> SalaryRepository { get; set; }
-        public IGenericRepository<ApplicationSetting> ApplicationSettingRepository { get; set; }
-        public IGenericRepository<PrinterSetting> PrinterSettingRepository { get; set; }
-        public IGenericRepository<PrinterForSection> PrinterForSectionRepository { get; set; }
-        public IGenericRepository<ApplicationUser> UserRepository { get; set; }
-        public IGenericRepository<IdentityRole> RoleRepository { get; set; }
-        public IGenericRepository<Account> AccountRepository { get; set; }
-        public IGenericRepository<AccountState> AccountStateRepository { get; set; }
-        public IGenericRepository<AccountsType> AccountTypeRepository { get; set; }
-        public IGenericRepository<Currency> CurrencyRepository { get; set; }
-        public IGenericRepository<PayType> PayTypeRepository { get; set; }
-        public IGenericRepository<SellType> SellTypeRepository { get; set; }
-
-
-
-
-
-        // By Yasser
-        public IGenericRepository<Table> TableRepository { get; set; }
-        public IGenericRepository<Customer> CustomerRepository { get; set; }
-        public IGenericRepository<Expense> ExpenseRepository { get; set; }
-        public IGenericRepository<Scrounge> ScroungeRepository { get; set; }
-        public IGenericRepository<Deposit> DepositRepository { get; set; }
-
-
-        //By Mahmoud
-        public IGenericRepository<kitchen> kitchenRepository { get; set; }
-
-
-
         public UnitOfWork(ApplicationDbContext context)
         {
             this._context = context;
 
-            IndexRepository = new GenericRepository<IndexSettings>(_context);
-            ChefItemRepository = new GenericRepository<ChefItem>(_context);
-            GalleryItemRepository = new GenericRepository<GalleryItem>(_context);
-
-            // Daif Hamdan
-            BrancheRepository = new GenericRepository<Branche>(_context);
-            JobRepository = new GenericRepository<Job>(_context);
-            EmployeeRepository = new GenericRepository<Employee>(_context);
-            SalaryTypeRepository = new GenericRepository<SalaryType>(_context);
-            InvoiceRepository = new GenericRepository<Invoice>(_context);
-            InvoiceItemRepository = new InvoiceItemRepository(_context);
-            ProductRepository = new GenericRepository<Product>(_context);
-            SupplierRepository = new GenericRepository<Supplier>(_context);
-            UnitPriceRepository = new GenericRepository<UnitPrice>(_context);
-            StoreRepository = new GenericRepository<Store>(_context);
-            PaymentInvoiceCustomerRepository = new GenericRepository<PaymentInvoiceCustomer>(_context);
-            PaymentInvoiceSupplierRepository = new GenericRepository<PaymentInvoiceSupplier>(_context);
-            StoreProductRepository = new GenericRepository<StoreProduct>(_context);
-            MenuItemRepository = new GenericRepository<MenuItem>(_context);
-            MenuItemComponentRepository = new GenericRepository<MenuItemComponent>(_context);
-            OrderRepository = new GenericRepository<Order>(_context);
-            OrderMenuItemRepository = new GenericRepository<OrderMenuItem>(_context);
-            OnlineOrderRepository = new GenericRepository<OnlineOrder>(_context);
-            OnlineOrderMenuItemRepository = new GenericRepository<OnlineOrderMenuItem>(_context);
-            MenuSectionRepository = new GenericRepository<MenuSection>(_context);
-            StoreConvertRepository = new GenericRepository<StoreConvert>(_context);
-            StoreConvertProductRepository = new GenericRepository<StoreConvertProduct>(_context);
-            ExitExpenseRepository = new GenericRepository<ExitExpense>(_context);
-            SalaryRepository = new GenericRepository<Salary>(_context);
-            ApplicationSettingRepository = new GenericRepository<ApplicationSetting>(_context);
-            PrinterSettingRepository = new GenericRepository<PrinterSetting>(_context);
-            PrinterForSectionRepository = new GenericRepository<PrinterForSection>(_context);
-            UserRepository = new GenericRepository<ApplicationUser>(_context);
-            RoleRepository = new GenericRepository<IdentityRole>(_context);
-            AccountRepository = new GenericRepository<Account>(_context);
-            AccountStateRepository = new GenericRepository<AccountState>(_context);
-            AccountTypeRepository = new GenericRepository<AccountsType>(_context);
-            CurrencyRepository = new GenericRepository<Currency>(_context);
-            PayTypeRepository = new GenericRepository<PayType>(_context);
-            SellTypeRepository = new GenericRepository<SellType>(_context);
-
-
-
-            // Yasser
-            TableRepository = new GenericRepository<Table>(_context);
-            CustomerRepository = new GenericRepository<Customer>(_context);
-            ExpenseRepository = new GenericRepository<Expense>(_context);
-            ScroungeRepository = new GenericRepository<Scrounge>(_context);
-            DepositRepository = new GenericRepository<Deposit>(_context);
-
-
-
-            //Mahmoud
-            kitchenRepository = new GenericRepository<kitchen>(_context);
-
             Branches = new BranchRepository(_context);
             Jobs = new JobRepository(_context);
-            Tables = new TableRepository(_context);
             UnitPrices = new UnitPriceRepository(_context);
+            ProductCategories = new ProductCategoryRepository(_context);
             SalaryTypes = new SalaryTypeRepository(_context);
             MenuSections = new MenuSectionRepository(_context);
-            MenuItems = new MenuItemRepository(_context);
             Products = new ProductRepository(_context);
+            Kitchens = new KitchenRepository(_context);
+            DeliveryZones = new DeliveryZoneRepository(_context);
+            Expenses = new ExpenseRepository(_context);
+            Tables = new TableRepository(_context);
+            MenuItems = new MenuItemRepository(_context);
             Stores = new StoreRepository(_context);
             Suppliers = new SupplierRepository(_context);
+            Invoices = new InvoiceRepository(_context);
+            Orders = new OrderRepository(_context);
+            OnlineOrders = new OnlineOrderRepository(_context);
+            Reports = new ReportRepository(_context);
+            StoreConverts = new StoreConvertRepository(_context);
+            SupplierPayments = new SupplierPaymentRepository(_context);
+            CustomerPayments = new CustomerPaymentRepository(_context);
             Customers = new CustomerRepository(_context);
             Employees = new EmployeeRepository(_context);
             Dashboard = new DashboardRepository(_context);
@@ -148,10 +46,8 @@ namespace Restaurant.DAL.UnitOfWork
             ExitExpenses = new ExitExpenseRepository(_context);
             Scrounges = new ScroungeRepository(_context);
             Salaries = new SalaryRepository(_context);
-            Kitchens = new KitchenRepository(_context);
-            Expenses = new ExpenseRepository(_context);
             Lookups = new LookupRepository(_context);
-            Website = new WebsiteRepository(_context);
+            Home = new HomeRepository(_context);
             Chefs = new ChefRepository(_context);
             Galleries = new GalleryRepository(_context);
         }
@@ -160,15 +56,24 @@ namespace Restaurant.DAL.UnitOfWork
         public IJobRepository Jobs { get; set; }
         public ITableRepository Tables { get; set; }
         public IUnitPriceRepository UnitPrices { get; set; }
+        public IProductCategoryRepository ProductCategories { get; set; }
         public ISalaryTypeRepository SalaryTypes { get; set; }
         public IMenuSectionRepository MenuSections { get; set; }
         public IMenuItemRepository MenuItems { get; set; }
         public IProductRepository Products { get; set; }
         public IStoreRepository Stores { get; set; }
         public ISupplierRepository Suppliers { get; set; }
+        public IInvoiceRepository Invoices { get; set; }
+        public IOrderRepository Orders { get; set; }
+        public IOnlineOrderRepository OnlineOrders { get; set; }
+        public IReportRepository Reports { get; set; }
+        public IStoreConvertRepository StoreConverts { get; set; }
+        public ISupplierPaymentRepository SupplierPayments { get; set; }
+        public ICustomerPaymentRepository CustomerPayments { get; set; }
         public ICustomerRepository Customers { get; set; }
 
         public IKitchenRepository Kitchens { get; set; }
+        public IDeliveryZoneRepository DeliveryZones { get; set; }
         public IExpenseRepository Expenses { get; set; }
 
         public IEmployeeRepository Employees { get; set; }
@@ -180,7 +85,7 @@ namespace Restaurant.DAL.UnitOfWork
 
         public IDashboardRepository Dashboard { get; set; }
         public ILookupRepository Lookups { get; set; }
-        public IWebsiteRepository Website { get; set; }
+        public IHomeRepository Home { get; set; }
         public IChefRepository Chefs { get; set; }
         public IGalleryRepository Galleries { get; set; }
 
@@ -193,7 +98,5 @@ namespace Restaurant.DAL.UnitOfWork
         {
             _context.Dispose();
         }
-
-
     }
 }

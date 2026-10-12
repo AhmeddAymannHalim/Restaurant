@@ -22,7 +22,9 @@ public class SupplierService : ISupplierService
     {
         var result = await _unitOfWork.Suppliers.GetPagedSuppliersAsync(request);
 
-        return PaginatedResult<SupplierViewModel>.Create(_mapper.Map<List<SupplierViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<SupplierViewModel>.Create(_mapper.Map<List<SupplierViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<SupplierViewModel> GetSupplierByIdAsync(int id)

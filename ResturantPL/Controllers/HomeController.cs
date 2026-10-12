@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Restaurant.BLL.Services.IServices.Commons;
-using ResturantPL.ViewModels;
 using Shared.ViewModels.Commons;
 using System.Diagnostics;
 
@@ -8,9 +7,9 @@ namespace ResturantPL.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IWebsiteService _service;
+        private readonly IHomeService _service;
 
-        public HomeController(IWebsiteService service)
+        public HomeController(IHomeService service)
         {
             _service = service;
         }
@@ -19,7 +18,7 @@ namespace ResturantPL.Controllers
         {
             try
             {
-                return View(await _service.GetWebsiteAsync());
+                return View(await _service.GetHomeAsync());
             }
             catch (Exception ex)
             {
@@ -27,7 +26,12 @@ namespace ResturantPL.Controllers
             }
         }
 
-        // AJAX: the menu items of one category (no id = every category)
+        [HttpGet]
+        public async Task<IActionResult> Pricing()
+        {
+            return Json(await _service.GetPricingAsync());
+        }
+
         [HttpGet]
         public async Task<IActionResult> MenuItems(int? sectionId)
         {

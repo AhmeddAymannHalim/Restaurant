@@ -22,7 +22,9 @@ public class DepositService : IDepositService
     {
         var result = await _unitOfWork.Deposits.GetPagedDepositsAsync(request);
 
-        return PaginatedResult<DepositViewModel>.Create(_mapper.Map<List<DepositViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<DepositViewModel>.Create(_mapper.Map<List<DepositViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<DepositViewModel> GetDepositByIdAsync(int id)

@@ -1,179 +1,175 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Shared.Helpers;
-using Shared.ViewModels.Commons;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
-using Restaurant.DAL.Models;
+using Microsoft.Extensions.Localization;
+using Restaurant.BLL.Services.IServices.Commons;
+using Restaurant.BLL.Services.IServices.Definitions;
 using ResturantPL.Helper;
 using ResturantPL.Hubs;
-using ResturantPL.ViewModels;
-using Restaurant.DAL.Repositories;
-using Restaurant.DAL.UnitOfWork;
+using Shared;
+using Shared.Helpers;
+using Shared.Helpers.Localization;
+using Shared.ViewModels.Commons;
+using Shared.ViewModels.Definitions;
 using System.Security.Claims;
 
 namespace ResturantPL.Controllers
 {
     public class OnlineOrderController : Controller
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IHubContext<OrderHub> _orderHubContext;
+        private readonly IOnlineOrderService _service;
+        private readonly ILookupService _lookup;
+        private readonly IHubContext<OrderHub> _hub;
+        private readonly IToastrService _toastr;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public OnlineOrderController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IHubContext<OrderHub> orderHubContext)
+        public OnlineOrderController(
+            IOnlineOrderService service,
+            ILookupService lookup,
+            IHubContext<OrderHub> hub,
+            IToastrService toastr,
+            IStringLocalizer<SharedResource> localizer)
         {
-            this._unitOfWork = unitOfWork;
-            this._userManager = userManager;
-            this._orderHubContext = orderHubContext;
+            _service = service;
+            _lookup = lookup;
+            _hub = hub;
+            _toastr = toastr;
+            _localizer = localizer;
         }
 
+        private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        public ApplicationUser CurrentUser()
+        public async Task<IActionResult> Menu()
         {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            ApplicationUser currentUser = _userManager.FindByIdAsync(userId).Result;
-            return currentUser;
+            try
+            {
+                return View(await _service.GetMenuAsync());
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
         }
-
-
-        public IActionResult Menu()
-        {
-            var MenuItems = _unitOfWork.MenuItemRepository.GetAll(a => a.Include(a => a.MenuSection));
-
-            return View(MenuItems);
-        }
-
 
         public IActionResult Basket()
         {
             return View();
         }
 
-
-        public IActionResult MyOrders()
-        {
-            return View();
-        }
-
-
         [Authorize]
-        public async Task<IActionResult> Create(OnlineOrderViewModel viewModel)
+        public async Task<IActionResult> Checkout()
         {
             try
             {
-                if (viewModel.OnlineOrderMenuItems.Count()<1)
+                var model = new OnlineOrderCreateViewModel
                 {
-                    return RedirectToAction("Basket");
-                    //return View("Error", ErrorMessage.Error("برجاء اضافة منتجات الي السلة لطلبها"));
-                }
-                bool found = false;
-                foreach (var item in viewModel.OnlineOrderMenuItems)
-                {
-                    if (item.Quantity > 0)
-                    {
-                        found = true;
-                    }
-                }
+                    Tables = await _lookup.TableLookupAsync(),
+                    Zones = await _lookup.DeliveryZoneLookupAsync()
+                };
 
-                if (!found)
-                {
-                    return RedirectToAction("Basket");
-                }
-
-
-                if (viewModel.OnlineOrderMenuItems.Count()<1)
-                {
-                    return RedirectToAction("Basket");
-                }
-
-                if (ModelState.IsValid)
-                {
-                    OnlineOrder order = new OnlineOrder()
-                    {
-                        CustomerName = viewModel.CustomerName,
-                        CustomerId = CurrentUser().Id,
-                        Address = viewModel.Address,
-                        MobileNumber = viewModel.MobileNumber,
-                        PhoneNumber = viewModel.PhoneNumber,
-                        OrderDate = DateTime.Now,
-                        TotalPrice = viewModel.TotalPrice,
-                        IsPending = true,
-                    };
-                    await _unitOfWork.OnlineOrderRepository.AddAsync(order);
-
-                    foreach (var item in viewModel.OnlineOrderMenuItems)
-                    {
-                        MenuItem menuItem = _unitOfWork.MenuItemRepository.GetById(item.MenuItemId);
-                        OnlineOrderMenuItem onlinemenuItem = new OnlineOrderMenuItem()
-                        {
-                            OnlineOrderId = order.Id,
-                            MenuItemId = item.MenuItemId,
-                            Quantity = item.Quantity,
-                            PriceForUnit = menuItem.Price,
-                            Price = (menuItem.Price * item.Quantity)
-                        };
-
-                        if (onlinemenuItem.Quantity > 0)
-                        {
-                            await _unitOfWork.OnlineOrderMenuItemRepository.AddAsync(onlinemenuItem);
-                        }
-                    }
-                    await _orderHubContext.Clients.All.SendAsync("RefreshOnlineOrders");
-                    return RedirectToAction("PendingOrders");
-                }
-                return RedirectToAction("Menu");
+                return View(model);
             }
             catch (Exception ex)
             {
-                return View("Error", ErrorMessage.Error(ex.Message));
+                return ErrorHandler.ErrorView(ex.Message);
             }
-
         }
 
         [Authorize]
-        public IActionResult PendingOrders()
+        public IActionResult MyOrders()
         {
-            var orders = _unitOfWork.OnlineOrderRepository.GetAll()
-                .Where(a => a.CustomerId == CurrentUser().Id  && a.IsPending == true);
-
-            return View(orders);
+            return RedirectToAction(nameof(PendingOrders));
         }
 
-
-        public IActionResult Details(int id)
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> Create(OnlineOrderCreateViewModel model)
         {
-            OnlineOrder onlineOrder = _unitOfWork.OnlineOrderRepository.GetById(a => a.Id == id,
-                new string[] { "OnlineOrderMenuItems" },
-                new string[] { "OnlineOrderMenuItems.MenuItem" });
-
-            if (onlineOrder != null)
+            try
             {
-                return View(onlineOrder);
-            }
-            return NotFound();
-        }
-
-
-        public IActionResult Delete(int id)
-        {
-            var obj = _unitOfWork.OnlineOrderRepository.GetById(id);
-            if (obj != null)
-            {
-                try
+                if (!ModelState.IsValid)
                 {
-                    _unitOfWork.OnlineOrderRepository.Delete(obj);
+                    _toastr.Error(_localizer["ValidationError"].Value);
+                    return RedirectToAction(nameof(Checkout));
+                }
+
+                var result = await _service.CreateOrderAsync(model, UserId);
+                if (!result.Success)
+                {
+                    _toastr.Error(_localizer[result.Message ?? "ErrorWhileSaving"].Value);
+                    return RedirectToAction(nameof(Checkout));
+                }
+
+                await _hub.Clients.All.SendAsync("RefreshOnlineOrders");
+                _toastr.Success(_localizer["SavedSuccessfully"].Value);
+                TempData["OrderPlaced"] = true;
+
+                return RedirectToAction(nameof(PendingOrders));
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
+        }
+
+        [Authorize]
+        public async Task<IActionResult> PendingOrders()
+        {
+            try
+            {
+                return View(await _service.GetCustomerOrdersAsync(UserId));
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
+        }
+
+        [Authorize]
+        public async Task<IActionResult> Details(int id)
+        {
+            var model = await _service.GetOrderAsync(id);
+            if (model == null)
+            {
+                return NotFound();
+            }
+
+            if (model.CustomerId != UserId && User.IsInRole("User"))
+            {
+                return Forbid();
+            }
+
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var isStaff = !User.IsInRole("User");
+                var result = await _service.CancelOrderAsync(id, UserId, isStaff);
+                if (result.Success)
+                {
+                    await _hub.Clients.All.SendAsync("RefreshOnlineOrders");
                     return Json(new { success = true });
                 }
-                catch (Exception)
+
+                return Json(new
                 {
-                    return Json(new { success = false, errorMessage = "نأسف حدث خطأ اثناء الحذف , ربما يكون مرتبطا بشئ آخر " });
-                }
+                    success = false,
+                    errorMessage = _localizer[result.Message].Value
+                });
             }
-            return Json(new { success = true });
+            catch (Exception)
+            {
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer["SomethingWentError"].Value
+                });
+            }
         }
-
-
     }
 }

@@ -7,7 +7,6 @@ public interface IMenuItemService
 {
     Task<PaginatedResult<MenuItemViewModel>> GetPagedMenuItemsAsync(PageRequest request);
     Task<MenuItemViewModel> GetMenuItemByIdAsync(int id);
-    Task<MenuItemViewModel> GetNewSizeFromAsync(int baseId);
     Task<ResultMessage> UpsertMenuItemAsync(MenuItemViewModel model);
     Task<ResultMessage> DeleteMenuItemAsync(int id);
 }

@@ -1,0 +1,153 @@
+<div id="app-loader" class="app-loader" role="status" aria-live="polite" aria-hidden="true">
+    <span class="loader" aria-hidden="true"></span>
+    <span class="app-loader-text">@L["Loading"]</span>
+</div>
+
+<style>
+    .app-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: grid;
+        place-items: center;
+        align-content: center;
+        gap: 36px;
+        background: rgba(13, 15, 24, .55);
+        -webkit-backdrop-filter: blur(3px);
+        backdrop-filter: blur(3px);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity .2s ease, visibility .2s;
+    }
+
+    .app-loader.is-on {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .app-loader-text {
+        color: #fff;
+        font: 500 .95rem/1 "Cairo", "Segoe UI", Tahoma, sans-serif;
+        letter-spacing: .02em;
+    }
+
+    .loader {
+        --color-1: #fff;
+        --color-2: #ff3d00;
+        --size: 1px;
+
+        position: relative;
+        transform: rotateZ(45deg);
+        perspective: calc(1000 * var(--size));
+        border-radius: 50%;
+        width: calc(48 * var(--size));
+        height: calc(48 * var(--size));
+        color: var(--color-1);
+    }
+
+    .loader:before,
+    .loader:after {
+        content: '';
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: inherit;
+        height: inherit;
+        border-radius: 50%;
+        transform: rotateX(70deg);
+        animation: 1s app-loader-spin linear infinite;
+    }
+
+    .loader:after {
+        color: var(--color-2);
+        transform: rotateY(70deg);
+        animation-delay: .4s;
+    }
+
+    @@keyframes app-loader-spin {
+        0%, 100% { box-shadow: .2em 0 0 0 currentcolor; }
+        12% { box-shadow: .2em .2em 0 0 currentcolor; }
+        25% { box-shadow: 0 .2em 0 0 currentcolor; }
+        37% { box-shadow: -.2em .2em 0 0 currentcolor; }
+        50% { box-shadow: -.2em 0 0 0 currentcolor; }
+        62% { box-shadow: -.2em -.2em 0 0 currentcolor; }
+        75% { box-shadow: 0 -.2em 0 0 currentcolor; }
+        87% { box-shadow: .2em -.2em 0 0 currentcolor; }
+    }
+</style>
+
+<script>
+    (function () {
+        var overlay = document.getElementById("app-loader");
+        var pending = 0;
+        var showTimer = null;
+        var NAVIGATION_TIMEOUT = 20000;
+
+        function start() {
+            pending++;
+            if (pending === 1) {
+                showTimer = setTimeout(function () {
+                    overlay.classList.add("is-on");
+                    overlay.setAttribute("aria-hidden", "false");
+                }, 150);
+            }
+        }
+
+        function stop(force) {
+            pending = force ? 0 : Math.max(0, pending - 1);
+            if (pending === 0) {
+                clearTimeout(showTimer);
+                overlay.classList.remove("is-on");
+                overlay.setAttribute("aria-hidden", "true");
+            }
+        }
+
+        function startNavigation() {
+            start();
+            setTimeout(function () { stop(true); }, NAVIGATION_TIMEOUT);
+        }
+
+        if (window.jQuery) {
+            jQuery(document).ajaxSend(function () { start(); }).ajaxComplete(function () { stop(); });
+        }
+
+        if (window.fetch) {
+            var nativeFetch = window.fetch;
+            window.fetch = function (input, init) {
+                var headers = new Headers((init && init.headers) || (input && input.headers) || {});
+                if (headers.has("X-No-Loader")) {
+                    return nativeFetch.apply(this, arguments);
+                }
+                start();
+                return nativeFetch.apply(this, arguments).finally(function () { stop(); });
+            };
+        }
+
+        document.addEventListener("submit", function (e) {
+            setTimeout(function () {
+                if (!e.defaultPrevented && !e.target.hasAttribute("data-no-loader")) {
+                    startNavigation();
+                }
+            }, 0);
+        });
+
+        document.addEventListener("click", function (e) {
+            var link = e.target.closest && e.target.closest("a[href]");
+            if (!link || e.button !== 0 || e.ctrlKey || e.shiftKey || e.metaKey || e.altKey) { return; }
+            if (link.target === "_blank" || link.hasAttribute("download") || link.hasAttribute("data-no-loader")) { return; }
+
+            var href = link.getAttribute("href");
+            if (!href || href.charAt(0) === "#" || /^(javascript|mailto|tel):/i.test(href)) { return; }
+            if (link.origin !== location.origin || (link.pathname === location.pathname && link.search === location.search && link.hash)) { return; }
+
+            setTimeout(function () {
+                if (!e.defaultPrevented) { startNavigation(); }
+            }, 0);
+        });
+
+        window.addEventListener("pageshow", function () { stop(true); });
+
+        window.appLoader = { start: start, stop: stop };
+    })();
+</script>

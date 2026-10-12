@@ -13,7 +13,7 @@ using Shared.ViewModels.Definitions;
 
 namespace ResturantPL.Controllers.Definitions
 {
-    [Authorize]
+    [Authorize(Policy = "Staff")]
     public class MenuSectionController : Controller
     {
         private readonly IMenuSectionService _service;
@@ -21,7 +21,11 @@ namespace ResturantPL.Controllers.Definitions
         private readonly IToastrService _toastr;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public MenuSectionController(IMenuSectionService service, ILookupService lookup, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
+        public MenuSectionController(
+            IMenuSectionService service,
+            ILookupService lookup,
+            IToastrService toastr,
+            IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
             _lookup = lookup;
@@ -111,19 +115,25 @@ namespace ResturantPL.Controllers.Definitions
                     return Json(new { success = true });
                 }
 
-                return Json(new { success = false, errorMessage = _localizer[result.Message].Value });
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer[result.Message].Value
+                });
             }
             catch (Exception)
             {
-                return Json(new { success = false, errorMessage = _localizer["SomethingWentError"].Value });
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer["SomethingWentError"].Value
+                });
             }
         }
 
         private async Task PopulateData(MenuSectionViewModel model)
         {
-            var kitchens = await _lookup.KitchenLookupAsync();
-            model.Kitchens = new SelectList(kitchens, "Id", LanguageHelper.IsArabic() ? "ArName" : "EnName", model.KitchenId);
-            await Task.CompletedTask;
+            model.Kitchens = await _lookup.KitchenLookupAsync();
         }
     }
 }

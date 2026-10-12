@@ -12,7 +12,6 @@ public class ValidatorRepository<T> : IValidatorRepository<T> where T : class
         _context = context;
     }
 
-    // The primary key is not always called "Id" in this database (Job uses JobId), so it is resolved from the model.
     private string KeyName()
     {
         return _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
@@ -82,7 +81,8 @@ public class ValidatorRepository<T> : IValidatorRepository<T> where T : class
 
         return _context.Set<T>()
             .AsNoTracking()
-            .Any(e => (EF.Property<string>(e, "PhoneNumber") == phoneNumber || EF.Property<string>(e, "MobileNumber") == phoneNumber)
+            .Any(e => (EF.Property<string>(e, "PhoneNumber") == phoneNumber
+                || EF.Property<string>(e, "MobileNumber") == phoneNumber)
                    && EF.Property<int>(e, keyName) != id);
     }
 

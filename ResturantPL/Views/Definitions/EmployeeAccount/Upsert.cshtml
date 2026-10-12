@@ -1,0 +1,72 @@
+@model EmployeeAccountViewModel
+@{
+    var isNew = string.IsNullOrEmpty(Model.Id);
+    ViewBag.Title = isNew ? L["NewAccount"].Value : L["EditAccount"].Value;
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-user-lock" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title</h1>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Upsert" method="post" class="ad-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+
+            @if (Model.Employees != null)
+            {
+                <div class="form-group">
+                    <label asp-for="EmployeeId" class="control-label">@L["Employee"]</label>
+                    <select asp-for="EmployeeId" class="form-control">
+                        <option value="0">@L["Select"]</option>
+                    @foreach (var item in Model.Employees)
+                    {
+                        <option value="@item.Id" selected="@(Model.EmployeeId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+                    <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                </div>
+            }
+            else
+            {
+                <input type="hidden" asp-for="EmployeeId" />
+                <input type="hidden" asp-for="FirstName" />
+                <input type="hidden" asp-for="LastName" />
+                <h5 class="mb-3">@Model.FullName</h5>
+            }
+
+            <div class="form-group">
+                <label asp-for="UserName" class="control-label">@L["UserName"]</label>
+                <input asp-for="UserName" class="form-control" />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Email" class="control-label">@L["Email"]</label>
+                <input asp-for="Email" type="email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Password" class="control-label">@(isNew ? L["Password"] : L["NewPasswordOptional"])</label>
+                <input asp-for="Password" type="password" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ConfirmPassword" class="control-label">@L["ConfirmPassword"]</label>
+                <input asp-for="ConfirmPassword" type="password" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -22,7 +22,9 @@ public class GalleryService : IGalleryService
     {
         var result = await _unitOfWork.Galleries.GetPagedGalleryAsync(request);
 
-        return PaginatedResult<GalleryViewModel>.Create(_mapper.Map<List<GalleryViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<GalleryViewModel>.Create(_mapper.Map<List<GalleryViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<GalleryViewModel> GetGalleryByIdAsync(int id)

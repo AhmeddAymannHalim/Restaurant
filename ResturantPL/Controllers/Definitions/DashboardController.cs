@@ -6,7 +6,7 @@ using System.Security.Claims;
 
 namespace ResturantPL.Controllers.Definitions
 {
-    [Authorize(Roles = "Admin,Manager,كاشير")]
+    [Authorize(Policy = "Staff")]
     public class DashboardController : Controller
     {
         private readonly IDashboardService _service;
@@ -16,33 +16,30 @@ namespace ResturantPL.Controllers.Definitions
             _service = service;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Stats()
-        {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-                return Json(await _service.GetDashboardAsync(userId));
-            }
-            catch (Exception)
-            {
-                return StatusCode(500);
-            }
-        }
+        private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         public async Task<IActionResult> Index()
         {
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var model = await _service.GetDashboardAsync(userId);
-
-                return View(model);
+                return View(await _service.GetDashboardAsync(UserId));
             }
             catch (Exception ex)
             {
                 return ErrorHandler.ErrorView(ex.Message);
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Board()
+        {
+            try
+            {
+                return PartialView("_Board", await _service.GetDashboardAsync(UserId));
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
             }
         }
     }

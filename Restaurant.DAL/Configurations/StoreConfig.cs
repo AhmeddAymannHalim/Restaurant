@@ -8,6 +8,9 @@ public class StoreConfig : IEntityTypeConfiguration<Store>
 {
     public void Configure(EntityTypeBuilder<Store> builder)
     {
+        builder.HasIndex(a => a.ArName).IsUnique();
+        builder.HasIndex(a => a.EnName).IsUnique();
+
         builder.Property(a => a.ArName).IsRequired().HasMaxLength(100);
         builder.Property(a => a.EnName).IsRequired().HasMaxLength(100);
         builder.Property(a => a.Address).HasMaxLength(250);

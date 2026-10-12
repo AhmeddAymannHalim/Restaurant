@@ -23,7 +23,9 @@ public class JobRepository : IJobRepository
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search) || a.Code.ToLower().Contains(search));
+            query = query.Where(a => a.ArName.ToLower().Contains(search)
+                || a.EnName.ToLower().Contains(search)
+                || a.Code.ToLower().Contains(search));
         }
 
         var total = await query.CountAsync();
@@ -69,7 +71,11 @@ public class JobRepository : IJobRepository
                 var existing = await _context.Jobs.AsNoTracking().FirstOrDefaultAsync(a => a.JobId == entity.JobId);
                 if (existing is null)
                 {
-                    return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "RecordNotFound"
+                    };
                 }
 
                 entity.Code = existing.Code;
@@ -81,7 +87,11 @@ public class JobRepository : IJobRepository
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -97,7 +107,11 @@ public class JobRepository : IJobRepository
 
             if (await _context.Employees.AnyAsync(a => a.JobId == id))
             {
-                return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "CannotDeleteLinkedRecord"
+                };
             }
             _context.Jobs.Remove(entity);
             await _context.SaveChangesAsync();
@@ -106,11 +120,19 @@ public class JobRepository : IJobRepository
         }
         catch (DbUpdateException)
         {
-            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "CannotDeleteLinkedRecord"
+            };
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 }

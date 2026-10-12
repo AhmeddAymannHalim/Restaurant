@@ -22,19 +22,14 @@ public class MenuItemService : IMenuItemService
     {
         var result = await _unitOfWork.MenuItems.GetPagedMenuItemsAsync(request);
 
-        return PaginatedResult<MenuItemViewModel>.Create(_mapper.Map<List<MenuItemViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<MenuItemViewModel>.Create(_mapper.Map<List<MenuItemViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<MenuItemViewModel> GetMenuItemByIdAsync(int id)
     {
         var entity = await _unitOfWork.MenuItems.GetMenuItemByIdAsync(id);
-
-        return _mapper.Map<MenuItemViewModel>(entity);
-    }
-
-    public async Task<MenuItemViewModel> GetNewSizeFromAsync(int baseId)
-    {
-        var entity = await _unitOfWork.MenuItems.GetNewSizeFromAsync(baseId);
 
         return _mapper.Map<MenuItemViewModel>(entity);
     }

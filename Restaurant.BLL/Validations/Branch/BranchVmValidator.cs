@@ -8,7 +8,8 @@ namespace Restaurant.BLL.Validations.Branch;
 
 public class BranchVmValidator : AbstractValidator<BranchViewModel>
 {
-    public BranchVmValidator(IStringLocalizer<SharedResource> localizer,
+    public BranchVmValidator(
+        IStringLocalizer<SharedResource> localizer,
         IValidatorService<Restaurant.DAL.Models.Branche> validator)
     {
         var required = localizer["Val.RequiredField"].Value;

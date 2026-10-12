@@ -1,0 +1,221 @@
+@model StoreConvertViewModel
+@{
+    var isNew = Model.Id == 0;
+    ViewBag.Title = isNew ? L["NewStoreConvert"].Value : L["StoreConverts"].Value;
+    var isArabic = LanguageHelper.IsArabic();
+    var invariant = CultureInfo.InvariantCulture;
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-right-left" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title <small>@Model.ConvertCode</small></h1>
+        @if (!isNew)
+        {
+            <a asp-action="Pdf" asp-route-id="@Model.Id" data-no-loader class="btn-ad btn-ad-ghost"><i class="fas fa-print" aria-hidden="true"></i> @L["Print"]</a>
+        }
+    </div>
+    <div class="ad-card-body">
+        <form id="convertForm" asp-action="Upsert" method="post" class="ad-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="form-group">
+                <label class="control-label">@L["ConvertCode"]</label>
+                <input class="form-control" value="@Model.ConvertCode" readonly />
+            </div>
+            <div class="form-group">
+                <label asp-for="FromStoreId" class="control-label">@L["FromStore"]</label>
+                <select asp-for="FromStoreId" class="form-select" disabled="@(!isNew)">
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.Stores)
+                    {
+                        <option value="@item.Id" selected="@(Model.FromStoreId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+                <span asp-validation-for="FromStoreId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ToStoreId" class="control-label">@L["ToStore"]</label>
+                <select asp-for="ToStoreId" class="form-select" disabled="@(!isNew)">
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.Stores)
+                    {
+                        <option value="@item.Id" selected="@(Model.ToStoreId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+                <span asp-validation-for="ToStoreId" class="text-danger"></span>
+            </div>
+
+            @if (isNew)
+            {
+                <div class="ad-full ad-lines-picker">
+                    <div class="form-group">
+                        <label class="control-label">@L["ProductCategory"]</label>
+                        <select id="categoryList" class="form-select">
+                            <option value="">@L["AllCategories"]</option>
+                            @foreach (var item in Model.Categories)
+                            {
+                                <option value="@item.Id">@(isArabic ? item.ArName : item.EnName)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">@L["Product"]</label>
+                        <select id="productList" class="form-select"><option value="">@L["Select"]</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">@L["AvailableQuantity"]</label>
+                        <input id="available" class="form-control" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">@L["Quantity"]</label>
+                        <input id="quantity" type="number" step="any" min="0" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">&nbsp;</label>
+                        <button id="addLine" type="button" class="btn-ad btn-ad-primary w-100"><i class="fas fa-plus" aria-hidden="true"></i> @L["AddLine"]</button>
+                    </div>
+                </div>
+            }
+
+            <div class="ad-full">
+                <div class="ad-table-wrap">
+                    <table id="linesTable" class="ad-table">
+                        <thead>
+                            <tr>
+                                <th>@L["Product"]</th>
+                                <th>@L["Quantity"]</th>
+                                @if (isNew)
+                                {
+                                    <th></th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>@(isArabic ? item.ProductArName : item.ProductEnName)</td>
+                                    <td class="num">@item.Quantity.ToString("0.###", invariant)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <span asp-validation-for="Items" class="text-danger"></span>
+            </div>
+
+            <div class="ad-form-actions">
+                @if (isNew)
+                {
+                    <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                }
+                <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+                @if (!isNew)
+                {
+                    <button type="button" onclick="Delete('/StoreConvert/Delete/@Model.Id', '@Url.Action("Index")')" class="btn-ad btn-ad-danger push"><i class="fas fa-trash" aria-hidden="true"></i> @L["Delete"]</button>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (isNew)
+{
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+        <script>
+            $(function () {
+                var stock = {};
+                var msgFill = @Html.Raw(Json.Serialize(L["FillComponentFields"].Value));
+                var msgStock = @Html.Raw(Json.Serialize(L["InsufficientStock"].Value));
+                var msgSelect = @Html.Raw(Json.Serialize(L["Select"].Value));
+                var msgSame = @Html.Raw(Json.Serialize(L["SameStore"].Value));
+
+                function number(value) { return parseFloat(value) || 0; }
+
+                function usedOf(productId) {
+                    var used = 0;
+                    $('#linesTable tbody tr[data-product="' + productId + '"]').each(function () { used += number($(this).data('qty')); });
+                    return used;
+                }
+
+                var isArabic = @Html.Raw(Json.Serialize(isArabic));
+
+                function renderProducts() {
+                    var category = $('#categoryList').val();
+                    $('#productList').empty().append($('<option>', { value: '', text: msgSelect }));
+                    $('#available, #quantity').val('');
+                    $.each(stock, function (id, p) {
+                        if (category && String(p.productCategoryId) !== category) { return; }
+                        $('#productList').append($('<option>', { value: p.productId, text: isArabic ? p.productArName : p.productEnName }));
+                    });
+                }
+
+                function loadProducts(storeId) {
+                    stock = {};
+                    renderProducts();
+                    if (!storeId) { return; }
+                    $.get('/Lookup/StoreProducts', { storeId: storeId }, function (data) {
+                        $.each(data, function (i, p) {
+                            if (p.quantity > 0) { stock[p.productId] = p; }
+                        });
+                        renderProducts();
+                    });
+                }
+
+                $('#categoryList').on('change', renderProducts);
+
+                $('#FromStoreId').on('change', function () {
+                    $('#linesTable tbody').empty();
+                    loadProducts($(this).val());
+                });
+
+                $('#ToStoreId').on('change', function () {
+                    if ($(this).val() && $(this).val() === $('#FromStoreId').val()) {
+                        toastr.error(msgSame);
+                        $(this).val('');
+                    }
+                });
+
+                $('#productList').on('change', function () {
+                    var item = stock[$(this).val()];
+                    $('#available').val(item ? item.quantity - usedOf(item.productId) : '');
+                    $('#quantity').val('');
+                });
+
+                $('#addLine').on('click', function () {
+                    var productId = $('#productList').val();
+                    var qty = number($('#quantity').val());
+                    if (!productId || qty <= 0) { toastr.error(msgFill); return; }
+                    if (qty > number($('#available').val())) { toastr.error(msgStock); return; }
+                    $('#linesTable tbody').append(
+                        $('<tr>').attr({ 'data-product': productId, 'data-qty': qty })
+                            .append($('<td>').text($('#productList option:selected').text()))
+                            .append($('<td class="num">').text(qty))
+                            .append($('<td class="ad-row-actions">').append($('<button type="button" class="btn-ad btn-ad-danger btn-icon removeLine"><i class="fas fa-trash" aria-hidden="true"></i></button>'))));
+                    $('#productList').trigger('change');
+                });
+
+                $(document).on('click', '.removeLine', function () {
+                    $(this).closest('tr').remove();
+                    $('#productList').trigger('change');
+                });
+
+                $('#convertForm').on('submit', function () {
+                    var form = $(this);
+                    form.find('input.line-input').remove();
+                    $('#linesTable tbody tr').each(function (i) {
+                        var row = $(this);
+                        $.each({ ProductId: row.data('product'), Quantity: row.data('qty') }, function (name, value) {
+                            $('<input type="hidden" class="line-input">').attr('name', 'Items[' + i + '].' + name).val(value).appendTo(form);
+                        });
+                    });
+                });
+
+                if ($('#FromStoreId').val()) { loadProducts($('#FromStoreId').val()); }
+            });
+        </script>
+    }
+}

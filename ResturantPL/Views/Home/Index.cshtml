@@ -1,4 +1,4 @@
-@model WebsiteViewModel
+@model HomeViewModel
 @{
     bool isArabic = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar";
     var restaurantName = isArabic ? Model.ArName : Model.EnName;
@@ -7,11 +7,24 @@
         restaurantName = Model.ArName ?? Model.EnName;
     }
     ViewData["Title"] = L["Home"].Value;
+
+    var description = isArabic
+        ? (string.IsNullOrWhiteSpace(Model.ArDescription) ? Model.EnDescription : Model.ArDescription)
+        : (string.IsNullOrWhiteSpace(Model.EnDescription) ? Model.ArDescription : Model.EnDescription);
+    var location = isArabic
+        ? (string.IsNullOrWhiteSpace(Model.ArLocation) ? Model.EnLocation : Model.ArLocation)
+        : (string.IsNullOrWhiteSpace(Model.EnLocation) ? Model.ArLocation : Model.EnLocation);
+
+    string DayName(string value)
+    {
+        var day = WeekDays.Normalize(value);
+        return day == null ? value : L["Day." + day].Value;
+    }
 }
 
 <div class="ws" dir="@(isArabic ? "rtl" : "ltr")">
 
-    <section class="ws-hero" id="hero" style="@(string.IsNullOrEmpty(Model.ImageUrl) ? "" : $"--hero:url('{Model.ImageUrl}')")">
+    <section class="ws-hero" id="ws-top" style="@(string.IsNullOrEmpty(Model.ImageUrl) ? "" : $"--hero:url('{Model.ImageUrl}')")">
         <div class="ws-hero-inner">
             <p class="ws-kicker">@L["WelcomeTo"]</p>
             <h1 class="ws-title">@restaurantName</h1>
@@ -19,21 +32,21 @@
             <div class="ws-actions">
                 <a class="ws-btn ws-btn-solid" href="#menu">@L["ViewMenu"]</a>
                 <a class="ws-btn ws-btn-ghost" asp-controller="OnlineOrder" asp-action="Basket">@L["BookOrderNow"]</a>
-                @if (!string.IsNullOrWhiteSpace(Model.VedioUrl))
+                @if (!string.IsNullOrWhiteSpace(Model.VideoUrl))
                 {
-                    <a class="ws-play glightbox" href="@Model.VedioUrl" aria-label="@L["PlayVideo"]"><i class="bi bi-play-fill" aria-hidden="true"></i></a>
+                    <a class="ws-play glightbox" href="@Model.VideoUrl" aria-label="@L["PlayVideo"]"><i class="bi bi-play-fill" aria-hidden="true"></i></a>
                 }
             </div>
         </div>
     </section>
 
-    @if (!string.IsNullOrWhiteSpace(Model.Description))
+    @if (!string.IsNullOrWhiteSpace(description))
     {
         <section class="ws-sec ws-about" id="about">
             <div class="ws-wrap ws-about-grid">
                 <div class="ws-reveal">
                     <h2 class="ws-h2">@L["AboutUs"]</h2>
-                    <p class="ws-lead">@Model.Description</p>
+                    <p class="ws-lead">@description</p>
                 </div>
                 @if (!string.IsNullOrEmpty(Model.ImageUrl))
                 {
@@ -48,6 +61,14 @@
              data-url="@Url.Action("MenuItems", "Home")"
              data-ar="@(isArabic ? "1" : "0")"
              data-currency="@L["Currency"]"
+             data-add="@L["AddToBasket"]"
+             data-sizes='@Html.Raw(Json.Serialize(new Dictionary<string, string>
+                 {
+                     ["Small"] = L["Size.Small"].Value,
+                     ["Medium"] = L["Size.Medium"].Value,
+                     ["Large"] = L["Size.Large"].Value,
+                     ["Syrian_Bread"] = L["Size.Syrian_Bread"].Value
+                 }))'
              data-empty="@L["NoMenuItems"]"
              data-failed="@L["MenuLoadFailed"]">
         <div class="ws-wrap">
@@ -111,14 +132,14 @@
         <div class="ws-wrap">
             <h2 class="ws-h2 ws-reveal">@L["Contact"]</h2>
             <div class="ws-info">
-                @if (!string.IsNullOrWhiteSpace(Model.Locaion))
+                @if (!string.IsNullOrWhiteSpace(location))
                 {
-                    <div class="ws-info-card ws-reveal"><i class="bi bi-geo-alt" aria-hidden="true"></i><h3>@L["OurLocation"]</h3><p>@Model.Locaion</p></div>
+                    <div class="ws-info-card ws-reveal"><i class="bi bi-geo-alt" aria-hidden="true"></i><h3>@L["OurLocation"]</h3><p>@location</p></div>
                 }
                 <div class="ws-info-card ws-reveal">
                     <i class="bi bi-clock" aria-hidden="true"></i>
                     <h3>@L["WorkingHours"]</h3>
-                    <p>@Model.StartDay - @Model.EndDay<br />@Model.StartHour - @Model.EndHour</p>
+                    <p>@DayName(Model.StartDay) - @DayName(Model.EndDay)<br />@Model.StartHour - @Model.EndHour</p>
                 </div>
                 @if (!string.IsNullOrWhiteSpace(Model.Email))
                 {

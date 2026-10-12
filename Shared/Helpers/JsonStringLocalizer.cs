@@ -8,14 +8,12 @@ namespace Shared.Helpers;
 public class JsonStringLocalizer : IStringLocalizer
 {
     #region Constants
-    private string _cultureName = CultureInfo.CurrentCulture.Name;
+    private string _cultureName => CultureInfo.CurrentCulture.Name;
     private readonly JsonSerializer _serializer = new();
     #endregion
 
     #region Properties
-    /// <summary>
-    /// {0}: Resource Key
-    /// </summary>
+
     private string _cacheKeyFormatted => $"Locale.{_cultureName}.{{0}}";
     private string _relativeFilePath => $"Resources/{_cultureName}.json";
 
@@ -62,13 +60,11 @@ public class JsonStringLocalizer : IStringLocalizer
             Console.WriteLine($"::: Error reading JSON file: {ex.Message}");
             throw;
         }
-
     }
     private string GetString(string resourceKey)
     {
-        // Prepare CacheKey 
         var cacheKey = string.Format(_cacheKeyFormatted, resourceKey);
-        // Local function 
+
         string acuire()
         {
             var fullFilePath = Path.GetFullPath(_relativeFilePath);

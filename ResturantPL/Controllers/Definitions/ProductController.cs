@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using Microsoft.Extensions.Localization;
+using Restaurant.BLL.Services.IServices.Commons;
 using Restaurant.BLL.Services.IServices.Definitions;
 using Shared;
 using Shared.Helpers;
@@ -12,16 +13,22 @@ using Shared.ViewModels.Definitions;
 
 namespace ResturantPL.Controllers.Definitions
 {
-    [Authorize]
+    [Authorize(Policy = "Staff")]
     public class ProductController : Controller
     {
         private readonly IProductService _service;
+        private readonly ILookupService _lookup;
         private readonly IToastrService _toastr;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public ProductController(IProductService service, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
+        public ProductController(
+            IProductService service,
+            ILookupService lookup,
+            IToastrService toastr,
+            IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
+            _lookup = lookup;
             _toastr = toastr;
             _localizer = localizer;
         }
@@ -108,17 +115,34 @@ namespace ResturantPL.Controllers.Definitions
                     return Json(new { success = true });
                 }
 
-                return Json(new { success = false, errorMessage = _localizer[result.Message].Value });
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer[result.Message].Value
+                });
             }
             catch (Exception)
             {
-                return Json(new { success = false, errorMessage = _localizer["SomethingWentError"].Value });
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer["SomethingWentError"].Value
+                });
             }
         }
 
         private async Task PopulateData(ProductViewModel model)
         {
-            await Task.CompletedTask;
+            model.Categories = await _lookup.ProductCategoryLookupAsync();
+
+            var stores = await _lookup.StoreLookupAsync();
+            model.Stocks = stores.Select(store => new ProductStockViewModel
+            {
+                StoreId = store.Id,
+                StoreArName = store.ArName,
+                StoreEnName = store.EnName,
+                Quantity = model.Stocks.Where(a => a.StoreId == store.Id).Select(a => a.Quantity).FirstOrDefault()
+            }).ToList();
         }
     }
 }

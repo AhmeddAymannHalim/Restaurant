@@ -6,3 +6,10 @@ public class LookupItem
     public string ArName { get; set; }
     public string EnName { get; set; }
 }
+
+public class LookupItem_String
+{
+    public string Id { get; set; }
+    public string ArName { get; set; }
+    public string EnName { get; set; }
+}

@@ -2,8 +2,9 @@ using Shared.ViewModels.Definitions;
 
 namespace Restaurant.BLL.Services.IServices.Commons;
 
-public interface IWebsiteService
+public interface IHomeService
 {
-    Task<WebsiteViewModel> GetWebsiteAsync();
-    Task<IEnumerable<WebsiteMenuItemViewModel>> GetMenuItemsAsync(int? sectionId);
+    Task<HomeViewModel> GetHomeAsync();
+    Task<IEnumerable<HomeMenuItemViewModel>> GetMenuItemsAsync(int? sectionId);
+    Task<SitePricingViewModel> GetPricingAsync();
 }

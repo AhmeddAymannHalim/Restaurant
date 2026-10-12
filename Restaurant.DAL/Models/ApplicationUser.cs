@@ -9,7 +9,6 @@ namespace Restaurant.DAL.Models
 {
     public class ApplicationUser : IdentityUser
     {
-        // Email , UserName, Password , ConfirmPassword
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string FullName { get { return FirstName + " " + LastName; } }
@@ -21,7 +20,5 @@ namespace Restaurant.DAL.Models
         public string MobileNumber { get; set; }
         public string UserType { get; set; }
         public string Code { get; set; }
-
-
     }
 }

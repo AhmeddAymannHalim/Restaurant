@@ -8,12 +8,11 @@ namespace Restaurant.BLL.Validations.Salary;
 
 public class SalaryVmValidator : AbstractValidator<SalaryViewModel>
 {
-    public SalaryVmValidator(IStringLocalizer<SharedResource> localizer,
+    public SalaryVmValidator(
+        IStringLocalizer<SharedResource> localizer,
         IValidatorService<Restaurant.DAL.Models.Salary> validator)
     {
         var required = localizer["Val.RequiredField"].Value;
-        string MaxLength(int length) => string.Format(localizer["Val.MaxLength"].Value, length);
-
 
         RuleFor(x => x.EmployeeId)
             .GreaterThan(0)

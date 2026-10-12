@@ -3,7 +3,6 @@
     int current = (int)Model.PageNo;
     int total = (int)Model.NoOfPages;
 
-    // Preserve SearchString and every other filter while replacing only pageNo.
     var routeValues = new Dictionary<string, string>();
     foreach (var kv in Context.Request.Query)
     {

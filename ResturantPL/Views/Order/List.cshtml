@@ -1,0 +1,112 @@
+@model PaginatedResult<OrderViewModel>
+@{
+    var status = Model.Status ?? "shift";
+    ViewBag.Title = status == "pending" ? L["PendingOrders"].Value : status == "history" ? L["OrdersHistory"].Value : L["ShiftOrders"].Value;
+    var isArabic = LanguageHelper.IsArabic();
+    var isManager = User.IsInRole("Admin") || User.IsInRole("Manager");
+    var types = new[] { OrderType.Hall, OrderType.TakeAway, OrderType.Delivery, OrderType.Delivery_Online };
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-bell-concierge" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title</h1>
+        <a asp-action="Upsert" class="btn-ad btn-ad-primary"><i class="fas fa-plus" aria-hidden="true"></i> @L["NewOrder"]</a>
+    </div>
+    <div class="ad-card-body">
+        <div class="ad-tabs">
+            <a asp-action="List" asp-route-status="shift" class="@(status == "shift" ? "is-active" : "")">@L["ShiftOrders"]</a>
+            <a asp-action="List" asp-route-status="pending" class="@(status == "pending" ? "is-active" : "")">@L["PendingOrders"]</a>
+            <a asp-action="List" asp-route-status="history" class="@(status == "history" ? "is-active" : "")">@L["OrdersHistory"]</a>
+        </div>
+
+        <form asp-action="List" method="get" class="ad-filters">
+            <input type="hidden" name="status" value="@status" />
+            <div class="ad-search">
+                <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                <input id="Order-search" type="search" class="form-control" name="searchString" value="@Model.SearchString" placeholder="@L["SearchHere"]" />
+            </div>
+            <select name="type" class="form-select w-auto" aria-label="@L["OrderType"]">
+                <option value="">@L["AllTypes"]</option>
+                @foreach (var type in types)
+                {
+                    <option value="@type" selected="@(Model.Type == type.ToString())">@L[type.ToString()]</option>
+                }
+            </select>
+            <input type="date" name="fromDate" class="form-control w-auto" value="@Model.FromDate?.ToString("yyyy-MM-dd")" aria-label="@L["From"]" title="@L["From"]" />
+            <input type="date" name="toDate" class="form-control w-auto" value="@Model.ToDate?.ToString("yyyy-MM-dd")" aria-label="@L["To"]" title="@L["To"]" />
+            <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-magnifying-glass" aria-hidden="true"></i> @L["Search"]</button>
+            <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
+        </form>
+
+        @await Html.PartialAsync("_ExportToolbar", "Order-table")
+        <div class="ad-table-wrap">
+            <table id="Order-table" class="ad-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>@L["OrderCode"]</th>
+                        <th>@L["InvoiceDate"]</th>
+                        <th>@L["OrderType"]</th>
+                        <th>@L["CustomerName"]</th>
+                        <th>@L["Table"]</th>
+                        <th>@L["Seller"]</th>
+                        <th>@L["TotalPrice"]</th>
+                        <th>@L["PaymentStatus"]</th>
+                        <th data-export-ignore="true"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Data.Any())
+                    {
+                        var counter = ((Model.PageNo - 1) * Model.PageSize) + 1;
+                        foreach (var item in Model.Data)
+                        {
+                            <tr>
+                                <td>@counter</td>
+                                <td>@item.OrderCode</td>
+                                <td>@item.OrderDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>@L[item.Type.ToString()]</td>
+                                <td>@item.CustomerName</td>
+                                <td>@(isArabic ? item.TableArName : item.TableEnName)</td>
+                                <td>@item.SellerName</td>
+                                <td class="num">@item.TotalPrice.ToString("N2")</td>
+                                <td>@L[item.OnAccount ? "OnAccountStatus" : item.Cash ? "PaidStatus" : "Unpaid"]</td>
+                                <td class="ad-row-actions">
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["View"]" aria-label="@L["View"]"><i class="fas fa-eye" aria-hidden="true"></i></a>
+                                    <a asp-action="Pdf" asp-route-id="@item.Id" data-no-loader class="btn-ad btn-ad-ghost btn-icon" title="@L["Print"]" aria-label="@L["Print"]"><i class="fas fa-print" aria-hidden="true"></i></a>
+                                    @if (!item.Cash)
+                                    {
+                                        <form asp-action="Pay" asp-route-id="@item.Id" method="post" class="d-inline">
+                                            <button type="submit" class="btn-ad btn-ad-primary btn-icon" title="@L["PayOrder"]" aria-label="@L["PayOrder"]"><i class="fas fa-money-bill-wave" aria-hidden="true"></i></button>
+                                        </form>
+                                        @if (item.Type == OrderType.Hall)
+                                        {
+                                            <a asp-action="Move" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["MoveItem"]" aria-label="@L["MoveItem"]"><i class="fas fa-right-left" aria-hidden="true"></i></a>
+                                            <a asp-action="Merge" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["MergeOrder"]" aria-label="@L["MergeOrder"]"><i class="fas fa-code-merge" aria-hidden="true"></i></a>
+                                        }
+                                    }
+                                    @if (isManager && !item.FinishShift)
+                                    {
+                                        <button type="button" onclick="Delete('/Order/Delete/@item.Id')" class="btn-ad btn-ad-danger btn-icon" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button>
+                                    }
+                                </td>
+                            </tr>
+                            counter++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="10" class="ad-empty">@L["NoData"]</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="app-table-pagination">
+            @await Html.PartialAsync("_Pagination", Model)
+        </div>
+    </div>
+</div>

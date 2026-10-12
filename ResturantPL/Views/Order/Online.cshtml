@@ -1,0 +1,68 @@
+@model IEnumerable<PendingOnlineOrderViewModel>
+@{
+    ViewBag.Title = L["OnlineOrders"].Value;
+    var isArabic = LanguageHelper.IsArabic();
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-globe" aria-hidden="true"></i></span>
+        <h1>@L["OnlineOrders"]</h1>
+    </div>
+    <div class="ad-card-body">
+        @if (!Model.Any())
+        {
+            <p class="ad-empty">@L["NoData"]</p>
+        }
+
+        <div class="online-grid">
+            @foreach (var order in Model)
+            {
+                <article class="online-card">
+                    <header>
+                        <strong>@order.CustomerName</strong>
+                        <time>@order.OrderDate.ToString("yyyy-MM-dd HH:mm")</time>
+                    </header>
+                    @if (order.TableId.HasValue)
+                    {
+                        <p><i class="fas fa-chair" aria-hidden="true"></i> @L["Table"]: @(isArabic ? order.TableArName : order.TableEnName)</p>
+                    }
+                    else
+                    {
+                        <p>@order.Address</p>
+                    }
+                    <p>@order.MobileNumber @order.PhoneNumber</p>
+                    @if (!order.TableId.HasValue && !string.IsNullOrEmpty(order.DeliveryZoneArName))
+                    {
+                        <p><i class="fas fa-motorcycle" aria-hidden="true"></i> @(isArabic ? order.DeliveryZoneArName : order.DeliveryZoneEnName): @order.DeliveryFee.ToString("N2")</p>
+                    }
+                    <ul>
+                        @foreach (var item in order.Items)
+                        {
+                            <li><span>@(isArabic ? item.MenuItemArName : item.MenuItemEnName) x @item.Quantity.ToString("0.###", CultureInfo.InvariantCulture)</span><span>@item.Price.ToString("N2")</span></li>
+                        }
+                    </ul>
+                    <p class="online-sums">@L["SubTotal"]: @order.SubTotal.ToString("N2") | @L["Tax"]: @order.Tax.ToString("N2") | @L["Service"]: @order.Service.ToString("N2") | @L["DeliveryFee"]: @order.DeliveryFee.ToString("N2")</p>
+                    <footer>
+                        <strong>@order.TotalPrice.ToString("N2")</strong>
+                        <span>
+                            <a asp-action="Upsert" asp-route-onlineOrderId="@order.Id" class="btn-ad btn-ad-primary"><i class="fas fa-check" aria-hidden="true"></i> @L["AcceptOrder"]</a>
+                            <button type="button" onclick="Delete('/Order/CancelOnline/@order.Id')" class="btn-ad btn-ad-danger"><i class="fas fa-xmark" aria-hidden="true"></i> @L["CancelOrder"]</button>
+                        </span>
+                    </footer>
+                </article>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/microsoft-signalr/signalr.min.js"></script>
+    <script>
+        try {
+            var connection = new signalR.HubConnectionBuilder().withUrl("/OrderHub").withAutomaticReconnect().build();
+            connection.on("RefreshOnlineOrders", function () { location.reload(); });
+            connection.start();
+        } catch (e) { }
+    </script>
+}

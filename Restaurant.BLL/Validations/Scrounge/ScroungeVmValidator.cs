@@ -8,12 +8,12 @@ namespace Restaurant.BLL.Validations.Scrounge;
 
 public class ScroungeVmValidator : AbstractValidator<ScroungeViewModel>
 {
-    public ScroungeVmValidator(IStringLocalizer<SharedResource> localizer,
+    public ScroungeVmValidator(
+        IStringLocalizer<SharedResource> localizer,
         IValidatorService<Restaurant.DAL.Models.Scrounge> validator)
     {
         var required = localizer["Val.RequiredField"].Value;
         string MaxLength(int length) => string.Format(localizer["Val.MaxLength"].Value, length);
-
 
         RuleFor(x => x.EmployeeId)
             .GreaterThan(0)

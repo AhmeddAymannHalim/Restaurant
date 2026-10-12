@@ -1,0 +1,322 @@
+@model OrderViewModel
+@{
+    ViewBag.Title = L["NewOrder"].Value;
+    var isArabic = LanguageHelper.IsArabic();
+    var isOnline = Model.OnlineOrderId.HasValue;
+    var invariant = CultureInfo.InvariantCulture;
+    var sections = Model.Menu.GroupBy(a => a.SectionId).Select(g => g.First()).ToList();
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-cash-register" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title <small>@Model.OrderCode</small></h1>
+    </div>
+    <div class="ad-card-body">
+        <form id="orderForm" asp-action="Upsert" method="post" class="pos">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <input type="hidden" name="OnlineOrderId" value="@Model.OnlineOrderId" />
+            <input type="hidden" id="cash" name="Cash" value="false" />
+            <input type="hidden" id="onAccount" name="OnAccount" value="false" />
+
+            <section class="pos-menu" aria-label="@L["MenuItems"]">
+                <div class="pos-sections">
+                    <button type="button" class="pos-section is-active" data-section="">@L["AllTypes"]</button>
+                    @foreach (var sec in sections)
+                    {
+                        <button type="button" class="pos-section" data-section="@sec.SectionId">@(isArabic ? sec.SectionArName : sec.SectionEnName)</button>
+                    }
+                </div>
+                <div class="pos-items">
+                    @foreach (var item in Model.Menu)
+                    {
+                        <button type="button" class="pos-item" data-id="@item.Id" data-section="@item.SectionId" data-price="@item.Price.ToString(invariant)" data-name="@(isArabic ? item.ArName : item.EnName)">
+                            @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                            {
+                                <img src="@item.ImageUrl" alt="" loading="lazy" />
+                            }
+                            <span>@(isArabic ? item.ArName : item.EnName)</span>
+                            <b>@item.Price.ToString("N2")</b>
+                        </button>
+                    }
+                </div>
+            </section>
+
+            <section class="pos-cart">
+                <div class="ad-form pos-fields">
+                    <div class="form-group">
+                        <label class="control-label" for="orderType">@L["OrderType"]</label>
+                        @if (isOnline)
+                        {
+                            <input type="hidden" id="orderType" name="Type" value="@Model.Type" />
+                            <input class="form-control" value="@L[Model.Type.ToString()]" readonly />
+                        }
+                        else
+                        {
+                            <select id="orderType" name="Type" class="form-select">
+                                <option value="Hall" selected="@(Model.Type == OrderType.Hall)">@L["Hall"]</option>
+                                <option value="TakeAway" selected="@(Model.Type == OrderType.TakeAway)">@L["TakeAway"]</option>
+                                <option value="Delivery" selected="@(Model.Type == OrderType.Delivery)">@L["Delivery"]</option>
+                            </select>
+                        }
+                    </div>
+                    <div class="form-group" data-for="Hall">
+                        <label class="control-label" for="TableId">@L["Table"]</label>
+                        <select id="TableId" name="TableId" class="form-select">
+                            <option value="">@L["Select"]</option>
+                            @foreach (var item in Model.Tables)
+                            {
+                                <option value="@item.Id" selected="@(Model.TableId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="CustomerId">@L["Customer"]</label>
+                        <select id="CustomerId" name="CustomerId" class="form-select">
+                            <option value="">@L["Select"]</option>
+                            @foreach (var item in Model.Customers)
+                            {
+                                <option value="@item.Id" selected="@(Model.CustomerId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="CustomerName">@L["CustomerName"]</label>
+                        <input id="CustomerName" name="CustomerName" value="@Model.CustomerName" class="form-control" maxlength="100" />
+                    </div>
+                    <div class="form-group" data-for="Delivery Delivery_Online">
+                        <label class="control-label" for="EmployeeId">@L["DeliveryDriver"]</label>
+                        <select id="EmployeeId" name="EmployeeId" class="form-select">
+                            <option value="">@L["Select"]</option>
+                            @foreach (var item in Model.DeliveryDrivers)
+                            {
+                                <option value="@item.Id" selected="@(Model.EmployeeId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group" data-for="Delivery Delivery_Online">
+                        <label class="control-label" for="DeliveryZoneId">@L["DeliveryZone"]</label>
+                        @if (isOnline)
+                        {
+                            <input type="hidden" id="DeliveryZoneId" name="DeliveryZoneId" value="@Model.DeliveryZoneId" data-fee="@Model.DeliveryFee.ToString(invariant)" />
+                            <input class="form-control" value="@(isArabic ? Model.DeliveryZoneArName : Model.DeliveryZoneEnName)" readonly />
+                        }
+                        else
+                        {
+                            <select id="DeliveryZoneId" name="DeliveryZoneId" class="form-select">
+                                <option value="" data-fee="0">@L["Select"]</option>
+                                @foreach (var zone in Model.DeliveryZones)
+                                {
+                                    <option value="@zone.Id" data-fee="@zone.Fee.ToString(invariant)" selected="@(Model.DeliveryZoneId == zone.Id)">@(isArabic ? zone.ArName : zone.EnName) - @zone.Fee.ToString("N2")</option>
+                                }
+                            </select>
+                        }
+                    </div>
+                    <div class="form-group" data-for="Delivery Delivery_Online">
+                        <label class="control-label" for="Address">@L["Address"]</label>
+                        <input id="Address" name="Address" value="@Model.Address" class="form-control" maxlength="250" />
+                    </div>
+                    <div class="form-group" data-for="Delivery Delivery_Online">
+                        <label class="control-label" for="PhoneNumber">@L["PhoneNumber"]</label>
+                        <input id="PhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber" class="form-control" maxlength="11" />
+                    </div>
+                    <div class="form-group" data-for="Delivery Delivery_Online">
+                        <label class="control-label" for="MobileNumber">@L["MobileNumber"]</label>
+                        <input id="MobileNumber" name="MobileNumber" value="@Model.MobileNumber" class="form-control" maxlength="11" />
+                    </div>
+                </div>
+
+                <div class="ad-table-wrap">
+                    <table id="cartTable" class="ad-table">
+                        <thead>
+                            <tr>
+                                <th>@L["Product"]</th>
+                                <th>@L["Quantity"]</th>
+                                <th>@L["Price"]</th>
+                                <th>@L["LineTotal"]</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr data-id="@item.MenuItemId" data-price="@item.PriceForUnit.ToString(invariant)" data-qty="@item.Quantity.ToString(invariant)" data-name="@(isArabic ? item.MenuItemArName : item.MenuItemEnName)"></tr>
+                            }
+                        </tbody>
+                    </table>
+                    <p id="cartEmpty" class="ad-empty">@L["EmptyCart"]</p>
+                </div>
+
+                <div class="pos-totals">
+                    <div><span>@L["SubTotal"]</span><b id="subTotal">0.00</b></div>
+                    <div><span>@L["Tax"] (@Model.TaxPercent.ToString("0.##", invariant)%)</span><b id="tax">0.00</b></div>
+                    <div><span>@L["Service"]</span><b id="service">0.00</b></div>
+                    <div id="deliveryRow"><span>@L["DeliveryFee"]</span><b id="deliveryFee">0.00</b></div>
+                    <div class="pos-discount">
+                        <span>@L["Discount"]</span>
+                        <input id="discount" name="Discount" type="number" step="0.01" min="0" value="@Model.Discount.ToString(invariant)" class="form-control" aria-label="@L["DiscountValue"]" />
+                        <input id="discountPercent" type="number" step="0.01" min="0" max="100" value="0" class="form-control" aria-label="@L["DiscountPercent"]" placeholder="%" />
+                    </div>
+                    <div class="pos-total"><span>@L["TotalPrice"]</span><b id="total">0.00</b></div>
+                </div>
+
+                <div class="ad-form-actions">
+                    <button type="submit" id="payNow" class="btn-ad btn-ad-primary"><i class="fas fa-money-bill-wave" aria-hidden="true"></i> @L["PayOrder"]</button>
+                    <button type="submit" id="payLater" class="btn-ad btn-ad-ghost"><i class="fas fa-clock" aria-hidden="true"></i> @L["SaveUnpaid"]</button>
+                    <button type="submit" id="payOnAccount" class="btn-ad btn-ad-ghost" hidden><i class="fas fa-user-tag" aria-hidden="true"></i> @L["ChargeToAccount"]</button>
+                    <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+                </div>
+            </section>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            var taxPercent = @Model.TaxPercent.ToString(invariant);
+            var defaultService = @Model.DefaultService.ToString(invariant);
+            var msgPick = @Html.Raw(Json.Serialize(L["AtLeastOneItem"].Value));
+            var msgInfo = @Html.Raw(Json.Serialize(L["Select"].Value));
+
+            function number(value) { return parseFloat(value) || 0; }
+            function money(value) { return (Math.round(value * 100) / 100).toFixed(2); }
+
+            function render() {
+                var body = $('#cartTable tbody');
+                body.find('tr').each(function () {
+                    var row = $(this);
+                    var qty = number(row.data('qty'));
+                    var price = number(row.data('price'));
+                    row.html(
+                        '<td></td>' +
+                        '<td><div class="qty"><button type="button" class="minus" aria-label="-">-</button><b></b><button type="button" class="plus" aria-label="+">+</button></div></td>' +
+                        '<td class="num"></td><td class="num"></td>' +
+                        '<td class="ad-row-actions"><button type="button" class="btn-ad btn-ad-danger btn-icon remove"><i class="fas fa-trash" aria-hidden="true"></i></button></td>');
+                    row.children().eq(0).text(row.data('name'));
+                    row.find('b').text(qty);
+                    row.children().eq(2).text(money(price));
+                    row.children().eq(3).text(money(qty * price));
+                });
+                $('#cartEmpty').toggle(body.find('tr').length === 0);
+                totals();
+            }
+
+            function totals() {
+                var sub = 0;
+                $('#cartTable tbody tr').each(function () { sub += number($(this).data('qty')) * number($(this).data('price')); });
+                var tax = Math.round(sub * taxPercent) / 100;
+                var service = $('#orderType').val() === 'TakeAway' ? 0 : defaultService;
+                var type = $('#orderType').val();
+                var isDelivery = type === 'Delivery' || type === 'Delivery_Online';
+                var zone = $('#DeliveryZoneId');
+                var fee = isDelivery ? number(zone.is('select') ? zone.find('option:selected').data('fee') : zone.data('fee')) : 0;
+                var gross = sub + tax + service + fee;
+                var discount = Math.min(number($('#discount').val()), gross);
+                $('#subTotal').text(money(sub));
+                $('#tax').text(money(tax));
+                $('#service').text(money(service));
+                $('#deliveryFee').text(money(fee));
+                $('#deliveryRow').toggle(isDelivery);
+                $('#total').text(money(gross - discount));
+                $('#discount').data('gross', gross);
+            }
+
+            function addItem(id, name, price) {
+                var row = $('#cartTable tbody tr[data-id="' + id + '"]');
+                if (row.length) {
+                    row.data('qty', number(row.data('qty')) + 1);
+                } else {
+                    $('#cartTable tbody').append($('<tr>').attr('data-id', id).data({ id: id, name: name, price: price, qty: 1 }));
+                }
+                render();
+            }
+
+            $('.pos-item').on('click', function () {
+                var b = $(this);
+                addItem(b.data('id'), b.data('name'), b.data('price'));
+            });
+
+            $(document).on('click', '#cartTable .plus', function () { var r = $(this).closest('tr'); r.data('qty', number(r.data('qty')) + 1); render(); });
+            $(document).on('click', '#cartTable .minus', function () {
+                var r = $(this).closest('tr');
+                var qty = number(r.data('qty')) - 1;
+                if (qty <= 0) { r.remove(); } else { r.data('qty', qty); }
+                render();
+            });
+            $(document).on('click', '#cartTable .remove', function () { $(this).closest('tr').remove(); render(); });
+
+            $('.pos-section').on('click', function () {
+                var id = String($(this).data('section'));
+                $('.pos-section').removeClass('is-active');
+                $(this).addClass('is-active');
+                $('.pos-item').each(function () { $(this).toggle(id === '' || String($(this).data('section')) === id); });
+            });
+
+            $('#discountPercent').on('input', function () {
+                $('#discount').val(money(number($('#discount').data('gross')) * number($(this).val()) / 100));
+                totals();
+            });
+            $('#discount').on('input', function () {
+                var gross = number($(this).data('gross'));
+                $('#discountPercent').val(gross > 0 ? money(number($(this).val()) / gross * 100) : 0);
+                totals();
+            });
+
+            function showFields() {
+                var type = $('#orderType').val();
+                $('[data-for]').each(function () {
+                    var on = $(this).data('for').split(' ').indexOf(type) >= 0;
+                    $(this).toggle(on);
+                    $(this).find('input,select').prop('disabled', !on);
+                });
+                $('#payLater').toggle(type !== 'TakeAway');
+                totals();
+            }
+            $('#orderType').on('change', showFields);
+            $('#DeliveryZoneId').on('change', totals);
+
+            $('#CustomerId').on('change', function () {
+                var id = $(this).val();
+                $('#payOnAccount').prop('hidden', !id);
+                if (!id) { return; }
+                $.get('/Order/CustomerInfo', { customerId: id }, function (c) {
+                    $('#CustomerName').val(@(isArabic ? "c.arName" : "c.enName"));
+                    $('#Address').val(c.address);
+                    $('#PhoneNumber').val(c.phoneNumber);
+                    $('#MobileNumber').val(c.mobileNumber);
+                });
+            });
+
+            $('#payNow').on('click', function () {
+                $('#cash').val('true');
+                $('#onAccount').val('false');
+            });
+            $('#payLater').on('click', function () {
+                $('#cash').val('false');
+                $('#onAccount').val('false');
+            });
+            $('#payOnAccount').on('click', function () {
+                $('#cash').val('true');
+                $('#onAccount').val('true');
+            });
+
+            $('#orderForm').on('submit', function (e) {
+                var form = $(this);
+                form.find('input.line-input').remove();
+                var rows = $('#cartTable tbody tr');
+                if (rows.length === 0) { e.preventDefault(); toastr.error(msgPick); return; }
+                rows.each(function (i) {
+                    var row = $(this);
+                    $.each({ MenuItemId: row.data('id'), Quantity: row.data('qty') }, function (name, value) {
+                        $('<input type="hidden" class="line-input">').attr('name', 'Items[' + i + '].' + name).val(value).appendTo(form);
+                    });
+                });
+            });
+
+            render();
+            showFields();
+            $('#payOnAccount').prop('hidden', !$('#CustomerId').val());
+        });
+    </script>
+}

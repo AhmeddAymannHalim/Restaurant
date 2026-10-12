@@ -13,7 +13,7 @@ using Shared.ViewModels.Definitions;
 
 namespace ResturantPL.Controllers.Definitions
 {
-    [Authorize]
+    [Authorize(Policy = "Staff")]
     public class ExitExpenseController : Controller
     {
         private readonly IExitExpenseService _service;
@@ -21,7 +21,11 @@ namespace ResturantPL.Controllers.Definitions
         private readonly IToastrService _toastr;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public ExitExpenseController(IExitExpenseService service, ILookupService lookup, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
+        public ExitExpenseController(
+            IExitExpenseService service,
+            ILookupService lookup,
+            IToastrService toastr,
+            IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
             _lookup = lookup;
@@ -112,19 +116,25 @@ namespace ResturantPL.Controllers.Definitions
                     return Json(new { success = true });
                 }
 
-                return Json(new { success = false, errorMessage = _localizer[result.Message].Value });
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer[result.Message].Value
+                });
             }
             catch (Exception)
             {
-                return Json(new { success = false, errorMessage = _localizer["SomethingWentError"].Value });
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer["SomethingWentError"].Value
+                });
             }
         }
 
         private async Task PopulateData(ExitExpenseViewModel model)
         {
-            var expenses = await _lookup.ExpenseLookupAsync();
-            model.Expenses = new SelectList(expenses, "Id", LanguageHelper.IsArabic() ? "ArName" : "EnName", model.ExpenseId);
-            await Task.CompletedTask;
+            model.Expenses = await _lookup.ExpenseLookupAsync();
         }
     }
 }

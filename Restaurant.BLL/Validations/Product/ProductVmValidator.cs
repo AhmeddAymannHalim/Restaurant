@@ -8,7 +8,8 @@ namespace Restaurant.BLL.Validations.Product;
 
 public class ProductVmValidator : AbstractValidator<ProductViewModel>
 {
-    public ProductVmValidator(IStringLocalizer<SharedResource> localizer,
+    public ProductVmValidator(
+        IStringLocalizer<SharedResource> localizer,
         IValidatorService<Restaurant.DAL.Models.Product> validator)
     {
         var required = localizer["Val.RequiredField"].Value;
@@ -29,5 +30,18 @@ public class ProductVmValidator : AbstractValidator<ProductViewModel>
             .WithMessage(MaxLength(100))
             .Must((model, enName) => !validator.IsEnNameExist(model.Id, enName))
             .WithMessage(localizer["Val.NameAlreadyExist"].Value);
+
+        RuleFor(x => x.ProductCategoryId)
+            .GreaterThan(0)
+            .WithMessage(required);
+
+        RuleForEach(x => x.Stocks)
+            .ChildRules(stock => stock.RuleFor(a => a.Quantity)
+                .GreaterThanOrEqualTo(0)
+                .WithMessage(localizer["Val.NotNegative"].Value));
+
+        RuleFor(x => x.Cost)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage(localizer["Val.NotNegative"].Value);
     }
 }

@@ -8,7 +8,9 @@ public class StoreConvertConfig : IEntityTypeConfiguration<StoreConvert>
 {
     public void Configure(EntityTypeBuilder<StoreConvert> builder)
     {
-        // Two foreign keys point to Stores, SQL Server rejects cascade on both (multiple cascade paths).
+        builder.Property(a => a.ConvertCode).IsRequired().HasMaxLength(30);
+        builder.HasIndex(a => a.ConvertCode).IsUnique();
+
         builder
             .HasOne(a => a.FromStore)
             .WithMany()

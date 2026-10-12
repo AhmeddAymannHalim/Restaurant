@@ -8,7 +8,8 @@ namespace Restaurant.BLL.Validations.Table;
 
 public class TableVmValidator : AbstractValidator<TableViewModel>
 {
-    public TableVmValidator(IStringLocalizer<SharedResource> localizer,
+    public TableVmValidator(
+        IStringLocalizer<SharedResource> localizer,
         IValidatorService<Restaurant.DAL.Models.Table> validator)
     {
         var required = localizer["Val.RequiredField"].Value;

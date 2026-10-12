@@ -9,13 +9,17 @@ public class MenuItemComponentConfig : IEntityTypeConfiguration<MenuItemComponen
     public void Configure(EntityTypeBuilder<MenuItemComponent> builder)
     {
         builder.Property(a => a.Quantity).HasPrecision(18, 3);
-        builder.Property(a => a.Cost).HasPrecision(18, 2);
 
-        // Store -> MenuItem -> MenuItemComponent and Store -> StoreProduct -> MenuItemComponent would be two cascade paths.
         builder
-            .HasOne(a => a.StoreProduct)
-            .WithMany()
-            .HasForeignKey(a => a.StoreProductId)
+            .HasOne(a => a.MenuItem)
+            .WithMany(a => a.Components)
+            .HasForeignKey(a => a.MenuItemId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasOne(a => a.Product)
+            .WithMany(a => a.MenuItemComponents)
+            .HasForeignKey(a => a.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

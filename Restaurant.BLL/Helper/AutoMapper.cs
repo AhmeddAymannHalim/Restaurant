@@ -1,3 +1,4 @@
+using Shared.ViewModels.Commons;
 using AutoMapper;
 using Restaurant.DAL.Models;
 using Shared.ViewModels.Definitions;
@@ -10,14 +11,12 @@ public class AutoMapper : Profile
     {
         #region Definitions
 
-        // Branch - الفروع
         CreateMap<Branche, BranchViewModel>();
         CreateMap<BranchViewModel, Branche>()
             .ForMember(dest => dest.Code, opt => opt.Ignore())
             .ForMember(dest => dest.Employees, opt => opt.Ignore())
             .ForMember(dest => dest.ApplicationUsers, opt => opt.Ignore());
 
-        // Job - الوظائف (the key column is JobId)
         CreateMap<Job, JobViewModel>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.JobId));
         CreateMap<JobViewModel, Job>()
@@ -25,68 +24,235 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Code, opt => opt.Ignore())
             .ForMember(dest => dest.Employees, opt => opt.Ignore());
 
-        // Table - الطاولات
         CreateMap<Restaurant.DAL.Models.Table, TableViewModel>();
         CreateMap<TableViewModel, Restaurant.DAL.Models.Table>()
             .ForMember(dest => dest.IsPending, opt => opt.Ignore());
 
-        // UnitPrice - الوحدات
         CreateMap<UnitPrice, UnitPriceViewModel>().ReverseMap();
+        CreateMap<ProductCategory, ProductCategoryViewModel>().ReverseMap();
 
-        // SalaryType - انواع الرواتب
         CreateMap<SalaryType, SalaryTypeViewModel>();
         CreateMap<SalaryTypeViewModel, SalaryType>()
             .ForMember(dest => dest.Users, opt => opt.Ignore());
 
-        // MenuSection - اقسام المنيو
         CreateMap<MenuSection, MenuSectionViewModel>()
-            .ForMember(dest => dest.KitchenId, opt => opt.MapFrom(src => src.kitchenId))
-            .ForMember(dest => dest.KitchenArName, opt => opt.MapFrom(src => src.kitchen.ArName))
-            .ForMember(dest => dest.KitchenEnName, opt => opt.MapFrom(src => src.kitchen.EnName))
+            .ForMember(dest => dest.KitchenId, opt => opt.MapFrom(src => src.KitchenId))
+            .ForMember(dest => dest.KitchenArName, opt => opt.MapFrom(src => src.Kitchen.ArName))
+            .ForMember(dest => dest.KitchenEnName, opt => opt.MapFrom(src => src.Kitchen.EnName))
             .ForMember(dest => dest.Kitchens, opt => opt.Ignore());
         CreateMap<MenuSectionViewModel, MenuSection>()
-            .ForMember(dest => dest.kitchenId, opt => opt.MapFrom(src => src.KitchenId))
-            .ForMember(dest => dest.kitchen, opt => opt.Ignore())
+            .ForMember(dest => dest.KitchenId, opt => opt.MapFrom(src => src.KitchenId))
+            .ForMember(dest => dest.Kitchen, opt => opt.Ignore())
             .ForMember(dest => dest.MenuItems, opt => opt.Ignore());
 
-        // Product - الاصناف
-        CreateMap<Product, ProductViewModel>();
+        CreateMap<StoreProduct, ProductStockViewModel>()
+            .ForMember(dest => dest.StoreArName, opt => opt.MapFrom(src => src.Store.ArName))
+            .ForMember(dest => dest.StoreEnName, opt => opt.MapFrom(src => src.Store.EnName));
+
+        CreateMap<Product, ProductViewModel>()
+            .ForMember(dest => dest.Stocks, opt => opt.MapFrom(src => src.StoreProducts))
+            .ForMember(dest => dest.TotalStock, opt => opt.MapFrom(src => src.StoreProducts.Sum(a => a.Quantity)))
+            .ForMember(dest => dest.ProductCategoryId, opt => opt.MapFrom(src => src.ProductCategoryId ?? 0))
+            .ForMember(dest => dest.ProductCategoryArName, opt => opt.MapFrom(src => src.ProductCategory.ArName))
+            .ForMember(dest => dest.ProductCategoryEnName, opt => opt.MapFrom(src => src.ProductCategory.EnName))
+            .ForMember(dest => dest.Categories, opt => opt.Ignore());
         CreateMap<ProductViewModel, Product>()
+            .ForMember(dest => dest.ProductCategory, opt => opt.Ignore())
+            .ForMember(dest => dest.MenuItemComponents, opt => opt.Ignore())
             .ForMember(dest => dest.InvoiceItems, opt => opt.Ignore())
             .ForMember(dest => dest.StoreProducts, opt => opt.Ignore());
 
-        // Store - المخازن
         CreateMap<Store, StoreViewModel>()
-            .ForMember(dest => dest.StorekeeperName, opt => opt.MapFrom(src => src.Storekeeper.FirstName + " " + src.Storekeeper.LastName))
+            .ForMember(dest => dest.StorekeeperName,
+                opt => opt.MapFrom(src => src.Storekeeper.FirstName + " " + src.Storekeeper.LastName))
             .ForMember(dest => dest.Storekeepers, opt => opt.Ignore());
         CreateMap<StoreViewModel, Store>()
             .ForMember(dest => dest.Storekeeper, opt => opt.Ignore())
             .ForMember(dest => dest.Invoices, opt => opt.Ignore())
             .ForMember(dest => dest.StoreProducts, opt => opt.Ignore());
 
-        // Supplier - الموردين
+        CreateMap<Microsoft.AspNetCore.Identity.IdentityRole, RoleViewModel>();
+        CreateMap<RoleViewModel, Microsoft.AspNetCore.Identity.IdentityRole>();
+
+        CreateMap<ApplicationUser, UserViewModel>()
+            .ForMember(dest => dest.Password, opt => opt.Ignore())
+            .ForMember(dest => dest.ConfirmPassword, opt => opt.Ignore())
+            .ForMember(dest => dest.Roles, opt => opt.Ignore());
+        CreateMap<UserViewModel, ApplicationUser>();
+
+        CreateMap<ApplicationUser, EmployeeAccountViewModel>()
+            .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
+            .ForMember(dest => dest.Password, opt => opt.Ignore())
+            .ForMember(dest => dest.ConfirmPassword, opt => opt.Ignore())
+            .ForMember(dest => dest.Employees, opt => opt.Ignore());
+        CreateMap<EmployeeAccountViewModel, ApplicationUser>();
+
+        CreateMap<ApplicationSetting, ApplicationSettingViewModel>()
+            .ForMember(dest => dest.Password, opt => opt.Ignore());
+        CreateMap<ApplicationSettingViewModel, ApplicationSetting>();
+        CreateMap<IndexSettings, RestaurantSettingViewModel>()
+            .ForMember(dest => dest.Image, opt => opt.Ignore())
+            .ForMember(dest => dest.Video, opt => opt.Ignore());
+        CreateMap<RestaurantSettingViewModel, IndexSettings>();
+        CreateMap<PrinterSetting, PrinterSettingViewModel>()
+            .ForMember(dest => dest.Printers, opt => opt.Ignore());
+        CreateMap<PrinterSettingViewModel, PrinterSetting>();
+
+        CreateMap<RegisterViewModel, ApplicationUser>()
+            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Email))
+            .ForMember(dest => dest.UserType, opt => opt.MapFrom(src => "User"));
+
+        CreateMap<Invoice, InvoiceViewModel>()
+            .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.InvoiceItems))
+            .ForMember(dest => dest.SupplierArName, opt => opt.MapFrom(src => src.Supplier.ArName))
+            .ForMember(dest => dest.SupplierEnName, opt => opt.MapFrom(src => src.Supplier.EnName))
+            .ForMember(dest => dest.StoreArName, opt => opt.MapFrom(src => src.Store.ArName))
+            .ForMember(dest => dest.StoreEnName, opt => opt.MapFrom(src => src.Store.EnName))
+            .ForMember(dest => dest.Suppliers, opt => opt.Ignore())
+            .ForMember(dest => dest.Stores, opt => opt.Ignore())
+            .ForMember(dest => dest.Units, opt => opt.Ignore())
+            .ForMember(dest => dest.Categories, opt => opt.Ignore());
+        CreateMap<InvoiceViewModel, Invoice>()
+            .ForMember(dest => dest.InvoiceItems, opt => opt.MapFrom(src => src.Items))
+            .ForMember(dest => dest.TotalPrice, opt => opt.Ignore())
+            .ForMember(dest => dest.Remaining, opt => opt.Ignore())
+            .ForMember(dest => dest.Supplier, opt => opt.Ignore())
+            .ForMember(dest => dest.Store, opt => opt.Ignore());
+
+        CreateMap<InvoiceItem, InvoiceItemViewModel>()
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => LanguageHelper.IsArabic()
+                ? src.Product.ArName
+                : src.Product.EnName))
+            .ForMember(dest => dest.UnitName, opt => opt.MapFrom(src => LanguageHelper.IsArabic()
+                ? src.UnitPrice.ArName
+                : src.UnitPrice.EnName));
+        CreateMap<InvoiceItemViewModel, InvoiceItem>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.InvoiceId, opt => opt.Ignore())
+            .ForMember(dest => dest.Invoice, opt => opt.Ignore())
+            .ForMember(dest => dest.Product, opt => opt.Ignore())
+            .ForMember(dest => dest.UnitPrice, opt => opt.Ignore());
+
+        CreateMap<PaymentInvoiceSupplier, PaymentViewModel>()
+            .ForMember(dest => dest.PartnerId, opt => opt.MapFrom(src => src.SupplierId))
+            .ForMember(dest => dest.PartnerArName, opt => opt.MapFrom(src => src.Supplier.ArName))
+            .ForMember(dest => dest.PartnerEnName, opt => opt.MapFrom(src => src.Supplier.EnName))
+            .ForMember(dest => dest.Partners, opt => opt.Ignore());
+        CreateMap<PaymentViewModel, PaymentInvoiceSupplier>()
+            .ForMember(dest => dest.SupplierId, opt => opt.MapFrom(src => src.PartnerId))
+            .ForMember(dest => dest.Supplier, opt => opt.Ignore());
+
+        CreateMap<PaymentInvoiceCustomer, PaymentViewModel>()
+            .ForMember(dest => dest.PartnerId, opt => opt.MapFrom(src => src.CustomerId))
+            .ForMember(dest => dest.PartnerArName, opt => opt.MapFrom(src => src.Customer.ArName))
+            .ForMember(dest => dest.PartnerEnName, opt => opt.MapFrom(src => src.Customer.EnName))
+            .ForMember(dest => dest.Partners, opt => opt.Ignore());
+        CreateMap<PaymentViewModel, PaymentInvoiceCustomer>()
+            .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.PartnerId))
+            .ForMember(dest => dest.Customer, opt => opt.Ignore());
+
+        CreateMap<StoreConvert, StoreConvertViewModel>()
+            .ForMember(dest => dest.FromStoreArName, opt => opt.MapFrom(src => src.FromStore.ArName))
+            .ForMember(dest => dest.FromStoreEnName, opt => opt.MapFrom(src => src.FromStore.EnName))
+            .ForMember(dest => dest.ToStoreArName, opt => opt.MapFrom(src => src.ToStore.ArName))
+            .ForMember(dest => dest.ToStoreEnName, opt => opt.MapFrom(src => src.ToStore.EnName))
+            .ForMember(dest => dest.ProductsCount, opt => opt.MapFrom(src => src.StoreConvertProducts.Count))
+            .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.StoreConvertProducts))
+            .ForMember(dest => dest.Stores, opt => opt.Ignore())
+            .ForMember(dest => dest.Categories, opt => opt.Ignore());
+        CreateMap<StoreConvertProduct, StoreConvertItemViewModel>()
+            .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.StoreProduct.ProductId))
+            .ForMember(dest => dest.ProductArName, opt => opt.MapFrom(src => src.StoreProduct.Product.ArName))
+            .ForMember(dest => dest.ProductEnName, opt => opt.MapFrom(src => src.StoreProduct.Product.EnName));
+        CreateMap<StoreConvertViewModel, StoreConvert>()
+            .ForMember(dest => dest.StoreConvertProducts, opt => opt.MapFrom(src => src.Items))
+            .ForMember(dest => dest.FromStore, opt => opt.Ignore())
+            .ForMember(dest => dest.ToStore, opt => opt.Ignore());
+        CreateMap<StoreConvertItemViewModel, StoreConvertProduct>()
+            .ForMember(dest => dest.StoreProduct, opt => opt.MapFrom(src => new StoreProduct { ProductId = src.ProductId }))
+            .ForMember(dest => dest.StoreConvert, opt => opt.Ignore());
+
+        CreateMap<Order, OrderViewModel>()
+            .ForMember(dest => dest.SellerName, opt => opt.MapFrom(src => src.Seller.FullName))
+            .ForMember(dest => dest.ReceiverName, opt => opt.MapFrom(src => src.Receiver.FullName))
+            .ForMember(dest => dest.TableArName, opt => opt.MapFrom(src => src.Table.ArName))
+            .ForMember(dest => dest.TableEnName, opt => opt.MapFrom(src => src.Table.EnName))
+            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee.FirstName + " " + src.Employee.LastName))
+            .ForMember(dest => dest.ItemsCount, opt => opt.MapFrom(src => src.OrderMenuItems.Count))
+            .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderMenuItems))
+            .ForMember(dest => dest.OnlineOrderId, opt => opt.Ignore())
+            .ForMember(dest => dest.TaxPercent, opt => opt.Ignore())
+            .ForMember(dest => dest.DefaultService, opt => opt.Ignore())
+            .ForMember(dest => dest.Customers, opt => opt.Ignore())
+            .ForMember(dest => dest.Tables, opt => opt.Ignore())
+            .ForMember(dest => dest.DeliveryDrivers, opt => opt.Ignore())
+            .ForMember(dest => dest.DeliveryZones, opt => opt.Ignore())
+            .ForMember(dest => dest.DeliveryZoneArName, opt => opt.MapFrom(src => src.DeliveryZone.ArName))
+            .ForMember(dest => dest.DeliveryZoneEnName, opt => opt.MapFrom(src => src.DeliveryZone.EnName))
+            .ForMember(dest => dest.Menu, opt => opt.Ignore());
+        CreateMap<OrderViewModel, Order>()
+            .ForMember(dest => dest.OrderMenuItems, opt => opt.MapFrom(src => src.Items))
+            .ForMember(dest => dest.Seller, opt => opt.Ignore())
+            .ForMember(dest => dest.Receiver, opt => opt.Ignore())
+            .ForMember(dest => dest.Table, opt => opt.Ignore())
+            .ForMember(dest => dest.Customer, opt => opt.Ignore())
+            .ForMember(dest => dest.DeliveryZone, opt => opt.Ignore())
+            .ForMember(dest => dest.Employee, opt => opt.Ignore());
+        CreateMap<OrderMenuItem, OrderItemViewModel>()
+            .ForMember(dest => dest.MenuItemArName, opt => opt.MapFrom(src => src.MenuItem.ArName))
+            .ForMember(dest => dest.MenuItemEnName, opt => opt.MapFrom(src => src.MenuItem.EnName));
+        CreateMap<OrderItemViewModel, OrderMenuItem>()
+            .ForMember(dest => dest.Order, opt => opt.Ignore())
+            .ForMember(dest => dest.MenuItem, opt => opt.Ignore())
+            .ForMember(dest => dest.OrderId, opt => opt.Ignore())
+            .ForMember(dest => dest.UnitCost, opt => opt.Ignore());
+        CreateMap<OnlineOrderMenuItem, OrderItemViewModel>()
+            .ForMember(dest => dest.MenuItemArName, opt => opt.MapFrom(src => src.MenuItem.ArName))
+            .ForMember(dest => dest.MenuItemEnName, opt => opt.MapFrom(src => src.MenuItem.EnName));
+        CreateMap<OnlineOrder, PendingOnlineOrderViewModel>()
+            .ForMember(dest => dest.DeliveryZoneArName, opt => opt.MapFrom(src => src.DeliveryZone.ArName))
+            .ForMember(dest => dest.DeliveryZoneEnName, opt => opt.MapFrom(src => src.DeliveryZone.EnName))
+            .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OnlineOrderMenuItems));
+        CreateMap<MenuItem, PosMenuItemViewModel>()
+            .ForMember(dest => dest.SectionId, opt => opt.MapFrom(src => src.MenuSectionId))
+            .ForMember(dest => dest.SectionArName, opt => opt.MapFrom(src => src.MenuSection.ArName))
+            .ForMember(dest => dest.SectionEnName, opt => opt.MapFrom(src => src.MenuSection.EnName));
+        CreateMap<Table, LookupItem>();
+        CreateMap<OnlineOrderCreateViewModel, OnlineOrder>()
+            .ForMember(dest => dest.OnlineOrderMenuItems, opt => opt.MapFrom(src => src.OnlineOrderMenuItems))
+            .ForMember(dest => dest.Customer, opt => opt.Ignore())
+            .ForMember(dest => dest.DeliveryZone, opt => opt.Ignore())
+            .ForMember(dest => dest.DeliveryFee, opt => opt.Ignore())
+            .ForMember(dest => dest.Tax, opt => opt.Ignore())
+            .ForMember(dest => dest.Service, opt => opt.Ignore())
+            .ForMember(dest => dest.Table, opt => opt.Ignore());
+        CreateMap<OnlineOrderLineViewModel, OnlineOrderMenuItem>()
+            .ForMember(dest => dest.OnlineOrder, opt => opt.Ignore())
+            .ForMember(dest => dest.MenuItem, opt => opt.Ignore());
+        CreateMap<MenuItem, OnlineMenuItemViewModel>()
+            .ForMember(dest => dest.SectionArName, opt => opt.MapFrom(src => src.MenuSection.ArName))
+            .ForMember(dest => dest.SectionEnName, opt => opt.MapFrom(src => src.MenuSection.EnName));
+
         CreateMap<Supplier, SupplierViewModel>();
         CreateMap<SupplierViewModel, Supplier>()
             .ForMember(dest => dest.LastBalance, opt => opt.Ignore())
             .ForMember(dest => dest.Invoices, opt => opt.Ignore())
             .ForMember(dest => dest.PaymentInvoices, opt => opt.Ignore());
 
-        // Customer - العملاء
         CreateMap<Customer, CustomerViewModel>();
         CreateMap<CustomerViewModel, Customer>()
             .ForMember(dest => dest.PaymentInvoices, opt => opt.Ignore());
 
-        // Kitchen - المطابخ
-        CreateMap<kitchen, KitchenViewModel>();
-        CreateMap<KitchenViewModel, kitchen>()
+        CreateMap<DeliveryZone, DeliveryZoneViewModel>().ReverseMap();
+
+        CreateMap<Kitchen, KitchenViewModel>();
+        CreateMap<KitchenViewModel, Kitchen>()
             .ForMember(dest => dest.MenuSections, opt => opt.Ignore());
 
-        // Expense - المصروفات
         CreateMap<Expense, ExpenseViewModel>();
         CreateMap<ExpenseViewModel, Expense>()
             .ForMember(dest => dest.Expenses, opt => opt.Ignore());
 
-        // Employee - الموظفين (the key column is EmployeeId)
         CreateMap<Employee, EmployeeViewModel>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.EmployeeId))
             .ForMember(dest => dest.ImageFile, opt => opt.Ignore())
@@ -111,7 +277,6 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Salaries, opt => opt.Ignore())
             .ForMember(dest => dest.Orders, opt => opt.Ignore());
 
-        // Deposit - الايداعات
         CreateMap<Deposit, DepositViewModel>()
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName));
         CreateMap<DepositViewModel, Deposit>()
@@ -121,7 +286,6 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.UserId, opt => opt.Ignore())
             .ForMember(dest => dest.User, opt => opt.Ignore());
 
-        // ExitExpense - المصروفات الخارجة
         CreateMap<ExitExpense, ExitExpenseViewModel>()
             .ForMember(dest => dest.ExpenseArName, opt => opt.MapFrom(src => src.Expense.ArName))
             .ForMember(dest => dest.ExpenseEnName, opt => opt.MapFrom(src => src.Expense.EnName))
@@ -133,7 +297,6 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.User, opt => opt.Ignore())
             .ForMember(dest => dest.Expense, opt => opt.Ignore());
 
-        // Scrounge - السلف والحوافز والخصومات
         CreateMap<Scrounge, ScroungeViewModel>()
             .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee.FirstName + " " + src.Employee.LastName))
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName))
@@ -144,7 +307,6 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.User, opt => opt.Ignore())
             .ForMember(dest => dest.Employee, opt => opt.Ignore());
 
-        // Salary - المرتبات
         CreateMap<Salary, SalaryViewModel>()
             .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee.FirstName + " " + src.Employee.LastName))
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName))
@@ -156,7 +318,6 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.User, opt => opt.Ignore())
             .ForMember(dest => dest.Employee, opt => opt.Ignore());
 
-        // MenuItem - عناصر المنيو (cost, benefit and the image are worked out by the repository)
         CreateMap<MenuItem, MenuItemViewModel>()
             .ForMember(dest => dest.MenuSectionArName, opt => opt.MapFrom(src => src.MenuSection.ArName))
             .ForMember(dest => dest.MenuSectionEnName, opt => opt.MapFrom(src => src.MenuSection.EnName))
@@ -164,41 +325,38 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.StoreEnName, opt => opt.MapFrom(src => src.Store.EnName))
             .ForMember(dest => dest.ImageFile, opt => opt.Ignore())
             .ForMember(dest => dest.MenuSections, opt => opt.Ignore())
-            .ForMember(dest => dest.Stores, opt => opt.Ignore());
+            .ForMember(dest => dest.Stores, opt => opt.Ignore())
+            .ForMember(dest => dest.Products, opt => opt.Ignore())
+            .ForMember(dest => dest.Categories, opt => opt.Ignore());
         CreateMap<MenuItemViewModel, MenuItem>()
-            .ForMember(dest => dest.TotalCost, opt => opt.Ignore())
-            .ForMember(dest => dest.Benefit, opt => opt.Ignore())
-            .ForMember(dest => dest.IsReady, opt => opt.Ignore())
             .ForMember(dest => dest.Store, opt => opt.Ignore())
             .ForMember(dest => dest.MenuSection, opt => opt.Ignore())
             .ForMember(dest => dest.OnlineOrderMenuItems, opt => opt.Ignore())
             .ForMember(dest => dest.OrderMenuItems, opt => opt.Ignore());
 
         CreateMap<MenuItemComponent, MenuItemComponentViewModel>()
-            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.StoreProduct.ProductName));
+            .ForMember(dest => dest.ProductArName, opt => opt.MapFrom(src => src.Product.ArName))
+            .ForMember(dest => dest.ProductEnName, opt => opt.MapFrom(src => src.Product.EnName))
+            .ForMember(dest => dest.UnitCost, opt => opt.MapFrom(src => src.Product.Cost))
+            .ForMember(dest => dest.Cost, opt => opt.MapFrom(src => src.Quantity * src.Product.Cost));
         CreateMap<MenuItemComponentViewModel, MenuItemComponent>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.MenuItemId, opt => opt.Ignore())
-            .ForMember(dest => dest.Cost, opt => opt.Ignore())
-            .ForMember(dest => dest.StoreProduct, opt => opt.Ignore())
+            .ForMember(dest => dest.Product, opt => opt.Ignore())
             .ForMember(dest => dest.MenuItem, opt => opt.Ignore());
 
-        // Website - the public home page (everything comes from the dashboard)
-        CreateMap<IndexSettings, WebsiteViewModel>()
+        CreateMap<IndexSettings, HomeViewModel>()
             .ForMember(dest => dest.MenuSections, opt => opt.Ignore())
             .ForMember(dest => dest.Chefs, opt => opt.Ignore())
             .ForMember(dest => dest.Gallery, opt => opt.Ignore());
-        CreateMap<MenuSection, WebsiteMenuSectionViewModel>();
-        CreateMap<MenuItem, WebsiteMenuItemViewModel>()
+        CreateMap<MenuItem, HomeMenuItemViewModel>()
             .ForMember(dest => dest.Size, opt => opt.MapFrom(src => src.Size.HasValue ? src.Size.Value.ToString() : null));
 
-        // Chef - فريق المطبخ
         CreateMap<ChefItem, ChefViewModel>()
             .ForMember(dest => dest.ImageFile, opt => opt.Ignore());
         CreateMap<ChefViewModel, ChefItem>()
             .ForMember(dest => dest.ImageUrl, opt => opt.Ignore());
 
-        // Gallery - معرض الصور
         CreateMap<GalleryItem, GalleryViewModel>()
             .ForMember(dest => dest.ImageFile, opt => opt.Ignore());
         CreateMap<GalleryViewModel, GalleryItem>()

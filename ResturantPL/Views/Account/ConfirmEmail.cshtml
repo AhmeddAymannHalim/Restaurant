@@ -1,0 +1,12 @@
+@model bool
+@{
+    ViewData["Title"] = Model ? L["Auth_Confirmed"].Value : L["Auth_BadLink"].Value;
+    Layout = "~/Views/Shared/_AuthenticationLayout.cshtml";
+}
+
+<div class="auth-card" style="text-align:center">
+    <div class="status-icon">@(Model ? "✓" : "✕")</div>
+    <h1 class="auth-title">@(Model ? L["Auth_Confirmed"] : L["Auth_BadLink"])</h1>
+    <p class="auth-sub">@(Model ? L["Auth_ConfirmedSub"] : L["Auth_BadLinkSub"])</p>
+    <a asp-action="SignIn" class="btn-auth">@L["Auth_GoSignIn"]</a>
+</div>

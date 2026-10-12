@@ -16,7 +16,6 @@ namespace Restaurant.DAL.Models
         public string PhoneNumber { get; set; }
         public decimal Balance { get; set; } = 0;
 
-
         public virtual ICollection<PaymentInvoiceCustomer> PaymentInvoices { get; set; }
     }
 }

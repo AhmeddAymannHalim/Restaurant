@@ -22,7 +22,9 @@ public class ScroungeService : IScroungeService
     {
         var result = await _unitOfWork.Scrounges.GetPagedScroungesAsync(request);
 
-        return PaginatedResult<ScroungeViewModel>.Create(_mapper.Map<List<ScroungeViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<ScroungeViewModel>.Create(_mapper.Map<List<ScroungeViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<ScroungeViewModel> GetScroungeByIdAsync(int id)

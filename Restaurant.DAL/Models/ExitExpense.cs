@@ -14,9 +14,6 @@ namespace Restaurant.DAL.Models
         public int ExpenseId { get; set; }
         public string UserId { get; set; }
 
-
-
-
         public ApplicationUser User { get; set; }
         public virtual Expense Expense { get; set; }
     }

@@ -1,256 +1,86 @@
-﻿@model ShiftSummaryViewModel
+@model ShiftDashboardViewModel
 @{
-    ViewData["Title"] = "Index";
-    Layout = "_Layout1";
-    var user = ViewBag.CurrentUser;
+    ViewBag.Title = L["ShiftSummary"].Value;
 }
 
-<div class="row m-4">
-    <button type="button" class="btn btn-info text-center col-md-12" style="font-size:24px;" data-bs-toggle="modal" data-bs-target="#myModal">انهاء الشيفت</button>
-</div>
-
-<div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content bg-dark">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">ادخل كلمة السر لانهاء الشيفت</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-cash-register" aria-hidden="true"></i></span>
+        <h1>@L["ShiftSummary"]</h1>
+        <a asp-action="Upsert" class="btn-ad btn-ad-primary"><i class="fas fa-plus" aria-hidden="true"></i> @L["NewOrder"]</a>
+    </div>
+    <form asp-controller="Shift" asp-action="End" method="post" class="ad-filters shift-end">
+        <input name="password" type="password" class="form-control w-auto" placeholder="@L["Setting_Password"]" autocomplete="off" required />
+        <button type="submit" class="btn-ad btn-ad-danger"><i class="fas fa-flag-checkered" aria-hidden="true"></i> @L["EndShift"]</button>
+    </form>
+    <div class="ad-card-body">
+        <div class="shift-totals">
+            <div class="shift-tile">
+                <span>@L["MoneyInDrawer"]</span>
+                <strong>@Model.MoneyInDrawer.ToString("N2")</strong>
+                <small>@Model.MoneyInDrawerCount @L["Orders"]</small>
             </div>
-            <form id="passwordForm" asp-action="Logout" asp-controller="Shift" method="post">
-                <div class="modal-body text-light">
-                    <div class="mb-3">
-                        <label for="User_Name" class="col-form-label text-start" style="text-align: left;">اسم المستخدم</label>
-                        <input type="text" class="form-control" readonly value="@($"{user.FullName}")" id="User_Name">
-                    </div>
-                    <div class="mb-3">
-                        <label for="modalPassword" class="col-form-label text-start" style="text-align: left;">الرقم السري</label>
-                        <input class="form-control" id="modalPassword" name="password" type="password" />
-                    </div>
+            <div class="shift-tile">
+                <span>@L["Collected"]</span>
+                <strong>@Model.CollectedTotal.ToString("N2")</strong>
+                <small>@Model.CollectedCount @L["Orders"]</small>
+            </div>
+            <div class="shift-tile">
+                <span>@L["CollectedFromOthers"]</span>
+                <strong>@Model.CollectedFromOthers.Amount.ToString("N2")</strong>
+                <small>@Model.CollectedFromOthers.Count @L["Orders"]</small>
+            </div>
+            <div class="shift-tile">
+                <span>@L["OnAccountOrders"]</span>
+                <strong>@Model.OnAccount.Amount.ToString("N2")</strong>
+                <small>@Model.OnAccount.Count @L["Orders"]</small>
+            </div>
+            <div class="shift-tile shift-tile-warn">
+                <span>@L["PendingOrders"]</span>
+                <strong>@Model.PendingTotal.ToString("N2")</strong>
+                <small>@Model.PendingCount @L["Orders"]</small>
+            </div>
+        </div>
+
+        @{
+            var sections = new[]
+            {
+                (L["Collected"].Value, Model.Collected, "shift"),
+                (L["PendingMine"].Value, Model.PendingMine, "pending"),
+                (L["PendingOthers"].Value, Model.PendingOthers, "pending")
+            };
+        }
+
+        <div class="shift-sections">
+            @foreach (var (title, rows, status) in sections)
+            {
+                <div class="ad-table-wrap">
+                    <table class="ad-table">
+                        <caption>@title</caption>
+                        <thead>
+                            <tr>
+                                <th>@L["OrderType"]</th>
+                                <th>@L["Count"]</th>
+                                <th>@L["Amount"]</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in rows)
+                            {
+                                <tr>
+                                    <td>@L[row.Type.ToString()]</td>
+                                    <td class="num">@row.Count</td>
+                                    <td class="num">@row.Amount.ToString("N2")</td>
+                                    <td class="ad-row-actions">
+                                        <a asp-action="List" asp-route-status="@status" asp-route-type="@row.Type" class="btn-ad btn-ad-ghost btn-icon" title="@L["View"]" aria-label="@L["View"]"><i class="fas fa-eye" aria-hidden="true"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">اغلاق</button>
-                    <button type="submit" class="btn btn-primary">تأكيد</button>
-                </div>
-            </form>
+            }
         </div>
     </div>
 </div>
-
-<hr />
-
-
-
-
-<form id="shiftSummaryForm" method="post" asp-action="EndShiftReport" asp-controller="Report">
-
-
-    <div class="row m-3">
-        <div id="hallSummary" class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">طلبات الصالة المكتملة</h5>
-                    <input type="hidden" name="hallSummaryNumber" value="@ViewBag.HallsSummary.NumberOfOrder" />
-                    <input type="hidden" name="hallSummaryTotal" value="@ViewBag.HallsSummary.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.HallsSummary.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.HallsSummary.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-        <div id="deliverySummary" class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">طلبات الدليفري المكتملة</h5>
-                    <input type="hidden" name="deliverySummaryNumber" value="@ViewBag.DeliverySummary.NumberOfOrder" />
-                    <input type="hidden" name="deliverySummaryTotal" value="@ViewBag.DeliverySummary.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.DeliverySummary.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.DeliverySummary.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-        <div id="deliveryOnlineSummary" class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">طلبات الدليفري الاونلاين المكتملة</h5>
-                    <input type="hidden" name="deliveryOnlineSummaryNumber" value="@ViewBag.DeliveryOnlineSummary.NumberOfOrder" />
-                    <input type="hidden" name="deliveryOnlineSummaryTotal" value="@ViewBag.DeliveryOnlineSummary.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.DeliveryOnlineSummary.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.DeliveryOnlineSummary.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-        <div id="takeAwaySummary" class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">طلبات التيك اواي المكتملة</h5>
-                    <input type="hidden" name="takeAwaySummaryNumber" value="@ViewBag.TakeAwaySummary.NumberOfOrder" />
-                    <input type="hidden" name="takeAwaySummaryTotal" value="@ViewBag.TakeAwaySummary.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.TakeAwaySummary.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.TakeAwaySummary.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <hr />
-
-    <div class="row m-3">
-        <div id="pendingHall" class="col-md-3">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
-                    <h5 class="card-title">الصالة المعلقة</h5>
-                    <input type="hidden" name="pendingHallNumber" value="@ViewBag.PendingHalls.NumberOfOrder" />
-                    <input type="hidden" name="pendingHallTotal" value="@ViewBag.PendingHalls.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.PendingHalls.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.PendingHalls.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-        <div id="pendingDelivery" class="col-md-3">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
-                    <h5 class="card-title">الدليفري المعلق</h5>
-                    <input type="hidden" name="pendingDeliveryNmuber" value="@ViewBag.PendingDelivery.NumberOfOrder" />
-                    <input type="hidden" name="pendingDeliveryTotal" value="@ViewBag.PendingDelivery.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.PendingDelivery.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.PendingDelivery.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-        <div id="pendingDeliveryOnline" class="col-md-3">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
-                    <h5 class="card-title">الدليفري الاونلاين المعلق</h5>
-                    <input type="hidden" name="pendingDeliveryOnlineNmuber" value="@ViewBag.PendingOnlineDelivery.NumberOfOrder" />
-                    <input type="hidden" name="pendingDeliveryOnlineTotal" value="@ViewBag.PendingOnlineDelivery.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.PendingOnlineDelivery.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.PendingOnlineDelivery.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-        <div id="totalPending" class="col-md-3">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
-                    <h5 class="card-title">اجمالي المعلق</h5>
-                    <input type="hidden" name="totalPendingNumber" value="@ViewBag.TotalPending.NumberOfOrder" />
-                    <input type="hidden" name="totalPendingTotal" value="@ViewBag.TotalPending.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.TotalPending.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.TotalPending.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <hr />
-
-
-
-
-    <div class="row m-3">
-        <div id="lastPendingHall" class="col-md-3">
-            <div class="card bg-secondary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">الصالة المعلقة من الشيفت السابق</h5>
-                    <input type="hidden" name="lastPendingHallNumber" value="@ViewBag.LastPendingHalls.NumberOfOrder" />
-                    <input type="hidden" name="lastPendingHallTotal" value="@ViewBag.LastPendingHalls.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.LastPendingHalls.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.LastPendingHalls.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-        <div id="lastPendingDelivery" class="col-md-3">
-            <div class="card bg-secondary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">الدليفري المعلق من الشيفت السابق</h5>
-                    <input type="hidden" name="lastPendingDeliveryNmuber" value="@ViewBag.LastPendingDelivery.NumberOfOrder" />
-                    <input type="hidden" name="lastPendingDeliveryTotal" value="@ViewBag.LastPendingDelivery.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.LastPendingDelivery.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.LastPendingDelivery.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-        <div id="lastPendingDeliveryOnline" class="col-md-3">
-            <div class="card bg-secondary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">الاونلاين المعلق من الشيفت السابق</h5>
-                    <input type="hidden" name="lastPendingDeliveryOnlineNmuber" value="@ViewBag.lastPendingOnlineDelivery.NumberOfOrder" />
-                    <input type="hidden" name="lastPendingDeliveryOnlineTotal" value="@ViewBag.lastPendingOnlineDelivery.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.lastPendingOnlineDelivery.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.lastPendingOnlineDelivery.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-        <div id="totalLastPending" class="col-md-3">
-            <div class="card bg-secondary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">اجمالي المعلق من الشيفت السابق</h5>
-                    <input type="hidden" name="lastTotalPendingNumber" value="@ViewBag.TotalLastPending.NumberOfOrder" />
-                    <input type="hidden" name="lastTotalPendingTotal" value="@ViewBag.TotalLastPending.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.TotalLastPending.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.TotalLastPending.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <hr />
-
-
-
-
-
-
-    <div class="row m-3">
-        <div id="totalSummary" class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">الطلبات المباعة من الشيفت الحالي</h5>
-                    <input type="hidden" name="totalSummeryNumber" value="@ViewBag.TotalSummary.NumberOfOrder" />
-                    <input type="hidden" name="totalSummeryTotal" value="@ViewBag.TotalSummary.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.TotalSummary.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.TotalSummary.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-        <div id="selledLastPending" class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">الطلبات المباعة من الشيفت السابق</h5>
-                    <input type="hidden" name="selledLastPendingNumber" value="@ViewBag.SelledLastPending.NumberOfOrder" />
-                    <input type="hidden" name="selledLastPendingTotal" value="@ViewBag.SelledLastPending.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.SelledLastPending.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.SelledLastPending.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-        <div id="totalMoney" class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">اجمالي المال المعلق</h5>
-                    <input type="hidden" name="TotalRemainForPendingNumber" value="@ViewBag.RemainForPending.NumberOfOrder" />
-                    <input type="hidden" name="TotalRemainForPendingTotal" value="@ViewBag.RemainForPending.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.RemainForPending.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.RemainForPending.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-        <div id="totalMoney" class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">اجمالي المال في الدرج</h5>
-                    <input type="hidden" name="totalMoneyNumber" value="@ViewBag.TotalMoney.NumberOfOrder" />
-                    <input type="hidden" name="totalMoneyTotal" value="@ViewBag.TotalMoney.TotalAmount" />
-                    <p class="card-text">عدد الطلبات: @ViewBag.TotalMoney.NumberOfOrder</p>
-                    <p class="card-text">الاجمالي: @ViewBag.TotalMoney.TotalAmount</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <hr />
-    <div class="row m-4">
-        <button id="export" type="submit" class="btn btn-primary text-center col-md-12">تصدير الي PDF</button>
-    </div>
-</form>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}

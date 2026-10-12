@@ -1,3 +1,4 @@
+using Shared.ViewModels.Commons;
 namespace Shared.ViewModels.Definitions;
 
 public class MenuSectionViewModel
@@ -8,5 +9,5 @@ public class MenuSectionViewModel
     public int? KitchenId { get; set; }
     public string KitchenArName { get; set; }
     public string KitchenEnName { get; set; }
-    public SelectList Kitchens { get; set; }
+    public IEnumerable<LookupItem> Kitchens { get; set; } = new List<LookupItem>();
 }

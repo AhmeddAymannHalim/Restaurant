@@ -47,69 +47,36 @@ public class StoreRepository : IStoreRepository
         {
             if (entity.Id == 0)
             {
+                entity.StoreProducts = await _context.Products.AsNoTracking()
+                    .Select(a => new StoreProduct { ProductId = a.Id })
+                    .ToListAsync();
                 await _context.Stores.AddAsync(entity);
-                await _context.SaveChangesAsync();
-
-                // The new store gets a zero-quantity row for every product
-                var products = await _context.Products.AsNoTracking().ToListAsync();
-                foreach (var product in products)
-                {
-                    await _context.StoreProducts.AddAsync(new StoreProduct
-                    {
-                        ProductId = product.Id,
-                        ProductName = product.ArName,
-                        StoreId = entity.Id,
-                        StoreName = entity.ArName,
-                        Quantity = 0,
-                        PriceForUnit = 0
-                    });
-                }
-
-                await _context.SaveChangesAsync();
             }
             else
             {
-                var existing = await _context.Stores.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
-                if (existing is null)
+                if (!await _context.Stores.AnyAsync(a => a.Id == entity.Id))
                 {
-                    return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "RecordNotFound"
+                    };
                 }
 
                 _context.Stores.Update(entity);
-                await _context.SaveChangesAsync();
-
-                // Keep the product rows in sync with the store name
-                var products = await _context.Products.AsNoTracking().ToListAsync();
-                foreach (var product in products)
-                {
-                    var storeProduct = await _context.StoreProducts
-                        .FirstOrDefaultAsync(a => a.ProductId == product.Id && a.StoreId == entity.Id);
-                    if (storeProduct != null)
-                    {
-                        storeProduct.StoreName = entity.ArName;
-                    }
-                    else
-                    {
-                        await _context.StoreProducts.AddAsync(new StoreProduct
-                        {
-                            ProductId = product.Id,
-                            ProductName = product.ArName,
-                            StoreId = entity.Id,
-                            StoreName = entity.ArName,
-                            Quantity = 0,
-                            PriceForUnit = 0
-                        });
-                    }
-                }
-
-                await _context.SaveChangesAsync();
             }
+
+            await _context.SaveChangesAsync();
 
             return new ResultMessage { Success = true };
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -123,6 +90,15 @@ public class StoreRepository : IStoreRepository
                 return new ResultMessage { Success = true };
             }
 
+            if (await _context.StoreProducts.AnyAsync(a => a.StoreId == id && a.Quantity > 0))
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "CannotDeleteHasStock"
+                };
+            }
+
             _context.Stores.Remove(entity);
             await _context.SaveChangesAsync();
 
@@ -130,11 +106,19 @@ public class StoreRepository : IStoreRepository
         }
         catch (DbUpdateException)
         {
-            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "CannotDeleteLinkedRecord"
+            };
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 }

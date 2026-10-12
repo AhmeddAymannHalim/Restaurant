@@ -1,68 +1,69 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Restaurant.DAL.Models;
-using Restaurant.DAL.UnitOfWork;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Localization;
+using Restaurant.BLL.Services.IServices.Definitions;
+using ResturantPL.Hubs;
+using Shared;
+using Shared.ViewModels.Commons;
 
 namespace ResturantPL.Controllers
 {
-    // Kitchen *operations* (orders waiting in the kitchen). The kitchen definition itself lives in Controllers/Definitions.
-    [Authorize]
+    [Authorize(Policy = "Staff")]
     public class KitchenOrderController : Controller
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IOrderService _service;
+        private readonly IHubContext<OrderHub> _hub;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public KitchenOrderController(IUnitOfWork unitOfWork)
+        public KitchenOrderController(
+            IOrderService service,
+            IHubContext<OrderHub> hub,
+            IStringLocalizer<SharedResource> localizer)
         {
-            _unitOfWork = unitOfWork;
+            _service = service;
+            _hub = hub;
+            _localizer = localizer;
         }
 
-        public IActionResult KitchenOrders()
+        public async Task<IActionResult> Index()
         {
-            var orders = _unitOfWork.OrderRepository
-                .GetAll
-                (
-                    a => a.Include(a => a.Seller),
-                    a => a.Include(a => a.Receiver),
-                    a => a.Include(a => a.Table),
-                    a => a.Include(a => a.Employee),
-                    a => a.Include(a => a.OrderMenuItems)
-                    .ThenInclude(o => o.MenuItem)
-                 )
-                 .Where(a => a.Complete == false)
-                .OrderByDescending(a => a.OrderDate)
-                .ToList();
-
-            return View(orders);
-        }
-
-        public IActionResult KitchenOrderDetails(int id)
-        {
-            Order orderInvoice = _unitOfWork.OrderRepository.GetById(a => a.Id == id,
-               new string[] { "Seller", "Receiver", "Table", "Customer", "Employee", "OrderMenuItems" },
-               new string[] { "OrderMenuItems.MenuItem" });
-
-            if (orderInvoice != null)
+            try
             {
-                return View(orderInvoice);
+                return View(await _service.GetKitchenOrdersAsync());
             }
-
-            return View(new Order());
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
         }
 
         [HttpPost]
-        public IActionResult CompleteOrder(int id)
+        public async Task<IActionResult> Complete(int id)
         {
-            var order = _unitOfWork.OrderRepository.GetById(id);
-            if (order is null)
+            try
             {
-                return NotFound();
+                var result = await _service.CompleteOrderAsync(id);
+                if (result.Success)
+                {
+                    await _hub.Clients.All.SendAsync("RefreshOrders");
+                    return Json(new { success = true });
+                }
+
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer[result.Message].Value
+                });
             }
-
-            order.Complete = true;
-            _unitOfWork.OrderRepository.Update(order);
-
-            return Json(true);
+            catch (Exception)
+            {
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer["SomethingWentError"].Value
+                });
+            }
         }
     }
 }

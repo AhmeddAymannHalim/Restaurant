@@ -8,6 +8,9 @@ public class BranchConfig : IEntityTypeConfiguration<Branche>
 {
     public void Configure(EntityTypeBuilder<Branche> builder)
     {
+        builder.HasIndex(a => a.ArName).IsUnique();
+        builder.HasIndex(a => a.EnName).IsUnique();
+
         builder.Property(a => a.Code).IsRequired().HasMaxLength(20);
         builder.Property(a => a.ArName).IsRequired().HasMaxLength(150);
         builder.Property(a => a.EnName).IsRequired().HasMaxLength(150);

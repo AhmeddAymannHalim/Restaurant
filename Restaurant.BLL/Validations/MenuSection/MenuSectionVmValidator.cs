@@ -8,7 +8,8 @@ namespace Restaurant.BLL.Validations.MenuSection;
 
 public class MenuSectionVmValidator : AbstractValidator<MenuSectionViewModel>
 {
-    public MenuSectionVmValidator(IStringLocalizer<SharedResource> localizer,
+    public MenuSectionVmValidator(
+        IStringLocalizer<SharedResource> localizer,
         IValidatorService<Restaurant.DAL.Models.MenuSection> validator)
     {
         var required = localizer["Val.RequiredField"].Value;

@@ -13,8 +13,6 @@ namespace Restaurant.DAL.Models
         public string EnName { get; set; }
         public string Code { get; set; }
 
-
         public virtual ICollection<Employee> Employees { get; set; }
-
     }
 }

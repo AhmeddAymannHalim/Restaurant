@@ -1,75 +1,25 @@
-﻿
 @{
-    ViewData["Title"] = "Login For Shift";
-    var user = ViewBag.CurrentUser;
-    Layout = null;
+    ViewBag.Title = L["StartShift"].Value;
 }
-<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-<link href="~/css/invoicesstyle.css" rel="stylesheet" />
 
-
-<div style="height:200px;"></div>
-<div class="text-center text-light" >
-
-
-    <h2 class="text-center mb-5">ابدأ شيفت العمل</h2>
-
-
-
-
-    <button type="button" class="btn btn-primary text-center" style="width:300px; font-size:24px;" data-bs-toggle="modal" data-bs-target="#myModal">ابدأ الشيفت</button>
-
-    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content bg-dark">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">ادخل كلمة السر لبداية الشيفت</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="passwordForm" asp-action="Login" method="post">
-                    <div class="modal-body text-light">
-                        <div class="mb-3">
-                            <label for="User_Name" class="col-form-label text-start" style="text-align: left;">اسم المستخدم</label>
-                            <input type="text" class="form-control" readonly value="@($"{user.FirstName} {user.LastName}")" id="User_Name">
-                        </div>
-                        <div class="mb-3">
-                            <label for="modalPassword" class="col-form-label text-start" style="text-align: left;">الرقم السري</label>
-                            <input class="form-control" id="modalPassword" name="password" type="password" />
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">اغلاق</button>
-                        <button type="submit" class="btn btn-primary">تأكيد</button>
-                    </div>
-                </form>
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-lock" aria-hidden="true"></i></span>
+        <h1>@L["StartShift"]</h1>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Login" method="post" class="ad-form">
+            <div class="form-group">
+                <label class="control-label">@L["UserName"]</label>
+                <input class="form-control" value="@User.Identity?.Name" readonly />
             </div>
-        </div>
+            <div class="form-group">
+                <label class="control-label" for="password">@L["Setting_Password"]</label>
+                <input id="password" name="password" type="password" class="form-control" autocomplete="off" required autofocus />
+            </div>
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-play" aria-hidden="true"></i> @L["StartShift"]</button>
+            </div>
+        </form>
     </div>
 </div>
-
-
-
-
-
-
-
-
-
-
-    <script>
-        $(document).ready(function () {
-            // Get the modal element
-            var modal = $('#myModal');
-
-            // Event listener for when the modal is shown
-            modal.on('shown.bs.modal', function () {
-                // Set focus on the password input field
-                $('#modalPassword').focus();
-            });
-        });
-    </script>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
- 
- 

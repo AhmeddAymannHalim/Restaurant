@@ -4,11 +4,11 @@ using Restaurant.DAL.Models;
 
 namespace Restaurant.DAL.Repositories.Commons;
 
-public class WebsiteRepository : IWebsiteRepository
+public class HomeRepository : IHomeRepository
 {
     private readonly ApplicationDbContext _context;
 
-    public WebsiteRepository(ApplicationDbContext context)
+    public HomeRepository(ApplicationDbContext context)
     {
         _context = context;
     }
@@ -31,21 +31,19 @@ public class WebsiteRepository : IWebsiteRepository
         return await _context.GalleryItem.AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
-    // Only the categories that have something to order
-    public async Task<List<MenuSection>> GetMenuSectionsAsync()
+    public async Task<ApplicationSetting> GetSettingsAsync()
     {
-        return await _context.MenuSections
+        return await _context.ApplicationSettings
             .AsNoTracking()
-            .Where(a => a.MenuItems.Any(i => i.IsReady))
-            .OrderBy(a => a.Id)
-            .ToListAsync();
+            .OrderByDescending(a => a.Id)
+            .FirstOrDefaultAsync();
     }
 
     public async Task<List<MenuItem>> GetMenuItemsAsync(int? sectionId)
     {
         return await _context.MenuItems
             .AsNoTracking()
-            .Where(a => a.IsReady && (sectionId == null || a.MenuSectionId == sectionId))
+            .Where(a => a.ShowOnWebsite && (sectionId == null || a.MenuSectionId == sectionId))
             .OrderBy(a => a.MenuSectionId)
             .ThenBy(a => a.ArName)
             .ThenBy(a => a.Size)

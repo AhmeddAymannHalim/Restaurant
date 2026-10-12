@@ -13,6 +13,5 @@ namespace Restaurant.DAL.Models
         public string EnName { get; set; }
         public string Jop { get; set; }
         public string ImageUrl { get; set; }
-
     }
 }

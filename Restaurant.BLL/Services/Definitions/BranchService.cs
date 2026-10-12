@@ -22,7 +22,9 @@ public class BranchService : IBranchService
     {
         var result = await _unitOfWork.Branches.GetPagedBranchesAsync(request);
 
-        return PaginatedResult<BranchViewModel>.Create(_mapper.Map<List<BranchViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<BranchViewModel>.Create(_mapper.Map<List<BranchViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<BranchViewModel> GetBranchByIdAsync(int id)

@@ -1,0 +1,64 @@
+@model IEnumerable<OrderViewModel>
+@{
+    ViewBag.Title = L["KitchenOrders"].Value;
+    var isArabic = LanguageHelper.IsArabic();
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-fire-burner" aria-hidden="true"></i></span>
+        <h1>@L["KitchenOrders"]</h1>
+    </div>
+    <div class="ad-card-body">
+        @if (!Model.Any())
+        {
+            <p class="ad-empty">@L["NoData"]</p>
+        }
+
+        <div class="online-grid">
+            @foreach (var order in Model)
+            {
+                <article class="online-card" data-order="@order.Id">
+                    <header>
+                        <strong>#@order.OrderCode - @L[order.Type.ToString()]</strong>
+                        <time>@order.OrderDate.ToString("HH:mm")</time>
+                    </header>
+                    @if (order.Type == OrderType.Hall && order.TableId != null)
+                    {
+                        <p>@L["Table"]: @(isArabic ? order.TableArName : order.TableEnName)</p>
+                    }
+                    <ul>
+                        @foreach (var item in order.Items)
+                        {
+                            <li><span>@(isArabic ? item.MenuItemArName : item.MenuItemEnName)</span><b>x @item.Quantity.ToString("0.###", CultureInfo.InvariantCulture)</b></li>
+                        }
+                    </ul>
+                    <footer>
+                        <span></span>
+                        <button type="button" class="btn-ad btn-ad-primary kitchen-done" data-id="@order.Id"><i class="fas fa-check" aria-hidden="true"></i> @L["OrderReady"]</button>
+                    </footer>
+                </article>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/microsoft-signalr/signalr.min.js"></script>
+    <script>
+        $(function () {
+            $('.kitchen-done').on('click', function () {
+                var button = $(this);
+                $.post('/KitchenOrder/Complete', { id: button.data('id') }, function (result) {
+                    if (result.success) { button.closest('.online-card').remove(); } else { toastr.error(result.errorMessage); }
+                });
+            });
+
+            try {
+                var connection = new signalR.HubConnectionBuilder().withUrl("/OrderHub").withAutomaticReconnect().build();
+                connection.on("RefreshOrders", function () { location.reload(); });
+                connection.start();
+            } catch (e) { }
+        });
+    </script>
+}

@@ -4,24 +4,23 @@ namespace Shared.Helpers
     {
         public static string UploadFile(IFormFile file, string FolderName)
         {
-            //get folder path
             string FolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", FolderName);
-            //get filename
+
             string FileName = Path.GetFileName(file.FileName);
-            //get fie path
-            string FilePath =  Path.Combine(FolderPath, FileName);//not according to view but according to file stream
+
+            string FilePath =  Path.Combine(FolderPath, FileName);
 
             using(var FileStream =new FileStream(FilePath,FileMode.Create))
             {
                 file.CopyTo(FileStream);
             }
 
-            return $"/{FolderName}/{FileName}"; // url path (always forward slashes)
+            return $"/{FolderName}/{FileName}";
         }
 
         public static void DeleteFile(string path)
         {
-            var ActualPath = $"wwwroot{path}";//file according to current directory
+            var ActualPath = $"wwwroot{path}";
             File.Delete(ActualPath);
         }
     }

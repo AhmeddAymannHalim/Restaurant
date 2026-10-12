@@ -1,3 +1,4 @@
+using Shared.ViewModels.Commons;
 namespace Shared.ViewModels.Definitions;
 
 public class ExitExpenseViewModel
@@ -9,5 +10,5 @@ public class ExitExpenseViewModel
     public string ExpenseArName { get; set; }
     public string ExpenseEnName { get; set; }
     public string UserName { get; set; }
-    public SelectList Expenses { get; set; }
+    public IEnumerable<LookupItem> Expenses { get; set; } = new List<LookupItem>();
 }

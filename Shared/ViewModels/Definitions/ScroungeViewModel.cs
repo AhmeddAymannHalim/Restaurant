@@ -1,3 +1,4 @@
+using Shared.ViewModels.Commons;
 namespace Shared.ViewModels.Definitions;
 
 public class ScroungeViewModel
@@ -10,5 +11,5 @@ public class ScroungeViewModel
     public string EmployeeName { get; set; }
     public Shared.Enums.MoneyState State { get; set; }
     public string UserName { get; set; }
-    public SelectList Employees { get; set; }
+    public IEnumerable<LookupItem> Employees { get; set; } = new List<LookupItem>();
 }

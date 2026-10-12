@@ -1,0 +1,46 @@
+using Shared.ViewModels.Commons;
+using Shared.Enums;
+
+namespace Shared.ViewModels.Definitions;
+
+public class InvoiceViewModel
+{
+    public int Id { get; set; }
+    public string InvoiceCode { get; set; }
+    public DateTime InvoiceDate { get; set; } = DateTime.Now;
+    public InvoiceType InvoiceType { get; set; }
+    public PayTypes PayType { get; set; }
+    public int SupplierId { get; set; }
+    public int StoreId { get; set; }
+    public decimal Discount { get; set; }
+    public decimal Paid { get; set; }
+
+    public List<InvoiceItemViewModel> Items { get; set; } = new();
+
+    public decimal SubTotal => Items.Sum(a => a.Total);
+    public decimal TotalPrice => SubTotal - Discount;
+    public decimal Remaining => TotalPrice - Paid;
+
+    public string SupplierArName { get; set; }
+    public string SupplierEnName { get; set; }
+    public string StoreArName { get; set; }
+    public string StoreEnName { get; set; }
+
+    public IEnumerable<LookupItem> Suppliers { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> Stores { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> Units { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> Categories { get; set; } = new List<LookupItem>();
+}
+
+public class InvoiceItemViewModel
+{
+    public int Id { get; set; }
+    public int ProductId { get; set; }
+    public string ProductName { get; set; }
+    public int UnitPriceId { get; set; }
+    public string UnitName { get; set; }
+    public decimal Quantity { get; set; }
+    public decimal Price { get; set; }
+
+    public decimal Total => Quantity * Price;
+}

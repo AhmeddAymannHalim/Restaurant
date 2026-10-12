@@ -4,12 +4,13 @@
     ViewBag.Title = isNew ? L["NewBranch"].Value : L["UpdateBranch"].Value;
 }
 
-<h1 class="text-center">@ViewBag.Title</h1>
-<hr />
-
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Upsert" method="post">
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-code-branch" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title</h1>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Upsert" method="post" class="ad-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <div class="form-group">
@@ -52,23 +53,18 @@
                 <span asp-validation-for="Mobile2" class="text-danger"></span>
             </div>
 
-            <div class="form-group mt-3">
-                <input type="submit" value="@L["Save"]" class="btn btn-primary" /> |
-                <a asp-action="Index">@L["Back"]</a>
-                @if (!isNew)
-                {
-                    <text> | </text>
-                    <a onclick="Delete('/Branch/Delete/@Model.Id', '@Url.Action("Index")')" class="text-danger" style="font-weight:bold; cursor:pointer;">@L["Delete"]</a>
-                }
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+            @if (!isNew)
+            {
+                <button type="button" onclick="Delete('/Branch/Delete/@Model.Id', '@Url.Action("Index")')" class="btn-ad btn-ad-danger push" ><i class="fas fa-trash" aria-hidden="true"></i> @L["Delete"]</button>
+            }
             </div>
         </form>
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-    <script src="~/modules/deleteobjects.js"></script>
+    <partial name="_ValidationScriptsPartial" />
 }

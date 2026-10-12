@@ -32,7 +32,11 @@ public class MenuItemVmValidator : AbstractValidator<MenuItemViewModel>
             .GreaterThan(0)
             .WithMessage(required);
 
-        RuleFor(x => x.Description)
+        RuleFor(x => x.ArDescription)
+            .MaximumLength(150)
+            .WithMessage(MaxLength(150));
+
+        RuleFor(x => x.EnDescription)
             .MaximumLength(150)
             .WithMessage(MaxLength(150));
 

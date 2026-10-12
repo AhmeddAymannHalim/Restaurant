@@ -13,7 +13,7 @@ using Shared.ViewModels.Definitions;
 
 namespace ResturantPL.Controllers.Definitions
 {
-    [Authorize]
+    [Authorize(Policy = "Staff")]
     public class SalaryController : Controller
     {
         private readonly ISalaryService _service;
@@ -21,7 +21,11 @@ namespace ResturantPL.Controllers.Definitions
         private readonly IToastrService _toastr;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public SalaryController(ISalaryService service, ILookupService lookup, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
+        public SalaryController(
+            ISalaryService service,
+            ILookupService lookup,
+            IToastrService toastr,
+            IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
             _lookup = lookup;
@@ -116,15 +120,22 @@ namespace ResturantPL.Controllers.Definitions
                     return Json(new { success = true });
                 }
 
-                return Json(new { success = false, errorMessage = _localizer[result.Message].Value });
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer[result.Message].Value
+                });
             }
             catch (Exception)
             {
-                return Json(new { success = false, errorMessage = _localizer["SomethingWentError"].Value });
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer["SomethingWentError"].Value
+                });
             }
         }
 
-        // AJAX: salary summary of the employee between two dates
         [HttpGet]
         public async Task<IActionResult> EmployeeExpenses(int employeeId, DateTime startDate, DateTime endDate)
         {
@@ -139,9 +150,7 @@ namespace ResturantPL.Controllers.Definitions
 
         private async Task PopulateData(SalaryViewModel model)
         {
-            var employees = await _lookup.EmployeeLookupAsync();
-            model.Employees = new SelectList(employees, "Id", "ArName", model.EmployeeId);
-            await Task.CompletedTask;
+            model.Employees = await _lookup.EmployeeLookupAsync();
         }
     }
 }

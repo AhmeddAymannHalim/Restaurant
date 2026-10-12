@@ -28,10 +28,8 @@ public static class DependencyInjection
 
         services.AddHttpContextAccessor();
 
-        // Toastr
         services.AddScoped<IToastrService, ToastrService>();
 
-        // Cache
         services.AddMemoryCache();
         services.Configure<InMemoryCacheOptions>(options =>
         {
@@ -40,7 +38,6 @@ public static class DependencyInjection
         });
         services.AddSingleton<IMemoryCacheService, MemoryCacheService>();
 
-        // Localization (json files in /Resources)
         services.AddSingleton<IStringLocalizerFactory, JsonStringLocalizerFactory>();
         services.AddLocalization(options => options.ResourcesPath = "Resources");
         services.Configure<RequestLocalizationOptions>(options =>
@@ -63,7 +60,7 @@ public static class DependencyInjection
             options.DefaultRequestCulture = new RequestCulture(arCulture, arCulture);
             options.SupportedCultures = supportedCultures;
             options.SupportedUICultures = supportedCultures;
-            // The restaurant starts in Arabic; the browser language header is ignored, only the language button (cookie) changes it.
+
             options.RequestCultureProviders = new List<IRequestCultureProvider>
             {
                 new QueryStringRequestCultureProvider(),
@@ -71,33 +68,69 @@ public static class DependencyInjection
             };
         });
 
-        // MVC + view localization + FluentValidation
-        services.AddControllersWithViews().AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix);
+        services.AddAntiforgery(options => options.HeaderName = "RequestVerificationToken");
+        services.AddControllersWithViews(options =>
+            {
+                options.Filters.Add<ResturantPL.Filters.AjaxRedirectFilter>();
+                if (builder.Configuration.GetValue<bool>("Security:Relaxed"))
+                {
+                    options.Filters.Add(new Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+                    {
+                        Order = 1001
+                    });
+                }
+                else
+                {
+                    options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
+                }
+            }).AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
+            .AddDataAnnotationsLocalization();
         services.Configure<RazorViewEngineOptions>(options => options.ViewLocationExpanders.Add(new DefinitionsViewLocationExpander()));
         services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
         services.AddValidatorsFromAssemblyContaining<BranchVmValidator>();
 
-        // AutoMapper
-        services.AddAutoMapper(cfg => { }, typeof(Profiler).Assembly, typeof(Restaurant.BLL.Helper.AutoMapper).Assembly);
+        services.AddAutoMapper(cfg => { }, typeof(Restaurant.BLL.Helper.AutoMapper).Assembly);
 
-        // DAL / BLL
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped(typeof(IValidatorRepository<>), typeof(ValidatorRepository<>));
         services.AddScoped(typeof(IValidatorService<>), typeof(ValidatorService<>));
         services.AddScoped<ILookupService, LookupService>();
-        services.AddScoped<IWebsiteService, WebsiteService>();
+        services.AddScoped<IHomeService, HomeService>();
         services.AddScoped<IChefService, ChefService>();
         services.AddScoped<IGalleryService, GalleryService>();
         services.AddScoped<IBranchService, BranchService>();
         services.AddScoped<IJobService, JobService>();
         services.AddScoped<ITableService, TableService>();
         services.AddScoped<IUnitPriceService, UnitPriceService>();
+        services.AddScoped<IProductCategoryService, ProductCategoryService>();
         services.AddScoped<ISalaryTypeService, SalaryTypeService>();
         services.AddScoped<IMenuSectionService, MenuSectionService>();
         services.AddScoped<IMenuItemService, MenuItemService>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IStoreService, StoreService>();
         services.AddScoped<ISupplierService, SupplierService>();
+        services.AddScoped<Restaurant.DAL.IRepositories.Definitions.IRoleRepository,
+            Restaurant.DAL.Repositories.Definitions.RoleRepository>();
+        services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<IInvoiceService, InvoiceService>();
+        services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IOnlineOrderService, OnlineOrderService>();
+        services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IStoreConvertService, StoreConvertService>();
+        services.AddScoped<ISupplierPaymentService, SupplierPaymentService>();
+        services.AddScoped<ICustomerPaymentService, CustomerPaymentService>();
+        services.AddScoped<Restaurant.DAL.IRepositories.Definitions.IUserRepository,
+            Restaurant.DAL.Repositories.Definitions.UserRepository>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<Restaurant.DAL.IRepositories.Definitions.IEmployeeAccountRepository,
+            Restaurant.DAL.Repositories.Definitions.EmployeeAccountRepository>();
+        services.AddScoped<IEmployeeAccountService, EmployeeAccountService>();
+        services.AddScoped<Restaurant.DAL.IRepositories.Definitions.ISettingRepository,
+            Restaurant.DAL.Repositories.Definitions.SettingRepository>();
+        services.AddScoped<ISettingService, SettingService>();
+        services.AddScoped<Restaurant.DAL.IRepositories.Definitions.IAccountRepository,
+            Restaurant.DAL.Repositories.Definitions.AccountRepository>();
+        services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IEmployeeService, EmployeeService>();
         services.AddScoped<IDashboardService, DashboardService>();
@@ -106,6 +139,7 @@ public static class DependencyInjection
         services.AddScoped<IScroungeService, ScroungeService>();
         services.AddScoped<ISalaryService, SalaryService>();
         services.AddScoped<IKitchenService, KitchenService>();
+        services.AddScoped<IDeliveryZoneService, DeliveryZoneService>();
         services.AddScoped<IExpenseService, ExpenseService>();
 
         return builder;

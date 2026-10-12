@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,15 +12,5 @@ namespace Restaurant.DAL.Models
         public string PrinterForAllSections { get; set; }
         public string PrinterForCashier { get; set; }
         public string PrinterForEachSection { get; set; }
-    }
-
-    public class PrinterForSection
-    {
-        public int Id { get; set; }
-        public int SectionId { get; set; }
-        public string Printer { get; set; }
-
-
-        public MenuSection Section { get; set; }
     }
 }

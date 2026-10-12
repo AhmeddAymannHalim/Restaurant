@@ -22,7 +22,8 @@ public class MemoryCacheService : IMemoryCacheService
     #endregion
 
     #region Ctor
-    public MemoryCacheService(IMemoryCache memoryCache,
+    public MemoryCacheService(
+        IMemoryCache memoryCache,
         IOptions<InMemoryCacheOptions> memoryCacheOptions,
         ILogger<MemoryCacheService> logger)
     {
@@ -53,12 +54,11 @@ public class MemoryCacheService : IMemoryCacheService
     #region Methods
     public async Task<T> GetOrSetAsync<T>(string cacheKey, Func<Task<T>> acquire, MemoryCacheEntryOptions cacheOptions = null)
     {
-        //try to get the item from the memory cache 
-        if (_memoryCache.TryGetValue(cacheKey, out T cachedItem)) //item found in the cache
+        if (_memoryCache.TryGetValue(cacheKey, out T cachedItem))
         {
             return await Task.FromResult(cachedItem!);
         }
-        else //item not found in the cache
+        else
         {
             T item = await acquire();
             if (item is not null)
@@ -74,12 +74,11 @@ public class MemoryCacheService : IMemoryCacheService
 
     public T GetOrSet<T>(string cacheKey, Func<T> acquire, MemoryCacheEntryOptions cacheOptions = null)
     {
-        //try to get the item from the memory cache 
-        if (_memoryCache.TryGetValue(cacheKey, out T cachedItem)) //item found in the cache
+        if (_memoryCache.TryGetValue(cacheKey, out T cachedItem))
         {
             return cachedItem!;
         }
-        else //item not found in the cache
+        else
         {
             T item = acquire();
             if (item is not null)

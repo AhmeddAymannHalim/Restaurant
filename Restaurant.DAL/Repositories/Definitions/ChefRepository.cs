@@ -25,7 +25,9 @@ public class ChefRepository : IChefRepository
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search) || a.Jop.ToLower().Contains(search));
+            query = query.Where(a => a.ArName.ToLower().Contains(search)
+                || a.EnName.ToLower().Contains(search)
+                || a.Jop.ToLower().Contains(search));
         }
 
         var total = await query.CountAsync();
@@ -62,7 +64,11 @@ public class ChefRepository : IChefRepository
                 var existing = await _context.ChefItem.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
-                    return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "RecordNotFound"
+                    };
                 }
 
                 entity.ImageUrl = existing.ImageUrl;
@@ -84,7 +90,11 @@ public class ChefRepository : IChefRepository
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -110,11 +120,19 @@ public class ChefRepository : IChefRepository
         }
         catch (DbUpdateException)
         {
-            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "CannotDeleteLinkedRecord"
+            };
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 }

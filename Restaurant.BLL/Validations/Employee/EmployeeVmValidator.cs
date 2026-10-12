@@ -8,7 +8,8 @@ namespace Restaurant.BLL.Validations.Employee;
 
 public class EmployeeVmValidator : AbstractValidator<EmployeeViewModel>
 {
-    public EmployeeVmValidator(IStringLocalizer<SharedResource> localizer,
+    public EmployeeVmValidator(
+        IStringLocalizer<SharedResource> localizer,
         IValidatorService<Restaurant.DAL.Models.Employee> validator)
     {
         var required = localizer["Val.RequiredField"].Value;

@@ -8,12 +8,12 @@ namespace Restaurant.BLL.Validations.Deposit;
 
 public class DepositVmValidator : AbstractValidator<DepositViewModel>
 {
-    public DepositVmValidator(IStringLocalizer<SharedResource> localizer,
+    public DepositVmValidator(
+        IStringLocalizer<SharedResource> localizer,
         IValidatorService<Restaurant.DAL.Models.Deposit> validator)
     {
         var required = localizer["Val.RequiredField"].Value;
         string MaxLength(int length) => string.Format(localizer["Val.MaxLength"].Value, length);
-
 
         RuleFor(x => x.DeposerName)
             .NotEmpty()

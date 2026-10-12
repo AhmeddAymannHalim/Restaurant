@@ -1,79 +1,69 @@
-﻿@model Restaurant.DAL.Models.ApplicationSetting
-
+@model ApplicationSettingViewModel
 @{
-    ViewData["Title"] = "Application Setting";
+    ViewBag.Title = L["Setting_General"].Value;
 }
 
-<h1 class="text-center">الاعدادات العامة للمبيعات</h1>
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-sliders" aria-hidden="true"></i></span>
+        <h1>@L["Setting_SalesTitle"]</h1>
+    </div>
+    <div class="ad-card-body">
+<form asp-action="ApplicationSetting" method="post" class="ad-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="Id" />
 
+    <div class="form-group">
+        <label asp-for="Password" class="control-label">@L["Setting_Password"]</label>
+        <input asp-for="Password" type="password" class="form-control" autocomplete="new-password" placeholder="@L["LeaveBlankToKeep"]" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="OrderTax" class="control-label">@L["Setting_OrderTax"]</label>
+        <input asp-for="OrderTax" type="number" step="0.01" class="form-control" />
+        <span asp-validation-for="OrderTax" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="OrderDiscount" class="control-label">@L["Setting_OrderDiscount"]</label>
+        <input asp-for="OrderDiscount" type="number" step="0.01" class="form-control" />
+        <span asp-validation-for="OrderDiscount" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="OrderService" class="control-label">@L["Setting_OrderService"]</label>
+        <input asp-for="OrderService" type="number" step="0.01" class="form-control" />
+        <span asp-validation-for="OrderService" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="NumberOfCustomerPrint" class="control-label">@L["Setting_CustomerCopies"]</label>
+        <input asp-for="NumberOfCustomerPrint" type="number" class="form-control" />
+        <span asp-validation-for="NumberOfCustomerPrint" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="NumberOfKitchenPrint" class="control-label">@L["Setting_KitchenCopies"]</label>
+        <input asp-for="NumberOfKitchenPrint" type="number" class="form-control" />
+        <span asp-validation-for="NumberOfKitchenPrint" class="text-danger"></span>
+    </div>
 
-<hr />
-<div>
-    <div>
-        <form asp-action="ApplicationSetting" class="row" asp-controller="ApplicationSetting">
-            <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="form-group form-check">
+        <label class="form-check-label"><input class="form-check-input" asp-for="PrintAfterOrder" /> @L["Setting_PrintAfterOrder"]</label>
+    </div>
+    <div class="form-group form-check">
+        <label class="form-check-label"><input class="form-check-input" asp-for="PrintForTakeawayOrder" /> @L["Setting_PrintTakeaway"]</label>
+    </div>
+    <div class="form-group form-check">
+        <label class="form-check-label"><input class="form-check-input" asp-for="PrintForKitchen" /> @L["Setting_PrintKitchen"]</label>
+    </div>
+    <div class="form-group form-check">
+        <label class="form-check-label"><input class="form-check-input" asp-for="ShowTotalShift" /> @L["Setting_ShowShiftTotal"]</label>
+    </div>
 
-            <input asp-for="Id" hidden />
-
-            <div class="form-group col-md-4">
-                <label asp-for="Password" class="control-label">الرقم السري</label>
-                <input asp-for="Password" class="form-control" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-            <div class="form-group col-md-4">
-                <label asp-for="OrderTax" class="control-label">ضريبة الطلب بالنسبة المئوية</label>
-                <input asp-for="OrderTax" class="form-control" type="number" required />
-                <span asp-validation-for="OrderTax" class="text-danger"></span>
-            </div>
-            <div class="form-group col-md-4">
-                <label asp-for="OrderDiscount" class="control-label">الخصم بالقيمة</label>
-                <input asp-for="OrderDiscount" class="form-control" type="number" required />
-                <span asp-validation-for="OrderDiscount" class="text-danger"></span>
-            </div>
-            <div class="form-group col-md-4">
-                <label asp-for="OrderService" class="control-label">الخدمة بالقيمة</label>
-                <input asp-for="OrderService" class="form-control" type="number" required />
-                <span asp-validation-for="OrderService" class="text-danger"></span>
-            </div>
-            <div class="form-group  col-md-4">
-                <label asp-for="NumberOfCustomerPrint" class="control-label">عدد نسخ طباعة الفاتورة للعميل بعد البيع</label>
-                <input asp-for="NumberOfCustomerPrint" class="form-control" type="number" required />
-                <span asp-validation-for="NumberOfCustomerPrint" class="text-danger"></span>
-            </div>
-            <div class="form-group  col-md-4">
-                <label asp-for="NumberOfKitchenPrint" class="control-label">عدد نسخ طباعة اذن التجهيز</label>
-                <input asp-for="NumberOfKitchenPrint" class="form-control" type="number" required />
-                <span asp-validation-for="NumberOfKitchenPrint" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check  col-md-3 mt-3">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="PrintAfterOrder" /> طباعة شيك بعد عملية البيع
-                </label>
-            </div>
-            <div class="form-group form-check  col-md-3 mt-3">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="PrintForTakeawayOrder" /> طباعة البون لعميل التيك اواي
-                </label>
-            </div>
-            <div class="form-group form-check  col-md-3 mt-3">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="PrintForKitchen" /> طباعة بون للمطبخ
-                </label>
-            </div>
-            <div class="form-group form-check  col-md-3 mt-3">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="ShowTotalShift" /> عرض اجماليات الشيفت
-                </label>
-            </div>
-
-            <div class="form-group mt-3">
-                <input type="submit" value="تحديث" class="btn btn-primary" /> |
-                <a asp-action="Index" asp-controller="ApplicationSetting">عودة للاعدادات</a>
-            </div>
-        </form>
+    <div class="ad-form-actions">
+        <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Setting_Update"]</button>
+        <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Setting_Back"]</a>
+    </div>
+</form>
     </div>
 </div>
-
 
 @section Scripts {
     @{

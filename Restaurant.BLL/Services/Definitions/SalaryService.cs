@@ -22,7 +22,9 @@ public class SalaryService : ISalaryService
     {
         var result = await _unitOfWork.Salaries.GetPagedSalariesAsync(request);
 
-        return PaginatedResult<SalaryViewModel>.Create(_mapper.Map<List<SalaryViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<SalaryViewModel>.Create(_mapper.Map<List<SalaryViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<SalaryViewModel> GetSalaryByIdAsync(int id)

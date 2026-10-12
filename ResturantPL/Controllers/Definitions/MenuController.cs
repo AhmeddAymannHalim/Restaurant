@@ -12,7 +12,7 @@ using Shared.ViewModels.Definitions;
 
 namespace ResturantPL.Controllers.Definitions
 {
-    [Authorize]
+    [Authorize(Policy = "Staff")]
     public class MenuController : Controller
     {
         private readonly IMenuItemService _service;
@@ -20,7 +20,11 @@ namespace ResturantPL.Controllers.Definitions
         private readonly IToastrService _toastr;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public MenuController(IMenuItemService service, ILookupService lookup, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
+        public MenuController(
+            IMenuItemService service,
+            ILookupService lookup,
+            IToastrService toastr,
+            IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
             _lookup = lookup;
@@ -43,8 +47,7 @@ namespace ResturantPL.Controllers.Definitions
             }
         }
 
-        // baseId: "add a size" - starts a new item from an existing one.
-        public async Task<IActionResult> Upsert(int? id, int? baseId)
+        public async Task<IActionResult> Upsert(int? id)
         {
             try
             {
@@ -52,10 +55,6 @@ namespace ResturantPL.Controllers.Definitions
                 if (id.HasValue && id.Value > 0)
                 {
                     model = await _service.GetMenuItemByIdAsync(id.Value);
-                }
-                else if (baseId.HasValue && baseId.Value > 0)
-                {
-                    model = await _service.GetNewSizeFromAsync(baseId.Value);
                 }
 
                 if (model == null)
@@ -116,32 +115,34 @@ namespace ResturantPL.Controllers.Definitions
                     return Json(new { success = true });
                 }
 
-                return Json(new { success = false, errorMessage = _localizer[result.Message].Value });
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer[result.Message].Value
+                });
             }
             catch (Exception)
             {
-                return Json(new { success = false, errorMessage = _localizer["SomethingWentError"].Value });
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer["SomethingWentError"].Value
+                });
             }
         }
 
-        // AJAX: the component picker (also used by the invoice screens)
         [HttpGet]
         public async Task<IActionResult> GetProductsByStore(int storeId)
         {
             return Json(await _lookup.StoreProductLookupByStoreIdAsync(storeId));
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetPriceByProduct(int productId)
-        {
-            return Json(await _lookup.StoreProductLookupByIdAsync(productId));
-        }
-
         private async Task PopulateData(MenuItemViewModel model)
         {
-            var textField = LanguageHelper.IsArabic() ? "ArName" : "EnName";
-            model.MenuSections = new SelectList(await _lookup.MenuSectionLookupAsync(), "Id", textField, model.MenuSectionId);
-            model.Stores = new SelectList(await _lookup.StoreLookupAsync(), "Id", textField, model.StoreId);
+            model.MenuSections = await _lookup.MenuSectionLookupAsync();
+            model.Stores = await _lookup.StoreLookupAsync();
+            model.Products = await _lookup.ProductLookupAsync();
+            model.Categories = await _lookup.ProductCategoryLookupAsync();
         }
     }
 }

@@ -22,7 +22,9 @@ public class ExpenseService : IExpenseService
     {
         var result = await _unitOfWork.Expenses.GetPagedExpensesAsync(request);
 
-        return PaginatedResult<ExpenseViewModel>.Create(_mapper.Map<List<ExpenseViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<ExpenseViewModel>.Create(_mapper.Map<List<ExpenseViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<ExpenseViewModel> GetExpenseByIdAsync(int id)

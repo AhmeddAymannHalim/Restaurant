@@ -8,7 +8,8 @@ namespace Restaurant.BLL.Validations.UnitPrice;
 
 public class UnitPriceVmValidator : AbstractValidator<UnitPriceViewModel>
 {
-    public UnitPriceVmValidator(IStringLocalizer<SharedResource> localizer,
+    public UnitPriceVmValidator(
+        IStringLocalizer<SharedResource> localizer,
         IValidatorService<Restaurant.DAL.Models.UnitPrice> validator)
     {
         var required = localizer["Val.RequiredField"].Value;

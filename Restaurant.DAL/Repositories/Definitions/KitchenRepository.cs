@@ -16,7 +16,7 @@ public class KitchenRepository : IKitchenRepository
         _context = context;
     }
 
-    public async Task<PaginatedResult<kitchen>> GetPagedKitchensAsync(PageRequest request)
+    public async Task<PaginatedResult<Kitchen>> GetPagedKitchensAsync(PageRequest request)
     {
         var query = _context.Kitchens.AsNoTracking().AsQueryable();
 
@@ -33,15 +33,15 @@ public class KitchenRepository : IKitchenRepository
             .Take(request.PageSize)
             .ToListAsync();
 
-        return PaginatedResult<kitchen>.Create(data, total, request);
+        return PaginatedResult<Kitchen>.Create(data, total, request);
     }
 
-    public async Task<kitchen> GetKitchenByIdAsync(int id)
+    public async Task<Kitchen> GetKitchenByIdAsync(int id)
     {
         return await _context.Kitchens.FindAsync(id);
     }
 
-    public async Task<ResultMessage> UpsertKitchenAsync(kitchen entity)
+    public async Task<ResultMessage> UpsertKitchenAsync(Kitchen entity)
     {
         try
         {
@@ -55,7 +55,11 @@ public class KitchenRepository : IKitchenRepository
                 var existing = await _context.Kitchens.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
-                    return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "RecordNotFound"
+                    };
                 }
 
                 _context.Kitchens.Update(entity);
@@ -66,7 +70,11 @@ public class KitchenRepository : IKitchenRepository
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -87,11 +95,19 @@ public class KitchenRepository : IKitchenRepository
         }
         catch (DbUpdateException)
         {
-            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "CannotDeleteLinkedRecord"
+            };
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 }

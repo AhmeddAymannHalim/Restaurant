@@ -1,4 +1,3 @@
-﻿
 function Delete(url, redirectUrl) {
     swal({
         title: "هل انت متأكد",
@@ -9,7 +8,6 @@ function Delete(url, redirectUrl) {
     })
         .then((willDelete) => {
             if (willDelete) {
-
                 $.ajax({
                     url: url,
                     type: "POST",
@@ -21,6 +19,8 @@ function Delete(url, redirectUrl) {
 
                             if (redirectUrl) {
                                 window.location.href = redirectUrl;
+                            } else if (window.appAjax) {
+                                window.appAjax.reload();
                             } else {
                                 location.reload();
                             }

@@ -1,0 +1,11 @@
+@model string
+@{
+    var isArabic = LanguageHelper.IsArabic();
+}
+
+<div class="ad-export" data-table-export data-table-id="@Model" data-title="@ViewBag.Title" data-rtl="@(isArabic ? "1" : "0")"
+     data-excel-url="@Url.Action("Excel", "TableExport")" data-pdf-url="@Url.Action("Pdf", "TableExport")"
+     data-empty="@L["NoRowsToExport"]" data-failed="@L["ExportFailed"]">
+    <button type="button" class="btn-ad btn-ad-ghost" data-export-format="excel"><i class="fas fa-file-excel" aria-hidden="true"></i> @L["ExportExcel"]</button>
+    <button type="button" class="btn-ad btn-ad-ghost" data-export-format="pdf"><i class="fas fa-file-pdf" aria-hidden="true"></i> @L["ExportPdf"]</button>
+</div>

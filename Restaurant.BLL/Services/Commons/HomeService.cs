@@ -5,29 +5,41 @@ using Shared.ViewModels.Definitions;
 
 namespace Restaurant.BLL.Services.Commons;
 
-public class WebsiteService : IWebsiteService
+public class HomeService : IHomeService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public WebsiteService(IUnitOfWork unitOfWork, IMapper mapper)
+    public HomeService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
 
-    public async Task<WebsiteViewModel> GetWebsiteAsync()
+    public async Task<HomeViewModel> GetHomeAsync()
     {
-        var model = _mapper.Map<WebsiteViewModel>(await _unitOfWork.Website.GetIndexSettingsAsync()) ?? new WebsiteViewModel();
-        model.MenuSections = _mapper.Map<List<WebsiteMenuSectionViewModel>>(await _unitOfWork.Website.GetMenuSectionsAsync());
-        model.Chefs = _mapper.Map<List<ChefViewModel>>(await _unitOfWork.Website.GetChefsAsync());
-        model.Gallery = _mapper.Map<List<GalleryViewModel>>(await _unitOfWork.Website.GetGalleryAsync());
+        var model = _mapper.Map<HomeViewModel>(await _unitOfWork.Home.GetIndexSettingsAsync()) ?? new HomeViewModel();
+        model.MenuSections = (await _unitOfWork.Lookups.ReadyMenuSectionLookupAsync()).ToList();
+        model.Chefs = _mapper.Map<List<ChefViewModel>>(await _unitOfWork.Home.GetChefsAsync());
+        model.Gallery = _mapper.Map<List<GalleryViewModel>>(await _unitOfWork.Home.GetGalleryAsync());
 
         return model;
     }
 
-    public async Task<IEnumerable<WebsiteMenuItemViewModel>> GetMenuItemsAsync(int? sectionId)
+    public async Task<SitePricingViewModel> GetPricingAsync()
     {
-        return _mapper.Map<List<WebsiteMenuItemViewModel>>(await _unitOfWork.Website.GetMenuItemsAsync(sectionId));
+        var settings = await _unitOfWork.Home.GetSettingsAsync();
+
+        return new SitePricingViewModel
+        {
+            TaxPercent = settings?.OrderTax ?? 0,
+            Service = settings?.OrderService ?? 0,
+            Zones = _mapper.Map<List<DeliveryZoneViewModel>>(await _unitOfWork.DeliveryZones.GetAllDeliveryZonesAsync())
+        };
+    }
+
+    public async Task<IEnumerable<HomeMenuItemViewModel>> GetMenuItemsAsync(int? sectionId)
+    {
+        return _mapper.Map<List<HomeMenuItemViewModel>>(await _unitOfWork.Home.GetMenuItemsAsync(sectionId));
     }
 }

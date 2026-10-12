@@ -12,7 +12,7 @@ using Shared.ViewModels.Definitions;
 
 namespace ResturantPL.Controllers.Definitions
 {
-    [Authorize]
+    [Authorize(Policy = "Staff")]
     public class EmployeeController : Controller
     {
         private readonly IEmployeeService _service;
@@ -20,7 +20,11 @@ namespace ResturantPL.Controllers.Definitions
         private readonly IToastrService _toastr;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public EmployeeController(IEmployeeService service, ILookupService lookup, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
+        public EmployeeController(
+            IEmployeeService service,
+            ILookupService lookup,
+            IToastrService toastr,
+            IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
             _lookup = lookup;
@@ -114,21 +118,27 @@ namespace ResturantPL.Controllers.Definitions
                     return Json(new { success = true });
                 }
 
-                return Json(new { success = false, errorMessage = _localizer[result.Message].Value });
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer[result.Message].Value
+                });
             }
             catch (Exception)
             {
-                return Json(new { success = false, errorMessage = _localizer["SomethingWentError"].Value });
+                return Json(new
+                {
+                    success = false,
+                    errorMessage = _localizer["SomethingWentError"].Value
+                });
             }
         }
 
         private async Task PopulateData(EmployeeViewModel model)
         {
-            var nameColumn = LanguageHelper.IsArabic() ? "ArName" : "EnName";
-
-            model.Branches = new SelectList(await _lookup.BranchLookupAsync(), "Id", nameColumn, model.BrancheId);
-            model.Jobs = new SelectList(await _lookup.JobLookupAsync(), "Id", nameColumn, model.JobId);
-            model.SalaryTypes = new SelectList(await _lookup.SalaryTypeLookupAsync(), "Id", nameColumn, model.SalaryTypeId);
+            model.Branches = await _lookup.BranchLookupAsync();
+            model.Jobs = await _lookup.JobLookupAsync();
+            model.SalaryTypes = await _lookup.SalaryTypeLookupAsync();
         }
     }
 }

@@ -8,7 +8,8 @@ namespace Restaurant.BLL.Validations.Expense;
 
 public class ExpenseVmValidator : AbstractValidator<ExpenseViewModel>
 {
-    public ExpenseVmValidator(IStringLocalizer<SharedResource> localizer,
+    public ExpenseVmValidator(
+        IStringLocalizer<SharedResource> localizer,
         IValidatorService<Restaurant.DAL.Models.Expense> validator)
     {
         var required = localizer["Val.RequiredField"].Value;

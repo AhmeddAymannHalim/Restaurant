@@ -8,8 +8,9 @@ namespace Restaurant.BLL.Validations.Kitchen;
 
 public class KitchenVmValidator : AbstractValidator<KitchenViewModel>
 {
-    public KitchenVmValidator(IStringLocalizer<SharedResource> localizer,
-        IValidatorService<Restaurant.DAL.Models.kitchen> validator)
+    public KitchenVmValidator(
+        IStringLocalizer<SharedResource> localizer,
+        IValidatorService<Restaurant.DAL.Models.Kitchen> validator)
     {
         var required = localizer["Val.RequiredField"].Value;
         string MaxLength(int length) => string.Format(localizer["Val.MaxLength"].Value, length);

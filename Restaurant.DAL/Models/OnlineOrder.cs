@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,9 +17,15 @@ namespace Restaurant.DAL.Models
         public decimal TotalPrice { get; set; }
         public DateTime OrderDate { get; set; }
         public bool IsPending { get; set; }
-
+        public int? TableId { get; set; }
+        public int? DeliveryZoneId { get; set; }
+        public decimal DeliveryFee { get; set; }
+        public decimal Tax { get; set; }
+        public decimal Service { get; set; }
 
         public virtual ApplicationUser Customer { get; set; }
+        public virtual DeliveryZone DeliveryZone { get; set; }
+        public virtual Table Table { get; set; }
         public virtual ICollection<OnlineOrderMenuItem> OnlineOrderMenuItems { get; set; }
     }
 
@@ -31,8 +37,6 @@ namespace Restaurant.DAL.Models
         public decimal Quantity { get; set; }
         public decimal PriceForUnit { get; set; }
         public decimal Price { get; set; }
-
-
 
         public virtual OnlineOrder OnlineOrder { get; set; }
         public virtual MenuItem MenuItem { get; set; }

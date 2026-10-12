@@ -14,10 +14,8 @@ namespace Restaurant.DAL.Models
         public int FromStoreId { get; set; }
         public int ToStoreId { get; set; }
 
-
         public virtual Store FromStore { get; set; }
         public virtual Store ToStore { get; set; }
         public virtual ICollection<StoreConvertProduct> StoreConvertProducts { get; set; }
-
     }
 }

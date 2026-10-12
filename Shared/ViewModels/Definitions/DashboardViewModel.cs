@@ -1,3 +1,5 @@
+using Shared.Enums;
+
 namespace Shared.ViewModels.Definitions;
 
 public class DashboardViewModel
@@ -5,52 +7,66 @@ public class DashboardViewModel
     public string UserName { get; set; }
     public string UserImage { get; set; }
 
-    // Operations
-    public int PendingKitchenOrders { get; set; }
-    public int Invoices { get; set; }
-    public int StoreConverts { get; set; }
-    public int SupplierPayments { get; set; }
-    public int CustomerPayments { get; set; }
+    public int ShiftOrders { get; set; }
+    public decimal ShiftSales { get; set; }
+    public int WaitingOnline { get; set; }
+    public int InKitchen { get; set; }
+    public int AwaitingPayment { get; set; }
+    public decimal AwaitingPaymentAmount { get; set; }
 
-    // Organization
-    public int Branches { get; set; }
-    public int Jobs { get; set; }
-    public int Employees { get; set; }
-    public int EmployeeAccounts { get; set; }
-    public int SalaryTypes { get; set; }
-    public int Users { get; set; }
-    public int Roles { get; set; }
-
-    // Kitchen and menu
-    public int Kitchens { get; set; }
-    public int MenuSections { get; set; }
-    public int MenuItems { get; set; }
-    public int Tables { get; set; }
-
-    // Inventory
-    public int Stores { get; set; }
-    public int Products { get; set; }
-    public int UnitPrices { get; set; }
-
-    // Partners
-    public int Suppliers { get; set; }
-    public int Customers { get; set; }
-
-    // Finance
-    public int Expenses { get; set; }
-    public int ExitExpenses { get; set; }
-    public int Deposits { get; set; }
-    public int Scrounges { get; set; }
-    public int Salaries { get; set; }
-
-    public List<DashboardCustomerItem> TopCustomers { get; set; } = new();
+    public List<DashboardTypeRow> ByType { get; set; } = new();
+    public List<DashboardOnlineItem> OnlineRequests { get; set; } = new();
+    public List<DashboardKitchenItem> Kitchen { get; set; } = new();
+    public List<DashboardUnpaidItem> Unpaid { get; set; } = new();
 }
 
-public class DashboardCustomerItem
+public class DashboardTypeRow
 {
-    public int Id { get; set; }
+    public OrderType Type { get; set; }
+    public int InKitchen { get; set; }
+    public int Unpaid { get; set; }
+    public int Paid { get; set; }
+}
+
+public class DashboardLine
+{
     public string ArName { get; set; }
     public string EnName { get; set; }
+    public decimal Quantity { get; set; }
+}
+
+public class DashboardOnlineItem
+{
+    public int Id { get; set; }
+    public string CustomerName { get; set; }
     public string MobileNumber { get; set; }
-    public decimal Balance { get; set; }
+    public string Address { get; set; }
+    public int? TableId { get; set; }
+    public string TableArName { get; set; }
+    public string TableEnName { get; set; }
+    public decimal TotalPrice { get; set; }
+    public DateTime OrderDate { get; set; }
+    public List<DashboardLine> Items { get; set; } = new();
+}
+
+public class DashboardKitchenItem
+{
+    public int Id { get; set; }
+    public string OrderCode { get; set; }
+    public OrderType Type { get; set; }
+    public string TableArName { get; set; }
+    public string TableEnName { get; set; }
+    public DateTime OrderDate { get; set; }
+    public List<DashboardLine> Items { get; set; } = new();
+}
+
+public class DashboardUnpaidItem
+{
+    public int Id { get; set; }
+    public string OrderCode { get; set; }
+    public OrderType Type { get; set; }
+    public string TableArName { get; set; }
+    public string TableEnName { get; set; }
+    public decimal TotalPrice { get; set; }
+    public DateTime OrderDate { get; set; }
 }

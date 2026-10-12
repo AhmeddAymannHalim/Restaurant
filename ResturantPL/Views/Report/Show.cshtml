@@ -1,0 +1,150 @@
+@model ReportViewModel
+@{
+    ViewBag.Title = L["Report_" + Model.Report].Value;
+    var isArabic = LanguageHelper.IsArabic();
+
+    string Format(object cell, string column)
+    {
+        if (cell == null)
+        {
+            return string.Empty;
+        }
+
+        if (cell is DateTime date)
+        {
+            return date.ToString("yyyy-MM-dd");
+        }
+
+        if (cell is decimal amount)
+        {
+            return amount.ToString("N2");
+        }
+
+        if (cell is Enum value)
+        {
+            return L[value.ToString()].Value;
+        }
+
+        var text = cell.ToString();
+
+        if (column == "Item" || column == "PaymentStatus")
+        {
+            return L[text].Value;
+        }
+
+        if (column == "Description")
+        {
+            var parts = text.Split(' ', 2);
+            var key = L[parts[0]];
+
+            if (!key.IsResourceNotFound)
+            {
+                return parts.Length > 1 ? key.Value + " " + parts[1] : key.Value;
+            }
+        }
+
+        return text;
+    }
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-chart-column" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title</h1>
+        <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Show" method="get" class="ad-filters">
+            <input type="hidden" name="report" value="@Model.Report" />
+
+            <input type="date"
+                   name="fromDate"
+                   class="form-control w-auto"
+                   value="@Model.FromDate.ToString("yyyy-MM-dd")"
+                   aria-label="@L["From"]"
+                   title="@L["From"]" />
+
+            <input type="date"
+                   name="toDate"
+                   class="form-control w-auto"
+                   value="@Model.ToDate.ToString("yyyy-MM-dd")"
+                   aria-label="@L["To"]"
+                   title="@L["To"]" />
+
+            @if (Model.UsesPartner)
+            {
+                <select name="partnerId" class="form-select w-auto" aria-label="@L[Model.PartnerLabel]">
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.Partners)
+                    {
+                        <option value="@item.Id" selected="@(Model.PartnerId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+            }
+
+            @if (Model.UsesType)
+            {
+                <select name="type" class="form-select w-auto" aria-label="@L["Type"]">
+                    <option value="">@L["AllTypes"]</option>
+                    @foreach (var type in Model.Types)
+                    {
+                        <option value="@type" selected="@(Model.Type == type)">@L[type]</option>
+                    }
+                </select>
+            }
+
+            <button type="submit" class="btn-ad btn-ad-primary">
+                <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                @L["ShowReport"]
+            </button>
+        </form>
+
+        @if (Model.Totals.Any())
+        {
+            <div class="shift-totals">
+                @foreach (var total in Model.Totals)
+                {
+                    <div class="shift-tile">
+                        <span>@L[total.Label]</span>
+                        <strong>@(total.Label == "Count" ? total.Value.ToString("0") : total.Value.ToString("N2"))</strong>
+                    </div>
+                }
+            </div>
+        }
+
+        @await Html.PartialAsync("_ExportToolbar", "Report-table")
+
+        <div class="ad-table-wrap">
+            <table id="Report-table" class="ad-table">
+                <thead>
+                    <tr>
+                        @foreach (var column in Model.Columns)
+                        {
+                            <th>@L[column]</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Rows.Any())
+                    {
+                        foreach (var row in Model.Rows)
+                        {
+                            <tr>
+                                @for (var index = 0; index < row.Count; index++)
+                                {
+                                    <td class="@(row[index] is decimal ? "num" : "")">@Format(row[index], Model.Columns[index])</td>
+                                }
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="@Model.Columns.Count" class="ad-empty">@L["NoData"]</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

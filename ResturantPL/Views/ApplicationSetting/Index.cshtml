@@ -1,65 +1,31 @@
-﻿@{
-    ViewData["Title"] = "Settings";
+@{
+    ViewBag.Title = L["Setting_Title"].Value;
+    var tiles = new[]
+    {
+        (Action: "ApplicationSetting", Icon: "fa-sliders", Title: "Setting_General", Text: "Setting_GeneralDesc"),
+        (Action: "RestaurantSetting", Icon: "fa-bars-progress", Title: "Setting_Restaurant", Text: "Setting_RestaurantDesc"),
+        (Action: "PrinterSetting", Icon: "fa-print", Title: "Setting_Printers", Text: "Setting_PrintersDesc")
+    };
+    var index = 0;
 }
 
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-
-
-<div class="container mt-5">
-    <h1 class="mb-4 text-center">الاعدادات</h1>
-    <hr />
-
-    <div class="row text-center">
-
-        <div class="col-md-3 mb-4">
-            <div class="card h-100 bg-dark text-light">
-                <div class="card-body">
-                    <h5 class="card-title">الاعدادات العامة</h5>
-                    <i class="fa-solid fa-sliders"></i>
-                    <p class="card-text">الاعدادات الخاصة بالمبيعات</p>
-                </div>
-                <div class="card-footer">
-                    <a asp-action="ApplicationSetting" asp-controller="ApplicationSetting" class="btn btn-primary">
-                        <i class="fa-solid fa-gear"></i> فتح الاعدادات
-                    </a>
-                </div>
-            </div>
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-gear" aria-hidden="true"></i></span>
+        <h1>@L["Setting_Title"]</h1>
+    </div>
+    <div class="ad-card-body">
+        <div class="dash-grid">
+            @foreach (var tile in tiles)
+            {
+                <a class="tile" style="--i:@(index++)" asp-action="@tile.Action">
+                    <span class="tile-icon"><i class="fas @tile.Icon" aria-hidden="true"></i></span>
+                    <span class="tile-text">
+                        <span class="tile-label">@L[tile.Title]</span>
+                        <span class="tile-note">@L[tile.Text]</span>
+                    </span>
+                </a>
+            }
         </div>
-
-
-        <div class="col-md-3 mb-4">
-            <div class="card h-100 bg-dark text-light">
-                <div class="card-body">
-                    <h5 class="card-title">اعدادات المطعم</h5>
-                    <i class="fa-solid fa-bars-progress"></i>
-                    <p class="card-text">الاعدادات الخاصة ببيانات المطعم</p>
-                </div>
-                <div class="card-footer">
-                    <a asp-action="RestaurantSetting" asp-controller="ApplicationSetting" class="btn btn-primary">
-                        <i class="fa-solid fa-gear"></i> فتح الاعدادات
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 mb-4">
-            <div class="card h-100 bg-dark text-light">
-                <div class="card-body">
-                    <h5 class="card-title">اعدادات الطابعات</h5>
-                    <i class="fa-solid fa-print"></i>
-                    <p class="card-text">الاعدادات الخاصة بالطابعات</p>
-                </div>
-                <div class="card-footer">
-                    <a asp-action="PrinterSetting" asp-controller="ApplicationSetting" class="btn btn-primary">
-                        <i class="fa-solid fa-gear"></i> فتح الاعدادات
-                    </a>
-                </div>
-            </div>
-        </div>
-
-
-
     </div>
 </div>

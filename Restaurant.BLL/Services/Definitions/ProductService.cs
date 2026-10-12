@@ -22,7 +22,9 @@ public class ProductService : IProductService
     {
         var result = await _unitOfWork.Products.GetPagedProductsAsync(request);
 
-        return PaginatedResult<ProductViewModel>.Create(_mapper.Map<List<ProductViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<ProductViewModel>.Create(_mapper.Map<List<ProductViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<ProductViewModel> GetProductByIdAsync(int id)
@@ -36,7 +38,13 @@ public class ProductService : IProductService
     {
         var entity = _mapper.Map<Product>(model);
 
-        return await _unitOfWork.Products.UpsertProductAsync(entity);
+        var stocks = model.Stocks.Select(a => new StoreProduct
+        {
+            StoreId = a.StoreId,
+            Quantity = a.Quantity
+        }).ToList();
+
+        return await _unitOfWork.Products.UpsertProductAsync(entity, stocks);
     }
 
     public async Task<ResultMessage> DeleteProductAsync(int id)

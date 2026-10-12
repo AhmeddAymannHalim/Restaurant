@@ -1,209 +1,119 @@
-﻿@{
-    ViewData["Title"] = "Basket";
+@{
+    ViewData["Title"] = L["Cart"].Value;
+    var isArabic = LanguageHelper.IsArabic();
 }
 
-<section id="basket" class="basket section-bg m-3">
-    <div class="container mt-4" data-aos="fade-up" style="min-height:200px;">
-        <h2 class="section-title">سلة المشتريات</h2>
-        <hr />
-        <div id="basket-items" class="row">
-            <!-- Basket items will be dynamically inserted here -->
+<div class="ws" dir="@(isArabic ? "rtl" : "ltr")">
+    <section class="ws-page">
+        <div class="ws-wrap">
+            <header class="ws-page-head">
+                <h1>@L["Basket"]</h1>
+                <p><span data-cart-summary>0</span> @L["CartItems"]</p>
+            </header>
+
+            <p id="cartEmpty" class="ws-empty" hidden>
+                @L["BasketEmpty"]<br />
+                <a class="ws-link" asp-action="Menu">@L["ContinueShopping"]</a>
+            </p>
+
+            <div id="cartContent" class="ws-split" hidden>
+                <div id="cartList"></div>
+
+                <aside class="ws-ticket">
+                    <h2>@L["YourOrder"]</h2>
+                    <div id="ticketLines"></div>
+                    <div class="ws-ticket-total">
+                        <span>@L["TotalPrice"]</span>
+                        <span><span id="cartTotal">0.00</span> @L["Currency"]</span>
+                    </div>
+                    <small>@L["DeliveryFeeExtra"]</small>
+                    <a class="ws-btn ws-btn-solid" asp-action="Checkout">@L["ToCheckout"]</a>
+                    <a class="ws-link" asp-action="Menu">@L["ContinueShopping"]</a>
+                </aside>
+            </div>
         </div>
-    </div>
+    </section>
+</div>
 
-    <!-- Order Button and Form -->
-    <div class="row m-4">
-        <div class="col-md-4 ">
-            <button id="orderAllButton" class="btn btn-success btn-block" style="width:200px;">طلب الآن</button>
-            <form id="orderForm" asp-action="Create" asp-controller="OnlineOrder" style="display: none;">
-                <div class="form-group">
-                    <input type="text" class="form-control mb-2" name="CustomerName" id="customerName" required placeholder="ادخل اسمك" minlength="3">
-                </div>
-                <div class="form-group">
-                    <input type="text" class="form-control mb-2" name="MobileNumber" id="mobileNumber" required placeholder="ادخل رقم موبايلك" maxlength="11">
-                </div>
-                <div class="form-group">
-                    <input type="text" class="form-control mb-2" name="PhoneNumber" id="phoneNumber" placeholder="ادخل رقم هاتفك" maxlength="11" minlength="11">
-                </div>
-                <div class="form-group">
-                    <input type="text" class="form-control mb-2" name="Address" id="address" required placeholder="ادخل عنوانك بالتفصيل" minlength="5">
-                </div>
-                <!-- Quantity for each item will be dynamically inserted here -->
-                <div id="quantityInputs">
-                    <!-- Quantity inputs will be dynamically inserted here -->
-                </div>
-
-                <input type="text" class="form-control mb-2 total-price-input" name="TotalPrice" placeholder="السعر الإجمالي" readonly>
-
-                <button type="submit" class="btn btn-success btn-block">تأكيد الطلب</button>
-            </form>
-        </div>
-    </div>
-</section>
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-
-
-
-
     <script>
-        $(document).ready(function () {
-            // Function to display basket items
-            function displayBasketItems() {
-                var basketItems = JSON.parse(localStorage.getItem('basket')) || [];
-                var basketContainer = $('#basket-items');
-                basketContainer.empty();
-                basketItems.forEach(function (item) {
-                    var itemHtml = `
-                                                <div class="col-lg-6 mt-4">
-                                                    <div class="row align-items-center">
-                                                        <div class="col-md-4">
-                                                            <img src="${item.imageUrl}" class="menu-img" alt="image" style="max-width: 100%;">
-                                                        </div>
-                                                        <div class="col-md-8">
-                                                            <div class="menu-content" style="font-size:22px;">
-                                                               <span>${item.name} ${item.size !== 'عادي' ? '(' + item.size + ')' : ''} -- </span> <span>LE ${item.price}</span>
-                                                            </div>
-                                                            <div class="menu-ingredients" style="direction: rtl;">
-                                                                ${item.description}
-                                                            </div>
-                                                            <div>
-                                                                <button class="btn-menu delete-from-basket btn btn-primary mt-2"
-                                                                    data-id="${item.id}"
-                                                                    data-name="${item.name}"
-                                                                    data-price="${item.price}">
-                                                                    حذف من السلة
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>`;
-                    basketContainer.append(itemHtml);
-                });
+        $(function () {
+            var isArabic = @Html.Raw(Json.Serialize(isArabic));
+            var currency = @Html.Raw(Json.Serialize(L["Currency"].Value));
+            var removeText = @Html.Raw(Json.Serialize(L["RemoveFromBasket"].Value));
+            var sizeNames = {
+                Small: @Html.Raw(Json.Serialize(L["Size.Small"].Value)),
+                Medium: @Html.Raw(Json.Serialize(L["Size.Medium"].Value)),
+                Large: @Html.Raw(Json.Serialize(L["Size.Large"].Value)),
+                Syrian_Bread: @Html.Raw(Json.Serialize(L["Size.Syrian_Bread"].Value))
+            };
+            var menu = {};
+
+            function nameOf(item) {
+                var name = isArabic ? (item.arName || item.enName) : (item.enName || item.arName);
+                return item.size ? name + ' (' + (sizeNames[item.size] || item.size) + ')' : name;
             }
 
-            // Call the function to display basket items
-            displayBasketItems();
+            function render() {
+                var basket = siteCart.read();
+                var ids = Object.keys(basket).filter(function (id) { return menu[id]; });
+                var list = $('#cartList').empty();
+                var lines = $('#ticketLines').empty();
+                var total = 0;
+                var pieces = 0;
 
+                ids.forEach(function (id) {
+                    var item = menu[id];
+                    var quantity = parseInt(basket[id], 10) || 1;
+                    total += item.price * quantity;
+                    pieces += quantity;
 
-            // Show order form when clicking the order all button
-            $('#orderAllButton').click(function () {
-                $('#orderForm').show();
-                $(this).hide();
+                    var row = $('<div class="ws-cart-row">').attr('data-id', id);
+                    row.append(item.imageUrl
+                        ? $('<img alt="">').attr('src', item.imageUrl)
+                        : $('<div class="ws-cart-ph" aria-hidden="true"><i class="bi bi-egg-fried"></i></div>'));
+                    row.append($('<div>')
+                        .append($('<h3 class="ws-cart-name">').text(nameOf(item)))
+                        .append($('<div class="ws-cart-meta">').text(item.price.toFixed(2) + ' ' + currency)));
+                    row.append($('<div class="ws-stepper">')
+                        .append($('<button type="button" class="qty-minus" aria-label="-">').text('-'))
+                        .append($('<input type="number" min="1" class="qty-input">').val(quantity))
+                        .append($('<button type="button" class="qty-plus" aria-label="+">').text('+')));
+                    row.append($('<button type="button" class="ws-remove remove-item">').attr('title', removeText).attr('aria-label', removeText).html('<i class="bi bi-trash3" aria-hidden="true"></i>'));
+                    list.append(row);
 
-                // Append a quantity input field for each item
-                var quantityInputs = $('#quantityInputs');
-                quantityInputs.empty(); // Clear previous quantity inputs
-                $.each(JSON.parse(localStorage.getItem('basket')) || [], function (index, item) {
-                    // Create label for input field
-                    //var label = $('<label>').attr('for', 'quantity-' + item.id).text('كمية ' + item.name + ' (' + item.size + ' ) : ');
-                    var label = $('<label>').attr('for', 'quantity-' + item.id).text('كمية ' + item.name + (item.size !== 'عادي' ? ' (' + item.size + ')' : '') + ' : ');
-
-                    var input = $('<input>').attr({
-                        type: 'number',
-                        class: 'form-control mb-2 quantity-input',
-                        placeholder: 'ادخل الكمية المطلوبة لـ ' + item.name,
-                        name: 'quantity-' + item.id,
-                        value: 1, // Set default value to 1
-                        min: 1 // Set minimum value to 1
-                    });
-                    quantityInputs.append(label, input);
+                    lines.append($('<div class="ws-ticket-line">')
+                        .append($('<span>').text(quantity + ' x ' + nameOf(item)))
+                        .append($('<span>').text((item.price * quantity).toFixed(2))));
                 });
 
-                calculateTotalPrice(); // Calculate total price initially
-            });
-
-            // Event listener for delete buttons
-            $(document).on('click', '.delete-from-basket', function () {
-                const itemId = this.getAttribute('data-id');
-                removeFromBasket(itemId);
-                $(this).closest('.col-lg-6').remove();
-                calculateTotalPrice(); // Calculate total price when an item is removed
-            });
-
-            // Event listener for quantity input change
-            $(document).on('change', '.quantity-input', function () {
-                calculateTotalPrice(); // Calculate total price when quantity changes
-            });
-
-            // Function to calculate total price dynamically based on quantity
-            function calculateTotalPrice() {
-                var totalPrice = 0;
-                $('.quantity-input').each(function () {
-                    var itemId = $(this).attr('name').split('-')[1];
-                    var itemPrice = parseFloat($('#basket-items').find('[data-id="' + itemId + '"]').data('price'));
-                    var quantity = parseInt($(this).val()) || 0;
-                    totalPrice += itemPrice * quantity;
-                });
-                $('.total-price-input').val('LE ' + totalPrice.toFixed(2) + ' + سعر خدمة التوصيل');
+                $('#cartTotal').text(total.toFixed(2));
+                $('[data-cart-summary]').text(pieces);
+                $('#cartEmpty').prop('hidden', ids.length > 0);
+                $('#cartContent').prop('hidden', ids.length === 0);
             }
 
-            $('#orderForm').on('input', '.quantity-input', function () {
-                var totalPrice = 0;
-                $('.quantity-input').each(function () {
-                    var itemId = $(this).attr('name').split('-')[1];
-                    var itemPrice = parseFloat($('#basket-items').find('[data-id="' + itemId + '"]').data('price'));
-                    var quantity = parseInt($(this).val()) || 0;
-                    totalPrice += itemPrice * quantity;
-                });
-                $('.total-price-input').val('LE ' + totalPrice.toFixed(2) + ' + سعر خدمة التوصيل');
+            $(document).on('click', '.qty-plus', function () {
+                var id = $(this).closest('.ws-cart-row').data('id');
+                siteCart.set(id, (parseInt(siteCart.read()[id], 10) || 0) + 1);
+            });
+            $(document).on('click', '.qty-minus', function () {
+                var id = $(this).closest('.ws-cart-row').data('id');
+                siteCart.set(id, (parseInt(siteCart.read()[id], 10) || 0) - 1);
+            });
+            $(document).on('change', '.qty-input', function () {
+                siteCart.set($(this).closest('.ws-cart-row').data('id'), parseInt($(this).val(), 10) || 1);
+            });
+            $(document).on('click', '.remove-item', function () {
+                siteCart.set($(this).closest('.ws-cart-row').data('id'), 0);
             });
 
+            document.addEventListener('cart:changed', render);
 
-            // Submit order form
-            $('#orderForm').submit(function () {
-                var index = 0;
-                var totalPrice = 0; // Initialize totalPrice variable
-
-                $('#quantityInputs input').each(function () {
-                    var itemId = $(this).attr('name').split('-')[1];
-                    var quantity = parseInt($(this).val()) || 0;
-                    var itemPrice = parseFloat($('#basket-items').find('[data-id="' + itemId + '"]').data('price'));
-
-                    if (quantity >= 1) {
-                        totalPrice += itemPrice * quantity;
-
-                        // Create hidden input fields for each property of the OrderOnlineMenuItemViewModel
-                        $('<input>').attr({
-                            type: 'hidden',
-                            name: 'OnlineOrderMenuItems[' + index + '].MenuItemId',
-                            value: itemId
-                        }).appendTo('#orderForm');
-
-                        $('<input>').attr({
-                            type: 'hidden',
-                            name: 'OnlineOrderMenuItems[' + index + '].Quantity',
-                            value: quantity
-                        }).appendTo('#orderForm');
-
-                        // Increment index
-                        index++;
-
-                        if (quantity > 1) {
-                            removeFromBasket(itemId);
-                        } else {
-                            $(this).val(1);
-                        }
-                    }
-                });
-
-                $('.total-price-input').val(totalPrice.toFixed(2));
-                //localStorage.removeItem('basket');
-                //displayBasketItems();
+            $.get('/Home/MenuItems', function (items) {
+                items.forEach(function (item) { menu[item.id] = item; });
+                render();
             });
-
-            // Function to remove item from basket
-            function removeFromBasket(id) {
-                var basketItems = JSON.parse(localStorage.getItem('basket')) || [];
-                basketItems = basketItems.filter(function (item) {
-                    return item.id !== id;
-                });
-                localStorage.setItem('basket', JSON.stringify(basketItems));
-                //displayBasketItems(); // Update displayed basket items
-            }
         });
     </script>
 }
-

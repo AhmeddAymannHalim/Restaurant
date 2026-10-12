@@ -23,7 +23,9 @@ public class BranchRepository : IBranchRepository
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search) || a.Code.ToLower().Contains(search));
+            query = query.Where(a => a.ArName.ToLower().Contains(search)
+                || a.EnName.ToLower().Contains(search)
+                || a.Code.ToLower().Contains(search));
         }
 
         var total = await query.CountAsync();
@@ -69,7 +71,11 @@ public class BranchRepository : IBranchRepository
                 var existing = await _context.Branches.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
-                    return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "RecordNotFound"
+                    };
                 }
 
                 entity.Code = existing.Code;
@@ -81,7 +87,11 @@ public class BranchRepository : IBranchRepository
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -97,7 +107,11 @@ public class BranchRepository : IBranchRepository
 
             if (await _context.Employees.AnyAsync(a => a.BrancheId == id))
             {
-                return new ResultMessage { Success = false, Message = "BranchHasEmployees" };
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "BranchHasEmployees"
+                };
             }
             _context.Branches.Remove(entity);
             await _context.SaveChangesAsync();
@@ -106,11 +120,19 @@ public class BranchRepository : IBranchRepository
         }
         catch (DbUpdateException)
         {
-            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "CannotDeleteLinkedRecord"
+            };
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 }

@@ -18,7 +18,7 @@ public class MenuSectionRepository : IMenuSectionRepository
 
     public async Task<PaginatedResult<MenuSection>> GetPagedMenuSectionsAsync(PageRequest request)
     {
-        var query = _context.MenuSections.AsNoTracking().Include(a => a.kitchen).AsQueryable();
+        var query = _context.MenuSections.AsNoTracking().Include(a => a.Kitchen).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
@@ -55,7 +55,11 @@ public class MenuSectionRepository : IMenuSectionRepository
                 var existing = await _context.MenuSections.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
-                    return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "RecordNotFound"
+                    };
                 }
 
                 _context.MenuSections.Update(entity);
@@ -66,7 +70,11 @@ public class MenuSectionRepository : IMenuSectionRepository
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -87,11 +95,19 @@ public class MenuSectionRepository : IMenuSectionRepository
         }
         catch (DbUpdateException)
         {
-            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "CannotDeleteLinkedRecord"
+            };
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 }

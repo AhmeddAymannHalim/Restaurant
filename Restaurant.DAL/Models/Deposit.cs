@@ -22,12 +22,8 @@ namespace Restaurant.DAL.Models
 
         public bool IsDeleted { get; set; }
 
-
         public string UserId { get; set; }
 
         public virtual ApplicationUser User { get; set; }
-
-
-
     }
 }

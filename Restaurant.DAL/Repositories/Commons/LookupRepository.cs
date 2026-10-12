@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Commons;
+using Restaurant.DAL.Models;
+using Shared.Helpers;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
 
@@ -7,6 +9,8 @@ namespace Restaurant.DAL.Repositories.Commons;
 
 public class LookupRepository : ILookupRepository
 {
+    private static readonly string[] StorekeeperTitles = { "Store Keeper", "امين مخزن", "امين مخازن", "أمين مخازن", "أمين مخزن" };
+
     private readonly ApplicationDbContext _context;
 
     public LookupRepository(ApplicationDbContext context)
@@ -16,156 +20,247 @@ public class LookupRepository : ILookupRepository
 
     public async Task<IEnumerable<LookupItem>> BranchLookupAsync()
     {
-        return await _context.Branches
-            .Select(a => new LookupItem
-            {
-                Id = a.Id,
-                ArName = a.ArName,
-                EnName = a.EnName
-            })
-            .AsNoTracking()
-            .ToListAsync();
+        return await ToListAsync(_context.Branches.Select(a => new LookupItem
+        {
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
     }
 
     public async Task<IEnumerable<LookupItem>> JobLookupAsync()
     {
-        return await _context.Jobs
-            .Select(a => new LookupItem
-            {
-                Id = a.JobId,
-                ArName = a.ArName,
-                EnName = a.EnName
-            })
-            .AsNoTracking()
-            .ToListAsync();
+        return await ToListAsync(_context.Jobs.Select(a => new LookupItem
+        {
+            Id = a.JobId,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
     }
 
     public async Task<IEnumerable<LookupItem>> SalaryTypeLookupAsync()
     {
-        return await _context.SalaryTypes
+        return await ToListAsync(_context.SalaryTypes.Select(a => new LookupItem
+        {
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
+    }
+
+    public async Task<IEnumerable<LookupItem>> EmployeeLookupAsync()
+    {
+        return await ToListAsync(_context.Employees.Select(a => new LookupItem
+        {
+            Id = a.EmployeeId,
+            ArName = a.FirstName + " " + a.LastName,
+            EnName = a.FirstName + " " + a.LastName
+        }));
+    }
+
+    public async Task<IEnumerable<LookupItem>> DeliveryDriverLookupAsync()
+    {
+        return await ToListAsync(_context.Employees
+            .Where(a => a.UserType == "طيار")
             .Select(a => new LookupItem
             {
-                Id = a.Id,
-                ArName = a.ArName,
-                EnName = a.EnName
-            })
-            .AsNoTracking()
-            .ToListAsync();
+                Id = a.EmployeeId,
+                ArName = a.FirstName + " " + a.LastName,
+                EnName = a.FirstName + " " + a.LastName
+            }));
+    }
+
+    public async Task<IEnumerable<LookupItem>> StorekeeperLookupAsync()
+    {
+        return await ToListAsync(_context.Employees
+            .Where(a => StorekeeperTitles.Contains(a.UserType))
+            .Select(a => new LookupItem
+            {
+                Id = a.EmployeeId,
+                ArName = a.FirstName + " " + a.LastName,
+                EnName = a.FirstName + " " + a.LastName
+            }));
     }
 
     public async Task<IEnumerable<LookupItem>> KitchenLookupAsync()
     {
-        return await _context.Kitchens
-            .Select(a => new LookupItem
-            {
-                Id = a.Id,
-                ArName = a.ArName,
-                EnName = a.EnName
-            })
-            .AsNoTracking()
-            .ToListAsync();
+        return await ToListAsync(_context.Kitchens.Select(a => new LookupItem
+        {
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
     }
 
     public async Task<IEnumerable<LookupItem>> MenuSectionLookupAsync()
     {
-        return await _context.MenuSections
+        return await ToListAsync(_context.MenuSections.Select(a => new LookupItem
+        {
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
+    }
+
+    public async Task<IEnumerable<LookupItem>> ReadyMenuSectionLookupAsync()
+    {
+        return await ToListAsync(_context.MenuSections
+            .Where(a => a.MenuItems.Any(i => i.ShowOnWebsite))
             .Select(a => new LookupItem
-            {
-                Id = a.Id,
-                ArName = a.ArName,
-                EnName = a.EnName
-            })
-            .AsNoTracking()
-            .ToListAsync();
+                {
+                    Id = a.Id,
+                    ArName = a.ArName,
+                    EnName = a.EnName
+                }));
+    }
+
+    public async Task<IEnumerable<LookupItem>> FreeTableLookupAsync()
+    {
+        return await ToListAsync(_context.Tables.Where(a => !a.IsPending).Select(a => new LookupItem
+        {
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
+    }
+
+    public async Task<IEnumerable<LookupItem>> TableLookupAsync()
+    {
+        return await ToListAsync(_context.Tables.Select(a => new LookupItem
+        {
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
     }
 
     public async Task<IEnumerable<LookupItem>> StoreLookupAsync()
     {
-        return await _context.Stores
-            .Select(a => new LookupItem
-            {
-                Id = a.Id,
-                ArName = a.ArName,
-                EnName = a.EnName
-            })
+        return await ToListAsync(_context.Stores.Select(a => new LookupItem
+        {
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
+    }
+
+    public async Task<IEnumerable<LookupItem>> ProductLookupAsync()
+    {
+        return await ToListAsync(_context.Products.Select(a => new LookupItem
+        {
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
+    }
+
+    public async Task<IEnumerable<LookupItem>> ProductCategoryLookupAsync()
+    {
+        return await ToListAsync(_context.ProductCategories.Select(a => new LookupItem
+        {
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
+    }
+
+    public async Task<IEnumerable<LookupItem>> UnitPriceLookupAsync()
+    {
+        return await ToListAsync(_context.UnitPrices.Select(a => new LookupItem
+        {
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
+    }
+
+    public async Task<IEnumerable<LookupItem>> SupplierLookupAsync()
+    {
+        return await ToListAsync(_context.Suppliers.Select(a => new LookupItem
+        {
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
+    }
+
+    public async Task<IEnumerable<LookupItem>> CustomerLookupAsync()
+    {
+        return await ToListAsync(_context.Customers.Select(a => new LookupItem
+        {
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
+    }
+
+    public async Task<IEnumerable<StoreProductLookupItem>> StoreProductLookupByStoreIdAsync(int storeId)
+    {
+        var store = await _context.Stores
             .AsNoTracking()
+            .Where(a => a.Id == storeId)
+            .Select(a => new
+            {
+                a.ArName,
+                a.EnName
+            })
+            .FirstOrDefaultAsync();
+
+        var storeArName = store?.ArName;
+        var storeEnName = store?.EnName;
+        var isArabic = LanguageHelper.IsArabic();
+
+        return await _context.Products
+            .AsNoTracking()
+            .Select(a => new StoreProductLookupItem
+            {
+                Id = a.StoreProducts
+                    .Where(s => s.StoreId == storeId)
+                    .Select(s => s.Id)
+                    .FirstOrDefault(),
+                ProductId = a.Id,
+                ProductCategoryId = a.ProductCategoryId,
+                StoreId = storeId,
+                ProductArName = a.ArName,
+                ProductEnName = a.EnName,
+                StoreArName = storeArName,
+                StoreEnName = storeEnName,
+                Quantity = a.StoreProducts
+                    .Where(s => s.StoreId == storeId)
+                    .Select(s => s.Quantity)
+                    .FirstOrDefault(),
+                Cost = a.Cost
+            })
+            .OrderBy(a => isArabic ? a.ProductArName : a.ProductEnName)
             .ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> ExpenseLookupAsync()
     {
-        return await _context.Expenses
-            .Select(a => new LookupItem
-            {
-                Id = a.Id,
-                ArName = a.ArName,
-                EnName = a.EnName
-            })
+        return await ToListAsync(_context.Expenses.Select(a => new LookupItem
+        {
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
+    }
+
+    public async Task<IEnumerable<LookupItem_String>> RoleLookupAsync()
+    {
+        return await _context.Roles
             .AsNoTracking()
+            .OrderBy(a => a.Name)
+            .Select(a => new LookupItem_String
+                {
+                    Id = a.Name,
+                    ArName = a.Name,
+                    EnName = a.Name
+                })
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<LookupItem>> EmployeeLookupAsync()
+    private static async Task<IEnumerable<LookupItem>> ToListAsync(IQueryable<LookupItem> query)
     {
-        return await _context.Employees
-            .Select(a => new LookupItem
-            {
-                Id = a.EmployeeId,
-                ArName = a.FirstName + " " + a.LastName,
-                EnName = a.FirstName + " " + a.LastName
-            })
-            .AsNoTracking()
-            .ToListAsync();
-    }
-
-    public async Task<IEnumerable<LookupItem>> StorekeeperLookupAsync()
-    {
-        return await _context.Employees
-            .Where(a => a.UserType == "Store Keeper" || a.UserType == "امين مخزن" || a.UserType == "امين مخازن" || a.UserType == "أمين مخازن" || a.UserType == "أمين مخزن")
-            .Select(a => new LookupItem
-            {
-                Id = a.EmployeeId,
-                ArName = a.FirstName + " " + a.LastName,
-                EnName = a.FirstName + " " + a.LastName
-            })
-            .AsNoTracking()
-            .ToListAsync();
-    }
-
-    public async Task<IEnumerable<StoreProductLookupItem>> StoreProductLookupByStoreIdAsync(int storeId)
-    {
-        return await _context.StoreProducts
-            .Where(a => a.StoreId == storeId)
-            .OrderBy(a => a.ProductName)
-            .Select(a => new StoreProductLookupItem
-            {
-                Id = a.Id,
-                ProductId = a.ProductId,
-                StoreId = a.StoreId,
-                ProductName = a.ProductName,
-                StoreName = a.StoreName,
-                Quantity = a.Quantity,
-                PriceForUnit = a.PriceForUnit
-            })
-            .AsNoTracking()
-            .ToListAsync();
-    }
-
-    public async Task<StoreProductLookupItem> StoreProductLookupByIdAsync(int id)
-    {
-        return await _context.StoreProducts
-            .Where(a => a.Id == id)
-            .Select(a => new StoreProductLookupItem
-            {
-                Id = a.Id,
-                ProductId = a.ProductId,
-                StoreId = a.StoreId,
-                ProductName = a.ProductName,
-                StoreName = a.StoreName,
-                Quantity = a.Quantity,
-                PriceForUnit = a.PriceForUnit
-            })
-            .AsNoTracking()
-            .FirstOrDefaultAsync();
+        return await query.AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 }

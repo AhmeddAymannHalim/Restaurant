@@ -17,9 +17,7 @@ namespace Restaurant.DAL.Models
         public decimal Balance { get; set; }
         public decimal? LastBalance { get; set; }
 
-
         public virtual ICollection<Invoice> Invoices { get; set; }
         public virtual ICollection<PaymentInvoiceSupplier> PaymentInvoices { get; set; }
-
     }
 }

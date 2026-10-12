@@ -1,275 +1,119 @@
-﻿@model Restaurant.DAL.Models.Order
-
+@model OrderViewModel
 @{
-    ViewData["Title"] = "Details";
     Layout = null;
+    var isPdf = ViewBag.IsPdf == true;
+    var isArabic = LanguageHelper.IsArabic();
+    var print = ViewBag.Print as ApplicationSettingViewModel;
+    var copies = print?.NumberOfCustomerPrint ?? 1;
+    var autoPrint = !isPdf && print != null && (print.PrintAfterOrder || (print.PrintForTakeawayOrder && Model.Type == OrderType.TakeAway));
 }
-<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-<link href="~/css/invoicesstyle.css" rel="stylesheet" />
+<!DOCTYPE html>
+<html lang="@(isArabic ? "ar" : "en")" dir="@(isArabic ? "rtl" : "ltr")">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@L["Orders"] @Model.OrderCode</title>
+    <style>
+        body { font-family: "Segoe UI", Tahoma, Arial, sans-serif; color: #111; font-size: 14px; margin: 0; padding: 16px; background: #f4f5f7; }
+        .receipt { max-width: 420px; margin: 0 auto; background: #fff; padding: 18px 20px; border: 1px solid #ddd; }
+        h1 { margin: 0 0 4px; font-size: 20px; text-align: center; }
+        .meta { margin: 0 0 12px; text-align: center; color: #555; font-size: 12px; }
+        dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 0 0 12px; }
+        dt { color: #555; }
+        dd { margin: 0; text-align: end; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        th, td { padding: 4px 2px; border-bottom: 1px dashed #bbb; text-align: start; }
+        td.num, th.num { text-align: end; }
+        .sum div { display: flex; justify-content: space-between; padding: 2px 0; }
+        .sum .grand { font-size: 18px; font-weight: 700; border-top: 2px solid #111; margin-top: 6px; padding-top: 6px; }
+        .actions { max-width: 420px; margin: 12px auto 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .actions a, .actions button { padding: 8px 14px; border: 1px solid #112233; background: #112233; color: #fff; border-radius: 6px; text-decoration: none; cursor: pointer; font: inherit; }
+        .actions a.alt { background: #fff; color: #112233; }
+        @@media print { body { background: #fff; padding: 0; } .receipt { border: 0; } .actions { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="receipt">
+        <h1>@L["Orders"] #@Model.OrderCode</h1>
+        <p class="meta">@Model.OrderDate.ToString("yyyy-MM-dd HH:mm") - @L[Model.Type.ToString()]</p>
 
-
-<input type="hidden" id="orderType" value="@Model.Type" />
-
-
-<div class="container" id="contentToPrint">
-
-    <h1>تفاصيل فاتورة : @Model.CustomerName</h1>
-    <hr />
-
-    <dl>
-
-        <dt class="col-sm-3">
-            كود الفاتورة
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.OrderCode)
-        </dd>
-
-
-        <dt class="col-sm-3">
-            تاريخ الفاتورة
-        </dt>
-        <dd class="col-sm-8">
-            @Model.OrderDate.ToString("dd-MM-yyyy  hh:mm tt")
-        </dd>
-
-        <dt class="col-sm-3">
-            م الشيفت البائع
-        </dt>
-        <dd class="col-sm-8">
-            @Model.Seller.FullName
-        </dd>
-
-        @if (Model.ReceiverId != null)
-        {
-            @if (Model.Type != OrderType.TakeAway)
+        <dl>
+            <dt>@L["CustomerName"]</dt><dd>@Model.CustomerName</dd>
+            <dt>@L["Seller"]</dt><dd>@Model.SellerName</dd>
+            @if (!string.IsNullOrEmpty(Model.ReceiverName))
             {
-                <dt class="col-sm-3">
-                    م الشيفت المستلم
-                </dt>
-                <dd class="col-sm-8">
-                    @Model.Receiver.FullName
-                </dd>
+                <dt>@L["Receiver"]</dt><dd>@Model.ReceiverName</dd>
             }
+            @if (Model.Type == OrderType.Hall && Model.TableId != null)
+            {
+                <dt>@L["Table"]</dt><dd>@(isArabic ? Model.TableArName : Model.TableEnName)</dd>
+            }
+            @if (Model.Type is OrderType.Delivery or OrderType.Delivery_Online)
+            {
+                <dt>@L["DeliveryDriver"]</dt><dd>@Model.EmployeeName</dd>
+                <dt>@L["Address"]</dt><dd>@Model.Address</dd>
+                <dt>@L["PhoneNumber"]</dt><dd>@Model.PhoneNumber</dd>
+                <dt>@L["MobileNumber"]</dt><dd>@Model.MobileNumber</dd>
+            }
+            <dt>@L["PaymentStatus"]</dt><dd>@L[Model.OnAccount ? "OnAccountStatus" : Model.Cash ? "PaidStatus" : "Unpaid"]</dd>
+        </dl>
 
-        }
-
-        @if (Model.Type == OrderType.TakeAway)
-        {
-            <dt class="col-sm-3">
-                نوع الفاتورة
-            </dt>
-            <dd class="col-sm-8">
-                تيك اواي
-            </dd>
-        }
-
-
-
-        @if (Model.Type == OrderType.Hall)
-        {
-            <dt class="col-sm-3">
-                اسم الطاولة
-            </dt>
-            <dd class="col-sm-8">
-                @Html.DisplayFor(model => model.Table.ArName)
-            </dd>
-            <dt class="col-sm-3">
-                نوع الفاتورة
-            </dt>
-            <dd class="col-sm-8">
-                صالة
-            </dd>
-        }
-
-
-
-        @if (Model.Type == OrderType.Delivery)
-        {
-            <dt class="col-sm-3">
-                نوع الفاتورة
-            </dt>
-            <dd class="col-sm-8">
-                دليفري
-            </dd>
-            <dt class="col-sm-3">
-                الطيار
-            </dt>
-            <dd class="col-sm-8">
-                @Html.DisplayFor(model => model.Employee.FullName)
-            </dd>
-            <dt class="col-sm-3">
-                العنوان
-            </dt>
-            <dd class="col-sm-8">
-                @Html.DisplayFor(model => model.Address)
-            </dd>
-            <dt class="col-sm-3">
-                رقم الهاتف
-            </dt>
-            <dd class="col-sm-8">
-                @Html.DisplayFor(model => model.PhoneNumber)
-            </dd>
-            <dt class="col-sm-3">
-                رقم الموبايل
-            </dt>
-            <dd class="col-sm-8">
-                @Html.DisplayFor(model => model.MobileNumber)
-            </dd>
-        }
-
-
-        @if (Model.Type == OrderType.Delivery_Online)
-        {
-            <dt class="col-sm-3">
-                نوع الفاتورة
-            </dt>
-            <dd class="col-sm-8">
-                دليفري اونلاين
-            </dd>
-            <dt class="col-sm-3">
-                الطيار
-            </dt>
-            <dd class="col-sm-8">
-                @Html.DisplayFor(model => model.Employee.FullName)
-            </dd>
-            <dt class="col-sm-3">
-                العنوان
-            </dt>
-            <dd class="col-sm-8">
-                @Html.DisplayFor(model => model.Address)
-            </dd>
-            <dt class="col-sm-3">
-                رقم الهاتف
-            </dt>
-            <dd class="col-sm-8">
-                @Html.DisplayFor(model => model.PhoneNumber)
-            </dd>
-            <dt class="col-sm-3">
-                رقم الموبايل
-            </dt>
-            <dd class="col-sm-8">
-                @Html.DisplayFor(model => model.MobileNumber)
-            </dd>
-        }
-
-
-
-
-
-        @if (Model.Service > 0)
-        {
-            <dt class="col-sm-3">
-                الخدمة
-            </dt>
-            <dd class="col-sm-8">
-                @Html.DisplayFor(model => model.Service)
-            </dd>
-        }
-        @if (Model.Tax > 0)
-        {
-            <dt class="col-sm-3">
-                الضريبة
-            </dt>
-            <dd class="col-sm-8">
-                @Html.DisplayFor(model => model.Tax)
-            </dd>
-        }
-        @if (Model.Discount > 0)
-        {
-            <dt class="col-sm-3">
-                الخصم
-            </dt>
-            <dd class="col-sm-8">
-                @Html.DisplayFor(model => model.Discount)
-            </dd>
-        }
-
-
-        <dt class="col-sm-3">
-           حالة الدفع
-        </dt>
-
-        @if (Model.Cash == true)
-        {
-            <dd class="col-sm-8">
-                تم الدفع
-            </dd>
-        }
-        else
-        {
-            <dd class="col-sm-8">
-                لا
-            </dd>
-        }
-
-
-        <dt class="col-sm-3">
-            الاجمالي
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.TotalPrice)
-        </dd>
-
-        <dt class="col-sm-3">
-            الطلبات
-        </dt>
-        <dd class="col-sm-8">
-            <table class="mt-3 table table-bordered table-light text-dark text-center">
-                <thead>
+        <table>
+            <thead>
+                <tr><th>@L["Product"]</th><th class="num">@L["Quantity"]</th><th class="num">@L["Price"]</th><th class="num">@L["LineTotal"]</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
                     <tr>
-                        <th>اسم الطلب</th>
-                        <th>كمية الطلب</th>
-                        <th>سعر الوحدة</th>
-                        <th>الاجمالي</th>
+                        <td>@(isArabic ? item.MenuItemArName : item.MenuItemEnName)</td>
+                        <td class="num">@item.Quantity.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                        <td class="num">@item.PriceForUnit.ToString("N2")</td>
+                        <td class="num">@item.Price.ToString("N2")</td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model.OrderMenuItems)
-                    {
-                        <tr>
-                            <td>@item.MenuItem.ArName</td>
-                            <td>@item.Quantity</td>
-                            <td>@item.PriceForUnit</td>
-                            <td>@item.Price</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </dd>
+                }
+            </tbody>
+        </table>
 
-    </dl>
-
-    <div id="print-button" class="no-print">
-        <a class="btn btn-primary" onclick="printCopies()"> طباعة</a>
-        <a class="btn btn-primary" asp-action="OrderReport" asp-controller="Report" asp-route-orderId="@Model.Id"> تصدير الي PDF</a>
-        <a class="btn btn-info" asp-action="Create" asp-controller="Order">طلب جديد</a>
+        <div class="sum">
+            <div><span>@L["SubTotal"]</span><span>@Model.SubTotal.ToString("N2")</span></div>
+            @if (Model.Tax > 0)
+            {
+                <div><span>@L["Tax"]</span><span>@Model.Tax.ToString("N2")</span></div>
+            }
+            @if (Model.Service > 0)
+            {
+                <div><span>@L["Service"]</span><span>@Model.Service.ToString("N2")</span></div>
+            }
+            @if (Model.DeliveryFee > 0)
+            {
+                <div><span>@L["DeliveryFee"]@(string.IsNullOrEmpty(Model.DeliveryZoneArName) ? "" : " (" + (LanguageHelper.IsArabic() ? Model.DeliveryZoneArName : Model.DeliveryZoneEnName) + ")")</span><span>@Model.DeliveryFee.ToString("N2")</span></div>
+            }
+            @if (Model.Discount > 0)
+            {
+                <div><span>@L["Discount"]</span><span>-@Model.Discount.ToString("N2")</span></div>
+            }
+            <div class="grand"><span>@L["TotalPrice"]</span><span>@Model.TotalPrice.ToString("N2")</span></div>
+        </div>
     </div>
 
-</div>
-
-
-<script>
-    var orderType = document.getElementById("orderType").value;
-
-    function printCopies() {
-        var numberOfPrinters = @Html.Raw(Json.Serialize(ViewBag.NumberOfCustomerPrint));
-
-        for (var i = 0; i < numberOfPrinters; i++) {
-            window.print();
-        }
+    @if (!isPdf)
+    {
+        <div class="actions">
+            <button type="button" onclick="printCopies()">@L["Print"]</button>
+            <a href="@Url.Action("Pdf", new { id = Model.Id })">PDF</a>
+            <a class="alt" href="@Url.Action("Upsert")">@L["NewOrder"]</a>
+            <a class="alt" href="@Url.Action("List", new { status = Model.Cash ? "shift" : "pending" })">@L["Back"]</a>
+        </div>
+        <script>
+            function printCopies() {
+                for (var i = 0; i < @copies; i++) { window.print(); }
+            }
+            @if (autoPrint)
+            {
+                <text>printCopies();</text>
+            }
+        </script>
     }
-
-    var PrintAfterOrder = @Html.Raw(Json.Serialize(ViewBag.PrintAfterOrder));
-    if (PrintAfterOrder) {
-        console.log('print after order = True');
-        printCopies();
-    }
-
-    var PrintForTakeawayOrder = @Html.Raw(Json.Serialize(ViewBag.PrintForTakeawayOrder));
-    if (PrintForTakeawayOrder && orderType === "@(OrderType.TakeAway)") {
-        console.log('Print For Takeaway Order = True');
-        printCopies();
-    }
-</script>
+</body>
+</html>

@@ -5,14 +5,19 @@ namespace ResturantPL.Controllers
 {
     public class SetLanguageController : Controller
     {
+        private static readonly string[] SupportedCultures = { "ar", "en" };
+
         public IActionResult SetLanguage(string culture, string returnUrl)
         {
-            Response.Cookies.Append(
-                CookieRequestCultureProvider.DefaultCookieName,
-                CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
-                new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) });
+            if (SupportedCultures.Contains(culture))
+            {
+                Response.Cookies.Append(
+                    CookieRequestCultureProvider.DefaultCookieName,
+                    CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+                    new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) });
+            }
 
-            return LocalRedirect(string.IsNullOrEmpty(returnUrl) ? "~/" : returnUrl);
+            return LocalRedirect(Url.IsLocalUrl(returnUrl) ? returnUrl : "~/");
         }
     }
 }

@@ -18,12 +18,17 @@ public class SalaryRepository : ISalaryRepository
 
     public async Task<PaginatedResult<Salary>> GetPagedSalariesAsync(PageRequest request)
     {
-        var query = _context.Salaries.AsNoTracking().Include(a => a.Employee).Include(a => a.User).AsQueryable();
+        var query = _context.Salaries.AsNoTracking()
+            .Include(a => a.Employee)
+            .Include(a => a.User)
+            .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.SalaryCode.ToLower().Contains(search) || a.Employee.FirstName.ToLower().Contains(search) || a.Employee.LastName.ToLower().Contains(search));
+            query = query.Where(a => a.SalaryCode.ToLower().Contains(search)
+                || a.Employee.FirstName.ToLower().Contains(search)
+                || a.Employee.LastName.ToLower().Contains(search));
         }
 
         var total = await query.CountAsync();
@@ -99,7 +104,11 @@ public class SalaryRepository : ISalaryRepository
                 var existing = await _context.Salaries.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
-                    return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "RecordNotFound"
+                    };
                 }
 
                 entity.SalaryCode = existing.SalaryCode;
@@ -113,7 +122,11 @@ public class SalaryRepository : ISalaryRepository
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -134,11 +147,19 @@ public class SalaryRepository : ISalaryRepository
         }
         catch (DbUpdateException)
         {
-            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "CannotDeleteLinkedRecord"
+            };
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 }

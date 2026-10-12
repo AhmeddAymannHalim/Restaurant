@@ -86,7 +86,11 @@ public class EmployeeRepository : IEmployeeRepository
             var job = await _context.Jobs.FindAsync(entity.JobId);
             if (job is null)
             {
-                return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RecordNotFound"
+                };
             }
 
             entity.UserType = job.ArName;
@@ -109,7 +113,11 @@ public class EmployeeRepository : IEmployeeRepository
             var existing = await _context.Employees.AsNoTracking().FirstOrDefaultAsync(a => a.EmployeeId == entity.EmployeeId);
             if (existing is null)
             {
-                return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RecordNotFound"
+                };
             }
 
             entity.Code = existing.Code;
@@ -133,7 +141,11 @@ public class EmployeeRepository : IEmployeeRepository
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -186,7 +198,11 @@ public class EmployeeRepository : IEmployeeRepository
         var alreadyInRole = await _context.UserRoles.AnyAsync(a => a.UserId == user.Id && a.RoleId == newRole.Id);
         if (!alreadyInRole)
         {
-            await _context.UserRoles.AddAsync(new IdentityUserRole<string> { UserId = user.Id, RoleId = newRole.Id });
+            await _context.UserRoles.AddAsync(new IdentityUserRole<string>
+            {
+                UserId = user.Id,
+                RoleId = newRole.Id
+            });
         }
     }
 
@@ -212,11 +228,19 @@ public class EmployeeRepository : IEmployeeRepository
         }
         catch (DbUpdateException)
         {
-            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "CannotDeleteLinkedRecord"
+            };
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 }

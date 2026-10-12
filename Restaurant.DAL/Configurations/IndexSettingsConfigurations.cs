@@ -1,31 +1,26 @@
-﻿using Restaurant.DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Restaurant.DAL.Models;
 
-namespace Restaurant.DAL.Configurations
+namespace Restaurant.DAL.Configurations;
+
+public class IndexSettingsConfigurations : IEntityTypeConfiguration<IndexSettings>
 {
-    public class IndexSettingsConfigurations : IEntityTypeConfiguration<IndexSettings>
+    public void Configure(EntityTypeBuilder<IndexSettings> builder)
     {
-        public void Configure(EntityTypeBuilder<IndexSettings> builder)
-        {
-            builder.Property(p=>p.StartHour).HasColumnType("nvarchar(50)");
-            builder.Property(p => p.StartDay).HasColumnType("nvarchar(50)");
-            builder.Property(p => p.EndHour).HasColumnType("nvarchar(50)");
-            builder.Property(p => p.ArName).HasColumnType("nvarchar(50)");
-
-            builder.Property(p => p.EnName).HasColumnType("nvarchar(50)");
-            builder.Property(p => p.Description).HasColumnType("nvarchar(800)");
-            builder.Property(p => p.EndDay).HasColumnType("nvarchar(50)");
-            builder.Property(p => p.Phone).HasColumnType("nvarchar(20)");
-            builder.Property(p => p.ImageUrl).HasColumnType("nvarchar(100)");
-            builder.Property(p => p.VedioUrl).HasColumnType("nvarchar(100)");
-            builder.Property(p => p.Locaion).HasColumnType("nvarchar(100)");
-            builder.Property(p => p.Email).HasColumnType("nvarchar(50)");
-        }
+        builder.Property(a => a.ArName).HasMaxLength(50);
+        builder.Property(a => a.EnName).HasMaxLength(50);
+        builder.Property(a => a.ArDescription).HasColumnName("Description").HasMaxLength(800);
+        builder.Property(a => a.EnDescription).HasMaxLength(800);
+        builder.Property(a => a.Phone).HasMaxLength(20);
+        builder.Property(a => a.Email).HasMaxLength(50);
+        builder.Property(a => a.StartDay).HasMaxLength(50);
+        builder.Property(a => a.EndDay).HasMaxLength(50);
+        builder.Property(a => a.StartHour).HasMaxLength(50);
+        builder.Property(a => a.EndHour).HasMaxLength(50);
+        builder.Property(a => a.ImageUrl).HasMaxLength(100);
+        builder.Property(a => a.VideoUrl).HasColumnName("VedioUrl").HasMaxLength(100);
+        builder.Property(a => a.ArLocation).HasColumnName("Locaion").HasMaxLength(100);
+        builder.Property(a => a.EnLocation).HasMaxLength(100);
     }
 }

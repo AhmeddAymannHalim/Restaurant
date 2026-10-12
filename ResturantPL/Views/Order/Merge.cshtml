@@ -1,54 +1,54 @@
-﻿@model Restaurant.DAL.Models.Order
-
+@model OrderViewModel
 @{
-    ViewData["Title"] = "Merge";
-    Layout = "_Layout1";
+    ViewBag.Title = L["MergeOrder"].Value;
+    var isArabic = LanguageHelper.IsArabic();
+    var tables = (IEnumerable<LookupItem>)ViewBag.Tables;
 }
 
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-code-merge" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title <small>@Model.OrderCode</small></h1>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Merge" method="post" class="ad-form">
+            <input type="hidden" name="Id" value="@Model.Id" />
 
-<form asp-action="Merge">
-
-    <div class="row justify-content-between text-center m-5">
-        <input hidden asp-for="Id" />
-
-        <div class="col-md-5">
-            <table class="mt-3 table table-bordered table-light text-dark">
-                <h3 class="text-center">@Model.Table.ArName</h3>
-                <thead>
-                    <tr>
-                        <th>اسم المنتج</th>
-                        <th>كمية المنتج</th>
-                        <th>سعر الوحدة</th>
-                        <th>الاجمالي</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model.OrderMenuItems)
+            <div class="form-group">
+                <label class="control-label" for="TargetTableId">@L["TargetTable"]</label>
+                <select id="TargetTableId" name="TargetTableId" class="form-select" required>
+                    <option value="">@L["Select"]</option>
+                    @foreach (var table in tables)
                     {
-                        <tr>
-                            <td>@item.MenuItem.ArName</td>
-                            <td>@item.Quantity</td>
-                            <td>@item.PriceForUnit</td>
-                            <td>@item.Price</td>
-                        </tr>
+                        <option value="@table.Id">@(isArabic ? table.ArName : table.EnName)</option>
                     }
-                </tbody>
-            </table>
-        </div>
-
-        <div class="col-md-5 mt-3">
-            <div class="form-group" id="tableIdField">
-                <h3 class="control-label">الطاولة المدمج اليها</h3>
-                <select id="OrderTableToId" name="OrderTableToId" class="form-control" asp-items="ViewBag.Tables" required>
-                    <option value="">اختر الطاولة</option>
                 </select>
             </div>
-        </div>
 
+            <div class="ad-full">
+                <div class="ad-table-wrap">
+                    <table class="ad-table">
+                        <thead>
+                            <tr><th>@L["Product"]</th><th>@L["Quantity"]</th><th>@L["Price"]</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>@(isArabic ? item.MenuItemArName : item.MenuItemEnName)</td>
+                                    <td class="num">@item.Quantity.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                                    <td class="num">@item.Price.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-        <div class="col-md-12 mt-3">
-
-            <button type="submit" class="btn btn-primary" style="width:300px;">دمج</button>
-        </div>
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-code-merge" aria-hidden="true"></i> @L["MergeOrder"]</button>
+                <a asp-action="List" asp-route-status="pending" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+            </div>
+        </form>
     </div>
-</form>
+</div>

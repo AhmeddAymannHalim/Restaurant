@@ -155,120 +155,6 @@ namespace Restaurant.DAL.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Restaurant.DAL.Models.Account", b =>
-                {
-                    b.Property<int>("AccId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AccId"));
-
-                    b.Property<string>("AccArName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("AccCheckDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("AccCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("AccCredit")
-                        .HasColumnType("float");
-
-                    b.Property<string>("AccCustomerCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("AccDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<double>("AccDebit")
-                        .HasColumnType("float");
-
-                    b.Property<byte>("AccDebitOrCreditOrWithout")
-                        .HasColumnType("tinyint");
-
-                    b.Property<string>("AccEnName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("AccLevel")
-                        .HasColumnType("int");
-
-                    b.Property<double?>("AccMaxDebit")
-                        .HasColumnType("float");
-
-                    b.Property<bool?>("AccMustCostCenter")
-                        .HasColumnType("bit");
-
-                    b.Property<short>("AccNsons")
-                        .HasColumnType("smallint");
-
-                    b.Property<string>("AccRemarks")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<byte>("AccStateId")
-                        .HasColumnType("tinyint");
-
-                    b.Property<string>("AccTurnningYesOrNo")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<byte>("AccTypeId")
-                        .HasColumnType("tinyint");
-
-                    b.Property<bool?>("Class")
-                        .HasColumnType("bit");
-
-                    b.Property<short>("CurrencyId")
-                        .HasColumnType("smallint");
-
-                    b.Property<int?>("FinalAccId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ParentAccId")
-                        .HasColumnType("int");
-
-                    b.HasKey("AccId");
-
-                    b.HasIndex("AccStateId");
-
-                    b.HasIndex("AccTypeId");
-
-                    b.HasIndex("CurrencyId");
-
-                    b.ToTable("Accounts");
-                });
-
-            modelBuilder.Entity("Restaurant.DAL.Models.AccountState", b =>
-                {
-                    b.Property<byte>("Id")
-                        .HasColumnType("tinyint");
-
-                    b.Property<string>("ArName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EnName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AccountStates");
-                });
-
-            modelBuilder.Entity("Restaurant.DAL.Models.AccountsType", b =>
-                {
-                    b.Property<byte>("AccTypeId")
-                        .HasColumnType("tinyint");
-
-                    b.Property<string>("AccTypeArName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AccTypeEnName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("AccTypeId");
-
-                    b.ToTable("AccountTypes");
-                });
-
             modelBuilder.Entity("Restaurant.DAL.Models.ApplicationSetting", b =>
                 {
                     b.Property<int>("Id")
@@ -284,12 +170,15 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("tinyint");
 
                     b.Property<decimal>("OrderDiscount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("OrderService")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("OrderTax")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Password")
@@ -464,6 +353,12 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
                     b.ToTable("Branches");
                 });
 
@@ -490,25 +385,6 @@ namespace Restaurant.DAL.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ChefItem");
-                });
-
-            modelBuilder.Entity("Restaurant.DAL.Models.Currency", b =>
-                {
-                    b.Property<short>("CurrencyId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("smallint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<short>("CurrencyId"));
-
-                    b.Property<string>("ArName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EnName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("CurrencyId");
-
-                    b.ToTable("Currencies");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Customer", b =>
@@ -547,7 +423,46 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.DeliveryZone", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("EnName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("Fee")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
+                    b.ToTable("DeliveryZones");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Deposit", b =>
@@ -586,6 +501,8 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedTime");
 
                     b.HasIndex("UserId");
 
@@ -701,6 +618,8 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Date");
+
                     b.HasIndex("ExpenseId");
 
                     b.HasIndex("UserId");
@@ -732,6 +651,12 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
                     b.ToTable("Expenses");
                 });
 
@@ -759,41 +684,64 @@ namespace Restaurant.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ArName")
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<string>("ArDescription")
+                        .HasMaxLength(800)
+                        .HasColumnType("nvarchar(800)")
+                        .HasColumnName("Description");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(800)");
+                    b.Property<string>("ArLocation")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("Locaion");
+
+                    b.Property<string>("ArName")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Email")
+                        .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("EnDescription")
+                        .HasMaxLength(800)
+                        .HasColumnType("nvarchar(800)");
+
+                    b.Property<string>("EnLocation")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("EnName")
+                        .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("EndDay")
+                        .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("EndHour")
+                        .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Locaion")
+                        .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Phone")
+                        .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("StartDay")
+                        .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("StartHour")
+                        .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("VedioUrl")
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<string>("VideoUrl")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("VedioUrl");
 
                     b.HasKey("Id");
 
@@ -809,10 +757,13 @@ namespace Restaurant.DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Discount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("InvoiceCode")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<DateTime>("InvoiceDate")
                         .HasColumnType("datetime2");
@@ -821,12 +772,14 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Paid")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("PayType")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Remaining")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("StoreId")
@@ -836,9 +789,15 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("InvoiceCode")
+                        .IsUnique();
+
+                    b.HasIndex("InvoiceDate");
 
                     b.HasIndex("StoreId");
 
@@ -859,19 +818,15 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("ProductId")
+                    b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("StoreProductId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Total")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
 
                     b.Property<int>("UnitPriceId")
                         .HasColumnType("int");
@@ -881,8 +836,6 @@ namespace Restaurant.DAL.Migrations
                     b.HasIndex("InvoiceId");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("StoreProductId");
 
                     b.HasIndex("UnitPriceId");
 
@@ -914,7 +867,42 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasKey("JobId");
 
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
                     b.ToTable("Jobs");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Kitchen", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("EnName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
+                    b.ToTable("Kitchens");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.MenuItem", b =>
@@ -925,24 +913,28 @@ namespace Restaurant.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ArDescription")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnName("Description");
+
                     b.Property<string>("ArName")
-                        .HasColumnType("nvarchar(40)");
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<decimal>("Benefit")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Description")
+                    b.Property<string>("EnDescription")
+                        .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("EnName")
-                        .HasColumnType("nvarchar(40)");
-
-                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<bool>("IsReady")
-                        .HasColumnType("bit");
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("MenuSectionId")
                         .HasColumnType("int");
@@ -951,15 +943,15 @@ namespace Restaurant.DAL.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<bool>("ShowOnWebsite")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsReady");
+
                     b.Property<int?>("Size")
                         .HasColumnType("int");
 
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("TotalCost")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -978,25 +970,21 @@ namespace Restaurant.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("Cost")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int>("MenuItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Quantity")
                         .HasPrecision(18, 3)
                         .HasColumnType("decimal(18,3)");
 
-                    b.Property<int>("StoreProductId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("MenuItemId");
 
-                    b.HasIndex("StoreProductId");
+                    b.HasIndex("ProductId");
 
                     b.ToTable("MenuItemComponents");
                 });
@@ -1019,12 +1007,18 @@ namespace Restaurant.DAL.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int?>("kitchenId")
+                    b.Property<int?>("KitchenId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("kitchenId");
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
+                    b.HasIndex("KitchenId");
 
                     b.ToTable("MenuSections");
                 });
@@ -1038,32 +1032,59 @@ namespace Restaurant.DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.Property<string>("CustomerId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("CustomerName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("DeliveryFee")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("DeliveryZoneId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsPending")
                         .HasColumnType("bit");
 
                     b.Property<string>("MobileNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
+
+                    b.Property<decimal>("Service")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("TableId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Tax")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("DeliveryZoneId");
+
+                    b.HasIndex("TableId");
 
                     b.ToTable("OnlineOrders");
                 });
@@ -1083,13 +1104,16 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("PriceForUnit")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
 
                     b.HasKey("Id");
 
@@ -1109,7 +1133,8 @@ namespace Restaurant.DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.Property<bool>("Cash")
                         .HasColumnType("bit");
@@ -1121,9 +1146,18 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("CustomerName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("DeliveryFee")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("DeliveryZoneId")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Discount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("EmployeeId")
@@ -1133,16 +1167,23 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("MobileNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
+
+                    b.Property<bool>("OnAccount")
+                        .HasColumnType("bit");
 
                     b.Property<string>("OrderCode")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
 
                     b.Property<string>("ReceiverId")
                         .HasColumnType("nvarchar(450)");
@@ -1151,15 +1192,18 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Service")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("TableId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Tax")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Type")
@@ -1169,7 +1213,14 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasIndex("CustomerId");
 
+                    b.HasIndex("DeliveryZoneId");
+
                     b.HasIndex("EmployeeId");
+
+                    b.HasIndex("OrderCode")
+                        .IsUnique();
+
+                    b.HasIndex("OrderDate");
 
                     b.HasIndex("ReceiverId");
 
@@ -1177,7 +1228,41 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasIndex("TableId");
 
+                    b.HasIndex("Cash", "FinishShift");
+
                     b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.OrderIngredient", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("OrderMenuItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderMenuItemId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("StoreId");
+
+                    b.ToTable("OrderIngredients");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.OrderMenuItem", b =>
@@ -1195,12 +1280,19 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("PriceForUnit")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal>("UnitCost")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
@@ -1210,31 +1302,6 @@ namespace Restaurant.DAL.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("OrderMenuItems");
-                });
-
-            modelBuilder.Entity("Restaurant.DAL.Models.PayType", b =>
-                {
-                    b.Property<int>("PayTypeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PayTypeId"));
-
-                    b.Property<string>("PayTypeArName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PayTypeCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PayTypeEnName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PayTypeNotes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("PayTypeId");
-
-                    b.ToTable("PayTypes");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.PaymentInvoiceCustomer", b =>
@@ -1252,17 +1319,26 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.Property<decimal>("Paid")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ProcessCode")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("Date");
+
+                    b.HasIndex("ProcessCode")
+                        .IsUnique();
 
                     b.ToTable("PaymentInvoiceCustomer");
                 });
@@ -1279,43 +1355,31 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.Property<decimal>("Paid")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ProcessCode")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<int>("SupplierId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Date");
+
+                    b.HasIndex("ProcessCode")
+                        .IsUnique();
+
                     b.HasIndex("SupplierId");
 
                     b.ToTable("PaymentInvoiceSupplier");
-                });
-
-            modelBuilder.Entity("Restaurant.DAL.Models.PrinterForSection", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Printer")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SectionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SectionId");
-
-                    b.ToTable("PrinterForSections");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.PrinterSetting", b =>
@@ -1353,6 +1417,44 @@ namespace Restaurant.DAL.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<decimal>("Cost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("EnName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("ProductCategoryId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
+                    b.HasIndex("ProductCategoryId");
+
+                    b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.ProductCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("EnName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1360,7 +1462,13 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Products");
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
+                    b.ToTable("ProductCategories");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Salary", b =>
@@ -1399,6 +1507,8 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasIndex("EmployeeId");
 
+                    b.HasIndex("SalaryDate");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Salaries");
@@ -1423,6 +1533,12 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
 
                     b.ToTable("SalaryTypes");
                 });
@@ -1457,39 +1573,13 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Date");
+
                     b.HasIndex("EmployeeId");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("Scrounges");
-                });
-
-            modelBuilder.Entity("Restaurant.DAL.Models.SellType", b =>
-                {
-                    b.Property<int>("SellTypeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SellTypeId"));
-
-                    b.Property<bool?>("SellDefault")
-                        .HasColumnType("bit");
-
-                    b.Property<double?>("SellPlusPrice")
-                        .HasColumnType("float");
-
-                    b.Property<string>("SellTypeArName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SellTypeEnName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ShowOrNot")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("SellTypeId");
-
-                    b.ToTable("SellTypes");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Store", b =>
@@ -1527,6 +1617,12 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
                     b.HasIndex("StorekeeperId");
 
                     b.ToTable("Stores");
@@ -1541,7 +1637,9 @@ namespace Restaurant.DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ConvertCode")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<DateTime>("ConvertDate")
                         .HasColumnType("datetime2");
@@ -1553,6 +1651,9 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ConvertCode")
+                        .IsUnique();
 
                     b.HasIndex("FromStoreId");
 
@@ -1570,7 +1671,8 @@ namespace Restaurant.DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
 
                     b.Property<int>("StoreConvertId")
                         .HasColumnType("int");
@@ -1595,29 +1697,27 @@ namespace Restaurant.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("PriceForUnit")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<string>("ProductName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<int>("StoreId")
                         .HasColumnType("int");
-
-                    b.Property<string>("StoreName")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
 
-                    b.HasIndex("StoreId");
+                    b.HasIndex("StoreId", "ProductId")
+                        .IsUnique();
 
                     b.ToTable("StoreProducts");
                 });
@@ -1662,6 +1762,12 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
                     b.ToTable("Suppliers");
                 });
 
@@ -1691,6 +1797,12 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
                     b.ToTable("Tables");
                 });
 
@@ -1714,30 +1826,13 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
                     b.ToTable("UnitPrices");
-                });
-
-            modelBuilder.Entity("Restaurant.DAL.Models.kitchen", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ArName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("EnName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Kitchens");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1789,33 +1884,6 @@ namespace Restaurant.DAL.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Restaurant.DAL.Models.Account", b =>
-                {
-                    b.HasOne("Restaurant.DAL.Models.AccountState", "AccState")
-                        .WithMany("Accounts")
-                        .HasForeignKey("AccStateId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Restaurant.DAL.Models.AccountsType", "AccType")
-                        .WithMany("Accounts")
-                        .HasForeignKey("AccTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Restaurant.DAL.Models.Currency", "Currency")
-                        .WithMany("Accounts")
-                        .HasForeignKey("CurrencyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AccState");
-
-                    b.Navigation("AccType");
-
-                    b.Navigation("Currency");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.ApplicationUser", b =>
@@ -1870,7 +1938,7 @@ namespace Restaurant.DAL.Migrations
                     b.HasOne("Restaurant.DAL.Models.Expense", "Expense")
                         .WithMany("Expenses")
                         .HasForeignKey("ExpenseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Restaurant.DAL.Models.ApplicationUser", "User")
@@ -1887,13 +1955,13 @@ namespace Restaurant.DAL.Migrations
                     b.HasOne("Restaurant.DAL.Models.Store", "Store")
                         .WithMany("Invoices")
                         .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Restaurant.DAL.Models.Supplier", "Supplier")
                         .WithMany("Invoices")
                         .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Store");
@@ -1909,25 +1977,21 @@ namespace Restaurant.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Restaurant.DAL.Models.Product", null)
+                    b.HasOne("Restaurant.DAL.Models.Product", "Product")
                         .WithMany("InvoiceItems")
-                        .HasForeignKey("ProductId");
-
-                    b.HasOne("Restaurant.DAL.Models.StoreProduct", "StoreProduct")
-                        .WithMany()
-                        .HasForeignKey("StoreProductId")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Restaurant.DAL.Models.UnitPrice", "UnitPrice")
                         .WithMany()
                         .HasForeignKey("UnitPriceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Invoice");
 
-                    b.Navigation("StoreProduct");
+                    b.Navigation("Product");
 
                     b.Navigation("UnitPrice");
                 });
@@ -1937,13 +2001,13 @@ namespace Restaurant.DAL.Migrations
                     b.HasOne("Restaurant.DAL.Models.MenuSection", "MenuSection")
                         .WithMany("MenuItems")
                         .HasForeignKey("MenuSectionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Restaurant.DAL.Models.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("MenuSection");
@@ -1959,33 +2023,48 @@ namespace Restaurant.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Restaurant.DAL.Models.StoreProduct", "StoreProduct")
-                        .WithMany()
-                        .HasForeignKey("StoreProductId")
+                    b.HasOne("Restaurant.DAL.Models.Product", "Product")
+                        .WithMany("MenuItemComponents")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("MenuItem");
 
-                    b.Navigation("StoreProduct");
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.MenuSection", b =>
                 {
-                    b.HasOne("Restaurant.DAL.Models.kitchen", "kitchen")
+                    b.HasOne("Restaurant.DAL.Models.Kitchen", "Kitchen")
                         .WithMany("MenuSections")
-                        .HasForeignKey("kitchenId");
+                        .HasForeignKey("KitchenId");
 
-                    b.Navigation("kitchen");
+                    b.Navigation("Kitchen");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.OnlineOrder", b =>
                 {
                     b.HasOne("Restaurant.DAL.Models.ApplicationUser", "Customer")
                         .WithMany()
-                        .HasForeignKey("CustomerId");
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.DeliveryZone", "DeliveryZone")
+                        .WithMany()
+                        .HasForeignKey("DeliveryZoneId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Table", "Table")
+                        .WithMany()
+                        .HasForeignKey("TableId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Customer");
+
+                    b.Navigation("DeliveryZone");
+
+                    b.Navigation("Table");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.OnlineOrderMenuItem", b =>
@@ -1993,7 +2072,7 @@ namespace Restaurant.DAL.Migrations
                     b.HasOne("Restaurant.DAL.Models.MenuItem", "MenuItem")
                         .WithMany("OnlineOrderMenuItems")
                         .HasForeignKey("MenuItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Restaurant.DAL.Models.OnlineOrder", "OnlineOrder")
@@ -2011,25 +2090,37 @@ namespace Restaurant.DAL.Migrations
                 {
                     b.HasOne("Restaurant.DAL.Models.Customer", "Customer")
                         .WithMany()
-                        .HasForeignKey("CustomerId");
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.DeliveryZone", "DeliveryZone")
+                        .WithMany()
+                        .HasForeignKey("DeliveryZoneId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
                         .WithMany("Orders")
-                        .HasForeignKey("EmployeeId");
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Restaurant.DAL.Models.ApplicationUser", "Receiver")
                         .WithMany()
-                        .HasForeignKey("ReceiverId");
+                        .HasForeignKey("ReceiverId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Restaurant.DAL.Models.ApplicationUser", "Seller")
                         .WithMany()
-                        .HasForeignKey("SellerId");
+                        .HasForeignKey("SellerId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Restaurant.DAL.Models.Table", "Table")
                         .WithMany()
-                        .HasForeignKey("TableId");
+                        .HasForeignKey("TableId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Customer");
+
+                    b.Navigation("DeliveryZone");
 
                     b.Navigation("Employee");
 
@@ -2040,12 +2131,35 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("Table");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.OrderIngredient", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.OrderMenuItem", "OrderMenuItem")
+                        .WithMany("Ingredients")
+                        .HasForeignKey("OrderMenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Restaurant.DAL.Models.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Restaurant.DAL.Models.Store", null)
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OrderMenuItem");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.OrderMenuItem", b =>
                 {
                     b.HasOne("Restaurant.DAL.Models.MenuItem", "MenuItem")
                         .WithMany("OrderMenuItems")
                         .HasForeignKey("MenuItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Restaurant.DAL.Models.Order", "Order")
@@ -2064,7 +2178,7 @@ namespace Restaurant.DAL.Migrations
                     b.HasOne("Restaurant.DAL.Models.Customer", "Customer")
                         .WithMany("PaymentInvoices")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Customer");
@@ -2075,21 +2189,20 @@ namespace Restaurant.DAL.Migrations
                     b.HasOne("Restaurant.DAL.Models.Supplier", "Supplier")
                         .WithMany("PaymentInvoices")
                         .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Supplier");
                 });
 
-            modelBuilder.Entity("Restaurant.DAL.Models.PrinterForSection", b =>
+            modelBuilder.Entity("Restaurant.DAL.Models.Product", b =>
                 {
-                    b.HasOne("Restaurant.DAL.Models.MenuSection", "Section")
-                        .WithMany()
-                        .HasForeignKey("SectionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("Restaurant.DAL.Models.ProductCategory", "ProductCategory")
+                        .WithMany("Products")
+                        .HasForeignKey("ProductCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Section");
+                    b.Navigation("ProductCategory");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Salary", b =>
@@ -2097,7 +2210,7 @@ namespace Restaurant.DAL.Migrations
                     b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
                         .WithMany("Salaries")
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Restaurant.DAL.Models.ApplicationUser", "User")
@@ -2112,9 +2225,9 @@ namespace Restaurant.DAL.Migrations
             modelBuilder.Entity("Restaurant.DAL.Models.Scrounge", b =>
                 {
                     b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
-                        .WithMany()
+                        .WithMany("Scrounges")
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Restaurant.DAL.Models.ApplicationUser", "User")
@@ -2165,7 +2278,7 @@ namespace Restaurant.DAL.Migrations
                     b.HasOne("Restaurant.DAL.Models.StoreProduct", "StoreProduct")
                         .WithMany("StoreConvertProducts")
                         .HasForeignKey("StoreProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("StoreConvert");
@@ -2192,26 +2305,11 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("Store");
                 });
 
-            modelBuilder.Entity("Restaurant.DAL.Models.AccountState", b =>
-                {
-                    b.Navigation("Accounts");
-                });
-
-            modelBuilder.Entity("Restaurant.DAL.Models.AccountsType", b =>
-                {
-                    b.Navigation("Accounts");
-                });
-
             modelBuilder.Entity("Restaurant.DAL.Models.Branche", b =>
                 {
                     b.Navigation("ApplicationUsers");
 
                     b.Navigation("Employees");
-                });
-
-            modelBuilder.Entity("Restaurant.DAL.Models.Currency", b =>
-                {
-                    b.Navigation("Accounts");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Customer", b =>
@@ -2224,6 +2322,8 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("Orders");
 
                     b.Navigation("Salaries");
+
+                    b.Navigation("Scrounges");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Expense", b =>
@@ -2239,6 +2339,11 @@ namespace Restaurant.DAL.Migrations
             modelBuilder.Entity("Restaurant.DAL.Models.Job", b =>
                 {
                     b.Navigation("Employees");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Kitchen", b =>
+                {
+                    b.Navigation("MenuSections");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.MenuItem", b =>
@@ -2265,11 +2370,23 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("OrderMenuItems");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.OrderMenuItem", b =>
+                {
+                    b.Navigation("Ingredients");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.Product", b =>
                 {
                     b.Navigation("InvoiceItems");
 
+                    b.Navigation("MenuItemComponents");
+
                     b.Navigation("StoreProducts");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.ProductCategory", b =>
+                {
+                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.SalaryType", b =>
@@ -2299,11 +2416,6 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("Invoices");
 
                     b.Navigation("PaymentInvoices");
-                });
-
-            modelBuilder.Entity("Restaurant.DAL.Models.kitchen", b =>
-                {
-                    b.Navigation("MenuSections");
                 });
 #pragma warning restore 612, 618
         }

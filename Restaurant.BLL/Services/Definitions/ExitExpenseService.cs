@@ -22,7 +22,9 @@ public class ExitExpenseService : IExitExpenseService
     {
         var result = await _unitOfWork.ExitExpenses.GetPagedExitExpensesAsync(request);
 
-        return PaginatedResult<ExitExpenseViewModel>.Create(_mapper.Map<List<ExitExpenseViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<ExitExpenseViewModel>.Create(_mapper.Map<List<ExitExpenseViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<ExitExpenseViewModel> GetExitExpenseByIdAsync(int id)

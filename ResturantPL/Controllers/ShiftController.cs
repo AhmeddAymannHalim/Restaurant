@@ -1,118 +1,76 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Shared.Helpers;
-using Shared.ViewModels.Commons;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.DAL.UnitOfWork;
+using Microsoft.Extensions.Localization;
+using Restaurant.BLL.Services.IServices.Definitions;
 using ResturantPL.Helper;
+using Shared;
+using Shared.Helpers.Localization;
+using Shared.ViewModels.Commons;
 using System.Security.Claims;
-using Restaurant.DAL.Models;
 
 namespace ResturantPL.Controllers
 {
-
-
+    [Authorize(Policy = "Staff")]
     public class ShiftController : Controller
     {
+        private readonly IOrderService _service;
+        private readonly IToastrService _toastr;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        //string pass = "@Qwe12";
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly UserManager<ApplicationUser> _userManager;
-
-        public ShiftController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
+        public ShiftController(IOrderService service, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
         {
-            this._unitOfWork = unitOfWork;
-            this._userManager = userManager;
+            _service = service;
+            _toastr = toastr;
+            _localizer = localizer;
         }
-
-
-        public ApplicationUser CurrentUser()
-        {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            ApplicationUser currentUser = _userManager.FindByIdAsync(userId).Result;
-            return currentUser;
-        }
-
 
         public IActionResult Login()
         {
-            try
-            {
-                ViewBag.CurrentUser = CurrentUser(); ;
-
-                return View();
-            }
-            catch (Exception ex)
-            {
-                return View("Error", ErrorMessage.Error(ex.Message));
-            }
+            return View();
         }
-
-
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string password)
         {
             try
             {
-                ViewBag.CurrentUser = CurrentUser();
-
-
-                ApplicationSetting setting = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
-
-                if (setting.Password == password)
+                if (!await _service.VerifyShiftPasswordAsync(password))
                 {
-                    HttpContext.Session.SetString("IsAuthenticated", "true");
-                    return RedirectToAction("Create", "Order");
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Incorrect password.");
+                    _toastr.Error(_localizer["IncorrectShiftPassword"].Value);
                     return View();
                 }
+
+                HttpContext.Session.SetString("IsAuthenticated", "true");
+
+                return RedirectToAction("Upsert", "Order");
             }
             catch (Exception ex)
             {
-                return View("Error", ErrorMessage.Error(ex.Message));
+                return ErrorHandler.ErrorView(ex.Message);
             }
         }
 
-
-
-        public async Task<IActionResult> Logout(string password)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> End(string password)
         {
             try
             {
-                ViewBag.CurrentUser = CurrentUser();
-
-                ApplicationSetting setting = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
-
-                if (setting.Password == password)
-                //if (PasswordManager.ValidatePassword(password))
+                if (!await _service.VerifyShiftPasswordAsync(password))
                 {
-                    var orders = _unitOfWork.OrderRepository.GetAll().Where(a => a.Cash && a.ReceiverId == CurrentUser().Id);
-                    foreach (var item in orders)
-                    {
-                        item.FinishShift = true;
-                        await _unitOfWork.OrderRepository.UpdateAsync(item);
-                    }
-
-                    HttpContext.Session.SetString("IsAuthenticated", "false");
-                    return RedirectToAction("Login");
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Incorrect password.");
+                    _toastr.Error(_localizer["IncorrectShiftPassword"].Value);
                     return RedirectToAction("Index", "Order");
                 }
 
+                await _service.FinishShiftAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                HttpContext.Session.SetString("IsAuthenticated", "false");
+                _toastr.Success(_localizer["ShiftEnded"].Value);
+
+                return RedirectToAction(nameof(Login));
             }
             catch (Exception ex)
             {
-                return View("Error", ErrorMessage.Error(ex.Message));
+                return ErrorHandler.ErrorView(ex.Message);
             }
         }
-
-
-
     }
 }

@@ -1,0 +1,99 @@
+@model PaymentViewModel
+@{
+    var isNew = Model.Id == 0;
+    ViewBag.Title = isNew ? L["NewCustomerPayment"].Value : L["UpdateCustomerPayment"].Value;
+    var invariant = CultureInfo.InvariantCulture;
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-hand-holding-dollar" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title <small>@Model.ProcessCode</small></h1>
+        @if (!isNew)
+        {
+            <a asp-action="Pdf" asp-route-id="@Model.Id" data-no-loader class="btn-ad btn-ad-ghost"><i class="fas fa-print" aria-hidden="true"></i> @L["Print"]</a>
+        }
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Upsert" method="post" class="ad-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="form-group">
+                <label class="control-label">@L["ProcessCode"]</label>
+                <input class="form-control" value="@Model.ProcessCode" readonly />
+            </div>
+            <div class="form-group">
+                <label asp-for="PartnerId" class="control-label">@L["Customer"]</label>
+                <select asp-for="PartnerId" class="form-select">
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.Partners)
+                    {
+                        <option value="@item.Id" selected="@(Model.PartnerId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+                <span asp-validation-for="PartnerId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">@L["AmountDue"]</label>
+                <input id="due" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label asp-for="Paid" class="control-label">@L["Paid"]</label>
+                <input asp-for="Paid" type="number" step="any" min="0" class="form-control" />
+                <span asp-validation-for="Paid" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">@L["Remaining"]</label>
+                <input id="remaining" class="form-control" readonly />
+            </div>
+            <div class="form-group ad-full">
+                <label asp-for="Description" class="control-label">@L["Description"]</label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+                @if (!isNew)
+                {
+                    <button type="button" onclick="Delete('/CustomerPayment/Delete/@Model.Id', '@Url.Action("Index")')" class="btn-ad btn-ad-danger push"><i class="fas fa-trash" aria-hidden="true"></i> @L["Delete"]</button>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(function () {
+            var savedPartner = '@(isNew ? "" : Model.PartnerId.ToString())';
+            var savedPaid = @(isNew ? "0" : Model.Paid.ToString(invariant));
+            var due = 0;
+
+            function number(value) { return parseFloat(value) || 0; }
+            function money(value) { return (Math.round(value * 100) / 100).toFixed(2); }
+
+            function recalc() {
+                $('#due').val(money(due));
+                $('#remaining').val(money(due - number($('#Paid').val())));
+            }
+
+            $('#PartnerId').on('change', function () {
+                var id = $(this).val();
+                if (!id) { due = 0; recalc(); return; }
+                $.get('/CustomerPayment/Balance', { partnerId: id }, function (balance) {
+                    due = number(balance) + (id === savedPartner ? savedPaid : 0);
+                    recalc();
+                });
+            });
+
+            $('#Paid').on('input', recalc);
+
+            if ($('#PartnerId').val()) { $('#PartnerId').trigger('change'); }
+            recalc();
+        });
+    </script>
+}

@@ -22,7 +22,9 @@ public class StoreService : IStoreService
     {
         var result = await _unitOfWork.Stores.GetPagedStoresAsync(request);
 
-        return PaginatedResult<StoreViewModel>.Create(_mapper.Map<List<StoreViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<StoreViewModel>.Create(_mapper.Map<List<StoreViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<StoreViewModel> GetStoreByIdAsync(int id)

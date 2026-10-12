@@ -22,7 +22,9 @@ public class EmployeeService : IEmployeeService
     {
         var result = await _unitOfWork.Employees.GetPagedEmployeesAsync(request);
 
-        return PaginatedResult<EmployeeViewModel>.Create(_mapper.Map<List<EmployeeViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<EmployeeViewModel>.Create(_mapper.Map<List<EmployeeViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<EmployeeViewModel> GetEmployeeByIdAsync(int id)

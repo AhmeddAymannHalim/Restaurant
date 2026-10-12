@@ -1,3 +1,4 @@
+using Shared.ViewModels.Commons;
 namespace Shared.ViewModels.Definitions;
 
 public class StoreViewModel
@@ -10,5 +11,5 @@ public class StoreViewModel
     public string MobileNumber { get; set; }
     public int? StorekeeperId { get; set; }
     public string StorekeeperName { get; set; }
-    public SelectList Storekeepers { get; set; }
+    public IEnumerable<LookupItem> Storekeepers { get; set; } = new List<LookupItem>();
 }

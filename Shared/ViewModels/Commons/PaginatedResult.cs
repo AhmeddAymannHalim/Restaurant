@@ -1,4 +1,4 @@
-﻿namespace Shared.ViewModels.Commons;
+namespace Shared.ViewModels.Commons;
 
 public class PaginatedResult<T>
 {
@@ -8,6 +8,10 @@ public class PaginatedResult<T>
     public int PageSize { get; set; }
     public int NoOfPages { get; set; }
     public string SearchString { get; set; }
+    public DateTime? FromDate { get; set; }
+    public DateTime? ToDate { get; set; }
+    public string Type { get; set; }
+    public string Status { get; set; }
     public string Sort { get; set; }
     public bool Descending { get; set; }
 
@@ -24,6 +28,10 @@ public class PaginatedResult<T>
             PageSize = request.PageSize,
             NoOfPages = totalRecords == 0 ? 0 : (int)Math.Ceiling((double)totalRecords / request.PageSize),
             SearchString = request.SearchString,
+            FromDate = request.FromDate,
+            ToDate = request.ToDate,
+            Type = request.Type,
+            Status = request.Status,
             Sort = request.Sort,
             Descending = request.Descending
         };

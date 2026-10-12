@@ -1,0 +1,66 @@
+@model PaginatedResult<DeliveryZoneViewModel>
+@{
+    ViewBag.Title = L["DeliveryZones"].Value;
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-motorcycle" aria-hidden="true"></i></span>
+        <h1>@L["DeliveryZones"]</h1>
+        <a asp-action="Upsert" class="btn-ad btn-ad-primary"><i class="fas fa-plus" aria-hidden="true"></i> @L["NewDeliveryZone"]</a>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Index" method="get" class="ad-filters">
+            <div class="ad-search">
+                <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                <input id="DeliveryZone-search" type="search" class="form-control" name="searchString" value="@Model.SearchString" placeholder="@L["SearchHere"]" />
+            </div>
+            <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-magnifying-glass" aria-hidden="true"></i> @L["Search"]</button>
+            <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
+        </form>
+
+@await Html.PartialAsync("_ExportToolbar", "DeliveryZone-table")
+        <div class="ad-table-wrap">
+        <table id="DeliveryZone-table" class="ad-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>@L["Name"]</th>
+            <th>@L["DeliveryFee"]</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Data.Any())
+        {
+            var counter = ((Model.PageNo - 1) * Model.PageSize) + 1;
+            foreach (var item in Model.Data)
+            {
+                <tr>
+                    <td>@counter</td>
+                    <td>@(isArabic ? item.ArName : item.EnName)</td>
+                    <td class="num">@item.Fee.ToString("N2") @L["Currency"]</td>
+                    <td class="ad-row-actions">
+                        <a asp-action="Upsert" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Edit"]" aria-label="@L["Edit"]"><i class="fas fa-pen" aria-hidden="true"></i></a>
+                        <button type="button" onclick="Delete('/DeliveryZone/Delete/@item.Id')" class="btn-ad btn-ad-danger btn-icon" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button>
+                    </td>
+                </tr>
+                counter++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" class="ad-empty">@L["NoData"]</td>
+            </tr>
+        }
+    </tbody>
+</table>
+        </div>
+
+<div class="app-table-pagination">
+            @await Html.PartialAsync("_Pagination", Model)
+        </div>
+    </div>
+</div>

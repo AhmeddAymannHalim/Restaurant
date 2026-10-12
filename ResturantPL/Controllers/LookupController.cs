@@ -4,7 +4,7 @@ using Restaurant.BLL.Services.IServices.Commons;
 
 namespace ResturantPL.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "Staff")]
     public class LookupController : Controller
     {
         private readonly ILookupService _service;
@@ -33,6 +33,24 @@ namespace ResturantPL.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> Employees()
+        {
+            return Json(await _service.EmployeeLookupAsync());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DeliveryDrivers()
+        {
+            return Json(await _service.DeliveryDriverLookupAsync());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Storekeepers()
+        {
+            return Json(await _service.StorekeeperLookupAsync());
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Kitchens()
         {
             return Json(await _service.KitchenLookupAsync());
@@ -45,27 +63,51 @@ namespace ResturantPL.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> ReadyMenuSections()
+        {
+            return Json(await _service.ReadyMenuSectionLookupAsync());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Tables()
+        {
+            return Json(await _service.TableLookupAsync());
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Stores()
         {
             return Json(await _service.StoreLookupAsync());
         }
 
         [HttpGet]
-        public async Task<IActionResult> Expenses()
+        public async Task<IActionResult> Products()
         {
-            return Json(await _service.ExpenseLookupAsync());
+            return Json(await _service.ProductLookupAsync());
         }
 
         [HttpGet]
-        public async Task<IActionResult> Employees()
+        public async Task<IActionResult> ProductCategories()
         {
-            return Json(await _service.EmployeeLookupAsync());
+            return Json(await _service.ProductCategoryLookupAsync());
         }
 
         [HttpGet]
-        public async Task<IActionResult> Storekeepers()
+        public async Task<IActionResult> Units()
         {
-            return Json(await _service.StorekeeperLookupAsync());
+            return Json(await _service.UnitPriceLookupAsync());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Suppliers()
+        {
+            return Json(await _service.SupplierLookupAsync());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Customers()
+        {
+            return Json(await _service.CustomerLookupAsync());
         }
 
         [HttpGet]
@@ -75,9 +117,15 @@ namespace ResturantPL.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> StoreProduct(int id)
+        public async Task<IActionResult> Expenses()
         {
-            return Json(await _service.StoreProductLookupByIdAsync(id));
+            return Json(await _service.ExpenseLookupAsync());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Roles()
+        {
+            return Json(await _service.RoleLookupAsync());
         }
     }
 }

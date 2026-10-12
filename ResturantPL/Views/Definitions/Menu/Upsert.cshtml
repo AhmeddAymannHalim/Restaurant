@@ -1,220 +1,339 @@
 @model MenuItemViewModel
 @{
     var isNew = Model.Id == 0;
+    var isArabic = LanguageHelper.IsArabic();
     ViewBag.Title = isNew ? L["NewMenuItem"].Value : L["UpdateMenuItem"].Value;
 }
 
-<h1 class="text-center">@ViewBag.Title</h1>
-<hr />
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-utensils" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title</h1>
+    </div>
+    <div class="ad-card-body">
+        <form id="menuForm" asp-action="Upsert" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="ImageUrl" />
 
-<form id="menuForm" asp-action="Upsert" method="post" enctype="multipart/form-data" class="row">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <input type="hidden" asp-for="Id" />
-    <input type="hidden" asp-for="ImageUrl" />
+            <section class="menu-step">
+                <h2><b>1</b> @L["MenuStepDetails"]</h2>
+                <div class="row">
+                    <div class="form-group col-md-3">
+                        <label asp-for="ArName" class="control-label">@L["ArabicName"]</label>
+                        <input asp-for="ArName" class="form-control" />
+                        <span asp-validation-for="ArName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label asp-for="EnName" class="control-label">@L["EnglishName"]</label>
+                        <input asp-for="EnName" class="form-control" />
+                        <span asp-validation-for="EnName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label asp-for="MenuSectionId" class="control-label">@L["MenuSection"]</label>
+                        <select asp-for="MenuSectionId" class="form-control">
+                            <option value="">@L["Select"]</option>
+                            @foreach (var item in Model.MenuSections)
+                            {
+                                <option value="@item.Id" selected="@(Model.MenuSectionId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
+                            }
+                        </select>
+                        <span asp-validation-for="MenuSectionId" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label asp-for="Size" class="control-label">@L["Size"]</label>
+                        <select asp-for="Size" class="form-control">
+                            <option value="">@L["Select"]</option>
+                            @foreach (var size in new[] { Size.Small, Size.Medium, Size.Large, Size.Syrian_Bread })
+                            {
+                                <option value="@size" selected="@(Model.Size == size)">@L["Size." + size]</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Size" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label asp-for="ArDescription" class="control-label">@L["ArabicDescription"]</label>
+                        <input asp-for="ArDescription" class="form-control" />
+                        <span asp-validation-for="ArDescription" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label asp-for="EnDescription" class="control-label">@L["EnglishDescription"]</label>
+                        <input asp-for="EnDescription" class="form-control" />
+                        <span asp-validation-for="EnDescription" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label asp-for="ImageFile" class="control-label">@L["Image"]</label>
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                        {
+                            <div class="mb-2"><img src="@Model.ImageUrl" alt="" class="menu-thumb" /></div>
+                        }
+                        <input asp-for="ImageFile" type="file" accept="image/*" class="form-control" />
+                        <span asp-validation-for="ImageFile" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label class="control-label d-block">@L["Website"]</label>
+                        <div class="form-check">
+                            <input asp-for="ShowOnWebsite" class="form-check-input" />
+                            <label asp-for="ShowOnWebsite" class="form-check-label">@L["ShowOnWebsite"]</label>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    <div class="form-group col-md-3">
-        <label asp-for="ArName" class="control-label">@L["ArabicName"]</label>
-        <input asp-for="ArName" class="form-control" />
-        <span asp-validation-for="ArName" class="text-danger"></span>
-    </div>
-    <div class="form-group col-md-3">
-        <label asp-for="EnName" class="control-label">@L["EnglishName"]</label>
-        <input asp-for="EnName" class="form-control" />
-        <span asp-validation-for="EnName" class="text-danger"></span>
-    </div>
-    <div class="form-group col-md-3">
-        <label asp-for="MenuSectionId" class="control-label">@L["MenuSection"]</label>
-        <select asp-for="MenuSectionId" class="form-control" asp-items="Model.MenuSections">
-            <option value="">@L["Select"]</option>
-        </select>
-        <span asp-validation-for="MenuSectionId" class="text-danger"></span>
-    </div>
-    <div class="form-group col-md-3">
-        <label asp-for="Size" class="control-label">@L["Size"]</label>
-        <select asp-for="Size" class="form-control">
-            <option value="">@L["Select"]</option>
-            @foreach (var size in new[] { Size.Small, Size.Medium, Size.Large, Size.Syrian_Bread })
-            {
-                <option value="@size" selected="@(Model.Size == size)">@L["Size." + size]</option>
-            }
-        </select>
-        <span asp-validation-for="Size" class="text-danger"></span>
-    </div>
+            <section class="menu-step">
+                <h2><b>2</b> @L["MenuStepRecipe"]</h2>
+                <p class="menu-help">@L["RecipeHelp"]</p>
 
-    <div class="form-group col-md-3">
-        <label asp-for="Description" class="control-label">@L["Description"]</label>
-        <input asp-for="Description" class="form-control" />
-        <span asp-validation-for="Description" class="text-danger"></span>
-    </div>
-    <div class="form-group col-md-3">
-        <label asp-for="ImageFile" class="control-label">@L["Image"]</label>
-        @if (!string.IsNullOrEmpty(Model.ImageUrl))
-        {
-            <div class="mb-2"><img src="@Model.ImageUrl" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;" /></div>
-        }
-        <input asp-for="ImageFile" type="file" accept="image/*" class="form-control" />
-        <span asp-validation-for="ImageFile" class="text-danger"></span>
-    </div>
-    <div class="form-group col-md-3">
-        <label asp-for="StoreId" class="control-label">@L["Store"]</label>
-        <select id="storeList" asp-for="StoreId" class="form-control" asp-items="Model.Stores">
-            <option value="">@L["Select"]</option>
-        </select>
-        <span asp-validation-for="StoreId" class="text-danger"></span>
-    </div>
-    <div class="form-group col-md-3">
-        <label asp-for="Price" class="control-label">@L["Price"]</label>
-        <input id="price" asp-for="Price" class="form-control" type="number" step="0.01" min="0" />
-        <span asp-validation-for="Price" class="text-danger"></span>
-    </div>
+                <div class="row">
+                    <div class="form-group col-md-3">
+                        <label asp-for="StoreId" class="control-label">@L["Store"]</label>
+                        <select id="storeList" asp-for="StoreId" class="form-control">
+                            <option value="">@L["Select"]</option>
+                            @foreach (var item in Model.Stores)
+                            {
+                                <option value="@item.Id" selected="@(Model.StoreId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
+                            }
+                        </select>
+                        <span asp-validation-for="StoreId" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label class="control-label">@L["ProductCategory"]</label>
+                        <select id="categoryList" class="form-control">
+                            <option value="">@L["AllCategories"]</option>
+                            @foreach (var item in Model.Categories)
+                            {
+                                <option value="@item.Id">@(isArabic ? item.ArName : item.EnName)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label class="control-label">@L["Products"]</label>
+                        <select id="productList" class="form-control">
+                            <option value="">@L["Select"]</option>
+                        </select>
+                    </div>
+                </div>
 
-    <hr class="mt-3" />
+                <p id="noMaterials" class="menu-note" hidden>
+                    @L["NoRawMaterialsHelp"]
+                    <a asp-controller="Product" asp-action="Index">@L["Products"]</a>
+                </p>
 
-    <div class="form-group col-md-3">
-        <label class="control-label">@L["Product"]</label>
-        <select id="productList" class="form-control">
-            <option value="">@L["Select"]</option>
-        </select>
-    </div>
-    <div class="form-group col-md-2">
-        <label class="control-label">@L["AvailableQuantity"]</label>
-        <input id="availableQuantity" class="form-control" readonly />
-    </div>
-    <div class="form-group col-md-2">
-        <label class="control-label">@L["BuyPrice"]</label>
-        <input id="buyPrice" class="form-control" readonly />
-    </div>
-    <div class="form-group col-md-2">
-        <label class="control-label">@L["RequiredQuantity"]</label>
-        <input id="quantity" type="number" step="0.001" min="0" class="form-control" />
-    </div>
-    <div class="form-group col-md-2">
-        <label class="control-label">@L["Cost"]</label>
-        <input id="cost" class="form-control" readonly />
-    </div>
-    <div class="form-group col-md-1">
-        <label class="control-label">&nbsp;</label>
-        <button id="addComponent" type="button" class="btn btn-primary form-control">+</button>
-    </div>
+                <div class="recipe-line">
+                    <div>
+                        <span>@L["AvailableQuantity"]</span>
+                        <input id="availableQuantity" class="form-control" readonly />
+                    </div>
+                    <div>
+                        <span>@L["UnitCost"]</span>
+                        <input id="unitCost" class="form-control" readonly />
+                    </div>
+                    <div>
+                        <span>@L["RequiredQuantity"]</span>
+                        <input id="quantity" type="number" step="0.001" min="0" class="form-control" />
+                    </div>
+                    <div>
+                        <span>@L["Cost"]</span>
+                        <input id="cost" class="form-control" readonly />
+                    </div>
+                    <button id="addComponent" type="button" class="btn-ad btn-ad-primary"><i class="fas fa-plus" aria-hidden="true"></i> @L["AddToRecipe"]</button>
+                </div>
+                <p id="formula" class="menu-formula">@L["CostFormula"]</p>
 
-    <div class="form-group col-md-12 mt-3">
-        <table id="componentTable" class="table table-hover text-center table-bordered table-striped-columns table-dark">
-            <thead>
-                <tr>
-                    <th>@L["Product"]</th>
-                    <th>@L["Quantity"]</th>
-                    <th>@L["Cost"]</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (var i = 0; i < Model.Components.Count; i++)
+                <div class="ad-table-wrap">
+                    <table id="componentTable" class="ad-table">
+                        <thead>
+                            <tr>
+                                <th>@L["Products"]</th>
+                                <th>@L["Quantity"]</th>
+                                <th>@L["UnitCost"]</th>
+                                <th>@L["Cost"]</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.Components.Count; i++)
+                            {
+                                var component = Model.Components[i];
+                                <tr data-id="@component.ProductId">
+                                    <td>@(isArabic ? component.ProductArName : component.ProductEnName)</td>
+                                    <td class="num c-qty">@component.Quantity.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                                    <td class="num c-unit">@component.UnitCost.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                    <td class="num c-cost">@component.Cost.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                    <td class="ad-row-actions"><button type="button" class="btn-ad btn-ad-danger btn-icon cancelRow" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <p id="recipeEmpty" class="ad-empty" hidden>@L["RecipeEmpty"]</p>
+                </div>
+            </section>
+
+            <section class="menu-step">
+                <h2><b>3</b> @L["MenuStepPrice"]</h2>
+                <div class="profit-box" id="profitBox">
+                    <div class="profit-price">
+                        <label asp-for="Price" class="control-label">@L["Price"]</label>
+                        <input id="price" asp-for="Price" class="form-control" type="number" step="0.01" min="0" />
+                        <span asp-validation-for="Price" class="text-danger"></span>
+                        <button type="button" id="suggestPrice" class="btn-ad btn-ad-ghost">@L["SuggestPrice"]</button>
+                    </div>
+                    <div class="profit-figures">
+                        <div><span>@L["TotalCost"]</span><strong id="totalCostText">0.00</strong></div>
+                        <div><span>@L["Benefit"]</span><strong id="benefitText">0.00</strong></div>
+                        <div><span>@L["ProfitMargin"]</span><strong id="marginText">0%</strong></div>
+                    </div>
+                    <p id="lossWarning" class="profit-warning" hidden></p>
+                </div>
+                <input type="hidden" id="totalCost" />
+                <input type="hidden" id="benefit" />
+            </section>
+
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+                @if (!isNew)
                 {
-                    var component = Model.Components[i];
-                    <tr data-id="@component.StoreProductId">
-                        <td>@component.ProductName</td>
-                        <td class="c-qty">@component.Quantity.ToString("0.###", CultureInfo.InvariantCulture)</td>
-                        <td class="c-cost">@component.Cost.ToString("0.00", CultureInfo.InvariantCulture)</td>
-                        <td><button type="button" class="btn btn-danger cancelRow">@L["Delete"]</button></td>
-                    </tr>
+                    <button type="button" onclick="Delete('/Menu/Delete/@Model.Id', '@Url.Action("Index")')" class="btn-ad btn-ad-danger push"><i class="fas fa-trash" aria-hidden="true"></i> @L["Delete"]</button>
                 }
-            </tbody>
-        </table>
+            </div>
+        </form>
     </div>
-
-    <div class="form-group col-md-3">
-        <label asp-for="TotalCost" class="control-label">@L["TotalCost"]</label>
-        <input id="totalCost" class="form-control" value="@Model.TotalCost.ToString("0.00", CultureInfo.InvariantCulture)" readonly />
-    </div>
-    <div class="form-group col-md-3">
-        <label asp-for="Benefit" class="control-label">@L["Benefit"]</label>
-        <input id="benefit" class="form-control" value="@Model.Benefit.ToString("0.00", CultureInfo.InvariantCulture)" readonly />
-    </div>
-
-    <div class="form-group mt-3">
-        <input type="submit" value="@L["Save"]" class="btn btn-primary" /> |
-        <a asp-action="Index">@L["Back"]</a>
-        @if (!isNew)
-        {
-            <text> | </text>
-            <a onclick="Delete('/Menu/Delete/@Model.Id', '@Url.Action("Index")')" class="text-danger" style="font-weight:bold; cursor:pointer;">@L["Delete"]</a>
-        }
-    </div>
-</form>
+</div>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-    <script src="~/modules/deleteobjects.js"></script>
     <script>
         $(function () {
-            var msgFill = '@Html.Raw(Json.Serialize(L["FillComponentFields"].Value))';
-            var msgNegative = '@Html.Raw(Json.Serialize(L["NegativeBenefitConfirm"].Value))';
-            var msgSelect = '@Html.Raw(Json.Serialize(L["Select"].Value))';
+            var isArabic = @Html.Raw(Json.Serialize(isArabic));
+            var msgFill = @Html.Raw(Json.Serialize(L["FillComponentFields"].Value));
+            var msgNegative = @Html.Raw(Json.Serialize(L["NegativeBenefitConfirm"].Value));
+            var msgSelect = @Html.Raw(Json.Serialize(L["Select"].Value));
+            var msgLoss = @Html.Raw(Json.Serialize(L["LossWarning"].Value));
+            var alertTitle = @Html.Raw(Json.Serialize(L["LossAlertTitle"].Value));
+            var saveAnywayText = @Html.Raw(Json.Serialize(L["SaveAnyway"].Value));
+            var cancelText = @Html.Raw(Json.Serialize(L["Cancel"].Value));
+            var removeText = @Html.Raw(Json.Serialize(L["Delete"].Value));
+            var formulaText = @Html.Raw(Json.Serialize(L["CostFormula"].Value));
+            var margin = 1.3;
             var storeLoaded = false;
+            var stock = {};
+
+            function number(value) {
+                return parseFloat(value) || 0;
+            }
 
             function recalc() {
                 var total = 0;
-                $('#componentTable tbody tr').each(function () {
-                    total += parseFloat($(this).find('.c-cost').text()) || 0;
+                var rows = $('#componentTable tbody tr');
+                rows.each(function () {
+                    total += number($(this).find('.c-cost').text());
                 });
+
+                var price = number($('#price').val());
+                var benefit = price - total;
+                var percent = price > 0 ? (benefit / price) * 100 : 0;
+
                 $('#totalCost').val(total.toFixed(2));
-                $('#benefit').val(((parseFloat($('#price').val()) || 0) - total).toFixed(2));
+                $('#benefit').val(benefit.toFixed(2));
+                $('#totalCostText').text(total.toFixed(2));
+                $('#benefitText').text(benefit.toFixed(2));
+                $('#marginText').text(percent.toFixed(0) + '%');
+                $('#recipeEmpty').prop('hidden', rows.length > 0);
+
+                var loss = total > 0 && benefit < 0;
+                $('#profitBox').toggleClass('is-loss', loss).toggleClass('is-ok', total > 0 && !loss);
+                $('#lossWarning').prop('hidden', !loss).text(msgLoss.replace('{0}', total.toFixed(2)));
+            }
+
+            function renderProducts() {
+                var category = $('#categoryList').val();
+                var list = $('#productList').empty().append($('<option>', { value: '', text: msgSelect }));
+                var count = 0;
+                $.each(stock, function (id, p) {
+                    if (category && String(p.productCategoryId) !== category) {
+                        return;
+                    }
+
+                    count++;
+                    list.append($('<option>', { value: p.productId, text: isArabic ? p.productArName : p.productEnName }));
+                });
+                $('#noMaterials').prop('hidden', count > 0);
             }
 
             function loadProducts(storeId) {
-                $('#productList').empty().append($('<option>', { value: '', text: msgSelect }));
-                if (!storeId) { return; }
-                $.get('/Menu/GetProductsByStore', { storeId: storeId }, function (data) {
-                    $.each(data, function (i, p) {
-                        $('#productList').append($('<option>', { value: p.id, text: p.productName }));
-                    });
+                $.get('/Menu/GetProductsByStore', { storeId: storeId || 0 }, function (data) {
+                    stock = {};
+                    $.each(data, function (i, p) { stock[p.productId] = p; });
+                    renderProducts();
                 });
             }
 
+            function clearLine() {
+                $('#availableQuantity, #unitCost, #quantity, #cost').val('');
+                $('#formula').text(formulaText);
+            }
+
+            $('#categoryList').on('change', function () {
+                clearLine();
+                renderProducts();
+            });
+
             $('#storeList').on('change', function () {
-                // Components belong to the chosen store, so changing the store starts the list again.
                 if (storeLoaded) {
                     $('#componentTable tbody').empty();
                 }
+
                 storeLoaded = true;
-                $('#availableQuantity, #buyPrice, #quantity, #cost').val('');
+                clearLine();
                 loadProducts($(this).val());
                 recalc();
             });
 
             $('#productList').on('change', function () {
-                var id = $(this).val();
-                $('#quantity, #cost').val('');
-                if (!id) { $('#availableQuantity, #buyPrice').val(''); return; }
-                $.get('/Menu/GetPriceByProduct', { productId: id }, function (p) {
-                    $('#availableQuantity').val(p.quantity);
-                    $('#buyPrice').val(p.priceForUnit);
-                });
+                var item = stock[$(this).val()];
+                clearLine();
+                $('#availableQuantity').val(item ? item.quantity : '');
+                $('#unitCost').val(item ? item.cost : '');
             });
 
             $('#quantity').on('input', function () {
-                var cost = (parseFloat($(this).val()) || 0) * (parseFloat($('#buyPrice').val()) || 0);
+                var quantity = number($(this).val());
+                var unit = number($('#unitCost').val());
+                var cost = quantity * unit;
                 $('#cost').val(cost.toFixed(2));
+                $('#formula').text(quantity + ' x ' + unit.toFixed(2) + ' = ' + cost.toFixed(2));
             });
 
             $('#price').on('input', recalc);
 
+            $('#suggestPrice').on('click', function () {
+                var total = number($('#totalCost').val());
+                if (total > 0) {
+                    $('#price').val((Math.ceil(total * margin * 2) / 2).toFixed(2));
+                    recalc();
+                }
+            });
+
             $('#addComponent').on('click', function () {
                 var id = $('#productList').val();
-                var qty = $('#quantity').val();
-                var cost = $('#cost').val();
-                if (!id || !qty || parseFloat(qty) <= 0 || !cost) {
+                var quantity = $('#quantity').val();
+                if (!id || number(quantity) <= 0) {
                     toastr.error(msgFill);
                     return;
                 }
+
+                $('#componentTable tbody tr[data-id="' + id + '"]').remove();
+
+                var unit = number($('#unitCost').val());
                 var row = $('<tr>').attr('data-id', id)
                     .append($('<td>').text($('#productList option:selected').text()))
-                    .append($('<td class="c-qty">').text(qty))
-                    .append($('<td class="c-cost">').text(cost))
-                    .append($('<td>').append($('<button type="button" class="btn btn-danger cancelRow">').text('@L["Delete"]')));
+                    .append($('<td class="num c-qty">').text(quantity))
+                    .append($('<td class="num c-unit">').text(unit.toFixed(2)))
+                    .append($('<td class="num c-cost">').text((number(quantity) * unit).toFixed(2)))
+                    .append($('<td class="ad-row-actions">').append($('<button type="button" class="btn-ad btn-ad-danger btn-icon cancelRow">').attr('title', removeText).attr('aria-label', removeText).html('<i class="fas fa-trash" aria-hidden="true"></i>')));
                 $('#componentTable tbody').append(row);
                 $('#productList').val('').trigger('change');
                 recalc();
@@ -225,23 +344,47 @@
                 recalc();
             });
 
+            var confirmed = false;
+
             $('#menuForm').on('submit', function (e) {
                 var form = $(this);
                 form.find('input.component-input').remove();
                 $('#componentTable tbody tr').each(function (i) {
                     var row = $(this);
-                    $('<input type="hidden" class="component-input">').attr('name', 'Components[' + i + '].StoreProductId').val(row.data('id')).appendTo(form);
+                    $('<input type="hidden" class="component-input">').attr('name', 'Components[' + i + '].ProductId').val(row.data('id')).appendTo(form);
                     $('<input type="hidden" class="component-input">').attr('name', 'Components[' + i + '].Quantity').val(row.find('.c-qty').text()).appendTo(form);
                 });
-                if (parseFloat($('#benefit').val()) < 0 && !confirm(msgNegative)) {
-                    e.preventDefault();
+
+                if (confirmed || number($('#benefit').val()) >= 0) {
+                    return;
                 }
+
+                e.preventDefault();
+                if (form.valid && !form.valid()) {
+                    return;
+                }
+
+                swal({
+                    title: alertTitle,
+                    text: msgNegative + ' (' + $('#totalCost').val() + ' > ' + number($('#price').val()).toFixed(2) + ')',
+                    icon: 'warning',
+                    buttons: [cancelText, saveAnywayText],
+                    dangerMode: true
+                }).then(function (accepted) {
+                    if (accepted) {
+                        confirmed = true;
+                        form[0].submit();
+                    }
+                });
             });
 
-            if ($('#storeList').val()) {
-                loadProducts($('#storeList').val());
-                storeLoaded = true;
+            var storeOptions = $('#storeList option').filter(function () { return $(this).val() !== ''; });
+            if (!$('#storeList').val() && storeOptions.length === 1) {
+                $('#storeList').val(storeOptions.first().val());
             }
+
+            loadProducts($('#storeList').val());
+            storeLoaded = !!$('#storeList').val();
             recalc();
         });
     </script>

@@ -1,200 +1,127 @@
-﻿@model IEnumerable<MenuItem>
-
+@model IEnumerable<OnlineMenuItemViewModel>
 @{
-    ViewData["Title"] = "Menu";
+    ViewData["Title"] = L["OurMenu"].Value;
+    var isArabic = LanguageHelper.IsArabic();
+
+    string SectionName(OnlineMenuItemViewModel item)
+    {
+        return isArabic ? item.SectionArName : item.SectionEnName;
+    }
+
+    string Name(OnlineMenuItemViewModel item)
+    {
+        return isArabic ? item.ArName : item.EnName;
+    }
+
+    string Description(OnlineMenuItemViewModel item)
+    {
+        return isArabic
+            ? (string.IsNullOrWhiteSpace(item.ArDescription) ? item.EnDescription : item.ArDescription)
+            : (string.IsNullOrWhiteSpace(item.EnDescription) ? item.ArDescription : item.EnDescription);
+    }
+
+    string SizeName(OnlineMenuItemViewModel item)
+    {
+        return item.Size.HasValue ? L["Size." + item.Size.Value].Value : L["Size.regular"].Value;
+    }
+
+    var sections = Model
+        .GroupBy(a => a.SectionArName)
+        .Select(g => g.First())
+        .ToList();
 }
 
+<div class="ws" dir="@(isArabic ? "rtl" : "ltr")">
+    <section class="ws-page">
+        <div class="ws-wrap">
+            <header class="ws-page-head">
+                <h1>@L["OurMenu"]</h1>
+            </header>
 
+            @if (sections.Count > 1)
+            {
+                <div class="ws-tabs-wrap">
+                    <div class="ws-tabs" role="tablist" aria-label="@L["OurMenu"]">
+                        <button type="button" class="ws-tab is-on" role="tab" aria-selected="true" data-section="">@L["AllCategories"]</button>
+                        @foreach (var sec in sections)
+                        {
+                            <button type="button" class="ws-tab" role="tab" aria-selected="false" data-section="@sec.SectionArName">@SectionName(sec)</button>
+                        }
+                    </div>
+                </div>
+            }
 
-<section id="menu" class="menu section-bg mt-5 ">
-    <div class="container mt-4" data-aos="fade-up">
-        <div class="section-title">
-            <p class="float-end">اختار اشهى المأكولات من المنيو الخاص بنا</p>
-            <br />
-        </div>
-        <hr />
+            @if (!Model.Any())
+            {
+                <p class="ws-empty">@L["NoMenuItems"]</p>
+            }
 
-        <div class="row mt-5" data-aos="fade-up" data-aos-delay="100">
-            <div class="col-lg-12 d-flex justify-content-center">
-                <ul id="menu-flters">
-                    <li data-filter="*" class="filter-active">الكل</li>
-                    @foreach (var menuSection in Model.Select(m => m.MenuSection.ArName).Distinct())
-                    {
-                        <li data-filter=".filter-@menuSection">@menuSection</li>
-                    }
-                </ul>
-            </div>
-        </div>
-
-        <div class="row menu-container" data-aos="fade-up" data-aos-delay="200">
-            <div class="mt-5">
-                @foreach (var groupName in Model.Select(m => m.ArName).Distinct())
+            <div class="ws-dishes">
+                @foreach (var group in Model.GroupBy(a => a.ArName))
                 {
-                    var items = Model.Where(m => m.ArName == groupName);
-                    var firstItem = items.FirstOrDefault();
-                    if (firstItem != null)
-                    {
-                        <div class="col-lg-5 offset-1 menu-item filter-@firstItem.MenuSection.ArName">
-                            <img src="@firstItem.ImageUrl" class="menu-img" alt="image">
-                            <div class="menu-content">
-                                <span>@firstItem.ArName</span>
-                                <span>LE @firstItem.Price</span>
-                            </div>
-                            <div class="menu-ingredients" style="direction: rtl;">
-                                @firstItem.Description
-                            </div>
-                            <div>
-                                @if (items.Count() > 1)
-                                {
-                                    <select onchange="addToBasket(this);" class="form-select float-end m-1" style="width: 200px;">
+                    var first = group.First();
+                    var sizes = group.ToList();
 
-                                        <option value="">اختر النوع</option>
-                                        @foreach (var item in items)
-                                        {
-                                            string sizeLabel;
-                                          
-                                                sizeLabel = item.Size switch
-                                                {
-                                                    Size.Small => "صغير",
-                                                    Size.Medium => "متوسط",
-                                                    Size.Large => "كبير",
-                                                    Size.Syrian_Bread => "عيش سوري",
-                                                    _ => "عادي"
-                                                };
-                                          
-
-                                            <option value="@item.Id|@item.ArName|@item.Description|@item.Price|@item.ImageUrl|@sizeLabel">@sizeLabel -- LE @item.Price</option>
-
-                                        }
-                                    </select>
-                                }
-                                else
-                                {
-                                    <button class="btn-menu add-to-basket btn btn-primary mt-2"
-                                            data-id="@firstItem.Id"
-                                            data-name="@firstItem.ArName"
-                                            data-description="@firstItem.Description"
-                                            data-price="@firstItem.Price"
-                                            data-imageUrl="@firstItem.ImageUrl"
-                                            data-size="عادي">
-                                        إضافة الى السلة
-                                    </button>
-                                }
-                            </div>
+                    <article class="ws-dish" data-section="@first.SectionArName">
+                        <div class="ws-dish-img">
+                            @if (!string.IsNullOrWhiteSpace(first.ImageUrl))
+                            {
+                                <img src="@first.ImageUrl" alt="@Name(first)" loading="lazy" />
+                            }
                         </div>
-                    }
-                }
-
-            </div>
-        </div>
-    </div>
-</section>
-
-<script>
-    function addToBasket(select) {
-        const selectedOption = select.options[select.selectedIndex];
-        const values = selectedOption.value.split("|");
-        const id = values[0];
-        const name = values[1];
-        const description = values[2];
-        const price = values[3];
-        const imageUrl = values[4];
-        const size = values[5];
-
-        const basketItem = { id, name, description, price, imageUrl, size };
-        let basketItems = JSON.parse(localStorage.getItem('basket')) || [];
-        basketItems.push(basketItem);
-        localStorage.setItem('basket', JSON.stringify(basketItems));
-        alert('تمت إضافة العنصر إلى السلة');
-    }
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const addToBasketButtons = document.querySelectorAll('.add-to-basket');
-
-        addToBasketButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const itemId = this.getAttribute('data-id');
-                const itemName = this.getAttribute('data-name');
-                const itemPrice = this.getAttribute('data-price');
-                const itemDescription = this.getAttribute('data-description');
-                const itemImageUrl = this.getAttribute('data-imageUrl');
-                const itemSize = this.getAttribute('data-size');
-
-                addToBasketTwo(itemId, itemName, itemPrice, itemDescription, itemImageUrl, itemSize);
-            });
-        });
-
-        function addToBasketTwo(id, name, price, description, imageUrl, size) {
-            const basketItem = { id, name, price, description, imageUrl, size };
-            let basketItems = JSON.parse(localStorage.getItem('basket')) || [];
-            basketItems.push(basketItem);
-            localStorage.setItem('basket', JSON.stringify(basketItems));
-            alert('تمت إضافة العنصر إلى السلة');
-        }
-    });
-</script>
-
-
-
-
-
-@*    <div class="row menu-container" data-aos="fade-up" data-aos-delay="200">
-            <div class="mt-5">
-                @foreach (var menuSection in Model.Select(m => m.MenuSection.ArName).Distinct())
-                {
-                    @foreach (var item in Model.Where(m => m.MenuSection.ArName == menuSection))
-                    {
-                        <div class="col-lg-5 offset-1 menu-item filter-@menuSection">
-                            <img src="@item.ImageUrl" class="menu-img" alt="image">
-                            <div class="menu-content">
-                                <span>@item.ArName</span> <span>$@item.Price</span>
+                        <div class="ws-dish-body">
+                            <div class="ws-dish-head">
+                                <h3 class="ws-dish-name">@Name(first)</h3>
+                                <span class="ws-dish-price">@first.Price.ToString("N2") @L["Currency"]</span>
                             </div>
-                            <div class="menu-ingredients" style="direction: rtl;">
-                                @item.Description
-                            </div>
-                            <button class="btn-menu add-to-basket btn btn-primary mt-2"
-                                    data-id="@item.Id"
-                                    data-name="@item.ArName"
-                                    data-price="@item.Price"
-                                    data-description="@item.Description"
-                                    data-imageUrl="@item.ImageUrl">
-                                إضافة الى السلة
-                            </button>
+                            @if (!string.IsNullOrWhiteSpace(Description(first)))
+                            {
+                                <p class="ws-dish-desc">@Description(first)</p>
+                            }
+
+                            @if (sizes.Count > 1)
+                            {
+                                <select class="dish-size form-select form-select-sm w-auto mt-2" aria-label="@L["Size"]">
+                                    @foreach (var item in sizes)
+                                    {
+                                        <option value="@item.Id">@SizeName(item) - @item.Price.ToString("N2") @L["Currency"]</option>
+                                    }
+                                </select>
+                                <button type="button" class="ws-dish-add" data-pick-size="true">
+                                    <i class="bi bi-bag-plus" aria-hidden="true"></i> @L["AddToBasket"]
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="ws-dish-add" data-cart-add="@first.Id">
+                                    <i class="bi bi-bag-plus" aria-hidden="true"></i> @L["AddToBasket"]
+                                </button>
+                            }
                         </div>
-                    }
+                    </article>
                 }
             </div>
         </div>
-    </div>
-</section>
+    </section>
+</div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const addToBasketButtons = document.querySelectorAll('.add-to-basket');
+@section Scripts {
+    <script>
+        $(function () {
+            $('.ws-tab').on('click', function () {
+                var section = String($(this).data('section') || '');
+                $('.ws-tab').removeClass('is-on').attr('aria-selected', 'false');
+                $(this).addClass('is-on').attr('aria-selected', 'true');
+                $('.ws-dish').each(function () {
+                    $(this).toggle(section === '' || String($(this).data('section')) === section);
+                });
+            });
 
-        addToBasketButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const itemId = this.getAttribute('data-id');
-                const itemName = this.getAttribute('data-name');
-                const itemPrice = this.getAttribute('data-price');
-                const itemDescription = this.getAttribute('data-description');
-                const itemImageUrl = this.getAttribute('data-imageUrl');
-
-                addToBasket(itemId, itemName, itemPrice, itemDescription, itemImageUrl);
+            $(document).on('click', '[data-pick-size]', function () {
+                var id = $(this).siblings('.dish-size').val();
+                siteCart.add(id, 1);
+                siteCart.notify($('[data-cart]').attr('data-added'));
             });
         });
-
-        function addToBasket(id, name, price, description, imageUrl) {
-            const basketItem = { id, name, price, description, imageUrl };
-            let basketItems = JSON.parse(localStorage.getItem('basket')) || [];
-            basketItems.push(basketItem);
-            localStorage.setItem('basket', JSON.stringify(basketItems));
-            alert('تمت إضافة العنصر إلى السلة');
-            //location.reload(); // Reload the page to reflect changes in the basket
-        }
-    });
-</script>
-
- *@
-
+    </script>
+}

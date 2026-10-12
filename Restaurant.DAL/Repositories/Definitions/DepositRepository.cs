@@ -18,7 +18,10 @@ public class DepositRepository : IDepositRepository
 
     public async Task<PaginatedResult<Deposit>> GetPagedDepositsAsync(PageRequest request)
     {
-        var query = _context.Deposits.AsNoTracking().Include(a => a.User).Where(a => !a.IsDeleted).AsQueryable();
+        var query = _context.Deposits.AsNoTracking()
+            .Include(a => a.User)
+            .Where(a => !a.IsDeleted)
+            .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
@@ -70,7 +73,11 @@ public class DepositRepository : IDepositRepository
                 var existing = await _context.Deposits.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
-                    return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "RecordNotFound"
+                    };
                 }
 
                 entity.ProcessCode = existing.ProcessCode;
@@ -85,7 +92,11 @@ public class DepositRepository : IDepositRepository
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 
@@ -106,11 +117,19 @@ public class DepositRepository : IDepositRepository
         }
         catch (DbUpdateException)
         {
-            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "CannotDeleteLinkedRecord"
+            };
         }
         catch (Exception ex)
         {
-            return new ResultMessage { Success = false, Message = ex.Message };
+            return new ResultMessage
+            {
+                Success = false,
+                Message = ex.Message
+            };
         }
     }
 }

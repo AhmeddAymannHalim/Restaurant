@@ -1,148 +1,173 @@
-﻿using Shared.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.DAL.Models;
-using ResturantPL.Helper;
-using ResturantPL.ViewModels;
-using Restaurant.DAL.UnitOfWork;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Localization;
+using Restaurant.BLL.Services.IServices.Definitions;
+using Shared;
+using Shared.Helpers;
+using Shared.Helpers.Localization;
+using Shared.ViewModels.Commons;
+using Shared.ViewModels.Definitions;
 using System.Drawing.Printing;
-using System.Xml.Linq;
 
 namespace ResturantPL.Controllers
 {
+    [Authorize(Policy = "Management")]
     public class ApplicationSettingController : Controller
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly ISettingService _service;
+        private readonly IToastrService _toastr;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public ApplicationSettingController(IUnitOfWork unitOfWork)
+        public ApplicationSettingController(
+            ISettingService service,
+            IToastrService toastr,
+            IStringLocalizer<SharedResource> localizer)
         {
-            _unitOfWork = unitOfWork;
+            _service = service;
+            _toastr = toastr;
+            _localizer = localizer;
         }
+
         public IActionResult Index()
         {
             return View();
         }
 
-
-        // Application Setting
         public async Task<IActionResult> ApplicationSetting()
         {
-            ApplicationSetting setting = await _unitOfWork.ApplicationSettingRepository.GetLast(a => a.Id);
-            return View(setting);
-        }
-
-        [HttpPost]
-        public IActionResult ApplicationSetting(ApplicationSetting setting)
-        {
-            if (ModelState.IsValid)
+            try
             {
-                _unitOfWork.ApplicationSettingRepository.Update(setting);
-                return RedirectToAction("ApplicationSetting");
+                return View(await _service.GetApplicationSettingAsync());
             }
-            return View(setting);
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
         }
 
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApplicationSetting(ApplicationSettingViewModel model)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    _toastr.Error(_localizer["ValidationError"].Value);
+                    return View(model);
+                }
 
+                var result = await _service.UpdateApplicationSettingAsync(model);
 
-        // Restaurant Settings
+                return Saved(result, nameof(ApplicationSetting), model);
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
+        }
+
         public async Task<IActionResult> RestaurantSetting()
         {
-            IndexSettings setting = await _unitOfWork.IndexRepository.GetLast(a => a.Id);
-            IndexSettingsViewModel model = new IndexSettingsViewModel()
+            try
             {
-                Id = setting.Id,
-                ArName = setting.ArName,
-                EnName = setting.EnName,
-                Description = setting.Description,
-                Email = setting.Email,
-                Phone = setting.Phone,
-                StartDay = setting.StartDay,
-                EndDay = setting.EndDay,
-                StartHour = setting.StartHour,
-                EndHour = setting.EndHour,
-                VedioUrl = setting.VedioUrl,
-                ImageUrl = setting.ImageUrl,
-                Locaion = setting.Locaion
-            };
-
-            return View(model);
-        }
-
-
-        [HttpPost]
-        public IActionResult RestaurantSetting(IndexSettingsViewModel setting)
-        {
-            if (ModelState.IsValid)
-            {
-                IndexSettings old = _unitOfWork.IndexRepository.GetById(setting.Id);
-                old.Id = setting.Id;
-                old.ArName = setting.ArName;
-                old.EnName = setting.EnName;
-                old.Description = setting.Description;
-                old.Email = setting.Email;
-                old.Phone = setting.Phone;
-                old.StartDay = setting.StartDay;
-                old.EndDay = setting.EndDay;
-                old.StartHour = setting.StartHour;
-                old.EndHour = setting.EndHour;
-                old.Locaion = setting.Locaion;
-
-                if (setting.Image != null)
-                {
-                    if (old.ImageUrl != null)
-                    {
-                        DocumentSetting.DeleteFile(old.ImageUrl);
-                    }
-                    old.ImageUrl = DocumentSetting.UploadFile(setting.Image, "Images");
-                }
-                if (setting.Video != null)
-                {
-                    if (old.VedioUrl != null)
-                    {
-                        DocumentSetting.DeleteFile(old.VedioUrl);
-                    }
-                    old.VedioUrl = DocumentSetting.UploadFile(setting.Video, "Videos");
-                }
-
-                _unitOfWork.IndexRepository.Update(old);
-                return RedirectToAction("RestaurantSetting");
+                return View(await _service.GetRestaurantSettingAsync());
             }
-            return View(setting);
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
         }
 
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RestaurantSetting(RestaurantSettingViewModel model)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    _toastr.Error(_localizer["ValidationError"].Value);
+                    return View(model);
+                }
 
+                var result = await _service.UpdateRestaurantSettingAsync(model);
 
-
-        // Printer Settings
+                return Saved(result, nameof(RestaurantSetting), model);
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
+        }
 
         public async Task<IActionResult> PrinterSetting()
         {
-            PrinterSetting setting = await _unitOfWork.PrinterSettingRepository.GetLast(a => a.Id);
-            ViewBag.InstalledPrinters = GetInstalledPrinters(); // Set the list of installed printers
-            return View(setting);
-        }
-
-
-        [HttpPost]
-        public IActionResult PrinterSetting(PrinterSetting setting)
-        {
-            ViewBag.InstalledPrinters = GetInstalledPrinters();
-            if (ModelState.IsValid)
+            try
             {
-                _unitOfWork.PrinterSettingRepository.Update(setting);
-                return RedirectToAction("PrinterSetting");
+                var model = await _service.GetPrinterSettingAsync();
+                PopulatePrinters(model);
+
+                return View(model);
             }
-            return View(setting);
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
         }
 
-
-
-
-
-        public List<string> GetInstalledPrinters()
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> PrinterSetting(PrinterSettingViewModel model)
         {
-            return PrinterSettings.InstalledPrinters.Cast<string>().ToList();
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    PopulatePrinters(model);
+                    _toastr.Error(_localizer["ValidationError"].Value);
+                    return View(model);
+                }
+
+                var result = await _service.UpdatePrinterSettingAsync(model);
+                if (!result.Success)
+                {
+                    PopulatePrinters(model);
+                }
+
+                return Saved(result, nameof(PrinterSetting), model);
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex.Message);
+            }
         }
 
+        private IActionResult Saved(ResultMessage result, string action, object model)
+        {
+            if (result.Success)
+            {
+                _toastr.Success(_localizer["UpdatedSuccessfully"].Value);
+                return RedirectToAction(action);
+            }
 
+            _toastr.Error(_localizer[result.Message ?? "ErrorWhileUpdating"].Value);
+            return View(action, model);
+        }
+
+        private static void PopulatePrinters(PrinterSettingViewModel model)
+        {
+            var printers = new List<LookupItem_String>();
+            if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
+            {
+                printers.AddRange(PrinterSettings.InstalledPrinters.Cast<string>()
+                    .Select(a => new LookupItem_String
+                        {
+                            Id = a,
+                            ArName = a,
+                            EnName = a
+                        }));
+            }
+
+            model.Printers = printers;
+        }
     }
 }

@@ -22,7 +22,9 @@ public class KitchenService : IKitchenService
     {
         var result = await _unitOfWork.Kitchens.GetPagedKitchensAsync(request);
 
-        return PaginatedResult<KitchenViewModel>.Create(_mapper.Map<List<KitchenViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<KitchenViewModel>.Create(_mapper.Map<List<KitchenViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<KitchenViewModel> GetKitchenByIdAsync(int id)
@@ -34,7 +36,7 @@ public class KitchenService : IKitchenService
 
     public async Task<ResultMessage> UpsertKitchenAsync(KitchenViewModel model)
     {
-        var entity = _mapper.Map<kitchen>(model);
+        var entity = _mapper.Map<Kitchen>(model);
 
         return await _unitOfWork.Kitchens.UpsertKitchenAsync(entity);
     }

@@ -3,14 +3,17 @@
     ViewBag.Title = L["Gallery"].Value;
 }
 
-<h1 class="text-center">@L["Gallery"]</h1>
-<hr />
-
-<p>
-    <a asp-action="Upsert">@L["NewPhoto"]</a>
-</p>
-
-<table id="Gallery-table" class="table table-hover text-center table-bordered table-striped-columns table-dark">
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-images" aria-hidden="true"></i></span>
+        <h1>@L["Gallery"]</h1>
+        <a asp-action="Upsert" class="btn-ad btn-ad-primary"><i class="fas fa-plus" aria-hidden="true"></i> @L["NewPhoto"]</a>
+    </div>
+    <div class="ad-card-body">
+        <div class="ad-filters"><span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span></div>
+@await Html.PartialAsync("_ExportToolbar", "Gallery-table")
+        <div class="ad-table-wrap">
+        <table id="Gallery-table" class="ad-table">
     <thead>
         <tr>
             <th>#</th>
@@ -27,9 +30,9 @@
                 <tr>
                     <td>@counter</td>
                     <td><img src="@item.PictureUrl" alt="" style="width:120px;height:80px;object-fit:cover;border-radius:8px" /></td>
-                    <td>
-                        <a asp-action="Upsert" asp-route-id="@item.Id">@L["Edit"]</a> |
-                        <a onclick="Delete('/Gallery/Delete/@item.Id')" class="text-danger" style="font-weight:bold; cursor:pointer;">@L["Delete"]</a>
+                    <td class="ad-row-actions">
+                        <a asp-action="Upsert" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Edit"]" aria-label="@L["Edit"]"><i class="fas fa-pen" aria-hidden="true"></i></a>
+                        <button type="button" onclick="Delete('/Gallery/Delete/@item.Id')" class="btn-ad btn-ad-danger btn-icon" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button>
                     </td>
                 </tr>
                 counter++;
@@ -38,21 +41,15 @@
         else
         {
             <tr>
-                <td colspan="3">@L["NoData"]</td>
+                <td colspan="3" class="ad-empty">@L["NoData"]</td>
             </tr>
         }
     </tbody>
 </table>
+        </div>
 
 <div class="app-table-pagination">
-    @await Html.PartialAsync("_Pagination", Model)
+            @await Html.PartialAsync("_Pagination", Model)
+        </div>
+    </div>
 </div>
-
-<div>
-    <a asp-action="Index" asp-controller="Dashboard">@L["BackToDashboard"]</a>
-</div>
-
-@section Scripts {
-    <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-    <script src="~/modules/deleteobjects.js"></script>
-}

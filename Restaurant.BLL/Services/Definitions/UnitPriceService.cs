@@ -22,7 +22,9 @@ public class UnitPriceService : IUnitPriceService
     {
         var result = await _unitOfWork.UnitPrices.GetPagedUnitPricesAsync(request);
 
-        return PaginatedResult<UnitPriceViewModel>.Create(_mapper.Map<List<UnitPriceViewModel>>(result.Data), result.TotalRecords, request);
+        return PaginatedResult<UnitPriceViewModel>.Create(_mapper.Map<List<UnitPriceViewModel>>(result.Data),
+            result.TotalRecords,
+            request);
     }
 
     public async Task<UnitPriceViewModel> GetUnitPriceByIdAsync(int id)

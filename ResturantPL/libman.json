@@ -3,18 +3,6 @@
   "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "jspdf@2.5.1",
-      "destination": "wwwroot/lib/jspdf/"
-    },
-    {
-      "library": "sweetalert2@11.10.5",
-      "destination": "wwwroot/lib/sweetalert2/",
-      "files": [
-        "sweetalert2.min.js",
-        "sweetalert2.min.css"
-      ]
-    },
-    {
       "library": "sweetalert@2.1.2",
       "destination": "wwwroot/lib/sweetalert/"
     },
@@ -24,17 +12,6 @@
       "files": [
         "signalr.min.js"
       ]
-    },
-    {
-      "library": "datatables.net@2.1.1",
-      "destination": "wwwroot/datatables.net/",
-      "files": [
-        "jquery.dataTables.min.js"
-      ]
-    },
-    {
-      "library": "datatables@1.10.21",
-      "destination": "wwwroot/lib/datatables/"
     }
   ]
 }
