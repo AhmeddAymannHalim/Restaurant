@@ -7,7 +7,6 @@ public class OnlineOrderCreateViewModel
 {
     public string CustomerName { get; set; }
     public string Address { get; set; }
-    public string PhoneNumber { get; set; }
     public string MobileNumber { get; set; }
     public int? TableId { get; set; }
     public int? DeliveryZoneId { get; set; }

@@ -10,6 +10,7 @@ public class OrderViewModel
     public DateTime OrderDate { get; set; } = DateTime.Now;
     public OrderType Type { get; set; }
     public bool Cash { get; set; }
+    public PaymentMethod? PaymentMethod { get; set; }
     public bool OnAccount { get; set; }
     public bool Complete { get; set; }
     public bool FinishShift { get; set; }
@@ -90,6 +91,7 @@ public class ShiftDashboardViewModel
     public List<ShiftRowViewModel> PendingOthers { get; set; } = new();
     public ShiftRowViewModel CollectedFromOthers { get; set; } = new();
     public ShiftRowViewModel OnAccount { get; set; } = new();
+    public ShiftRowViewModel Electronic { get; set; } = new();
 
     public decimal CollectedTotal => Collected.Sum(a => a.Amount);
     public int CollectedCount => Collected.Sum(a => a.Count);
@@ -99,8 +101,8 @@ public class ShiftDashboardViewModel
     public int PendingOthersCount => PendingOthers.Sum(a => a.Count);
     public decimal PendingTotal => PendingMineTotal + PendingOthersTotal;
     public int PendingCount => PendingMineCount + PendingOthersCount;
-    public decimal MoneyInDrawer => CollectedTotal + CollectedFromOthers.Amount;
-    public int MoneyInDrawerCount => CollectedCount + CollectedFromOthers.Count;
+    public decimal MoneyInDrawer => CollectedTotal + CollectedFromOthers.Amount - Electronic.Amount;
+    public int MoneyInDrawerCount => CollectedCount + CollectedFromOthers.Count - Electronic.Count;
 
     public ShiftCloseReportViewModel LastShiftReport { get; set; }
 }

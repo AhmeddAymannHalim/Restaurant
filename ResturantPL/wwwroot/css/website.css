@@ -1409,3 +1409,78 @@ body.cart-open {
 .cart-sums dd {
     margin: 0;
 }
+
+/* Bootstrap utilities (text-muted etc.) are dark-on-light; on the dark storefront they vanish. */
+.ws .text-muted,
+.ws .text-body-secondary {
+    color: var(--muted) !important;
+}
+
+.ws-hint {
+    display: block;
+    margin-top: .35rem;
+    color: var(--muted);
+    font-size: .8rem;
+}
+
+.ws-field input::placeholder {
+    color: #6f675a;
+}
+
+.ws-field input:invalid:not(:placeholder-shown):not(:focus) {
+    border-color: #e0795f;
+}
+
+/* Equal dish cards: body fills the card, description takes the slack, button sits on the same line in every card. */
+.ws-dishes {
+    align-items: stretch;
+}
+
+.ws-dish-body {
+    flex: 1 1 auto;
+}
+
+.ws-dish-name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+.ws-dish-desc {
+    flex: 1 1 auto;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    min-height: calc(2 * 1.65 * .95rem);
+}
+
+.ws-dish-add {
+    margin-top: auto;
+}
+
+/* Gallery: one tile size, one crop, whatever shape the uploaded photo is. */
+.ws-gallery {
+    columns: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.ws-shot {
+    aspect-ratio: 4 / 3;
+    margin: 0;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+}
+
+.ws-shot img {
+    height: 100%;
+    object-fit: cover;
+}
+
+.ws-shot:focus-visible {
+    outline: 2px solid var(--gold-soft);
+    outline-offset: 3px;
+}

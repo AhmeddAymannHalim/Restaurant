@@ -7,3 +7,14 @@ public enum OrderType
     Delivery,
     Delivery_Online
 }
+
+public enum PaymentMethod
+{
+    Cash,
+    Visa,
+    InstaPay,
+    VodafoneCash,
+    OrangeCash,
+    EtisalatCash,
+    WePay
+}

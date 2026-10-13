@@ -93,6 +93,10 @@
             {
                 <div><span>@L["Discount"]</span><span>-@Model.Discount.ToString("N2")</span></div>
             }
+            @if (Model.Cash && Model.PaymentMethod.HasValue)
+            {
+                <div><span>@L["PaymentMethod"]</span><span>@L["Pay." + Model.PaymentMethod.Value]</span></div>
+            }
             <div class="grand"><span>@L["TotalPrice"]</span><span>@Model.TotalPrice.ToString("N2")</span></div>
         </div>
     </div>

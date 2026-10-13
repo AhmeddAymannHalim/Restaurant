@@ -43,7 +43,7 @@ namespace ResturantPL.Controllers
 
                 HttpContext.Session.SetString("IsAuthenticated", "true");
 
-                return RedirectToAction("Upsert", "Order");
+                return RedirectToAction("Index", "Dashboard");
             }
             catch (Exception ex)
             {

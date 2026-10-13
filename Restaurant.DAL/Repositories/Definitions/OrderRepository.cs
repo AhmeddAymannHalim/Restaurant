@@ -26,6 +26,7 @@ public class OrderRepository : IOrderRepository
                 a.Type,
                 a.Cash,
                 a.OnAccount,
+                a.PaymentMethod,
                 a.SellerId,
                 a.ReceiverId,
                 a.TotalPrice
@@ -55,6 +56,12 @@ public class OrderRepository : IOrderRepository
             && !a.OnAccount
             && a.SellerId != userId
             && a.ReceiverId == userId).ToList();
+        // Visa / InstaPay / wallets never enter the cash drawer, so they are taken out of the expected cash.
+        var electronic = open.Where(a => a.Cash
+            && !a.OnAccount
+            && a.PaymentMethod != null
+            && a.PaymentMethod != PaymentMethod.Cash
+            && a.ReceiverId == userId).ToList();
         var onAccount = open.Where(a => a.OnAccount
             && (a.SellerId == userId || a.ReceiverId == userId)).ToList();
 
@@ -80,6 +87,11 @@ public class OrderRepository : IOrderRepository
             {
                 Count = fromOthers.Count,
                 Amount = fromOthers.Sum(a => a.TotalPrice)
+            },
+            Electronic = new ShiftRowViewModel
+            {
+                Count = electronic.Count,
+                Amount = electronic.Sum(a => a.TotalPrice)
             },
             OnAccount = new ShiftRowViewModel
             {
@@ -415,6 +427,7 @@ public class OrderRepository : IOrderRepository
                 Type = order.Type,
                 SellerId = userId,
                 Cash = cash,
+                PaymentMethod = cash && !order.OnAccount ? order.PaymentMethod ?? PaymentMethod.Cash : null,
                 OnAccount = order.OnAccount,
                 ReceiverId = cash ? userId : null,
                 Complete = false,
@@ -489,7 +502,7 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task<ResultMessage> PayOrderAsync(int id, string userId)
+    public async Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method)
     {
         try
         {
@@ -510,6 +523,7 @@ public class OrderRepository : IOrderRepository
 
             await FreeTableAsync(order);
             order.Cash = true;
+            order.PaymentMethod = method;
             order.ReceiverId = userId;
             order.OrderDate = DateTime.Now;
 

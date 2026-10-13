@@ -1,0 +1,12 @@
+<script>
+    window.deleteText = {
+        title: @Html.Raw(Json.Serialize(L["AreYouSure"].Value)),
+        warning: @Html.Raw(Json.Serialize(L["DeleteWarning"].Value)),
+        cancel: @Html.Raw(Json.Serialize(L["Cancel"].Value)),
+        confirm: @Html.Raw(Json.Serialize(L["Delete"].Value)),
+        done: @Html.Raw(Json.Serialize(L["DeletedSuccessfully"].Value)),
+        failed: @Html.Raw(Json.Serialize(L["OperationFailed"].Value)),
+        error: @Html.Raw(Json.Serialize(L["DeleteError"].Value)),
+        aborted: @Html.Raw(Json.Serialize(L["DeleteAborted"].Value))
+    };
+</script>

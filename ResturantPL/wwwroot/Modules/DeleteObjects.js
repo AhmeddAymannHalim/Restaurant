@@ -1,9 +1,13 @@
 function Delete(url, redirectUrl) {
+    var t = window.deleteText || {
+        title: "هل انت متأكد", warning: "بمجرد الحذف لن تتمكن من استعادته مجددا", cancel: "الغاء", confirm: "حذف",
+        done: "تم الحذف بنجاح", failed: "فشلت العملية", error: "حدث خطأ أثناء عملية الحذف", aborted: "تم الغاء عملية الحذف"
+    };
     swal({
-        title: "هل انت متأكد",
-        text: "بمجرد الحذف لن تتمكن من استعادته مجددا",
+        title: t.title,
+        text: t.warning,
         icon: "warning",
-        buttons: ["الغاء", "حذف"],
+        buttons: [t.cancel, t.confirm],
         dangerMode: true,
     })
         .then((willDelete) => {
@@ -13,7 +17,7 @@ function Delete(url, redirectUrl) {
                     type: "POST",
                     success: function (result) {
                         if (result.success) {
-                            swal("تم الحذف بنجاح", {
+                            swal(t.done, {
                                 icon: "success",
                             });
 
@@ -25,15 +29,15 @@ function Delete(url, redirectUrl) {
                                 location.reload();
                             }
                         } else {
-                            swal("فشلت العملية", result.errorMessage || "", "error");
+                            swal(t.failed, result.errorMessage || "", "error");
                         }
                     },
                     error: function () {
-                        swal("حدث خطأ أثناء عملية الحذف", "", "error");
+                        swal(t.error, "", "error");
                     }
                 });
             } else {
-                swal("تم الغاء عملية الحذف");
+                swal(t.aborted);
             }
         });
 }

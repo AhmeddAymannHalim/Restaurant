@@ -42,14 +42,19 @@
                             <li><span>@(isArabic ? item.MenuItemArName : item.MenuItemEnName) x @item.Quantity.ToString("0.###", CultureInfo.InvariantCulture)</span><span>@item.Price.ToString("N2")</span></li>
                         }
                     </ul>
-                    <p class="online-sums">@L["SubTotal"]: @order.SubTotal.ToString("N2") | @L["Tax"]: @order.Tax.ToString("N2") | @L["Service"]: @order.Service.ToString("N2") | @L["DeliveryFee"]: @order.DeliveryFee.ToString("N2")</p>
+                    <dl class="online-sums">
+                        <div><dt>@L["SubTotal"]</dt><dd>@order.SubTotal.ToString("N2")</dd></div>
+                        <div><dt>@L["Tax"]</dt><dd>@order.Tax.ToString("N2")</dd></div>
+                        <div><dt>@L["Service"]</dt><dd>@order.Service.ToString("N2")</dd></div>
+                        <div><dt>@L["DeliveryFee"]</dt><dd>@order.DeliveryFee.ToString("N2")</dd></div>
+                    </dl>
                     <footer>
-                        <strong>@order.TotalPrice.ToString("N2")</strong>
-                        <span>
-                            <a asp-action="Upsert" asp-route-onlineOrderId="@order.Id" class="btn-ad btn-ad-primary"><i class="fas fa-check" aria-hidden="true"></i> @L["AcceptOrder"]</a>
-                            <button type="button" onclick="RejectOnlineOrder(@order.Id)" class="btn-ad btn-ad-danger"><i class="fas fa-ban" aria-hidden="true"></i> @L["RejectOrder"]</button>
+                        <div class="online-total"><span>@L["TotalPrice"]</span><strong>@order.TotalPrice.ToString("N2")</strong></div>
+                        <div class="online-actions">
+                            <a asp-action="Upsert" asp-route-onlineOrderId="@order.Id" class="btn-ad btn-ad-primary online-accept"><i class="fas fa-check" aria-hidden="true"></i> @L["AcceptOrder"]</a>
+                            <button type="button" onclick="RejectOnlineOrder(@order.Id, this)" class="btn-ad btn-ad-danger"><i class="fas fa-ban" aria-hidden="true"></i> @L["RejectOrder"]</button>
                             <button type="button" onclick="Delete('/Order/CancelOnline/@order.Id')" class="btn-ad btn-ad-danger"><i class="fas fa-xmark" aria-hidden="true"></i> @L["CancelOrder"]</button>
-                        </span>
+                        </div>
                     </footer>
                 </article>
             }
@@ -66,23 +71,81 @@
             connection.start();
         } catch (e) { }
 
-        function RejectOnlineOrder(id) {
-            var reason = prompt('@L["RejectionReasonPrompt"]');
-            if (reason === null || reason.trim() === '') {
-                return;
-            }
+        var rejectText = {
+            title: @Html.Raw(Json.Serialize(L["RejectOrderTitle"].Value)),
+            reasonLabel: @Html.Raw(Json.Serialize(L["RejectionReasonPrompt"].Value)),
+            reasonRequired: @Html.Raw(Json.Serialize(L["RejectionReasonRequired"].Value)),
+            confirm: @Html.Raw(Json.Serialize(L["RejectOrder"].Value)),
+            cancel: @Html.Raw(Json.Serialize(L["Cancel"].Value))
+        };
 
-            $.ajax({
-                url: '/Order/RejectOnline/' + id + '?reason=' + encodeURIComponent(reason),
-                type: 'POST',
-                success: function (result) {
-                    if (result.success) {
-                        location.reload();
-                    } else {
-                        alert(result.errorMessage);
-                    }
+        // Shows the order being rejected (copied from its card) so staff can see exactly which one it is.
+        function RejectOnlineOrder(id, button, showError) {
+            var card = $(button).closest('.online-card');
+            var box = document.createElement('div');
+            box.className = 'reject-box';
+
+            var summary = document.createElement('div');
+            summary.className = 'reject-summary';
+            [card.find('header strong').text(), card.find('header time').text(),
+             card.find('> p').first().text().trim(), card.find('> p').eq(1).text().trim()]
+                .filter(Boolean).forEach(function (line) {
+                    var p = document.createElement('p');
+                    p.textContent = line;
+                    summary.appendChild(p);
+                });
+            var list = card.find('ul').clone()[0];
+            if (list) { summary.appendChild(list); }
+            var total = document.createElement('strong');
+            total.textContent = card.find('.online-total strong').text();
+            summary.appendChild(total);
+
+            var label = document.createElement('label');
+            label.textContent = rejectText.reasonLabel;
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.maxLength = 250;
+            input.className = 'form-control';
+            label.appendChild(input);
+            var error = document.createElement('small');
+            error.className = 'reject-error';
+            if (showError) { error.textContent = rejectText.reasonRequired; }
+            label.appendChild(error);
+
+            box.appendChild(summary);
+            box.appendChild(label);
+
+            swal({
+                title: rejectText.title,
+                content: box,
+                icon: 'warning',
+                dangerMode: true,
+                buttons: {
+                    cancel: rejectText.cancel,
+                    confirm: { text: rejectText.confirm, closeModal: false }
                 }
+            }).then(function (confirmed) {
+                if (!confirmed) { return; }
+                var reason = input.value.trim();
+                if (reason === '') {
+                    // reopen with the order still visible and the reason flagged as required
+                    return RejectOnlineOrder(id, button, true);
+                }
+
+                $.ajax({
+                    url: '/Order/RejectOnline/' + id + '?reason=' + encodeURIComponent(reason),
+                    type: 'POST',
+                    success: function (result) {
+                        if (result.success) {
+                            location.reload();
+                        } else {
+                            swal(rejectText.title, result.errorMessage || '', 'error');
+                        }
+                    },
+                    error: function () { swal.stopLoading(); swal.close(); }
+                });
             });
+            setTimeout(function () { input.focus(); }, 50);
         }
     </script>
 }

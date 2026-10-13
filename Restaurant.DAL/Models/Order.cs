@@ -20,6 +20,7 @@ namespace Restaurant.DAL.Models
         public string SellerId { get; set; }
         public string ReceiverId { get; set; }
         public bool Cash { get; set; }
+        public PaymentMethod? PaymentMethod { get; set; }
         public bool OnAccount { get; set; }
         public bool Complete { get; set; } = false;
         public bool FinishShift { get; set; }

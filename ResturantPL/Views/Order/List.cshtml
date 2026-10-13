@@ -77,7 +77,13 @@
                                     <a asp-action="Pdf" asp-route-id="@item.Id" data-no-loader class="btn-ad btn-ad-ghost btn-icon" title="@L["Print"]" aria-label="@L["Print"]"><i class="fas fa-print" aria-hidden="true"></i></a>
                                     @if (!item.Cash)
                                     {
-                                        <form asp-action="Pay" asp-route-id="@item.Id" method="post" class="d-inline">
+                                        <form asp-action="Pay" asp-route-id="@item.Id" method="post" class="d-inline-flex gap-1 align-items-center">
+                                            <select name="method" class="form-select form-select-sm" style="width:auto" aria-label="@L["PaymentMethod"]">
+                                                @foreach (var method in Enum.GetValues<PaymentMethod>())
+                                                {
+                                                    <option value="@method">@L["Pay." + method]</option>
+                                                }
+                                            </select>
                                             <button type="submit" class="btn-ad btn-ad-primary btn-icon" title="@L["PayOrder"]" aria-label="@L["PayOrder"]"><i class="fas fa-money-bill-wave" aria-hidden="true"></i></button>
                                         </form>
                                         @if (item.Type == OrderType.Hall)

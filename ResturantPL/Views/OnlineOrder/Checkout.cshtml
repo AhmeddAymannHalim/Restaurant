@@ -44,7 +44,7 @@
                                 </label>
                             }
                         </div>
-                        <small class="d-block mt-2 text-muted">@L["TableOrderNote"]</small>
+                        <small class="ws-hint">@L["TableOrderNote"]</small>
                     </div>
 
                     @if (Model.Zones.Any())
@@ -60,7 +60,7 @@
                                     </label>
                                 }
                             </div>
-                            <small class="d-block mt-2 text-muted">@L["DeliveryFeeVaries"]</small>
+                            <small class="ws-hint">@L["DeliveryFeeVaries"]</small>
                         </div>
                     }
 
@@ -69,15 +69,12 @@
                         <div class="ws-fields">
                             <div class="ws-field">
                                 <label for="CustomerName">@L["CustomerName"]</label>
-                                <input id="CustomerName" name="CustomerName" required minlength="3" maxlength="100" autocomplete="name" />
+                                <input id="CustomerName" name="CustomerName" value="@Model.CustomerName" required minlength="3" maxlength="100" autocomplete="name" />
                             </div>
                             <div class="ws-field">
                                 <label for="MobileNumber">@L["MobileNumber"]</label>
-                                <input id="MobileNumber" name="MobileNumber" required maxlength="11" inputmode="tel" autocomplete="tel" />
-                            </div>
-                            <div class="ws-field">
-                                <label for="PhoneNumber">@L["PhoneNumber"]</label>
-                                <input id="PhoneNumber" name="PhoneNumber" maxlength="11" inputmode="tel" />
+                                <input id="MobileNumber" name="MobileNumber" value="@Model.MobileNumber" required pattern="01[0125][0-9]{8}" maxlength="11" inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX" dir="ltr" title="@L["Val.MobileFormat"]" />
+                                <small class="ws-hint">@L["MobileHint"]</small>
                             </div>
                             <div id="addressField" class="ws-field ws-full">
                                 <label for="Address">@L["Address"]</label>

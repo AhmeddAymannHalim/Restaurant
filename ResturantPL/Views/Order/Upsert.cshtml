@@ -157,11 +157,13 @@
                         <input id="discount" name="Discount" type="number" step="0.01" min="0" value="@Model.Discount.ToString(invariant)" class="form-control" aria-label="@L["DiscountValue"]" />
                         <input id="discountPercent" type="number" step="0.01" min="0" max="100" value="0" class="form-control" aria-label="@L["DiscountPercent"]" placeholder="%" />
                     </div>
+                    <div id="discountRow" class="pos-saved" hidden><span>@L["Discount"]</span><b id="discountShown">0.00</b></div>
                     <div class="pos-total"><span>@L["TotalPrice"]</span><b id="total">0.00</b></div>
                 </div>
 
                 <div class="ad-form-actions">
-                    <button type="submit" id="payNow" class="btn-ad btn-ad-primary"><i class="fas fa-money-bill-wave" aria-hidden="true"></i> @L["PayOrder"]</button>
+                    <input type="hidden" id="paymentMethod" name="PaymentMethod" value="Cash" />
+                    <button type="button" id="payNow" class="btn-ad btn-ad-primary"><i class="fas fa-money-bill-wave" aria-hidden="true"></i> @L["PayOrder"]</button>
                     <button type="submit" id="payLater" class="btn-ad btn-ad-ghost"><i class="fas fa-clock" aria-hidden="true"></i> @L["SaveUnpaid"]</button>
                     <button type="submit" id="payOnAccount" class="btn-ad btn-ad-ghost" hidden><i class="fas fa-user-tag" aria-hidden="true"></i> @L["ChargeToAccount"]</button>
                     <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
@@ -171,7 +173,14 @@
     </div>
 </div>
 
+<partial name="_PayDrawer" />
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pay-drawer.css" asp-append-version="true" />
+}
+
 @section Scripts {
+    <script src="~/js/pay-drawer.js" asp-append-version="true"></script>
     <script>
         $(function () {
             var taxPercent = @Model.TaxPercent.ToString(invariant);
@@ -218,6 +227,8 @@
                 $('#service').text(money(service));
                 $('#deliveryFee').text(money(fee));
                 $('#deliveryRow').toggle(isDelivery);
+                $('#discountRow').prop('hidden', discount <= 0);
+                $('#discountShown').text('-' + money(discount));
                 $('#total').text(money(gross - discount));
                 $('#discount').data('gross', gross);
             }
@@ -291,10 +302,6 @@
                 });
             });
 
-            $('#payNow').on('click', function () {
-                $('#cash').val('true');
-                $('#onAccount').val('false');
-            });
             $('#payLater').on('click', function () {
                 $('#cash').val('false');
                 $('#onAccount').val('false');

@@ -54,6 +54,11 @@
                 <small>@Model.CollectedFromOthers.Count @L["Orders"]</small>
             </div>
             <div class="shift-tile">
+                <span>@L["ElectronicPayments"]</span>
+                <strong>@Model.Electronic.Amount.ToString("N2")</strong>
+                <small>@Model.Electronic.Count @L["Orders"]</small>
+            </div>
+            <div class="shift-tile">
                 <span>@L["OnAccountOrders"]</span>
                 <strong>@Model.OnAccount.Amount.ToString("N2")</strong>
                 <small>@Model.OnAccount.Count @L["Orders"]</small>

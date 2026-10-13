@@ -8,6 +8,7 @@ using ResturantPL.Helper;
 using ResturantPL.Hubs;
 using Rotativa.AspNetCore;
 using Shared;
+using Shared.Enums;
 using Shared.Helpers;
 using Shared.Helpers.Localization;
 using Shared.ViewModels.Commons;
@@ -163,11 +164,11 @@ namespace ResturantPL.Controllers.Definitions
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Pay(int id)
+        public async Task<IActionResult> Pay(int id, PaymentMethod method = PaymentMethod.Cash)
         {
             try
             {
-                var result = await _service.PayOrderAsync(id, UserId);
+                var result = await _service.PayOrderAsync(id, UserId, method);
                 if (!result.Success)
                 {
                     _toastr.Error(_localizer[result.Message].Value);

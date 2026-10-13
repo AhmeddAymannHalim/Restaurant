@@ -1,0 +1,84 @@
+@{
+    var names = Enum.GetValues<PaymentMethod>().ToDictionary(m => m.ToString(), m => L["Pay." + m].Value);
+    var icons = new Dictionary<PaymentMethod, string>
+    {
+        [PaymentMethod.Cash] = "fa-money-bill-wave",
+        [PaymentMethod.Visa] = "fa-credit-card",
+        [PaymentMethod.InstaPay] = "fa-bolt",
+        [PaymentMethod.VodafoneCash] = "fa-mobile-screen",
+        [PaymentMethod.OrangeCash] = "fa-mobile-screen",
+        [PaymentMethod.EtisalatCash] = "fa-mobile-screen",
+        [PaymentMethod.WePay] = "fa-mobile-screen"
+    };
+}
+
+<aside id="payDrawer" class="pay" hidden role="dialog" aria-labelledby="payTitle"
+       data-currency="@L["Currency"]"
+       data-msg-cash="@L["PaidCashMessage"].Value"
+       data-msg-via="@L["PaidViaMessage"].Value"
+       data-bad="@L["CardInvalid"]"
+       data-names='@Html.Raw(Json.Serialize(names))'>
+    <header class="pay-head">
+        <div>
+            <small id="payTitle">@L["AmountDue"]</small>
+            <strong class="pay-amount">0.00</strong>
+        </div>
+        <button type="button" class="pay-x" aria-label="@L["Cancel"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+    </header>
+
+    <div class="pay-methods" role="radiogroup" aria-label="@L["PaymentMethod"]">
+        @foreach (var method in Enum.GetValues<PaymentMethod>())
+        {
+            <button type="button" class="pay-chip @(method == PaymentMethod.Cash ? "is-on" : "")" role="radio" aria-checked="@(method == PaymentMethod.Cash ? "true" : "false")" data-method="@method">
+                <i class="fas @icons[method]" aria-hidden="true"></i> @L["Pay." + method]
+            </button>
+        }
+    </div>
+
+    <div class="pay-stage">
+        <section class="pay-pane" data-pane="quick">
+            <span class="pay-badge"><i class="fas fa-money-bill-wave" aria-hidden="true"></i></span>
+            <p class="pay-msg"></p>
+        </section>
+
+        <section class="pay-pane" data-pane="card" hidden>
+            <div class="pay-card" aria-hidden="true">
+                <i class="fas fa-credit-card"></i>
+                <b class="pay-card-no">&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;</b>
+                <span class="pay-card-name">@L["CardHolder"]</span>
+                <span class="pay-card-exp">MM/YY</span>
+            </div>
+            <div class="pay-fields">
+                <label class="pay-full">@L["CardHolder"]
+                    <input id="cardName" type="text" autocomplete="cc-name" maxlength="40" />
+                </label>
+                <label class="pay-full">@L["CardNumber"]
+                    <input id="cardNumber" type="text" inputmode="numeric" autocomplete="cc-number" maxlength="19" placeholder="0000 0000 0000 0000" dir="ltr" />
+                </label>
+                <label>@L["CardExpiry"]
+                    <input id="cardExp" type="text" inputmode="numeric" autocomplete="cc-exp" maxlength="5" placeholder="MM/YY" dir="ltr" />
+                </label>
+                <label>@L["CardCvv"]
+                    <input id="cardCvv" type="password" inputmode="numeric" autocomplete="cc-csc" maxlength="3" placeholder="&bull;&bull;&bull;" dir="ltr" />
+                </label>
+            </div>
+            <small class="pay-error" role="alert"></small>
+            <small class="pay-note"><i class="fas fa-lock" aria-hidden="true"></i> @L["CardNotStored"]</small>
+        </section>
+
+        <section class="pay-pane pay-center" data-pane="busy" hidden>
+            <span class="pay-spin" aria-hidden="true"></span>
+            <p>@L["ProcessingPayment"]</p>
+        </section>
+
+        <section class="pay-pane pay-center" data-pane="done" hidden>
+            <span class="pay-check" aria-hidden="true"><i class="fas fa-check"></i></span>
+            <p class="pay-done-msg">@L["PaymentApproved"]</p>
+        </section>
+    </div>
+
+    <footer class="pay-foot">
+        <button type="button" class="btn-ad btn-ad-ghost pay-cancel">@L["Cancel"]</button>
+        <button type="button" class="btn-ad btn-ad-primary pay-confirm"><i class="fas fa-check" aria-hidden="true"></i> @L["ConfirmPayment"]</button>
+    </footer>
+</aside>

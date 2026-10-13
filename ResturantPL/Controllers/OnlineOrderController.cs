@@ -61,8 +61,12 @@ namespace ResturantPL.Controllers
         {
             try
             {
+                var last = (await _service.GetCustomerOrdersAsync(UserId)).FirstOrDefault();
                 var model = new OnlineOrderCreateViewModel
                 {
+                    CustomerName = last?.CustomerName,
+                    MobileNumber = last?.MobileNumber,
+                    Address = last?.Address,
                     Tables = await _lookup.TableLookupAsync(),
                     Zones = await _lookup.DeliveryZoneLookupAsync()
                 };

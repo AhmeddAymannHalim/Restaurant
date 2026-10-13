@@ -118,7 +118,6 @@ public class OnlineOrderRepository : IOnlineOrderRepository
                 CustomerName = order.CustomerName,
                 Address = order.TableId.HasValue ? null : order.Address,
                 TableId = order.TableId,
-                PhoneNumber = order.PhoneNumber,
                 MobileNumber = order.MobileNumber,
                 OrderDate = DateTime.Now,
                 IsPending = true,
@@ -132,6 +131,7 @@ public class OnlineOrderRepository : IOnlineOrderRepository
             };
 
             await _context.OnlineOrders.AddAsync(entity);
+            await AddToCustomerListAsync(order);
             await _context.SaveChangesAsync();
 
             return new ResultMessage
@@ -148,6 +148,41 @@ public class OnlineOrderRepository : IOnlineOrderRepository
                 Message = ex.Message
             };
         }
+    }
+
+    // Every web customer becomes a restaurant customer, matched by mobile number.
+    private async Task AddToCustomerListAsync(OnlineOrder order)
+    {
+        var name = order.CustomerName.Trim();
+        var mobile = order.MobileNumber.Trim();
+
+        var existing = await _context.Customers
+            .FirstOrDefaultAsync(a => a.MobileNumber == mobile || a.PhoneNumber == mobile);
+        if (existing is not null)
+        {
+            if (string.IsNullOrWhiteSpace(existing.Address) && !string.IsNullOrWhiteSpace(order.Address))
+            {
+                existing.Address = order.Address;
+            }
+
+            return;
+        }
+
+        // ArName/EnName are unique, so two different people called the same name get their number appended.
+        var taken = await _context.Customers.AnyAsync(a => a.ArName == name || a.EnName == name);
+        var unique = taken ? $"{name} - {mobile}" : name;
+        if (unique.Length > 100)
+        {
+            unique = unique[..100];
+        }
+
+        await _context.Customers.AddAsync(new Customer
+        {
+            ArName = unique,
+            EnName = unique,
+            MobileNumber = mobile,
+            Address = order.TableId.HasValue ? null : order.Address
+        });
     }
 
     public async Task<IEnumerable<OnlineOrder>> GetCustomerOrdersAsync(string customerId)

@@ -1,3 +1,4 @@
+using Shared.Enums;
 using Restaurant.DAL.Models;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
@@ -15,7 +16,7 @@ public interface IOrderRepository
     Task<IEnumerable<Table>> GetPendingTablesAsync(int exceptTableId);
 
     Task<ResultMessage> CreateOrderAsync(Order order, int? onlineOrderId, string userId);
-    Task<ResultMessage> PayOrderAsync(int id, string userId);
+    Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method);
     Task<ResultMessage> MoveItemAsync(int orderMenuItemId, int targetTableId);
     Task<ResultMessage> MergeOrderAsync(int id, int targetTableId);
     Task<ResultMessage> DeleteOrderAsync(int id);

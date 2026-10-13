@@ -32,6 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Controllers\Definitions\NewFolder\" />
     <Folder Include="wwwroot\Menu Images\" />
     <Folder Include="wwwroot\Videos\" />
   </ItemGroup>
