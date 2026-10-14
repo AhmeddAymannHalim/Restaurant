@@ -1812,3 +1812,12 @@ body.dash .ad-row-item {
     border: 1px dashed var(--line);
     border-radius: 8px;
 }
+
+/* Tabs of long forms (employee) */
+body.dash .emp-tabs { display: flex; flex-wrap: wrap; gap: .25rem; padding: 0; margin: 0; list-style: none; border-bottom: 1px solid var(--line); }
+body.dash .emp-tab { background: transparent; border: 0; border-bottom: 2px solid transparent; color: var(--muted); padding: .6rem 1rem; font-weight: 700; cursor: pointer; }
+body.dash .emp-tab:hover { color: var(--cyan-soft); }
+body.dash .emp-tab.active { color: var(--cyan-soft); border-bottom-color: var(--cyan-soft); }
+body.dash .emp-pane.active { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem 1.25rem; padding-top: 1rem; }
+body.dash .emp-pane > .ad-section { grid-column: 1 / -1; padding: 0 1rem; }
+body.dash .ad-section-title { font-size: 1rem; font-weight: 700; color: var(--cyan-soft); padding: .75rem 0; margin: 0 0 1rem; border-bottom: 1px solid var(--line); }

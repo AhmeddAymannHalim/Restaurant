@@ -14,17 +14,17 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="Image" />
-            <ul class="nav ad-tabs ad-full" role="tablist">
-                <li class="nav-item" role="presentation"><button type="button" class="ad-tab active" id="tab-Basic" data-bs-toggle="tab" data-bs-target="#pane-Basic" role="tab" aria-controls="pane-Basic" aria-selected="true"><i class="fas fa-id-card" aria-hidden="true"></i> @L["Emp.Tab.Basic"]</button></li>
-                <li class="nav-item" role="presentation"><button type="button" class="ad-tab" id="tab-Identity" data-bs-toggle="tab" data-bs-target="#pane-Identity" role="tab" aria-controls="pane-Identity" aria-selected="false"><i class="fas fa-passport" aria-hidden="true"></i> @L["Emp.Tab.Identity"]</button></li>
-                <li class="nav-item" role="presentation"><button type="button" class="ad-tab" id="tab-Job" data-bs-toggle="tab" data-bs-target="#pane-Job" role="tab" aria-controls="pane-Job" aria-selected="false"><i class="fas fa-briefcase" aria-hidden="true"></i> @L["Emp.Tab.Job"]</button></li>
-                <li class="nav-item" role="presentation"><button type="button" class="ad-tab" id="tab-Pay" data-bs-toggle="tab" data-bs-target="#pane-Pay" role="tab" aria-controls="pane-Pay" aria-selected="false"><i class="fas fa-wallet" aria-hidden="true"></i> @L["Emp.Tab.Pay"]</button></li>
-                <li class="nav-item" role="presentation"><button type="button" class="ad-tab" id="tab-Insurance" data-bs-toggle="tab" data-bs-target="#pane-Insurance" role="tab" aria-controls="pane-Insurance" aria-selected="false"><i class="fas fa-shield-heart" aria-hidden="true"></i> @L["Emp.Tab.Insurance"]</button></li>
-                <li class="nav-item" role="presentation"><button type="button" class="ad-tab" id="tab-Attendance" data-bs-toggle="tab" data-bs-target="#pane-Attendance" role="tab" aria-controls="pane-Attendance" aria-selected="false"><i class="fas fa-clock" aria-hidden="true"></i> @L["Emp.Tab.Attendance"]</button></li>
-                <li class="nav-item" role="presentation"><button type="button" class="ad-tab" id="tab-Perks" data-bs-toggle="tab" data-bs-target="#pane-Perks" role="tab" aria-controls="pane-Perks" aria-selected="false"><i class="fas fa-plane" aria-hidden="true"></i> @L["Emp.Tab.Perks"]</button></li>
+            <ul class="nav emp-tabs ad-full" role="tablist">
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab active" id="tab-Basic" data-bs-toggle="tab" data-bs-target="#pane-Basic" role="tab" aria-controls="pane-Basic" aria-selected="true"><i class="fas fa-id-card" aria-hidden="true"></i> @L["Emp.Tab.Basic"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Identity" data-bs-toggle="tab" data-bs-target="#pane-Identity" role="tab" aria-controls="pane-Identity" aria-selected="false"><i class="fas fa-passport" aria-hidden="true"></i> @L["Emp.Tab.Identity"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Job" data-bs-toggle="tab" data-bs-target="#pane-Job" role="tab" aria-controls="pane-Job" aria-selected="false"><i class="fas fa-briefcase" aria-hidden="true"></i> @L["Emp.Tab.Job"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Pay" data-bs-toggle="tab" data-bs-target="#pane-Pay" role="tab" aria-controls="pane-Pay" aria-selected="false"><i class="fas fa-wallet" aria-hidden="true"></i> @L["Emp.Tab.Pay"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Insurance" data-bs-toggle="tab" data-bs-target="#pane-Insurance" role="tab" aria-controls="pane-Insurance" aria-selected="false"><i class="fas fa-shield-heart" aria-hidden="true"></i> @L["Emp.Tab.Insurance"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Attendance" data-bs-toggle="tab" data-bs-target="#pane-Attendance" role="tab" aria-controls="pane-Attendance" aria-selected="false"><i class="fas fa-clock" aria-hidden="true"></i> @L["Emp.Tab.Attendance"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Perks" data-bs-toggle="tab" data-bs-target="#pane-Perks" role="tab" aria-controls="pane-Perks" aria-selected="false"><i class="fas fa-plane" aria-hidden="true"></i> @L["Emp.Tab.Perks"]</button></li>
             </ul>
             <div class="tab-content ad-full">
-            <div class="tab-pane fade show active ad-pane" id="pane-Basic" role="tabpanel" aria-labelledby="tab-Basic" tabindex="0">
+            <div class="tab-pane fade show active emp-pane" id="pane-Basic" role="tabpanel" aria-labelledby="tab-Basic" tabindex="0">
             <div class="form-group">
                 <label asp-for="Code" class="control-label">@L["Code"]</label>
                 <input asp-for="Code" class="form-control" readonly />
@@ -176,7 +176,7 @@
                 </div>
             </div>
             </div>
-            <div class="tab-pane fade ad-pane" id="pane-Identity" role="tabpanel" aria-labelledby="tab-Identity" tabindex="0">
+            <div class="tab-pane fade emp-pane" id="pane-Identity" role="tabpanel" aria-labelledby="tab-Identity" tabindex="0">
 
             <div class="ad-section ad-full">
                 <h2 class="ad-section-title">@L["Emp.Section.Identity"]</h2>
@@ -285,7 +285,7 @@
                 </template>
             </div>
             </div>
-            <div class="tab-pane fade ad-pane" id="pane-Job" role="tabpanel" aria-labelledby="tab-Job" tabindex="0">
+            <div class="tab-pane fade emp-pane" id="pane-Job" role="tabpanel" aria-labelledby="tab-Job" tabindex="0">
 
             <div class="ad-section ad-full">
                 <h2 class="ad-section-title">@L["Emp.Section.Job"]</h2>
@@ -472,7 +472,7 @@
                 </template>
             </div>
             </div>
-            <div class="tab-pane fade ad-pane" id="pane-Pay" role="tabpanel" aria-labelledby="tab-Pay" tabindex="0">
+            <div class="tab-pane fade emp-pane" id="pane-Pay" role="tabpanel" aria-labelledby="tab-Pay" tabindex="0">
 
             <div class="ad-section ad-full">
                 <h2 class="ad-section-title">@L["Emp.Section.Pay"]</h2>
@@ -625,7 +625,7 @@
                 </template>
             </div>
             </div>
-            <div class="tab-pane fade ad-pane" id="pane-Insurance" role="tabpanel" aria-labelledby="tab-Insurance" tabindex="0">
+            <div class="tab-pane fade emp-pane" id="pane-Insurance" role="tabpanel" aria-labelledby="tab-Insurance" tabindex="0">
 
             <div class="ad-section ad-full">
                 <h2 class="ad-section-title">@L["Emp.Section.Insurance"]</h2>
@@ -703,7 +703,7 @@
                 </div>
             </div>
             </div>
-            <div class="tab-pane fade ad-pane" id="pane-Attendance" role="tabpanel" aria-labelledby="tab-Attendance" tabindex="0">
+            <div class="tab-pane fade emp-pane" id="pane-Attendance" role="tabpanel" aria-labelledby="tab-Attendance" tabindex="0">
 
             <div class="ad-section ad-full">
                 <h2 class="ad-section-title">@L["Emp.Section.Delay"]</h2>
@@ -827,7 +827,7 @@
                 </div>
             </div>
             </div>
-            <div class="tab-pane fade ad-pane" id="pane-Perks" role="tabpanel" aria-labelledby="tab-Perks" tabindex="0">
+            <div class="tab-pane fade emp-pane" id="pane-Perks" role="tabpanel" aria-labelledby="tab-Perks" tabindex="0">
 
             <div class="ad-section ad-full">
                 <h2 class="ad-section-title">@L["Emp.Section.Travel"]</h2>
