@@ -178,6 +178,7 @@ public class OrderRepository : IOrderRepository
     {
         return await _context.MenuItems.AsNoTracking()
             .Include(a => a.MenuSection)
+            .Include(a => a.Components).ThenInclude(a => a.Product)
             .OrderBy(a => a.MenuSection.ArName)
             .ThenBy(a => a.ArName)
             .ToListAsync();

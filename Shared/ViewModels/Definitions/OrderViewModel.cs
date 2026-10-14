@@ -74,6 +74,8 @@ public class PosMenuItemViewModel
     public string SectionArName { get; set; }
     public string SectionEnName { get; set; }
     public bool IsAvailable { get; set; } = true;
+    public string ArIngredients { get; set; }
+    public string EnIngredients { get; set; }
 }
 
 public class OrderMoveViewModel

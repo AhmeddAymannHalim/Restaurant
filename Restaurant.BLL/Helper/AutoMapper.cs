@@ -251,6 +251,8 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.DeliveryZoneEnName, opt => opt.MapFrom(src => src.DeliveryZone.EnName))
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OnlineOrderMenuItems));
         CreateMap<MenuItem, PosMenuItemViewModel>()
+            .ForMember(dest => dest.ArIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.ArName))))
+            .ForMember(dest => dest.EnIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.EnName))))
             .ForMember(dest => dest.SectionId, opt => opt.MapFrom(src => src.MenuSectionId))
             .ForMember(dest => dest.SectionArName, opt => opt.MapFrom(src => src.MenuSection.ArName))
             .ForMember(dest => dest.SectionEnName, opt => opt.MapFrom(src => src.MenuSection.EnName));
@@ -528,6 +530,8 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Employee, opt => opt.Ignore());
 
         CreateMap<MenuItem, MenuItemViewModel>()
+            .ForMember(dest => dest.ArIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.ArName))))
+            .ForMember(dest => dest.EnIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.EnName))))
             .ForMember(dest => dest.MenuSectionArName, opt => opt.MapFrom(src => src.MenuSection.ArName))
             .ForMember(dest => dest.MenuSectionEnName, opt => opt.MapFrom(src => src.MenuSection.EnName))
             .ForMember(dest => dest.StoreArName, opt => opt.MapFrom(src => src.Store.ArName))
@@ -559,6 +563,8 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Chefs, opt => opt.Ignore())
             .ForMember(dest => dest.Gallery, opt => opt.Ignore());
         CreateMap<MenuItem, HomeMenuItemViewModel>()
+            .ForMember(dest => dest.ArIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.ArName))))
+            .ForMember(dest => dest.EnIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.EnName))))
             .ForMember(dest => dest.Size, opt => opt.MapFrom(src => src.Size.HasValue ? src.Size.Value.ToString() : null));
 
         CreateMap<ChefItem, ChefViewModel>()

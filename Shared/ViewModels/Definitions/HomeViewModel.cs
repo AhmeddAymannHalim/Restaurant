@@ -34,4 +34,6 @@ public class HomeMenuItemViewModel
     public string ImageUrl { get; set; }
     public decimal Price { get; set; }
     public string Size { get; set; }
+    public string ArIngredients { get; set; }
+    public string EnIngredients { get; set; }
 }
