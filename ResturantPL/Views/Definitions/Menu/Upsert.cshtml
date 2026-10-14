@@ -183,6 +183,7 @@
                         <label asp-for="Price" class="control-label">@L["Price"]</label>
                         <input id="price" asp-for="Price" class="form-control" type="number" step="0.01" min="0" />
                         <span asp-validation-for="Price" class="text-danger"></span>
+                        <small class="menu-help d-block">@L["PriceAutoHint"]</small>
                         <button type="button" id="suggestPrice" class="btn-ad btn-ad-ghost">@L["SuggestPrice"]</button>
                     </div>
                     <div class="profit-figures">
@@ -225,6 +226,7 @@
             var removeText = @Html.Raw(Json.Serialize(L["Delete"].Value));
             var formulaText = @Html.Raw(Json.Serialize(L["CostFormula"].Value));
             var margin = 1.3;
+            var priceTouched = false;
             var storeLoaded = false;
             var stock = {};
 
@@ -314,14 +316,23 @@
                 $('#formula').text(quantity + ' x ' + unit.toFixed(2) + ' = ' + cost.toFixed(2));
             });
 
-            $('#price').on('input', recalc);
-
-            $('#suggestPrice').on('click', function () {
+            // The selling price follows the raw-material cost (cost + 30%) until the user types a price by hand.
+            function autoPrice() {
                 var total = number($('#totalCost').val());
-                if (total > 0) {
+                if (!priceTouched && total > 0) {
                     $('#price').val((Math.ceil(total * margin * 2) / 2).toFixed(2));
                     recalc();
                 }
+            }
+
+            $('#price').on('input', function () {
+                priceTouched = true;
+                recalc();
+            });
+
+            $('#suggestPrice').on('click', function () {
+                priceTouched = false;
+                autoPrice();
             });
 
             $('#addComponent').on('click', function () {
@@ -344,11 +355,13 @@
                 $('#componentTable tbody').append(row);
                 $('#productList').val('').trigger('change');
                 recalc();
+                autoPrice();
             });
 
             $(document).on('click', '.cancelRow', function () {
                 $(this).closest('tr').remove();
                 recalc();
+                autoPrice();
             });
 
             var confirmed = false;
