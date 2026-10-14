@@ -29,4 +29,8 @@ public interface ILookupRepository
     Task<IEnumerable<LookupItem>> ExpenseLookupAsync();
 
     Task<IEnumerable<LookupItem_String>> RoleLookupAsync();
+
+    Task<IEnumerable<LookupItem>> CountryLookupAsync();
+    Task<IEnumerable<LookupItem>> GovernorateLookupAsync(int countryId);
+    Task<IEnumerable<LookupItem>> CityLookupAsync(int governorateId);
 }

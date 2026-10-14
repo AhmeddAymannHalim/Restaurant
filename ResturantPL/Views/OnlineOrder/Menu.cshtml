@@ -42,6 +42,7 @@
             {
                 <div class="ws-tabs-wrap">
                     <div class="ws-tabs" role="tablist" aria-label="@L["OurMenu"]">
+                        <span class="ws-tab-pill" aria-hidden="true"></span>
                         <button type="button" class="ws-tab is-on" role="tab" aria-selected="true" data-section="">@L["AllCategories"]</button>
                         @foreach (var sec in sections)
                         {
@@ -57,12 +58,13 @@
             }
 
             <div class="ws-dishes">
+                @{ var dishIndex = 0; }
                 @foreach (var group in Model.GroupBy(a => a.ArName))
                 {
                     var first = group.First();
                     var sizes = group.ToList();
 
-                    <article class="ws-dish" data-section="@first.SectionArName">
+                    <article class="ws-dish" data-section="@first.SectionArName" style="--i:@(dishIndex++)">
                         <div class="ws-dish-img">
                             @if (!string.IsNullOrWhiteSpace(first.ImageUrl))
                             {
@@ -108,14 +110,42 @@
 @section Scripts {
     <script>
         $(function () {
+            var $pill = $('.ws-tab-pill');
+
+            function movePill(tab) {
+                if (!$pill.length || !tab) { return; }
+                $pill.css({ '--x': tab[0].offsetLeft + 'px', '--w': tab[0].offsetWidth + 'px' });
+            }
+
             $('.ws-tab').on('click', function () {
-                var section = String($(this).data('section') || '');
+                var tab = $(this);
+                var section = String(tab.data('section') || '');
                 $('.ws-tab').removeClass('is-on').attr('aria-selected', 'false');
-                $(this).addClass('is-on').attr('aria-selected', 'true');
+                tab.addClass('is-on').attr('aria-selected', 'true');
+                movePill(tab);
+
+                var shownIndex = 0;
                 $('.ws-dish').each(function () {
-                    $(this).toggle(section === '' || String($(this).data('section')) === section);
+                    var dish = $(this);
+                    var match = section === '' || String(dish.data('section')) === section;
+                    if (match) {
+                        dish.css('--i', shownIndex++);
+                        if (dish.hasClass('is-filtered-out')) {
+                            dish.css('display', '');
+                            void dish[0].offsetWidth;
+                            dish.removeClass('is-filtered-out');
+                        }
+                    } else if (!dish.hasClass('is-filtered-out')) {
+                        dish.addClass('is-filtered-out');
+                        setTimeout(function () {
+                            if (dish.hasClass('is-filtered-out')) { dish.css('display', 'none'); }
+                        }, 220);
+                    }
                 });
             });
+
+            movePill($('.ws-tab.is-on'));
+            $(window).on('resize', function () { movePill($('.ws-tab.is-on')); });
 
             $(document).on('click', '[data-pick-size]', function () {
                 var id = $(this).siblings('.dish-size').val();

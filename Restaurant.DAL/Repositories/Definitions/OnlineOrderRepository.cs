@@ -118,7 +118,7 @@ public class OnlineOrderRepository : IOnlineOrderRepository
                 CustomerName = order.CustomerName,
                 Address = order.TableId.HasValue ? null : order.Address,
                 TableId = order.TableId,
-                MobileNumber = order.MobileNumber,
+                PhoneNumber = order.PhoneNumber,
                 OrderDate = DateTime.Now,
                 IsPending = true,
                 Status = OnlineOrderStatus.Pending,
@@ -154,10 +154,10 @@ public class OnlineOrderRepository : IOnlineOrderRepository
     private async Task AddToCustomerListAsync(OnlineOrder order)
     {
         var name = order.CustomerName.Trim();
-        var mobile = order.MobileNumber.Trim();
+        var mobile = order.PhoneNumber.Trim();
 
         var existing = await _context.Customers
-            .FirstOrDefaultAsync(a => a.MobileNumber == mobile || a.PhoneNumber == mobile);
+            .FirstOrDefaultAsync(a => a.PhoneNumber == mobile);
         if (existing is not null)
         {
             if (string.IsNullOrWhiteSpace(existing.Address) && !string.IsNullOrWhiteSpace(order.Address))
@@ -180,7 +180,7 @@ public class OnlineOrderRepository : IOnlineOrderRepository
         {
             ArName = unique,
             EnName = unique,
-            MobileNumber = mobile,
+            PhoneNumber = mobile,
             Address = order.TableId.HasValue ? null : order.Address
         });
     }

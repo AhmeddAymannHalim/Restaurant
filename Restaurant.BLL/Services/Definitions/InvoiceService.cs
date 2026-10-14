@@ -44,6 +44,11 @@ public class InvoiceService : IInvoiceService
         return await _unitOfWork.Invoices.GetSupplierBalanceAsync(supplierId);
     }
 
+    public async Task<decimal> GetCustomerBalanceAsync(int customerId)
+    {
+        return await _unitOfWork.Invoices.GetCustomerBalanceAsync(customerId);
+    }
+
     public async Task<ResultMessage> UpsertInvoiceAsync(InvoiceViewModel model)
     {
         return await _unitOfWork.Invoices.UpsertInvoiceAsync(_mapper.Map<Invoice>(model));

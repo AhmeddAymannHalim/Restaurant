@@ -31,7 +31,7 @@
                     {
                         <p>@order.Address</p>
                     }
-                    <p>@order.MobileNumber @order.PhoneNumber</p>
+                    <p>@order.PhoneNumber</p>
                     @if (!order.TableId.HasValue && !string.IsNullOrEmpty(order.DeliveryZoneArName))
                     {
                         <p><i class="fas fa-motorcycle" aria-hidden="true"></i> @(isArabic ? order.DeliveryZoneArName : order.DeliveryZoneEnName): @order.DeliveryFee.ToString("N2")</p>

@@ -29,7 +29,6 @@
             <th>@L["UserName"]</th>
             <th>@L["Email"]</th>
             <th>@L["UserRole"]</th>
-            <th>@L["Mobile"]</th>
             <th>@L["Phone"]</th>
             <th></th>
         </tr>
@@ -46,7 +45,6 @@
                     <td>@item.UserName</td>
                     <td>@item.Email</td>
                     <td>@item.UserType</td>
-                    <td>@item.MobileNumber</td>
                     <td>@item.PhoneNumber</td>
                     <td class="ad-row-actions">
                         <a asp-action="Upsert" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Edit"]" aria-label="@L["Edit"]"><i class="fas fa-pen" aria-hidden="true"></i></a>
@@ -58,7 +56,7 @@
         else
         {
             <tr>
-                <td colspan="8" class="ad-empty">@L["NoData"]</td>
+                <td colspan="7" class="ad-empty">@L["NoData"]</td>
             </tr>
         }
     </tbody>

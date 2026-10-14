@@ -35,7 +35,7 @@ public class EmployeeVmValidator : AbstractValidator<EmployeeViewModel>
             .Must((model, lastName) => !validator.IsFullNameExist(model.Id, model.FirstName, lastName))
             .WithMessage(localizer["EmployeeAlreadyExists"].Value);
 
-        RuleFor(x => x.MobileNumber)
+        RuleFor(x => x.PhoneNumber)
             .NotEmpty()
             .WithMessage(required)
             .Length(11)
@@ -43,28 +43,9 @@ public class EmployeeVmValidator : AbstractValidator<EmployeeViewModel>
             .Must((model, number) => !validator.IsPhoneNumberExist(model.Id, number))
             .WithMessage(localizer["PhoneAlreadyExists"].Value);
 
-        RuleFor(x => x.PhoneNumber)
-            .Length(11)
-            .WithMessage(ExactLength(11))
-            .Must((model, number) => !validator.IsPhoneNumberExist(model.Id, number))
-            .WithMessage(localizer["PhoneAlreadyExists"].Value)
-            .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber));
-
-        RuleFor(x => x.Country)
-            .NotEmpty()
-            .WithMessage(required)
-            .MinimumLength(3)
-            .WithMessage(MinLength(3))
-            .MaximumLength(30)
-            .WithMessage(MaxLength(30));
-
-        RuleFor(x => x.City)
-            .NotEmpty()
-            .WithMessage(required)
-            .MinimumLength(3)
-            .WithMessage(MinLength(3))
-            .MaximumLength(20)
-            .WithMessage(MaxLength(20));
+        RuleFor(x => x.CityId)
+            .GreaterThan(0)
+            .WithMessage(required);
 
         RuleFor(x => x.Street)
             .NotEmpty()

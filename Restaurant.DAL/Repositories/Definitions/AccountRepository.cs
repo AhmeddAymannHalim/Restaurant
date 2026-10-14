@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
 using Shared.ViewModels.Commons;
+using Shared.ViewModels.Definitions;
 
 namespace Restaurant.DAL.Repositories.Definitions;
 
@@ -9,15 +11,18 @@ public class AccountRepository : IAccountRepository
 {
     private const string CustomerRole = "User";
 
+    private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
 
     public AccountRepository(
+        ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole> roleManager,
         SignInManager<ApplicationUser> signInManager)
     {
+        _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
         _signInManager = signInManager;
@@ -196,6 +201,40 @@ public class AccountRepository : IAccountRepository
         {
             Success = false,
             Message = wrongCurrent ? "Auth_WrongPassword" : result.Errors.First().Description
+        };
+    }
+
+    public async Task<ApplicationUser> GetByIdAsync(string userId)
+    {
+        return await _context.Users
+            .Include(a => a.City).ThenInclude(a => a.Governorate)
+            .FirstOrDefaultAsync(a => a.Id == userId);
+    }
+
+    public async Task<ResultMessage> UpdateProfileAsync(string userId, ProfileViewModel model)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null)
+        {
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "RecordNotFound"
+            };
+        }
+
+        user.FirstName = model.FirstName;
+        user.LastName = model.LastName;
+        user.PhoneNumber = model.PhoneNumber;
+        user.CityId = model.CityId;
+        user.Street = model.Street;
+
+        var result = await _userManager.UpdateAsync(user);
+
+        return new ResultMessage
+        {
+            Success = result.Succeeded,
+            Message = result.Succeeded ? null : result.Errors.First().Description
         };
     }
 }

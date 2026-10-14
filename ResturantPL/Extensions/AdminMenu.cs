@@ -17,8 +17,13 @@ public static class AdminMenu
             new("KitchenOrder", "Index", "fa-fire-burner", "KitchenOrders"),
             new("Invoice", "Index", "fa-file-invoice", "Invoices"),
             new("StoreConvert", "Index", "fa-right-left", "StoreConverts"),
+            new("StockMovement", "Index", "fa-arrow-right-arrow-left", "StockMovements"),
             new("SupplierPayment", "Index", "fa-file-invoice-dollar", "SupplierPayments"),
             new("CustomerPayment", "Index", "fa-hand-holding-dollar", "CustomerPayments")
+        }),
+        new("SectionOperations", "GroupReports", "fa-chart-column", new Item[]
+        {
+            new("Report", "Index", "fa-chart-column", "Reports", true)
         }),
         new("SectionDefinitions", "GroupOrganization", "fa-sitemap", new Item[]
         {
@@ -63,10 +68,6 @@ public static class AdminMenu
             new("Chef", "Index", "fa-user-tie", "Chefs"),
             new("Gallery", "Index", "fa-images", "Gallery")
         }),
-        new("SectionReports", "GroupReports", "fa-chart-column", new Item[]
-        {
-            new("Report", "Index", "fa-chart-column", "Reports", true)
-        })
     };
 
     public static Item Find(string controller)

@@ -15,7 +15,6 @@ public class SupplierConfig : IEntityTypeConfiguration<Supplier>
         builder.Property(a => a.EnName).IsRequired().HasMaxLength(100);
         builder.Property(a => a.Address).HasMaxLength(250);
         builder.Property(a => a.PhoneNumber).HasMaxLength(11);
-        builder.Property(a => a.MobileNumber).HasMaxLength(11);
         builder.Property(a => a.Balance).HasPrecision(18, 2);
         builder.Property(a => a.LastBalance).HasPrecision(18, 2);
     }

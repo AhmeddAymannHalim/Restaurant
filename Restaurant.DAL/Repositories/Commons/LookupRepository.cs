@@ -259,6 +259,40 @@ public class LookupRepository : ILookupRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<LookupItem>> CountryLookupAsync()
+    {
+        return await ToListAsync(_context.Countries.Select(a => new LookupItem
+        {
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
+        }));
+    }
+
+    public async Task<IEnumerable<LookupItem>> GovernorateLookupAsync(int countryId)
+    {
+        return await ToListAsync(_context.Governorates
+            .Where(a => a.CountryId == countryId)
+            .Select(a => new LookupItem
+            {
+                Id = a.Id,
+                ArName = a.ArName,
+                EnName = a.EnName
+            }));
+    }
+
+    public async Task<IEnumerable<LookupItem>> CityLookupAsync(int governorateId)
+    {
+        return await ToListAsync(_context.Cities
+            .Where(a => a.GovernorateId == governorateId)
+            .Select(a => new LookupItem
+            {
+                Id = a.Id,
+                ArName = a.ArName,
+                EnName = a.EnName
+            }));
+    }
+
     private static async Task<IEnumerable<LookupItem>> ToListAsync(IQueryable<LookupItem> query)
     {
         return await query.AsNoTracking().OrderBy(a => a.Id).ToListAsync();

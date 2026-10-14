@@ -152,9 +152,16 @@ namespace ResturantPL.Controllers.Definitions
             return Json(await _service.GetSupplierBalanceAsync(supplierId));
         }
 
+        [HttpGet]
+        public async Task<IActionResult> CustomerBalance(int customerId)
+        {
+            return Json(await _service.GetCustomerBalanceAsync(customerId));
+        }
+
         private async Task PopulateData(InvoiceViewModel model)
         {
             model.Suppliers = await _lookup.SupplierLookupAsync();
+            model.Customers = await _lookup.CustomerLookupAsync();
             model.Stores = await _lookup.StoreLookupAsync();
             model.Units = await _lookup.UnitPriceLookupAsync();
             model.Categories = await _lookup.ProductCategoryLookupAsync();

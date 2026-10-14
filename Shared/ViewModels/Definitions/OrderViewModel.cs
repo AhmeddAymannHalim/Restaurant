@@ -31,7 +31,6 @@ public class OrderViewModel
     public int? EmployeeId { get; set; }
     public string Address { get; set; }
     public string PhoneNumber { get; set; }
-    public string MobileNumber { get; set; }
 
     public int? OnlineOrderId { get; set; }
 
@@ -149,7 +148,6 @@ public class PendingOnlineOrderViewModel
     public string CustomerName { get; set; }
     public string Address { get; set; }
     public string PhoneNumber { get; set; }
-    public string MobileNumber { get; set; }
     public int? TableId { get; set; }
     public string TableArName { get; set; }
     public string TableEnName { get; set; }

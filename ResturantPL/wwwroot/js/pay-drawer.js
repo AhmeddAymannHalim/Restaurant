@@ -17,6 +17,8 @@
     var holderText = $drawer.find('.pay-card-name').text();
     var approvedText = $drawer.find('.pay-done-msg').text();
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var receiptWindow = null;
+    var dashboardUrl = $drawer.data('dashboardUrl');
 
     function wait(ms) { return $.Deferred(function (d) { setTimeout(d.resolve, reduce ? Math.min(ms, 120) : ms); }).promise(); }
     function amount() { return $('#total').text(); }
@@ -135,16 +137,40 @@
     }
 
     // ---- confirm ----
-    function finish() {
-        // Leave the page with the same motion the cards use, then send the real order.
-        $('.ad-card').addClass('is-leaving');
-        $drawer.addClass('is-closing');
-        wait(380).then(function () {
-            clearCard();
-            $('#cash').val('true');
-            $('#onAccount').val('false');
-            $form[0].requestSubmit();
-        });
+    // Fires the real order submission immediately (in parallel with the confirmation animation
+    // below) so the receipt tab starts loading as soon as the network allows, instead of sitting
+    // blank for the ~1.1-3.4s the animation takes before it was previously allowed to navigate.
+    function submitOrder() {
+        clearCard();
+        $('#cash').val('true');
+        $('#onAccount').val('false');
+        if (window.buildOrderLineInputs) { window.buildOrderLineInputs(); }
+
+        var form = $form[0];
+        var data = new FormData(form);
+        return fetch(form.action, {
+            method: 'POST',
+            body: data,
+            credentials: 'same-origin',
+            headers: { 'X-Ajax-Form': '1' }
+        }).then(function (response) { return response.json(); })
+            .then(function (result) {
+                if (result && result.redirect) {
+                    if (receiptWindow) {
+                        receiptWindow.location.href = result.redirect + (result.redirect.indexOf('?') > -1 ? '&' : '?') + 'autoPrint=1';
+                    }
+                    return result;
+                }
+                // Validation failed server-side: fall back to a normal submit so errors render.
+                if (receiptWindow) { receiptWindow.close(); }
+                form.submit();
+                return null;
+            })
+            .catch(function () {
+                if (receiptWindow) { receiptWindow.close(); }
+                form.submit();
+                return null;
+            });
     }
 
     function confirm() {
@@ -162,8 +188,16 @@
             }
         }
 
+        // Open the receipt tab now, still inside the click — browsers block window.open()
+        // called later from a timer chain, which is why this used to get silently cancelled.
+        receiptWindow = window.open('', 'orderReceipt');
+
         busy = true;
         $drawer.addClass('is-busy');
+
+        // Kick off the order submission now, in parallel with the confirmation animation,
+        // instead of waiting for the animation to finish before even sending the request.
+        var orderPromise = submitOrder();
 
         var run = $.Deferred().resolve().promise();
         if (method === 'Visa') {
@@ -176,7 +210,16 @@
                 $drawer.find('.pay-done-msg').text(method === 'Visa' ? approvedText : quickMessage());
             });
             return wait(1100);
-        }).then(finish);
+        }).then(function () {
+            return orderPromise;
+        }).then(function (result) {
+            if (!result) { return; }
+            $('.ad-card').addClass('is-leaving');
+            $drawer.addClass('is-closing');
+            return wait(380).then(function () {
+                if (dashboardUrl) { window.location.href = dashboardUrl; }
+            });
+        });
     }
 
     $drawer.find('.pay-chip').on('click', function () { setMethod($(this).data('method')); });

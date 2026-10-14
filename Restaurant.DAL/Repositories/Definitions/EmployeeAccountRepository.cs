@@ -107,13 +107,11 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
             EmailConfirmed = true,
             FirstName = employee.FirstName,
             LastName = employee.LastName,
-            Country = employee.Country,
-            City = employee.City,
+            CityId = employee.CityId,
             Street = employee.Street,
             Age = employee.Age,
             Image = employee.Image,
             PhoneNumber = employee.PhoneNumber,
-            MobileNumber = employee.MobileNumber,
             UserType = employee.UserType,
             Code = employee.Code
         };

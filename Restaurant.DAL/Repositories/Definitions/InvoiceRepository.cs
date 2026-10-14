@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Restaurant.DAL.IRepositories.Commons;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
 using Shared.Enums;
@@ -9,16 +10,19 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class InvoiceRepository : IInvoiceRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IJournalEntryRepository _journals;
 
-    public InvoiceRepository(ApplicationDbContext context)
+    public InvoiceRepository(ApplicationDbContext context, IJournalEntryRepository journals)
     {
         _context = context;
+        _journals = journals;
     }
 
     public async Task<PaginatedResult<Invoice>> GetPagedInvoicesAsync(PageRequest request)
     {
         var query = _context.Invoices.AsNoTracking()
             .Include(a => a.Supplier)
+            .Include(a => a.Customer)
             .Include(a => a.Store)
             .AsQueryable();
 
@@ -26,8 +30,10 @@ public class InvoiceRepository : IInvoiceRepository
         {
             var search = request.SearchString.Trim().ToLower();
             query = query.Where(a => a.InvoiceCode.ToLower().Contains(search)
-                || a.Supplier.ArName.ToLower().Contains(search)
-                || a.Supplier.EnName.ToLower().Contains(search));
+                || (a.Supplier != null && (a.Supplier.ArName.ToLower().Contains(search)
+                    || a.Supplier.EnName.ToLower().Contains(search)))
+                || (a.Customer != null && (a.Customer.ArName.ToLower().Contains(search)
+                    || a.Customer.EnName.ToLower().Contains(search))));
         }
 
         if (Enum.TryParse<InvoiceType>(request.Type, out var type))
@@ -61,6 +67,7 @@ public class InvoiceRepository : IInvoiceRepository
         return await _context.Invoices
             .AsNoTracking()
             .Include(a => a.Supplier)
+            .Include(a => a.Customer)
             .Include(a => a.Store)
             .Include(a => a.InvoiceItems).ThenInclude(a => a.Product)
             .Include(a => a.InvoiceItems).ThenInclude(a => a.UnitPrice)
@@ -85,8 +92,18 @@ public class InvoiceRepository : IInvoiceRepository
             .FirstOrDefaultAsync();
     }
 
+    public async Task<decimal> GetCustomerBalanceAsync(int customerId)
+    {
+        return await _context.Customers.AsNoTracking()
+            .Where(a => a.Id == customerId)
+            .Select(a => a.Balance)
+            .FirstOrDefaultAsync();
+    }
+
     public async Task<ResultMessage> UpsertInvoiceAsync(Invoice entity)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
             var items = (entity.InvoiceItems ?? new List<InvoiceItem>())
@@ -142,6 +159,7 @@ public class InvoiceRepository : IInvoiceRepository
                 invoice.InvoiceType = entity.InvoiceType;
                 invoice.PayType = entity.PayType;
                 invoice.SupplierId = entity.SupplierId;
+                invoice.CustomerId = entity.CustomerId;
                 invoice.StoreId = entity.StoreId;
                 invoice.Discount = entity.Discount;
                 invoice.Paid = entity.Paid;
@@ -166,6 +184,21 @@ public class InvoiceRepository : IInvoiceRepository
             }
 
             await _context.SaveChangesAsync();
+
+            await _journals.RemoveSourceEntriesAsync(JournalSourceType.Invoice, invoice.Id);
+            var posting = await _journals.PostSourceEntryAsync(JournalSourceType.Invoice,
+                invoice.Id,
+                invoice.InvoiceDate,
+                $"{invoice.InvoiceType} {invoice.InvoiceCode}",
+                BuildJournalLines(invoice),
+                saveChanges: false);
+            if (!posting.Success)
+            {
+                return posting;
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return new ResultMessage
             {
@@ -193,6 +226,8 @@ public class InvoiceRepository : IInvoiceRepository
 
     public async Task<ResultMessage> DeleteInvoiceAsync(int id)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
             var invoice = await _context.Invoices.Include(a => a.InvoiceItems).FirstOrDefaultAsync(a => a.Id == id);
@@ -215,8 +250,11 @@ public class InvoiceRepository : IInvoiceRepository
                 };
             }
 
+            await _journals.RemoveSourceEntriesAsync(JournalSourceType.Invoice, invoice.Id);
+
             _context.Invoices.Remove(invoice);
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return new ResultMessage { Success = true };
         }
@@ -243,7 +281,11 @@ public class InvoiceRepository : IInvoiceRepository
         var productIds = items.Select(a => a.ProductId).Distinct().ToList();
         var unitIds = items.Select(a => a.UnitPriceId).Distinct().ToList();
 
-        var valid = await _context.Suppliers.AnyAsync(a => a.Id == invoice.SupplierId)
+        var partnerValid = IsSupplierInvoice(invoice.InvoiceType)
+            ? invoice.SupplierId.HasValue && await _context.Suppliers.AnyAsync(a => a.Id == invoice.SupplierId.Value)
+            : invoice.CustomerId.HasValue && await _context.Customers.AnyAsync(a => a.Id == invoice.CustomerId.Value);
+
+        var valid = partnerValid
             && await _context.Stores.AnyAsync(a => a.Id == invoice.StoreId)
             && await _context.Products.CountAsync(a => productIds.Contains(a.Id)) == productIds.Count
             && await _context.UnitPrices.CountAsync(a => unitIds.Contains(a.Id)) == unitIds.Count;
@@ -255,43 +297,54 @@ public class InvoiceRepository : IInvoiceRepository
         };
     }
 
+    private static bool IsSupplierInvoice(InvoiceType type)
+    {
+        return type is InvoiceType.Purchases or InvoiceType.Returns;
+    }
+
+    // Purchases and sales returns bring stock in, sales and purchase returns take it out.
+    private static int StockSign(InvoiceType type)
+    {
+        return type is InvoiceType.Purchases or InvoiceType.SalesReturn ? 1 : -1;
+    }
+
+    // Purchases raise what we owe the supplier, sales raise what the customer owes us.
+    private static int BalanceSign(InvoiceType type)
+    {
+        return type is InvoiceType.Purchases or InvoiceType.Sales ? 1 : -1;
+    }
+
     private async Task ApplyAsync(Invoice invoice)
     {
-        var isPurchase = invoice.InvoiceType == InvoiceType.Purchases;
+        await MoveStockAsync(invoice, StockSign(invoice.InvoiceType));
 
-        foreach (var item in invoice.InvoiceItems)
+        if (invoice.InvoiceType == InvoiceType.Purchases)
         {
-            var stock = await GetStockAsync(invoice.StoreId, item.ProductId);
-            var delta = isPurchase ? item.Quantity : -item.Quantity;
-            stock.Quantity += delta;
-            await _context.StoreProductMovements.AddAsync(new StoreProductMovement
-            {
-                StoreId = invoice.StoreId,
-                ProductId = item.ProductId,
-                QuantityDelta = delta,
-                Source = StockMovementSource.Invoice,
-                ReferenceCode = invoice.InvoiceCode
-            });
-
-            if (isPurchase)
+            foreach (var item in invoice.InvoiceItems)
             {
                 var product = await _context.Products.FindAsync(item.ProductId);
-                product.Cost = item.Price;
+                if (product is not null)
+                {
+                    product.Cost = item.Price;
+                }
             }
         }
 
-        var supplier = await _context.Suppliers.FindAsync(invoice.SupplierId);
-        supplier.Balance += isPurchase ? invoice.Remaining : -invoice.Remaining;
+        await AdjustPartnerBalanceAsync(invoice, BalanceSign(invoice.InvoiceType));
     }
 
     private async Task TakeBackAsync(Invoice invoice)
     {
-        var isPurchase = invoice.InvoiceType == InvoiceType.Purchases;
+        await MoveStockAsync(invoice, -StockSign(invoice.InvoiceType));
+        await AdjustPartnerBalanceAsync(invoice, -BalanceSign(invoice.InvoiceType));
+    }
 
+    private async Task MoveStockAsync(Invoice invoice, int sign)
+    {
         foreach (var item in invoice.InvoiceItems)
         {
             var stock = await GetStockAsync(invoice.StoreId, item.ProductId);
-            var delta = isPurchase ? -item.Quantity : item.Quantity;
+            var delta = sign * item.Quantity;
             stock.Quantity += delta;
             await _context.StoreProductMovements.AddAsync(new StoreProductMovement
             {
@@ -302,9 +355,61 @@ public class InvoiceRepository : IInvoiceRepository
                 ReferenceCode = invoice.InvoiceCode
             });
         }
+    }
 
-        var supplier = await _context.Suppliers.FindAsync(invoice.SupplierId);
-        supplier.Balance -= isPurchase ? invoice.Remaining : -invoice.Remaining;
+    private async Task AdjustPartnerBalanceAsync(Invoice invoice, int sign)
+    {
+        if (IsSupplierInvoice(invoice.InvoiceType))
+        {
+            var supplier = await _context.Suppliers.FindAsync(invoice.SupplierId);
+            if (supplier is not null)
+            {
+                supplier.Balance += sign * invoice.Remaining;
+            }
+
+            return;
+        }
+
+        var customer = await _context.Customers.FindAsync(invoice.CustomerId);
+        if (customer is not null)
+        {
+            customer.Balance += sign * invoice.Remaining;
+        }
+    }
+
+    private static IEnumerable<JournalLineRequest> BuildJournalLines(Invoice invoice)
+    {
+        var total = invoice.TotalPrice;
+        var paid = invoice.Paid;
+        var remaining = invoice.Remaining;
+
+        return invoice.InvoiceType switch
+        {
+            InvoiceType.Purchases => new[]
+            {
+                new JournalLineRequest(AccountCodes.Inventory, total, 0),
+                new JournalLineRequest(AccountCodes.AccountsPayable, 0, remaining),
+                new JournalLineRequest(AccountCodes.Cash, 0, paid)
+            },
+            InvoiceType.Returns => new[]
+            {
+                new JournalLineRequest(AccountCodes.AccountsPayable, remaining, 0),
+                new JournalLineRequest(AccountCodes.Cash, paid, 0),
+                new JournalLineRequest(AccountCodes.PurchaseReturns, 0, total)
+            },
+            InvoiceType.Sales => new[]
+            {
+                new JournalLineRequest(AccountCodes.AccountsReceivable, remaining, 0),
+                new JournalLineRequest(AccountCodes.Cash, paid, 0),
+                new JournalLineRequest(AccountCodes.SalesRevenue, 0, total)
+            },
+            _ => new[]
+            {
+                new JournalLineRequest(AccountCodes.SalesReturns, total, 0),
+                new JournalLineRequest(AccountCodes.AccountsReceivable, 0, remaining),
+                new JournalLineRequest(AccountCodes.Cash, 0, paid)
+            }
+        };
     }
 
     private async Task<StoreProduct> GetStockAsync(int storeId, int productId)

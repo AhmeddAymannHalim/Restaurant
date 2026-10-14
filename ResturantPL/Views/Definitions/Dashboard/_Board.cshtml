@@ -45,21 +45,25 @@
 
 <div class="shift-totals">
     <div class="shift-tile">
+        <i class="fas fa-sack-dollar shift-tile-icon" aria-hidden="true"></i>
         <span>@L["ShiftSales"]</span>
         <strong>@Model.ShiftSales.ToString("N2")</strong>
         <small>@Model.ShiftOrders @L["Orders"]</small>
     </div>
     <a class="shift-tile @(Model.WaitingOnline > 0 ? "shift-tile-warn" : "")" asp-controller="Order" asp-action="Online">
+        <i class="fas fa-globe shift-tile-icon" aria-hidden="true"></i>
         <span>@L["OnlineRequests"]</span>
         <strong>@Model.WaitingOnline</strong>
         <small>@L["OnlineOrders"]</small>
     </a>
     <a class="shift-tile @(Model.InKitchen > 0 ? "shift-tile-warn" : "")" asp-controller="KitchenOrder" asp-action="Index">
+        <i class="fas fa-fire-burner shift-tile-icon" aria-hidden="true"></i>
         <span>@L["KitchenQueue"]</span>
         <strong>@Model.InKitchen</strong>
         <small>@L["KitchenOrders"]</small>
     </a>
     <a class="shift-tile @(Model.AwaitingPayment > 0 ? "shift-tile-warn" : "")" asp-controller="Order" asp-action="List" asp-route-status="pending">
+        <i class="fas fa-receipt shift-tile-icon" aria-hidden="true"></i>
         <span>@L["AwaitingPayment"]</span>
         <strong>@Model.AwaitingPaymentAmount.ToString("N2")</strong>
         <small>@Model.AwaitingPayment @L["Orders"]</small>
@@ -174,11 +178,21 @@
         <tbody>
             @foreach (var row in Model.ByType)
             {
+                var rowMax = Math.Max(1, Math.Max(row.InKitchen, Math.Max(row.Unpaid, row.Paid)));
                 <tr>
                     <td><span class="ops-chip ops-@row.Type.ToString().ToLowerInvariant()">@L[row.Type.ToString()]</span></td>
-                    <td class="num">@row.InKitchen</td>
-                    <td class="num">@row.Unpaid</td>
-                    <td class="num">@row.Paid</td>
+                    <td class="num ops-type-cell">
+                        <span>@row.InKitchen</span>
+                        <i class="ops-type-bar ops-type-bar-kitchen" aria-hidden="true" style="--w:@(row.InKitchen * 100 / rowMax)%"></i>
+                    </td>
+                    <td class="num ops-type-cell">
+                        <span>@row.Unpaid</span>
+                        <i class="ops-type-bar ops-type-bar-unpaid" aria-hidden="true" style="--w:@(row.Unpaid * 100 / rowMax)%"></i>
+                    </td>
+                    <td class="num ops-type-cell">
+                        <span>@row.Paid</span>
+                        <i class="ops-type-bar ops-type-bar-paid" aria-hidden="true" style="--w:@(row.Paid * 100 / rowMax)%"></i>
+                    </td>
                 </tr>
             }
         </tbody>

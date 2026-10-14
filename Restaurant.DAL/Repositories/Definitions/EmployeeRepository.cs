@@ -34,7 +34,7 @@ public class EmployeeRepository : IEmployeeRepository
             query = query.Where(a => a.FirstName.ToLower().Contains(search)
                                   || a.LastName.ToLower().Contains(search)
                                   || a.Code.ToLower().Contains(search)
-                                  || a.MobileNumber.Contains(search)
+                                  || a.PhoneNumber.Contains(search)
                                   || a.Job.ArName.ToLower().Contains(search)
                                   || a.Job.EnName.ToLower().Contains(search));
         }
@@ -63,7 +63,9 @@ public class EmployeeRepository : IEmployeeRepository
 
     public async Task<Employee> GetEmployeeByIdAsync(int id)
     {
-        return await _context.Employees.FindAsync(id);
+        return await _context.Employees
+            .Include(a => a.City).ThenInclude(a => a.Governorate)
+            .FirstOrDefaultAsync(a => a.EmployeeId == id);
     }
 
     public async Task<string> NewEmployeeCodeAsync()
@@ -161,12 +163,10 @@ public class EmployeeRepository : IEmployeeRepository
 
         user.FirstName = employee.FirstName;
         user.LastName = employee.LastName;
-        user.Country = employee.Country;
-        user.City = employee.City;
+        user.CityId = employee.CityId;
         user.Street = employee.Street;
         user.Age = employee.Age;
         user.PhoneNumber = employee.PhoneNumber;
-        user.MobileNumber = employee.MobileNumber;
         user.UserType = roleName;
 
         if (oldRoleName == roleName)

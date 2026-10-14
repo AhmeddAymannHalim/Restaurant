@@ -75,6 +75,8 @@
             hub.onreconnecting(function () { setLive('off'); });
             hub.onreconnected(function () { setLive('on'); refresh(); });
             hub.start().then(function () { setLive('on'); }).catch(function () { setLive('off'); });
+
+            setInterval(refresh, 20000);
         });
     </script>
 }

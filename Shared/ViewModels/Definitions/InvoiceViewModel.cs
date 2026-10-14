@@ -10,12 +10,15 @@ public class InvoiceViewModel
     public DateTime InvoiceDate { get; set; } = DateTime.Now;
     public InvoiceType InvoiceType { get; set; }
     public PayTypes PayType { get; set; }
-    public int SupplierId { get; set; }
+    public int? SupplierId { get; set; }
+    public int? CustomerId { get; set; }
     public int StoreId { get; set; }
     public decimal Discount { get; set; }
     public decimal Paid { get; set; }
 
     public List<InvoiceItemViewModel> Items { get; set; } = new();
+
+    public bool IsSupplierInvoice => InvoiceType is InvoiceType.Purchases or InvoiceType.Returns;
 
     public decimal SubTotal => Items.Sum(a => a.Total);
     public decimal TotalPrice => SubTotal - Discount;
@@ -23,10 +26,13 @@ public class InvoiceViewModel
 
     public string SupplierArName { get; set; }
     public string SupplierEnName { get; set; }
+    public string CustomerArName { get; set; }
+    public string CustomerEnName { get; set; }
     public string StoreArName { get; set; }
     public string StoreEnName { get; set; }
 
     public IEnumerable<LookupItem> Suppliers { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> Customers { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Stores { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Units { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Categories { get; set; } = new List<LookupItem>();

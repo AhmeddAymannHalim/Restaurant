@@ -290,13 +290,14 @@ public class OrderRepository : IOrderRepository
                 case OrderType.Delivery:
                 case OrderType.Delivery_Online:
                     order.TableId = null;
+                    cash = true;
                     if (order.Type == OrderType.Delivery_Online && !onlineOrderId.HasValue)
                     {
                         return Fail("RecordNotFound");
                     }
 
-                    if (!cash && (!order.EmployeeId.HasValue
-                        || !await _context.Employees.AnyAsync(a => a.EmployeeId == order.EmployeeId)))
+                    if (!order.EmployeeId.HasValue
+                        || !await _context.Employees.AnyAsync(a => a.EmployeeId == order.EmployeeId))
                     {
                         return Fail("DeliveryDriverRequired");
                     }
@@ -438,7 +439,6 @@ public class OrderRepository : IOrderRepository
                 EmployeeId = order.EmployeeId,
                 Address = order.Address,
                 PhoneNumber = order.PhoneNumber,
-                MobileNumber = order.MobileNumber,
                 DeliveryZoneId = deliveryZoneId,
                 DeliveryFee = deliveryFee,
                 Service = order.Type == OrderType.TakeAway ? 0 : settings.OrderService,

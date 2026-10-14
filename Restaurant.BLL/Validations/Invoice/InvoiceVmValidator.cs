@@ -12,8 +12,16 @@ public class InvoiceVmValidator : AbstractValidator<InvoiceViewModel>
         var required = localizer["Val.RequiredField"].Value;
 
         RuleFor(x => x.SupplierId)
+            .NotNull()
             .GreaterThan(0)
-            .WithMessage(required);
+            .WithMessage(required)
+            .When(x => x.IsSupplierInvoice);
+
+        RuleFor(x => x.CustomerId)
+            .NotNull()
+            .GreaterThan(0)
+            .WithMessage(required)
+            .When(x => !x.IsSupplierInvoice);
 
         RuleFor(x => x.StoreId)
             .GreaterThan(0)

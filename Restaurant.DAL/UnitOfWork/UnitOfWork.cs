@@ -18,6 +18,8 @@ namespace Restaurant.DAL.UnitOfWork
         {
             this._context = context;
 
+            Journals = new JournalEntryRepository(_context);
+
             Branches = new BranchRepository(_context);
             Jobs = new JobRepository(_context);
             UnitPrices = new UnitPriceRepository(_context);
@@ -32,13 +34,14 @@ namespace Restaurant.DAL.UnitOfWork
             MenuItems = new MenuItemRepository(_context);
             Stores = new StoreRepository(_context);
             Suppliers = new SupplierRepository(_context);
-            Invoices = new InvoiceRepository(_context);
+            Invoices = new InvoiceRepository(_context, Journals);
+            StockMovements = new StockMovementRepository(_context);
             Orders = new OrderRepository(_context);
             OnlineOrders = new OnlineOrderRepository(_context);
             Reports = new ReportRepository(_context);
             StoreConverts = new StoreConvertRepository(_context);
-            SupplierPayments = new SupplierPaymentRepository(_context);
-            CustomerPayments = new CustomerPaymentRepository(_context);
+            SupplierPayments = new SupplierPaymentRepository(_context, Journals);
+            CustomerPayments = new CustomerPaymentRepository(_context, Journals);
             Customers = new CustomerRepository(_context);
             Employees = new EmployeeRepository(_context);
             Dashboard = new DashboardRepository(_context);
@@ -64,6 +67,7 @@ namespace Restaurant.DAL.UnitOfWork
         public IStoreRepository Stores { get; set; }
         public ISupplierRepository Suppliers { get; set; }
         public IInvoiceRepository Invoices { get; set; }
+        public IStockMovementRepository StockMovements { get; set; }
         public IOrderRepository Orders { get; set; }
         public IOnlineOrderRepository OnlineOrders { get; set; }
         public IReportRepository Reports { get; set; }
@@ -85,6 +89,7 @@ namespace Restaurant.DAL.UnitOfWork
 
         public IDashboardRepository Dashboard { get; set; }
         public ILookupRepository Lookups { get; set; }
+        public IJournalEntryRepository Journals { get; set; }
         public IHomeRepository Home { get; set; }
         public IChefRepository Chefs { get; set; }
         public IGalleryRepository Galleries { get; set; }

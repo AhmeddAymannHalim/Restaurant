@@ -1,0 +1,93 @@
+@model StockMovementIndexViewModel
+@{
+    ViewBag.Title = L["StockMovements"].Value;
+    var isArabic = LanguageHelper.IsArabic();
+    var result = Model.Result;
+    var invariant = CultureInfo.InvariantCulture;
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-arrow-right-arrow-left" aria-hidden="true"></i></span>
+        <h1>@L["StockMovements"]</h1>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Index" method="get" class="ad-filters">
+            <div class="ad-search">
+                <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                <input id="StockMovement-search" type="search" class="form-control" name="searchString" value="@result.SearchString" placeholder="@L["SearchHere"]" />
+            </div>
+            <select name="storeId" class="form-select w-auto" aria-label="@L["Store"]">
+                <option value="">@L["Store"]</option>
+                @foreach (var item in Model.Stores)
+                {
+                    <option value="@item.Id" selected="@(Model.StoreId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
+                }
+            </select>
+            <select name="productId" class="form-select w-auto" aria-label="@L["Product"]">
+                <option value="">@L["Product"]</option>
+                @foreach (var item in Model.Products)
+                {
+                    <option value="@item.Id" selected="@(Model.ProductId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
+                }
+            </select>
+            <select name="type" class="form-select w-auto" aria-label="@L["MovementSource"]">
+                <option value="">@L["AllSources"]</option>
+                @foreach (var source in Enum.GetNames<StockMovementSource>())
+                {
+                    <option value="@source" selected="@(result.Type == source)">@L["StockMovementSource." + source]</option>
+                }
+            </select>
+            <input type="date" name="fromDate" class="form-control w-auto" value="@result.FromDate?.ToString("yyyy-MM-dd")" aria-label="@L["From"]" title="@L["From"]" />
+            <input type="date" name="toDate" class="form-control w-auto" value="@result.ToDate?.ToString("yyyy-MM-dd")" aria-label="@L["To"]" title="@L["To"]" />
+            <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-magnifying-glass" aria-hidden="true"></i> @L["Search"]</button>
+            <span class="ad-meta">@L["TotalRecords"]: @result.TotalRecords</span>
+        </form>
+
+        @await Html.PartialAsync("_ExportToolbar", "StockMovement-table")
+        <div class="ad-table-wrap">
+            <table id="StockMovement-table" class="ad-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>@L["MovementDate"]</th>
+                        <th>@L["Store"]</th>
+                        <th>@L["Product"]</th>
+                        <th>@L["QuantityDelta"]</th>
+                        <th>@L["MovementSource"]</th>
+                        <th>@L["ReferenceCode"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (result.Data.Any())
+                    {
+                        var counter = ((result.PageNo - 1) * result.PageSize) + 1;
+                        foreach (var item in result.Data)
+                        {
+                            <tr>
+                                <td>@counter</td>
+                                <td>@item.MovementDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>@(isArabic ? item.StoreArName : item.StoreEnName)</td>
+                                <td>@(isArabic ? item.ProductArName : item.ProductEnName)</td>
+                                <td class="num">@item.QuantityDelta.ToString("0.###", invariant)</td>
+                                <td>@L["StockMovementSource." + item.Source]</td>
+                                <td>@item.ReferenceCode</td>
+                            </tr>
+                            counter++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="ad-empty">@L["NoData"]</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="app-table-pagination">
+            @await Html.PartialAsync("_Pagination", result)
+        </div>
+    </div>
+</div>

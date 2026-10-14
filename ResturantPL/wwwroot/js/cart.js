@@ -57,7 +57,24 @@
     }
 
     function notify(message) {
-        if (window.toastr && message) {
+        if (!message) {
+            return;
+        }
+
+        var bubble = document.querySelector("[data-cart-toast]");
+        if (bubble) {
+            bubble.textContent = message;
+            bubble.classList.remove("is-shown");
+            void bubble.offsetWidth;
+            bubble.classList.add("is-shown");
+            clearTimeout(bubble._hideTimer);
+            bubble._hideTimer = setTimeout(function () {
+                bubble.classList.remove("is-shown");
+            }, 1600);
+            return;
+        }
+
+        if (window.toastr) {
             toastr.success(message);
         }
     }

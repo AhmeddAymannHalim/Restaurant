@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Restaurant.DAL.IRepositories.Commons;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
 using Shared.Enums;
@@ -9,10 +10,12 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class CustomerPaymentRepository : ICustomerPaymentRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IJournalEntryRepository _journals;
 
-    public CustomerPaymentRepository(ApplicationDbContext context)
+    public CustomerPaymentRepository(ApplicationDbContext context, IJournalEntryRepository journals)
     {
         _context = context;
+        _journals = journals;
     }
 
     public async Task<PaginatedResult<PaymentInvoiceCustomer>> GetPagedPaymentsAsync(PageRequest request)
@@ -76,6 +79,8 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
 
     public async Task<ResultMessage> UpsertPaymentAsync(PaymentInvoiceCustomer entity)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
             var partner = await _context.Customers.FindAsync(entity.CustomerId);
@@ -119,6 +124,25 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
             partner.Balance -= payment.Paid;
             await _context.SaveChangesAsync();
 
+            await _journals.RemoveSourceEntriesAsync(JournalSourceType.CustomerPaymentVoucher, payment.Id);
+            var posting = await _journals.PostSourceEntryAsync(JournalSourceType.CustomerPaymentVoucher,
+                payment.Id,
+                payment.Date,
+                $"Customer receipt {payment.ProcessCode}",
+                new[]
+                {
+                    new JournalLineRequest(AccountCodes.Cash, payment.Paid, 0),
+                    new JournalLineRequest(AccountCodes.AccountsReceivable, 0, payment.Paid)
+                },
+                saveChanges: false);
+            if (!posting.Success)
+            {
+                return posting;
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
             return new ResultMessage
             {
                 Success = true,
@@ -137,6 +161,8 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
 
     public async Task<ResultMessage> DeletePaymentAsync(int id)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
             var payment = await _context.PaymentInvoiceCustomer.FirstOrDefaultAsync(a => a.Id == id);
@@ -157,8 +183,11 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
             var partner = await _context.Customers.FindAsync(payment.CustomerId);
             partner.Balance += payment.Paid;
 
+            await _journals.RemoveSourceEntriesAsync(JournalSourceType.CustomerPaymentVoucher, payment.Id);
+
             _context.PaymentInvoiceCustomer.Remove(payment);
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return new ResultMessage { Success = true };
         }
@@ -265,7 +294,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
     {
         try
         {
-            var refund = await _context.PaymentRefunds.FirstOrDefaultAsync(a => a.Id == refundId);
+            var refund = await _context.PaymentRefunds.FirstOrDefaultAsync(a => a.Id == refundId && a.OriginalPaymentId != null);
             if (refund is null)
             {
                 return new ResultMessage { Success = true };
@@ -280,7 +309,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
                 };
             }
 
-            var remaining = await GetRemainingRefundableAsync(refund.OriginalPaymentId, refund.Id);
+            var remaining = await GetRemainingRefundableAsync(refund.OriginalPaymentId.Value, refund.Id);
             if (refund.Amount > remaining)
             {
                 return new ResultMessage
@@ -290,7 +319,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
                 };
             }
 
-            var payment = await _context.PaymentInvoiceCustomer.FindAsync(refund.OriginalPaymentId);
+            var payment = await _context.PaymentInvoiceCustomer.FindAsync(refund.OriginalPaymentId.Value);
             var customer = await _context.Customers.FindAsync(payment.CustomerId);
             customer.Balance += refund.Amount;
 
@@ -316,7 +345,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
     {
         try
         {
-            var refund = await _context.PaymentRefunds.FirstOrDefaultAsync(a => a.Id == refundId);
+            var refund = await _context.PaymentRefunds.FirstOrDefaultAsync(a => a.Id == refundId && a.OriginalPaymentId != null);
             if (refund is null)
             {
                 return new ResultMessage { Success = true };

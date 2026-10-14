@@ -4,10 +4,8 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Localization;
 using Restaurant.BLL.Services.IServices.Commons;
 using Restaurant.BLL.Services.IServices.Definitions;
-using ResturantPL.Helper;
 using ResturantPL.Hubs;
 using Shared;
-using Shared.Helpers;
 using Shared.Helpers.Localization;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
@@ -19,6 +17,7 @@ namespace ResturantPL.Controllers
     {
         private readonly IOnlineOrderService _service;
         private readonly ILookupService _lookup;
+        private readonly IAccountService _account;
         private readonly IHubContext<OrderHub> _hub;
         private readonly IToastrService _toastr;
         private readonly IStringLocalizer<SharedResource> _localizer;
@@ -26,12 +25,14 @@ namespace ResturantPL.Controllers
         public OnlineOrderController(
             IOnlineOrderService service,
             ILookupService lookup,
+            IAccountService account,
             IHubContext<OrderHub> hub,
             IToastrService toastr,
             IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
             _lookup = lookup;
+            _account = account;
             _hub = hub;
             _toastr = toastr;
             _localizer = localizer;
@@ -62,11 +63,18 @@ namespace ResturantPL.Controllers
             try
             {
                 var last = (await _service.GetCustomerOrdersAsync(UserId)).FirstOrDefault();
+                var profile = await _account.GetProfileAsync(UserId);
+                var profileName = profile is null ? null : $"{profile.FirstName} {profile.LastName}".Trim();
+                var isArabic = LanguageHelper.IsArabic();
+                var profileCityName = profile is null ? null : (isArabic ? profile.CityArName : profile.CityEnName);
+                var profileAddress = profile is null ? null : string.Join(", ",
+                    new[] { profile.Street, profileCityName }.Where(a => !string.IsNullOrWhiteSpace(a)));
+
                 var model = new OnlineOrderCreateViewModel
                 {
-                    CustomerName = last?.CustomerName,
-                    MobileNumber = last?.MobileNumber,
-                    Address = last?.Address,
+                    CustomerName = !string.IsNullOrWhiteSpace(profileName) ? profileName : last?.CustomerName,
+                    PhoneNumber = !string.IsNullOrWhiteSpace(profile?.PhoneNumber) ? profile.PhoneNumber : last?.PhoneNumber,
+                    Address = !string.IsNullOrWhiteSpace(profileAddress) ? profileAddress : last?.Address,
                     Tables = await _lookup.TableLookupAsync(),
                     Zones = await _lookup.DeliveryZoneLookupAsync()
                 };

@@ -15,7 +15,12 @@ public class CustomerConfig : IEntityTypeConfiguration<Customer>
         builder.Property(a => a.EnName).IsRequired().HasMaxLength(100);
         builder.Property(a => a.Address).HasMaxLength(250);
         builder.Property(a => a.PhoneNumber).HasMaxLength(11);
-        builder.Property(a => a.MobileNumber).HasMaxLength(11);
         builder.Property(a => a.Balance).HasPrecision(18, 2);
+
+        builder
+            .HasOne(a => a.City)
+            .WithMany()
+            .HasForeignKey(a => a.CityId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

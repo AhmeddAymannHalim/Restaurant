@@ -127,5 +127,23 @@ namespace ResturantPL.Controllers
         {
             return Json(await _service.RoleLookupAsync());
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Countries()
+        {
+            return Json(await _service.CountryLookupAsync());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Governorates(int countryId)
+        {
+            return Json(await _service.GovernorateLookupAsync(countryId));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Cities(int governorateId)
+        {
+            return Json(await _service.CityLookupAsync(governorateId));
+        }
     }
 }

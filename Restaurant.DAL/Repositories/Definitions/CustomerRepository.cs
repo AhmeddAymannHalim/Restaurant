@@ -38,7 +38,9 @@ public class CustomerRepository : ICustomerRepository
 
     public async Task<Customer> GetCustomerByIdAsync(int id)
     {
-        return await _context.Customers.FindAsync(id);
+        return await _context.Customers
+            .Include(a => a.City).ThenInclude(a => a.Governorate)
+            .FirstOrDefaultAsync(a => a.Id == id);
     }
 
     public async Task<decimal?> GetCustomerBalanceAsync(int id)

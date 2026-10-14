@@ -84,7 +84,7 @@ public class DashboardRepository : IDashboardRepository
             {
                 Id = a.Id,
                 CustomerName = a.CustomerName,
-                MobileNumber = a.MobileNumber,
+                PhoneNumber = a.PhoneNumber,
                 Address = a.Address,
                 TableId = a.TableId,
                 TableArName = a.Table.ArName,

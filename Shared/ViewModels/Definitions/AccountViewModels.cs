@@ -38,6 +38,21 @@ public class ChangePasswordViewModel
     public string ConfirmPassword { get; set; }
 }
 
+public class ProfileViewModel
+{
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string PhoneNumber { get; set; }
+    public int? CityId { get; set; }
+    public string Street { get; set; }
+
+    public string CityArName { get; set; }
+    public string CityEnName { get; set; }
+
+    public int? CountryId { get; set; }
+    public int? GovernorateId { get; set; }
+}
+
 public class AccountIdentity
 {
     public string Id { get; set; }

@@ -126,4 +126,19 @@ public class LookupService : ILookupService
     {
         return await _unitOfWork.Lookups.RoleLookupAsync();
     }
+
+    public async Task<IEnumerable<LookupItem>> CountryLookupAsync()
+    {
+        return await _unitOfWork.Lookups.CountryLookupAsync();
+    }
+
+    public async Task<IEnumerable<LookupItem>> GovernorateLookupAsync(int countryId)
+    {
+        return await _unitOfWork.Lookups.GovernorateLookupAsync(countryId);
+    }
+
+    public async Task<IEnumerable<LookupItem>> CityLookupAsync(int governorateId)
+    {
+        return await _unitOfWork.Lookups.CityLookupAsync(governorateId);
+    }
 }

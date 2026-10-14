@@ -12,7 +12,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@L["Orders"] @Model.OrderCode</title>
+    <title>@L[Model.Cash || Model.OnAccount ? "Orders" : "OrderTicket"] @Model.OrderCode</title>
     <style>
         body { font-family: "Segoe UI", Tahoma, Arial, sans-serif; color: #111; font-size: 14px; margin: 0; padding: 16px; background: #f4f5f7; }
         .receipt { max-width: 420px; margin: 0 auto; background: #fff; padding: 18px 20px; border: 1px solid #ddd; }
@@ -29,18 +29,24 @@
         .actions { max-width: 420px; margin: 12px auto 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
         .actions a, .actions button { padding: 8px 14px; border: 1px solid #112233; background: #112233; color: #fff; border-radius: 6px; text-decoration: none; cursor: pointer; font: inherit; }
         .actions a.alt { background: #fff; color: #112233; }
+        .unpaid-flag { margin: 0 0 12px; padding: 6px 10px; border-radius: 6px; background: #fdecea; border: 1px solid #c0564e; color: #a5342b; text-align: center; font-weight: 700; font-size: 13px; }
         @@media print { body { background: #fff; padding: 0; } .receipt { border: 0; } .actions { display: none; } }
     </style>
 </head>
 <body>
     <div class="receipt">
-        <h1>@L["Orders"] #@Model.OrderCode</h1>
+        <h1>@L[Model.Cash || Model.OnAccount ? "Orders" : "OrderTicket"] #@Model.OrderCode</h1>
         <p class="meta">@Model.OrderDate.ToString("yyyy-MM-dd HH:mm") - @L[Model.Type.ToString()]</p>
+
+        @if (!Model.Cash && !Model.OnAccount)
+        {
+            <p class="unpaid-flag">@L["Unpaid"]</p>
+        }
 
         <dl>
             <dt>@L["CustomerName"]</dt><dd>@Model.CustomerName</dd>
             <dt>@L["Seller"]</dt><dd>@Model.SellerName</dd>
-            @if (!string.IsNullOrEmpty(Model.ReceiverName))
+            @if (!string.IsNullOrEmpty(Model.ReceiverName) && Model.ReceiverName != Model.SellerName)
             {
                 <dt>@L["Receiver"]</dt><dd>@Model.ReceiverName</dd>
             }
@@ -50,10 +56,12 @@
             }
             @if (Model.Type is OrderType.Delivery or OrderType.Delivery_Online)
             {
-                <dt>@L["DeliveryDriver"]</dt><dd>@Model.EmployeeName</dd>
+                @if (!string.IsNullOrEmpty(Model.EmployeeName))
+                {
+                    <dt>@L["DeliveryDriver"]</dt><dd>@Model.EmployeeName</dd>
+                }
                 <dt>@L["Address"]</dt><dd>@Model.Address</dd>
                 <dt>@L["PhoneNumber"]</dt><dd>@Model.PhoneNumber</dd>
-                <dt>@L["MobileNumber"]</dt><dd>@Model.MobileNumber</dd>
             }
             <dt>@L["PaymentStatus"]</dt><dd>@L[Model.OnAccount ? "OnAccountStatus" : Model.Cash ? "PaidStatus" : "Unpaid"]</dd>
         </dl>
@@ -113,7 +121,8 @@
             function printCopies() {
                 for (var i = 0; i < @copies; i++) { window.print(); }
             }
-            @if (autoPrint)
+            @{ var queryAutoPrint = Context.Request.Query["autoPrint"] == "1"; }
+            @if (autoPrint || queryAutoPrint)
             {
                 <text>printCopies();</text>
             }

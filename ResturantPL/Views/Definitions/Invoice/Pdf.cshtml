@@ -28,7 +28,14 @@
 
     <div class="meta">
         <div><b>@L["InvoiceDate"]</b>@Model.InvoiceDate.ToString("yyyy-MM-dd HH:mm")</div>
-        <div><b>@L["Supplier"]</b>@(isArabic ? Model.SupplierArName : Model.SupplierEnName)</div>
+        @if (Model.IsSupplierInvoice)
+        {
+            <div><b>@L["Supplier"]</b>@(isArabic ? Model.SupplierArName : Model.SupplierEnName)</div>
+        }
+        else
+        {
+            <div><b>@L["Customer"]</b>@(isArabic ? Model.CustomerArName : Model.CustomerEnName)</div>
+        }
         <div><b>@L["Store"]</b>@(isArabic ? Model.StoreArName : Model.StoreEnName)</div>
         <div><b>@L["PayType"]</b>@L["Pay" + Model.PayType]</div>
     </div>

@@ -28,7 +28,6 @@
             <th>#</th>
             <th>@L["Name"]</th>
             <th>@L["Address"]</th>
-            <th>@L["Mobile"]</th>
             <th>@L["Phone"]</th>
             <th>@L["Balance"]</th>
             <th></th>
@@ -44,7 +43,6 @@
                     <td>@counter</td>
                     <td>@(isArabic ? item.ArName : item.EnName)</td>
                     <td>@item.Address</td>
-                    <td>@item.MobileNumber</td>
                     <td>@item.PhoneNumber</td>
                     <td>@item.Balance</td>
                     <td class="ad-row-actions">
@@ -58,7 +56,7 @@
         else
         {
             <tr>
-                <td colspan="7" class="ad-empty">@L["NoData"]</td>
+                <td colspan="6" class="ad-empty">@L["NoData"]</td>
             </tr>
         }
     </tbody>

@@ -12,7 +12,6 @@ public class OrderConfig : IEntityTypeConfiguration<Order>
         builder.Property(a => a.CustomerName).HasMaxLength(100);
         builder.Property(a => a.Address).HasMaxLength(250);
         builder.Property(a => a.PhoneNumber).HasMaxLength(11);
-        builder.Property(a => a.MobileNumber).HasMaxLength(11);
         builder.HasIndex(a => a.OrderCode).IsUnique();
         builder.HasIndex(a => a.OrderDate);
         builder.HasIndex(a => new { a.Cash, a.FinishShift });

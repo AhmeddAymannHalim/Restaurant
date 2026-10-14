@@ -8,10 +8,13 @@ public class EmployeeViewModel
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string PhoneNumber { get; set; }
-    public string MobileNumber { get; set; }
-    public string Country { get; set; }
-    public string City { get; set; }
+    public int CityId { get; set; }
     public string Street { get; set; }
+
+    /// <summary>Not persisted — used only to preselect the Country/Governorate dropdowns when editing.</summary>
+    public int? CountryId { get; set; }
+    /// <summary>Not persisted — used only to preselect the Governorate dropdown when editing.</summary>
+    public int? GovernorateId { get; set; }
     public string NationalID { get; set; }
     public byte Age { get; set; }
     public int SalaryTypeId { get; set; }
@@ -28,6 +31,8 @@ public class EmployeeViewModel
     public string BranchEnName { get; set; }
     public string SalaryTypeArName { get; set; }
     public string SalaryTypeEnName { get; set; }
+    public string CityArName { get; set; }
+    public string CityEnName { get; set; }
     public bool HasAccount { get; set; }
 
     public IEnumerable<LookupItem> Branches { get; set; } = new List<LookupItem>();

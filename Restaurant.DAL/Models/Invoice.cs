@@ -9,7 +9,8 @@ public class Invoice
     public DateTime InvoiceDate { get; set; }
     public InvoiceType InvoiceType { get; set; }
     public PayTypes PayType { get; set; }
-    public int SupplierId { get; set; }
+    public int? SupplierId { get; set; }
+    public int? CustomerId { get; set; }
     public int StoreId { get; set; }
     public decimal Discount { get; set; }
     public decimal Paid { get; set; }
@@ -17,6 +18,7 @@ public class Invoice
     public decimal Remaining { get; set; }
 
     public virtual Supplier Supplier { get; set; }
+    public virtual Customer Customer { get; set; }
     public virtual Store Store { get; set; }
     public virtual ICollection<InvoiceItem> InvoiceItems { get; set; }
 }

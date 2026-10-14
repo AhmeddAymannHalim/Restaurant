@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Localization;
+using Restaurant.BLL.Services.IServices.Commons;
 using Restaurant.BLL.Services.IServices.Definitions;
 using ResturantPL.Services;
 using Shared;
@@ -17,12 +18,14 @@ namespace ResturantPL.Controllers
     {
         private readonly IAccountService _service;
         private readonly IEmailService _email;
+        private readonly ILookupService _lookup;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public AccountController(IAccountService service, IEmailService email, IStringLocalizer<SharedResource> localizer)
+        public AccountController(IAccountService service, IEmailService email, ILookupService lookup, IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
             _email = email;
+            _lookup = lookup;
             _localizer = localizer;
         }
 
@@ -115,6 +118,54 @@ namespace ResturantPL.Controllers
 
             TempData["PasswordChanged"] = true;
             return RedirectToAction(nameof(ChangePassword));
+        }
+
+        [Authorize]
+        public async Task<IActionResult> Profile()
+        {
+            var model = await _service.GetProfileAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            return View(model ?? new ProfileViewModel());
+        }
+
+        [Authorize]
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Profile(ProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var result = await _service.UpdateProfileAsync(User.FindFirstValue(ClaimTypes.NameIdentifier), model);
+            if (!result.Success)
+            {
+                ModelState.AddModelError(string.Empty, _localizer[result.Message ?? "ErrorWhileSaving"].Value);
+                return View(model);
+            }
+
+            TempData["ProfileSaved"] = true;
+            return RedirectToAction(nameof(Profile));
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Countries()
+        {
+            return Json(await _lookup.CountryLookupAsync());
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Governorates(int countryId)
+        {
+            return Json(await _lookup.GovernorateLookupAsync(countryId));
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Cities(int governorateId)
+        {
+            return Json(await _lookup.CityLookupAsync(governorateId));
         }
 
         public IActionResult CheckYourInbox(string type = "confirm")

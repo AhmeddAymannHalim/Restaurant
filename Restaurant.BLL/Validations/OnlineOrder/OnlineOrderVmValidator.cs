@@ -19,7 +19,7 @@ public class OnlineOrderVmValidator : AbstractValidator<OnlineOrderCreateViewMod
             .WithMessage(localizer["Val.RequiredField"].Value)
             .MaximumLength(250).WithMessage(string.Format(localizer["Val.MaxLength"].Value, 250));
 
-        RuleFor(x => x.MobileNumber)
+        RuleFor(x => x.PhoneNumber)
             .NotEmpty().WithMessage(localizer["Val.RequiredField"].Value)
             .Matches(@"^01[0125][0-9]{8}$").WithMessage(localizer["Val.MobileFormat"].Value);
 

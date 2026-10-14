@@ -310,6 +310,7 @@ public class ReportRepository : IReportRepository
         var query = _context.Invoices
             .AsNoTracking()
             .Include(a => a.Supplier)
+            .Include(a => a.Customer)
             .Include(a => a.Store)
             .Where(a => a.InvoiceDate >= from && a.InvoiceDate < end);
 
@@ -328,7 +329,9 @@ public class ReportRepository : IReportRepository
         report.Types = new List<string>
         {
             "Purchases",
-            "Returns"
+            "Returns",
+            "Sales",
+            "SalesReturn"
         };
 
         report.Columns = new List<string>
@@ -336,7 +339,7 @@ public class ReportRepository : IReportRepository
             "InvoiceCode",
             "InvoiceDate",
             "InvoiceType",
-            "Supplier",
+            "Partner",
             "Store",
             "NetTotal",
             "Paid",
@@ -350,7 +353,9 @@ public class ReportRepository : IReportRepository
                 invoice.InvoiceCode,
                 invoice.InvoiceDate,
                 invoice.InvoiceType,
-                isArabic ? invoice.Supplier.ArName : invoice.Supplier.EnName,
+                isArabic
+                    ? invoice.Supplier?.ArName ?? invoice.Customer?.ArName
+                    : invoice.Supplier?.EnName ?? invoice.Customer?.EnName,
                 isArabic ? invoice.Store.ArName : invoice.Store.EnName,
                 invoice.TotalPrice,
                 invoice.Paid,

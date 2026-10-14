@@ -15,6 +15,5 @@ public class StoreConfig : IEntityTypeConfiguration<Store>
         builder.Property(a => a.EnName).IsRequired().HasMaxLength(100);
         builder.Property(a => a.Address).HasMaxLength(250);
         builder.Property(a => a.PhoneNumber).HasMaxLength(11);
-        builder.Property(a => a.MobileNumber).HasMaxLength(11);
     }
 }

@@ -3,7 +3,9 @@ namespace Shared.Enums;
 public enum InvoiceType
 {
     Purchases,
-    Returns
+    Returns,
+    Sales,
+    SalesReturn
 }
 
 public enum PayTypes

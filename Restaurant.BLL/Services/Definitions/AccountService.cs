@@ -115,4 +115,31 @@ public class AccountService : IAccountService
     {
         return await _repository.ChangePasswordAsync(userId, model.CurrentPassword, model.NewPassword);
     }
+
+    public async Task<ProfileViewModel> GetProfileAsync(string userId)
+    {
+        var user = await _repository.GetByIdAsync(userId);
+        if (user is null)
+        {
+            return null;
+        }
+
+        return new ProfileViewModel
+        {
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            PhoneNumber = user.PhoneNumber,
+            CityId = user.CityId,
+            Street = user.Street,
+            CityArName = user.City?.ArName,
+            CityEnName = user.City?.EnName,
+            GovernorateId = user.City?.GovernorateId,
+            CountryId = user.City?.Governorate?.CountryId
+        };
+    }
+
+    public async Task<ResultMessage> UpdateProfileAsync(string userId, ProfileViewModel model)
+    {
+        return await _repository.UpdateProfileAsync(userId, model);
+    }
 }

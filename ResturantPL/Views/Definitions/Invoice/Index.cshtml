@@ -20,6 +20,8 @@
                 <option value="">@L["AllTypes"]</option>
                 <option value="Purchases" selected="@(Model.Type == "Purchases")">@L["Purchases"]</option>
                 <option value="Returns" selected="@(Model.Type == "Returns")">@L["Returns"]</option>
+                <option value="Sales" selected="@(Model.Type == "Sales")">@L["Sales"]</option>
+                <option value="SalesReturn" selected="@(Model.Type == "SalesReturn")">@L["SalesReturn"]</option>
             </select>
             <input type="date" name="fromDate" class="form-control w-auto" value="@Model.FromDate?.ToString("yyyy-MM-dd")" aria-label="@L["From"]" title="@L["From"]" />
             <input type="date" name="toDate" class="form-control w-auto" value="@Model.ToDate?.ToString("yyyy-MM-dd")" aria-label="@L["To"]" title="@L["To"]" />
@@ -36,7 +38,7 @@
                         <th>@L["InvoiceCode"]</th>
                         <th>@L["InvoiceDate"]</th>
                         <th>@L["InvoiceType"]</th>
-                        <th>@L["Supplier"]</th>
+                        <th>@L["Partner"]</th>
                         <th>@L["Store"]</th>
                         <th>@L["NetTotal"]</th>
                         <th>@L["Paid"]</th>
@@ -55,7 +57,7 @@
                                 <td>@item.InvoiceCode</td>
                                 <td>@item.InvoiceDate.ToString("yyyy-MM-dd HH:mm")</td>
                                 <td>@L[item.InvoiceType.ToString()]</td>
-                                <td>@(isArabic ? item.SupplierArName : item.SupplierEnName)</td>
+                                <td>@(item.IsSupplierInvoice ? (isArabic ? item.SupplierArName : item.SupplierEnName) : (isArabic ? item.CustomerArName : item.CustomerEnName))</td>
                                 <td>@(isArabic ? item.StoreArName : item.StoreEnName)</td>
                                 <td class="num">@item.TotalPrice.ToString("N2")</td>
                                 <td class="num">@item.Paid.ToString("N2")</td>

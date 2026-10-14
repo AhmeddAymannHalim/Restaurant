@@ -57,7 +57,7 @@ public static class ServiceCollectionExtensions
             options.LoginPath = "/Account/SignIn";
             options.AccessDeniedPath = "/Home/Error";
             options.Cookie.HttpOnly = true;
-            options.ExpireTimeSpan = TimeSpan.FromDays(7);
+            options.ExpireTimeSpan = TimeSpan.FromDays(6);
         });
 
         if (configuration.GetValue<bool>("Security:Relaxed"))

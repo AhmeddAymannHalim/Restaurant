@@ -31,7 +31,7 @@
             <th>@L["Image"]</th>
             <th>@L["Name"]</th>
             <th>@L["Job"]</th>
-            <th>@L["Mobile"]</th>
+            <th>@L["Phone"]</th>
             <th>@L["Address"]</th>
             <th>@L["Age"]</th>
             <th>@L["SalaryType"]</th>
@@ -57,8 +57,8 @@
                     </td>
                     <td>@item.FirstName @item.LastName</td>
                     <td>@(isArabic ? item.JobArName : item.JobEnName)</td>
-                    <td>@item.MobileNumber</td>
-                    <td>@item.Country - @item.City - @item.Street</td>
+                    <td>@item.PhoneNumber</td>
+                    <td>@(isArabic ? item.CityArName : item.CityEnName) - @item.Street</td>
                     <td>@item.Age</td>
                     <td>@(isArabic ? item.SalaryTypeArName : item.SalaryTypeEnName)</td>
                     <td>@item.Salary</td>

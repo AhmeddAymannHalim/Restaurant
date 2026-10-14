@@ -9,6 +9,7 @@ public interface IInvoiceService
     Task<InvoiceViewModel> GetInvoiceByIdAsync(int id);
     Task<string> GetNextCodeAsync();
     Task<decimal> GetSupplierBalanceAsync(int supplierId);
+    Task<decimal> GetCustomerBalanceAsync(int customerId);
     Task<ResultMessage> UpsertInvoiceAsync(InvoiceViewModel model);
     Task<ResultMessage> DeleteInvoiceAsync(int id);
 }

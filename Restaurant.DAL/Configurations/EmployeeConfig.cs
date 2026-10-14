@@ -11,10 +11,7 @@ public class EmployeeConfig : IEntityTypeConfiguration<Employee>
         builder.Property(a => a.Code).IsRequired().HasMaxLength(20);
         builder.Property(a => a.FirstName).IsRequired().HasMaxLength(50);
         builder.Property(a => a.LastName).IsRequired().HasMaxLength(50);
-        builder.Property(a => a.PhoneNumber).HasMaxLength(11);
-        builder.Property(a => a.MobileNumber).IsRequired().HasMaxLength(11);
-        builder.Property(a => a.Country).IsRequired().HasMaxLength(30);
-        builder.Property(a => a.City).IsRequired().HasMaxLength(20);
+        builder.Property(a => a.PhoneNumber).IsRequired().HasMaxLength(11);
         builder.Property(a => a.Street).IsRequired().HasMaxLength(100);
         builder.Property(a => a.NationalID).IsRequired().HasMaxLength(14);
         builder.Property(a => a.UserType).HasMaxLength(100);
@@ -24,6 +21,12 @@ public class EmployeeConfig : IEntityTypeConfiguration<Employee>
             .HasOne(a => a.SalaryType)
             .WithMany()
             .HasForeignKey(a => a.SalaryTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(a => a.City)
+            .WithMany()
+            .HasForeignKey(a => a.CityId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Ignore(a => a.FullName);

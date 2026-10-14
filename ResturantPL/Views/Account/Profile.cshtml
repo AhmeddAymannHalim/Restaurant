@@ -1,0 +1,70 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = L["MyProfile"].Value;
+    Layout = "~/Views/Shared/_AuthenticationLayout.cshtml";
+}
+
+<div class="auth-card">
+    <h1 class="auth-title">@L["MyProfile"]</h1>
+    <p class="auth-sub">@L["MyProfileSub"]</p>
+
+    @if (TempData["ProfileSaved"] is true)
+    {
+        <div class="auth-ok" role="status">@L["UpdatedSuccessfully"]</div>
+    }
+    <div class="auth-alert" asp-validation-summary="ModelOnly"></div>
+
+    <form asp-action="Profile" method="post" novalidate>
+        <div class="field">
+            <input asp-for="FirstName" placeholder="@L["FirstName"]" autocomplete="given-name" />
+            <span asp-validation-for="FirstName" class="field-error"></span>
+        </div>
+        <div class="field">
+            <input asp-for="LastName" placeholder="@L["LastName"]" autocomplete="family-name" />
+            <span asp-validation-for="LastName" class="field-error"></span>
+        </div>
+        <div class="field">
+            <input asp-for="PhoneNumber" placeholder="@L["PhoneNumber"]" autocomplete="tel" dir="ltr" />
+            <span asp-validation-for="PhoneNumber" class="field-error"></span>
+        </div>
+        <div data-location-cascade
+             data-countries-url="@Url.Action("Countries")"
+             data-governorates-url="@Url.Action("Governorates")"
+             data-cities-url="@Url.Action("Cities")"
+             data-arabic="@(LanguageHelper.IsArabic() ? "1" : "0")"
+             data-placeholder="@L["Select"]"
+             data-selected-country="@Model.CountryId"
+             data-selected-governorate="@Model.GovernorateId"
+             data-selected-city="@Model.CityId">
+            <div class="field">
+                <select data-cascade-level="country" autocomplete="country-name">
+                    <option value="">@L["Country"]</option>
+                </select>
+            </div>
+            <div class="field">
+                <select data-cascade-level="governorate" disabled autocomplete="address-level1">
+                    <option value="">@L["Governorate"]</option>
+                </select>
+            </div>
+            <div class="field">
+                <select asp-for="CityId" data-cascade-level="city" disabled autocomplete="address-level2">
+                    <option value="">@L["City"]</option>
+                </select>
+                <span asp-validation-for="CityId" class="field-error"></span>
+            </div>
+        </div>
+        <div class="field">
+            <input asp-for="Street" placeholder="@L["Street"]" autocomplete="street-address" />
+            <span asp-validation-for="Street" class="field-error"></span>
+        </div>
+        <button type="submit" class="btn-auth">@L["Auth_Save"]</button>
+    </form>
+
+    <hr class="divider" />
+    <div class="auth-links"><p><a asp-controller="Home" asp-action="Index">@L["Back"]</a></p></div>
+</div>
+
+@section ValidationScripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/location-cascade.js" asp-append-version="true"></script>
+}

@@ -49,11 +49,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<Customer> Customers { get; set; }
+    public DbSet<Country> Countries { get; set; }
+    public DbSet<Governorate> Governorates { get; set; }
+    public DbSet<City> Cities { get; set; }
     public DbSet<Invoice> Invoices { get; set; }
     public DbSet<InvoiceItem> InvoiceItems { get; set; }
     public DbSet<PaymentInvoiceSupplier> PaymentInvoiceSupplier { get; set; }
     public DbSet<PaymentInvoiceCustomer> PaymentInvoiceCustomer { get; set; }
     public DbSet<PaymentRefund> PaymentRefunds { get; set; }
+
+    public DbSet<Account> Accounts { get; set; }
+    public DbSet<JournalEntry> JournalEntries { get; set; }
+    public DbSet<JournalEntryLine> JournalEntryLines { get; set; }
 
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderMenuItem> OrderMenuItems { get; set; }

@@ -113,6 +113,7 @@ public static class DependencyInjection
             Restaurant.DAL.Repositories.Definitions.RoleRepository>();
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IInvoiceService, InvoiceService>();
+        services.AddScoped<IStockMovementService, StockMovementService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IOnlineOrderService, OnlineOrderService>();
         services.AddScoped<IReportService, ReportService>();

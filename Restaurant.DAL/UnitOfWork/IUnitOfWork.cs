@@ -21,6 +21,7 @@ namespace Restaurant.DAL.UnitOfWork
         public IStoreRepository Stores { get; set; }
         public ISupplierRepository Suppliers { get; set; }
         public IInvoiceRepository Invoices { get; set; }
+        public IStockMovementRepository StockMovements { get; set; }
         public IOrderRepository Orders { get; set; }
         public IOnlineOrderRepository OnlineOrders { get; set; }
         public IReportRepository Reports { get; set; }
@@ -42,6 +43,7 @@ namespace Restaurant.DAL.UnitOfWork
 
         public IDashboardRepository Dashboard { get; set; }
         public ILookupRepository Lookups { get; set; }
+        public IJournalEntryRepository Journals { get; set; }
         public IHomeRepository Home { get; set; }
         public IChefRepository Chefs { get; set; }
         public IGalleryRepository Galleries { get; set; }

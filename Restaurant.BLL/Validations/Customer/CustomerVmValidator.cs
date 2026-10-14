@@ -35,18 +35,14 @@ public class CustomerVmValidator : AbstractValidator<CustomerViewModel>
             .MaximumLength(250)
             .WithMessage(MaxLength(250));
 
-        RuleFor(x => x.MobileNumber)
-            .MaximumLength(11)
-            .WithMessage(MaxLength(11));
-
-        RuleFor(x => x.MobileNumber)
-            .Must((model, number) => !validator.IsPhoneNumberExist(model.Id, number))
-            .When(x => !string.IsNullOrWhiteSpace(x.MobileNumber))
-            .WithMessage(localizer["PhoneAlreadyExists"].Value);
-
         RuleFor(x => x.PhoneNumber)
             .MaximumLength(11)
             .WithMessage(MaxLength(11));
+
+        RuleFor(x => x.PhoneNumber)
+            .Must((model, number) => !validator.IsPhoneNumberExist(model.Id, number))
+            .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber))
+            .WithMessage(localizer["PhoneAlreadyExists"].Value);
 
         RuleFor(x => x.PhoneNumber)
             .Must((model, number) => !validator.IsPhoneNumberExist(model.Id, number))

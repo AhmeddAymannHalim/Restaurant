@@ -1,6 +1,6 @@
 @model OrderViewModel
 @{
-    ViewBag.Title = L["NewOrder"].Value;
+    ViewBag.Title = L["Cashier"].Value;
     var isArabic = LanguageHelper.IsArabic();
     var isOnline = Model.OnlineOrderId.HasValue;
     var invariant = CultureInfo.InvariantCulture;
@@ -120,10 +120,6 @@
                         <label class="control-label" for="PhoneNumber">@L["PhoneNumber"]</label>
                         <input id="PhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber" class="form-control" maxlength="11" />
                     </div>
-                    <div class="form-group" data-for="Delivery Delivery_Online">
-                        <label class="control-label" for="MobileNumber">@L["MobileNumber"]</label>
-                        <input id="MobileNumber" name="MobileNumber" value="@Model.MobileNumber" class="form-control" maxlength="11" />
-                    </div>
                 </div>
 
                 <div class="ad-table-wrap">
@@ -153,9 +149,9 @@
                     <div><span>@L["Service"]</span><b id="service">0.00</b></div>
                     <div id="deliveryRow"><span>@L["DeliveryFee"]</span><b id="deliveryFee">0.00</b></div>
                     <div class="pos-discount">
-                        <span>@L["Discount"]</span>
-                        <input id="discount" name="Discount" type="number" step="0.01" min="0" value="@Model.Discount.ToString(invariant)" class="form-control" aria-label="@L["DiscountValue"]" />
+                        <span>@L["DiscountPercent"]</span>
                         <input id="discountPercent" type="number" step="0.01" min="0" max="100" value="0" class="form-control" aria-label="@L["DiscountPercent"]" placeholder="%" />
+                        <input id="discount" name="Discount" type="hidden" value="@Model.Discount.ToString(invariant)" />
                     </div>
                     <div id="discountRow" class="pos-saved" hidden><span>@L["Discount"]</span><b id="discountShown">0.00</b></div>
                     <div class="pos-total"><span>@L["TotalPrice"]</span><b id="total">0.00</b></div>
@@ -249,6 +245,13 @@
                     return;
                 }
                 addItem(b.data('id'), b.data('name'), b.data('price'));
+                b.removeClass('is-added');
+                void b[0].offsetWidth;
+                b.addClass('is-added');
+
+                var fly = $('<span class="pos-item-fly">+1</span>');
+                b.append(fly);
+                setTimeout(function () { fly.remove(); }, 700);
             });
 
             $(document).on('click', '#cartTable .plus', function () { var r = $(this).closest('tr'); r.data('qty', number(r.data('qty')) + 1); render(); });
@@ -264,16 +267,23 @@
                 var id = String($(this).data('section'));
                 $('.pos-section').removeClass('is-active');
                 $(this).addClass('is-active');
-                $('.pos-item').each(function () { $(this).toggle(id === '' || String($(this).data('section')) === id); });
+
+                $('.pos-item').each(function () {
+                    var item = $(this);
+                    var show = id === '' || String(item.data('section')) === id;
+                    if (show) {
+                        item.css('display', '').removeClass('pos-item-hidden');
+                    } else if (!item.hasClass('pos-item-hidden')) {
+                        item.addClass('pos-item-hidden');
+                        setTimeout(function () {
+                            if (item.hasClass('pos-item-hidden')) { item.css('display', 'none'); }
+                        }, 180);
+                    }
+                });
             });
 
             $('#discountPercent').on('input', function () {
                 $('#discount').val(money(number($('#discount').data('gross')) * number($(this).val()) / 100));
-                totals();
-            });
-            $('#discount').on('input', function () {
-                var gross = number($(this).data('gross'));
-                $('#discountPercent').val(gross > 0 ? money(number($(this).val()) / gross * 100) : 0);
                 totals();
             });
 
@@ -284,7 +294,7 @@
                     $(this).toggle(on);
                     $(this).find('input,select').prop('disabled', !on);
                 });
-                $('#payLater').toggle(type !== 'TakeAway');
+                $('#payLater').toggle(type === 'Hall');
                 totals();
             }
             $('#orderType').on('change', showFields);
@@ -298,7 +308,6 @@
                     $('#CustomerName').val(@(isArabic ? "c.arName" : "c.enName"));
                     $('#Address').val(c.address);
                     $('#PhoneNumber').val(c.phoneNumber);
-                    $('#MobileNumber').val(c.mobileNumber);
                 });
             });
 
@@ -311,17 +320,24 @@
                 $('#onAccount').val('true');
             });
 
-            $('#orderForm').on('submit', function (e) {
-                var form = $(this);
+            // Shared by the native submit and the pay-drawer's AJAX submit (neither can rely on the
+            // other to run first), so the Items[] hidden inputs always exist before the form is sent.
+            window.buildOrderLineInputs = function () {
+                var form = $('#orderForm');
                 form.find('input.line-input').remove();
                 var rows = $('#cartTable tbody tr');
-                if (rows.length === 0) { e.preventDefault(); toastr.error(msgPick); return; }
+                if (rows.length === 0) { return false; }
                 rows.each(function (i) {
                     var row = $(this);
                     $.each({ MenuItemId: row.data('id'), Quantity: row.data('qty') }, function (name, value) {
                         $('<input type="hidden" class="line-input">').attr('name', 'Items[' + i + '].' + name).val(value).appendTo(form);
                     });
                 });
+                return true;
+            };
+
+            $('#orderForm').on('submit', function (e) {
+                if (!window.buildOrderLineInputs()) { e.preventDefault(); toastr.error(msgPick); }
             });
 
             render();

@@ -38,6 +38,21 @@
 
                             <div class="ws-order-total">@item.TotalPrice.ToString("N2") <small>@L["Currency"]</small></div>
 
+                            @if (item.Status == OnlineOrderStatus.Rejected)
+                            {
+                                <ol class="ws-track is-mini is-rejected">
+                                    <li class="is-done"><span></span>@L["StatusWaiting"]</li>
+                                    <li class="is-done is-rejected-step"><span></span>@L["StatusRejected"]</li>
+                                </ol>
+                            }
+                            else
+                            {
+                                <ol class="ws-track is-mini @(item.IsPending ? "is-waiting" : "is-accepted")">
+                                    <li class="is-done"><span></span>@L["StatusWaiting"]</li>
+                                    <li class="@(item.IsPending ? "" : "is-done")"><span></span>@L["StatusAccepted"]</li>
+                                </ol>
+                            }
+
                             <div class="ws-order-actions">
                                 <a asp-action="Details" asp-route-id="@item.Id" class="ws-btn ws-btn-ghost">@L["Details"]</a>
                                 @if (item.IsPending)

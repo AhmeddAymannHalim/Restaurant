@@ -68,7 +68,6 @@ public class OrderService : IOrderService
         model.CustomerName = online.CustomerName;
         model.Address = online.Address;
         model.PhoneNumber = online.PhoneNumber;
-        model.MobileNumber = online.MobileNumber;
         model.DeliveryZoneId = online.DeliveryZoneId;
         model.DeliveryFee = online.DeliveryFee;
         model.DeliveryZoneArName = online.DeliveryZone?.ArName;

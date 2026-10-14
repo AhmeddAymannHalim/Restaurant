@@ -7,9 +7,7 @@ namespace Restaurant.DAL.Models
         public string LastName { get; set; }
         public string FullName { get { return FirstName + " " + LastName; } }
         public string PhoneNumber { get; set; }
-        public string MobileNumber { get; set; }
-        public string Country { get; set; }
-        public string City { get; set; }
+        public int CityId { get; set; }
         public string Street { get; set; }
         public string Image { get; set; }
         public byte Age { get; set; }
@@ -23,6 +21,7 @@ namespace Restaurant.DAL.Models
         public int BrancheId { get; set; }
         public int JobId { get; set; }
 
+        public virtual City City { get; set; }
         public virtual Branche Branche { get; set; }
         public virtual SalaryType SalaryType { get; set; }
         public virtual Job Job { get; set; }

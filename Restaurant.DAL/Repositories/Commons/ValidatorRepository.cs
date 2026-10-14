@@ -81,8 +81,7 @@ public class ValidatorRepository<T> : IValidatorRepository<T> where T : class
 
         return _context.Set<T>()
             .AsNoTracking()
-            .Any(e => (EF.Property<string>(e, "PhoneNumber") == phoneNumber
-                || EF.Property<string>(e, "MobileNumber") == phoneNumber)
+            .Any(e => EF.Property<string>(e, "PhoneNumber") == phoneNumber
                    && EF.Property<int>(e, keyName) != id);
     }
 

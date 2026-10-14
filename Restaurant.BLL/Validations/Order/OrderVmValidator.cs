@@ -51,6 +51,5 @@ public class OrderVmValidator : AbstractValidator<OrderViewModel>
             .WithMessage(string.Format(localizer["Val.MaxLength"].Value, 250));
 
         RuleFor(x => x.PhoneNumber).MaximumLength(11).WithMessage(string.Format(localizer["Val.MaxLength"].Value, 11));
-        RuleFor(x => x.MobileNumber).MaximumLength(11).WithMessage(string.Format(localizer["Val.MaxLength"].Value, 11));
     }
 }

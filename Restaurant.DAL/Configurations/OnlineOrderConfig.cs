@@ -11,7 +11,6 @@ public class OnlineOrderConfig : IEntityTypeConfiguration<OnlineOrder>
         builder.Property(a => a.CustomerName).HasMaxLength(100);
         builder.Property(a => a.Address).HasMaxLength(250);
         builder.Property(a => a.PhoneNumber).HasMaxLength(11);
-        builder.Property(a => a.MobileNumber).HasMaxLength(11);
         builder.Property(a => a.Status).HasDefaultValue(Shared.Enums.OnlineOrderStatus.Pending);
         builder.Property(a => a.RejectionReason).HasMaxLength(250);
 

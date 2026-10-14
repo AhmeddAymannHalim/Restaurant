@@ -44,13 +44,5 @@ public class SupplierVmValidator : AbstractValidator<SupplierViewModel>
             .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber))
             .WithMessage(localizer["PhoneAlreadyExists"].Value);
 
-        RuleFor(x => x.MobileNumber)
-            .MaximumLength(11)
-            .WithMessage(MaxLength(11));
-
-        RuleFor(x => x.MobileNumber)
-            .Must((model, number) => !validator.IsPhoneNumberExist(model.Id, number))
-            .When(x => !string.IsNullOrWhiteSpace(x.MobileNumber))
-            .WithMessage(localizer["PhoneAlreadyExists"].Value);
     }
 }

@@ -12,12 +12,19 @@ public class PaymentRefundConfig : IEntityTypeConfiguration<PaymentRefund>
         builder.Property(a => a.Reason).IsRequired().HasMaxLength(250);
 
         builder.HasIndex(a => a.OriginalPaymentId);
+        builder.HasIndex(a => a.SupplierPaymentId);
         builder.HasIndex(a => a.RequestedAt);
 
         builder
             .HasOne(a => a.OriginalPayment)
             .WithMany()
             .HasForeignKey(a => a.OriginalPaymentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(a => a.SupplierPayment)
+            .WithMany()
+            .HasForeignKey(a => a.SupplierPaymentId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder
