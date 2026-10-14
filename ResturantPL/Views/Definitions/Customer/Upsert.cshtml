@@ -10,7 +10,7 @@
         <h1>@ViewBag.Title</h1>
     </div>
     <div class="ad-card-body">
-        <form asp-action="Upsert" method="post" class="ad-form">
+        <form asp-action="Upsert" method="post" enctype="multipart/form-data" class="ad-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="AccountId" />
@@ -166,12 +166,12 @@
                 <div class="ad-section-grid">
                 <div class="form-group">
                     <label asp-for="CustomerType" class="control-label">@L["Cus.CustomerType"]</label>
-                    <select asp-for="CustomerType" asp-items="Html.GetEnumSelectList<CustomerType>()" class="form-control"></select>
+                    <select asp-for="CustomerType" asp-items="Html.GetLocalizedEnumSelectList<CustomerType>(L)" class="form-control"></select>
                     <span asp-validation-for="CustomerType" class="text-danger"></span>
                 </div>
                 <div class="form-group">
                     <label asp-for="BillPayType" class="control-label">@L["Cus.BillPayType"]</label>
-                    <select asp-for="BillPayType" asp-items="Html.GetEnumSelectList<PayType>()" class="form-control"></select>
+                    <select asp-for="BillPayType" asp-items="Html.GetLocalizedEnumSelectList<PayType>(L)" class="form-control"></select>
                     <span asp-validation-for="BillPayType" class="text-danger"></span>
                 </div>
                 <div class="form-group">
@@ -244,9 +244,14 @@
                 <summary>@L["Cus.Section.Other"]</summary>
                 <div class="ad-section-grid">
                 <div class="form-group">
-                    <label asp-for="ImageUrl" class="control-label">@L["Cus.ImageUrl"]</label>
-                    <input asp-for="ImageUrl" class="form-control" />
-                    <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                    <label asp-for="ImageFile" class="control-label">@L["Cus.ImageUrl"]</label>
+                    <input type="hidden" asp-for="ImageUrl" />
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <div class="mb-2"><img src="@Model.ImageUrl" alt="@Model.ArName" class="rounded" style="width:80px; height:80px; object-fit:cover;" /></div>
+                    }
+                    <input asp-for="ImageFile" type="file" accept="image/*" class="form-control" />
+                    <span asp-validation-for="ImageFile" class="text-danger"></span>
                 </div>
                 <div class="form-group">
                     <label asp-for="Remark" class="control-label">@L["Cus.Remark"]</label>

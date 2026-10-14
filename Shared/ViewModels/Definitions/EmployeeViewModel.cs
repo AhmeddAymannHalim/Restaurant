@@ -14,6 +14,11 @@ public class EmployeeViewModel
 
     /// <summary>Extra mobiles added with the "+ Add" button; each one is saved as a row of EmployeePhones.</summary>
     public List<EmployeePhoneViewModel> Phones { get; set; } = new();
+    public List<EmployeeDependentViewModel> Dependents { get; set; } = new();
+    public List<EmployeeAllowanceViewModel> Allowances { get; set; } = new();
+    public List<EmployeeFixedDeductionViewModel> FixedDeductions { get; set; } = new();
+    public List<EmployeeLeaveViewModel> Leaves { get; set; } = new();
+    public List<EmployeeDocumentViewModel> Documents { get; set; } = new();
     public int TownId { get; set; }
     public string Address { get; set; }
 
@@ -128,6 +133,7 @@ public class EmployeeViewModel
     public IEnumerable<LookupItem> Jobs { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> SalaryTypes { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Nationalities { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> LeaveTypes { get; set; } = new List<LookupItem>();
     public int? DepartmentId { get; set; }
     public IEnumerable<LookupItem> Departments { get; set; } = new List<LookupItem>();
     public int? ContractTypeId { get; set; }

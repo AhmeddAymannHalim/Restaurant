@@ -1800,3 +1800,15 @@ body.dash .ad-days { display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
 body.dash .ad-days label { display: inline-flex; align-items: center; gap: .35rem; font-weight: 400; }
 body.dash .ad-phones { padding: 0; border: 0; }
 body.dash .ad-phones legend { float: none; font-size: .85rem; font-weight: 600; color: var(--muted); }
+
+/* Repeating rows (employee form) */
+body.dash .ad-rows { display: grid; gap: .75rem; margin-bottom: .75rem; }
+body.dash .ad-row-item {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) auto;
+    gap: .5rem .75rem;
+    align-items: end;
+    padding: .75rem;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+}

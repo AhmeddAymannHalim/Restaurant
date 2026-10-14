@@ -43,7 +43,7 @@ public class EmployeeService : IEmployeeService
     {
         var entity = _mapper.Map<Employee>(model);
 
-        return await _unitOfWork.Employees.UpsertEmployeeAsync(entity, model.ImageFile);
+        return await _unitOfWork.Employees.UpsertEmployeeAsync(entity, model.ImageFile, model.Documents.Select(a => a.File).ToList());
     }
 
     public async Task<ResultMessage> DeleteEmployeeAsync(int id)

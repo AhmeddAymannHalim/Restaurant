@@ -68,6 +68,11 @@ public class EmployeeRepository : IEmployeeRepository
             .Include(a => a.Town)
             .ThenInclude(a => a.Governorate)
             .Include(a => a.Phones)
+            .Include(a => a.Dependents)
+            .Include(a => a.Allowances)
+            .Include(a => a.FixedDeductions)
+            .Include(a => a.Leaves)
+            .Include(a => a.Documents)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
@@ -85,7 +90,7 @@ public class EmployeeRepository : IEmployeeRepository
     }
 
     /// <summary>A new employee always gets its Account row (mandatory object creation); the rest of the ERP data stays empty.</summary>
-    public async Task<ResultMessage> UpsertEmployeeAsync(Employee entity, IFormFile imageFile)
+    public async Task<ResultMessage> UpsertEmployeeAsync(Employee entity, IFormFile imageFile, IList<IFormFile> documentFiles)
     {
         try
         {
@@ -104,6 +109,7 @@ public class EmployeeRepository : IEmployeeRepository
                 entity.Code = await NewEmployeeCodeAsync();
                 entity.CreatedAt = DateTime.Now;
                 entity.Phones = BuildPhones(entity);
+                EmployeeChildren.PrepareNew(entity, documentFiles);
 
                 if (imageFile != null)
                 {
@@ -126,6 +132,11 @@ public class EmployeeRepository : IEmployeeRepository
             var existing = await _context.Employees
                 .Include(a => a.Account)
                 .Include(a => a.Phones)
+                .Include(a => a.Dependents)
+                .Include(a => a.Allowances)
+                .Include(a => a.FixedDeductions)
+                .Include(a => a.Leaves)
+                .Include(a => a.Documents)
                 .FirstOrDefaultAsync(a => a.Id == entity.Id);
             if (existing is null)
             {
@@ -171,6 +182,7 @@ public class EmployeeRepository : IEmployeeRepository
             entity.Phones = null;
             _context.Entry(existing).CurrentValues.SetValues(entity);
             SyncPhones(existing, phones);
+            EmployeeChildren.Sync(_context, existing, entity, documentFiles);
             if (existing.Account is null && entity.Account is not null)
             {
                 existing.Account = entity.Account;
@@ -289,6 +301,11 @@ public class EmployeeRepository : IEmployeeRepository
             var employee = await _context.Employees
                 .Include(a => a.Account)
                 .Include(a => a.Phones)
+                .Include(a => a.Dependents)
+                .Include(a => a.Allowances)
+                .Include(a => a.FixedDeductions)
+                .Include(a => a.Leaves)
+                .Include(a => a.Documents)
                 .FirstOrDefaultAsync(a => a.Id == id);
             if (employee is null)
             {
@@ -296,6 +313,7 @@ public class EmployeeRepository : IEmployeeRepository
             }
 
             _context.EmployeePhones.RemoveRange(employee.Phones);
+            EmployeeChildren.Remove(_context, employee);
             _context.Employees.Remove(employee);
             if (employee.Account is not null)
             {

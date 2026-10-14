@@ -147,6 +147,51 @@ public class EmployeeVmValidator : AbstractValidator<EmployeeViewModel>
             .When(x => x.ContractEndDate.HasValue && x.ContractDate.HasValue)
             .WithMessage(localizer["Val.ExpiryBeforeIssue"].Value);
 
+        RuleForEach(x => x.Dependents)
+            .ChildRules(row =>
+            {
+                row.RuleFor(a => a.ArName).MaximumLength(100).WithMessage(MaxLength(100));
+                row.RuleFor(a => a.EnName).MaximumLength(100).WithMessage(MaxLength(100));
+                row.RuleFor(a => a.Relation).MaximumLength(50).WithMessage(MaxLength(50));
+            });
+
+        RuleForEach(x => x.Allowances)
+            .ChildRules(row =>
+            {
+                row.RuleFor(a => a.ArName).MaximumLength(100).WithMessage(MaxLength(100));
+                row.RuleFor(a => a.EnName).MaximumLength(100).WithMessage(MaxLength(100));
+                row.RuleFor(a => a.Amount).GreaterThanOrEqualTo(0).When(a => a.Amount.HasValue).WithMessage(required);
+            });
+
+        RuleForEach(x => x.FixedDeductions)
+            .ChildRules(row =>
+            {
+                row.RuleFor(a => a.ArName).MaximumLength(100).WithMessage(MaxLength(100));
+                row.RuleFor(a => a.EnName).MaximumLength(100).WithMessage(MaxLength(100));
+                row.RuleFor(a => a.Amount).GreaterThanOrEqualTo(0).When(a => a.Amount.HasValue).WithMessage(required);
+            });
+
+        RuleForEach(x => x.Leaves)
+            .ChildRules(row =>
+            {
+                row.RuleFor(a => a.Days).GreaterThanOrEqualTo(0).When(a => a.Days.HasValue).WithMessage(required);
+                row.RuleFor(a => a.Notes).MaximumLength(500).WithMessage(MaxLength(500));
+                row.RuleFor(a => a.ToDate)
+                    .GreaterThanOrEqualTo(a => a.FromDate)
+                    .When(a => a.FromDate.HasValue && a.ToDate.HasValue)
+                    .WithMessage(localizer["Val.EndBeforeStart"].Value);
+            });
+
+        RuleForEach(x => x.Documents)
+            .ChildRules(row =>
+            {
+                row.RuleFor(a => a.Name).MaximumLength(150).WithMessage(MaxLength(150));
+                row.RuleFor(a => a.File)
+                    .Must(file => file.Length <= 10 * 1024 * 1024)
+                    .When(a => a.File is not null)
+                    .WithMessage(localizer["Val.FileTooLarge"].Value);
+            });
+
         RuleFor(x => x.BranchId)
             .GreaterThan(0)
             .WithMessage(required);

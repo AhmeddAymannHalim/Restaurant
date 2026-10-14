@@ -38,7 +38,7 @@ public class CustomerService : ICustomerService
     {
         var entity = _mapper.Map<Customer>(model);
 
-        return await _unitOfWork.Customers.UpsertCustomerAsync(entity);
+        return await _unitOfWork.Customers.UpsertCustomerAsync(entity, model.ImageFile);
     }
 
     public async Task<ResultMessage> DeleteCustomerAsync(int id)

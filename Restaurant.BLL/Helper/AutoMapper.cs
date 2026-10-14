@@ -303,6 +303,7 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.PaymentInvoices, opt => opt.Ignore());
 
         CreateMap<Customer, CustomerViewModel>()
+            .ForMember(dest => dest.ImageFile, opt => opt.Ignore())
             .ForMember(dest => dest.Nationalities, opt => opt.Ignore())
             .ForMember(dest => dest.Branches, opt => opt.Ignore())
             .ForMember(dest => dest.Employees, opt => opt.Ignore())
@@ -353,6 +354,39 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Expenses, opt => opt.Ignore());
 
         CreateMap<EmployeePhone, EmployeePhoneViewModel>();
+
+        CreateMap<EmployeeDependent, EmployeeDependentViewModel>();
+        CreateMap<EmployeeDependentViewModel, EmployeeDependent>()
+            .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
+            .ForMember(dest => dest.Employee, opt => opt.Ignore());
+
+        CreateMap<EmployeeAllowance, EmployeeAllowanceViewModel>();
+        CreateMap<EmployeeAllowanceViewModel, EmployeeAllowance>()
+            .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount ?? 0))
+            .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
+            .ForMember(dest => dest.Employee, opt => opt.Ignore());
+
+        CreateMap<EmployeeFixedDeduction, EmployeeFixedDeductionViewModel>();
+        CreateMap<EmployeeFixedDeductionViewModel, EmployeeFixedDeduction>()
+            .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount ?? 0))
+            .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
+            .ForMember(dest => dest.Employee, opt => opt.Ignore());
+
+        CreateMap<EmployeeLeave, EmployeeLeaveViewModel>();
+        CreateMap<EmployeeLeaveViewModel, EmployeeLeave>()
+            .ForMember(dest => dest.FromDate, opt => opt.MapFrom(src => src.FromDate ?? default))
+            .ForMember(dest => dest.ToDate, opt => opt.MapFrom(src => src.ToDate ?? default))
+            .ForMember(dest => dest.Days, opt => opt.MapFrom(src => src.Days ?? 0))
+            .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
+            .ForMember(dest => dest.Employee, opt => opt.Ignore())
+            .ForMember(dest => dest.LeaveType, opt => opt.Ignore());
+
+        CreateMap<EmployeeDocument, EmployeeDocumentViewModel>()
+            .ForMember(dest => dest.File, opt => opt.Ignore());
+        CreateMap<EmployeeDocumentViewModel, EmployeeDocument>()
+            .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
+            .ForMember(dest => dest.Employee, opt => opt.Ignore());
+
 
         CreateMap<Employee, EmployeeViewModel>()
             .ForMember(dest => dest.Phones, opt => opt.MapFrom(src => src.Phones.Where(a => a.PhoneNumber != src.PhoneNumber).OrderBy(a => a.Id)))

@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+using Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Definitions;
@@ -10,6 +12,8 @@ namespace Restaurant.DAL.Repositories.Definitions;
 
 public class CustomerRepository : ICustomerRepository
 {
+    private const string ImagesFolder = "Customer Images";
+
     private readonly ApplicationDbContext _context;
 
     public CustomerRepository(ApplicationDbContext context)
@@ -64,12 +68,13 @@ public class CustomerRepository : ICustomerRepository
     /// The incoming entity carries the ArName/EnName of the form on a transient <see cref="Customer.Account"/>;
     /// a new customer always gets its real Account row created here.
     /// </summary>
-    public async Task<ResultMessage> UpsertCustomerAsync(Customer entity)
+    public async Task<ResultMessage> UpsertCustomerAsync(Customer entity, IFormFile imageFile)
     {
         try
         {
             var form = entity.Account;
             entity.Account = null;
+            string replacedImage = null;
 
             if (entity.Id == 0)
             {
@@ -81,6 +86,7 @@ public class CustomerRepository : ICustomerRepository
                     AccountCodes.AccountsReceivable,
                     form.DebitBalance);
                 entity.CreatedAt = DateTime.Now;
+                entity.ImageUrl = imageFile is null ? null : DocumentSetting.UploadFile(imageFile, ImagesFolder);
 
                 await _context.Customers.AddAsync(entity);
             }
@@ -98,7 +104,9 @@ public class CustomerRepository : ICustomerRepository
                     };
                 }
 
+                replacedImage = existing.ImageUrl;
                 entity.AccountId = existing.AccountId;
+                entity.ImageUrl = imageFile is null ? existing.ImageUrl : DocumentSetting.UploadFile(imageFile, ImagesFolder);
                 entity.State = existing.State;
                 entity.CreatedAt = existing.CreatedAt;
                 entity.CreatedById = existing.CreatedById;
@@ -111,6 +119,11 @@ public class CustomerRepository : ICustomerRepository
             }
 
             await _context.SaveChangesAsync();
+
+            if (imageFile is not null && !string.IsNullOrEmpty(replacedImage))
+            {
+                DocumentSetting.DeleteFile(replacedImage);
+            }
 
             return new ResultMessage { Success = true };
         }
@@ -143,6 +156,11 @@ public class CustomerRepository : ICustomerRepository
             }
 
             await _context.SaveChangesAsync();
+
+            if (!string.IsNullOrEmpty(entity.ImageUrl))
+            {
+                DocumentSetting.DeleteFile(entity.ImageUrl);
+            }
 
             return new ResultMessage { Success = true };
         }

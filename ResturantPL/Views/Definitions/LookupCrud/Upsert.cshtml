@@ -73,7 +73,7 @@
                                 <option value="">@L["Select"]</option>
                                 @foreach (var value in Enum.GetValues(field.EnumType))
                                 {
-                                    <option value="@((int)value)" selected="@(Extra(field.Name) == ((int)value).ToString())">@value</option>
+                                    <option value="@((int)value)" selected="@(Extra(field.Name) == ((int)value).ToString())">@Html.EnumText(L, (Enum)value)</option>
                                 }
                             </select>
                             break;

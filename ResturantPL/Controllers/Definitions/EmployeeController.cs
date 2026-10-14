@@ -148,6 +148,7 @@ namespace ResturantPL.Controllers.Definitions
             model.Jobs = await _lookup.JobLookupAsync();
             model.SalaryTypes = await _lookup.SalaryTypeLookupAsync();
             model.Nationalities = await _lookup.CountryLookupAsync();
+            model.LeaveTypes = await _lookup.NamedLookupAsync<LeaveType>();
         }
     }
 }

@@ -49,6 +49,7 @@ public class CustomerViewModel
     public decimal LoyaltyPointsNumber { get; set; }
     public decimal LoyaltyPointsExpiryDays { get; set; }
     public string ImageUrl { get; set; }
+    public IFormFile ImageFile { get; set; }
     public string Remark { get; set; }
 
     public IEnumerable<LookupItem> Nationalities { get; set; } = new List<LookupItem>();

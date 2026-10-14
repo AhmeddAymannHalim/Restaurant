@@ -67,7 +67,8 @@ public static class AdminMenu
             new("InsuranceCategory", "Index", "fa-shield-heart", "Lookup.InsuranceCategory"),
             new("InsuranceCompany", "Index", "fa-building-shield", "Lookup.InsuranceCompany"),
             new("Company", "Index", "fa-city", "Lookup.Company"),
-            new("Currency", "Index", "fa-money-bill", "Lookup.Currency")
+            new("Currency", "Index", "fa-money-bill", "Lookup.Currency"),
+            new("LeaveType", "Index", "fa-umbrella-beach", "Lookup.LeaveType")
         }),
         new("SectionDefinitions", "GroupFinance", "fa-coins", new Item[]
         {
