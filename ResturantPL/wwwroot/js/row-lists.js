@@ -1,7 +1,7 @@
 /* Repeating rows of a form ("+ Add" button), used by the employee form for extra mobiles, dependents,
    allowances, fixed deductions, leaves and documents. A list is any [data-row-list] that holds
    [data-rows], a [data-row-template] with __i__ in the field names, a [data-row-add] button and
-   [data-row-remove] buttons inside each [data-row]. It also opens any collapsed section with a validation error. */
+   [data-row-remove] buttons inside each [data-row]. It also shows the tab holding the first validation error. */
 (function () {
     "use strict";
 
@@ -46,9 +46,11 @@
 
     var invalid = document.querySelectorAll(".ad-section .input-validation-error, .ad-section .field-validation-error");
     for (var i = 0; i < invalid.length; i++) {
-        var section = invalid[i].closest("details");
-        if (section) {
-            section.open = true;
+        var pane = invalid[i].closest(".tab-pane");
+        var tab = pane && document.getElementById("tab-" + pane.id.replace("pane-", ""));
+        if (tab && window.bootstrap) {
+            window.bootstrap.Tab.getOrCreateInstance(tab).show();
+            break;
         }
     }
 })();

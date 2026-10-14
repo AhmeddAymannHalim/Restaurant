@@ -56,11 +56,11 @@
                  data-selected-city="@Model.TownId">
                 <div class="form-group">
                     <label class="control-label">@L["Country"]</label>
-                    <select class="form-select" data-cascade-level="country"></select>
+                    <select name="CountryId" class="form-select" data-cascade-level="country"></select>
                 </div>
                 <div class="form-group">
                     <label class="control-label">@L["Governorate"]</label>
-                    <select class="form-select" data-cascade-level="governorate" disabled></select>
+                    <select name="GovernorateId" class="form-select" data-cascade-level="governorate" disabled></select>
                 </div>
                 <div class="form-group">
                     <label asp-for="TownId" class="control-label">@L["City"]</label>
