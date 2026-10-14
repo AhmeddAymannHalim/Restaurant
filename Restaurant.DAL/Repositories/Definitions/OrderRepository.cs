@@ -529,6 +529,7 @@ public class OrderRepository : IOrderRepository
             order.OrderDate = DateTime.Now;
 
             await _context.SaveChangesAsync();
+            await ErpOrderMirror.SyncAsync(_context, order);
 
             return new ResultMessage
             {
@@ -682,6 +683,7 @@ public class OrderRepository : IOrderRepository
             }
 
             await FreeTableAsync(order);
+            await ErpOrderMirror.RemoveAsync(_context, order);
             _context.Orders.Remove(order);
             await _context.SaveChangesAsync();
 
