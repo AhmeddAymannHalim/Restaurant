@@ -484,6 +484,11 @@ public class OrderRepository : IOrderRepository
             await _context.Orders.AddAsync(entity);
             await _context.SaveChangesAsync();
 
+            if (entity.Cash)
+            {
+                await ErpOrderMirror.SyncAsync(_context, entity);
+            }
+
             return new ResultMessage
             {
                 Success = true,

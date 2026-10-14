@@ -833,6 +833,7 @@
   "CostFormula": "Cost = quantity x unit cost",
   "AddToRecipe": "Add to recipe",
   "RecipeEmpty": "No raw materials added yet",
+  "PriceAutoHint": "The price is filled automatically from the ingredient cost + 30% whenever you change the ingredients. If you type a price yourself it stays as typed.",
   "SuggestPrice": "Suggest a price (cost + 30%)",
   "ProfitMargin": "Profit margin",
   "LossWarning": "The cost {0} is higher than the price. Raise the price, lower the recipe quantities, or check the raw material unit cost (it must use the same unit as the quantity).",
