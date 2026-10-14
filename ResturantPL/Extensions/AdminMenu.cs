@@ -32,7 +32,14 @@ public static class AdminMenu
             new("Employee", "Index", "fa-users", "Employees"),
             new("EmployeeAccount", "Index", "fa-user-lock", "EmployeeAccounts", true),
             new("User", "Index", "fa-user-group", "Users", true),
-            new("Role", "Index", "fa-user-shield", "Roles", true)
+            new("Role", "Index", "fa-user-shield", "Roles", true),
+            new("Specialization", "Index", "fa-user-graduate", "Specializations"),
+            new("ContractType", "Index", "fa-file-signature", "ContractTypes"),
+            new("Department", "Index", "fa-building", "Departments"),
+            new("JobType", "Index", "fa-briefcase", "JobTypes"),
+            new("InsuranceCategory", "Index", "fa-shield-heart", "InsuranceCategories"),
+            new("InsuranceCompany", "Index", "fa-building-shield", "InsuranceCompanies"),
+            new("LeaveType", "Index", "fa-umbrella-beach", "LeaveTypes")
         }),
         new("SectionDefinitions", "GroupKitchen", "fa-utensils", new Item[]
         {
@@ -52,23 +59,10 @@ public static class AdminMenu
         new("SectionDefinitions", "GroupPartners", "fa-handshake", new Item[]
         {
             new("Supplier", "Index", "fa-truck", "Suppliers"),
-            new("Customer", "Index", "fa-user-tag", "Customers")
-        }),
-        new("SectionDefinitions", "GroupLookups", "fa-table-list", new Item[]
-        {
-            new("SellType", "Index", "fa-tags", "Lookup.SellType"),
-            new("CostCenter", "Index", "fa-bullseye", "Lookup.CostCenter"),
-            new("Classification", "Index", "fa-layer-group", "Lookup.Classification"),
-            new("CustomerTier", "Index", "fa-medal", "Lookup.CustomerTier"),
-            new("Specialization", "Index", "fa-user-graduate", "Lookup.Specialization"),
-            new("ContractType", "Index", "fa-file-signature", "Lookup.ContractType"),
-            new("Department", "Index", "fa-building", "Lookup.Department"),
-            new("JobType", "Index", "fa-briefcase", "Lookup.JobType"),
-            new("InsuranceCategory", "Index", "fa-shield-heart", "Lookup.InsuranceCategory"),
-            new("InsuranceCompany", "Index", "fa-building-shield", "Lookup.InsuranceCompany"),
-            new("Company", "Index", "fa-city", "Lookup.Company"),
-            new("Currency", "Index", "fa-money-bill", "Lookup.Currency"),
-            new("LeaveType", "Index", "fa-umbrella-beach", "Lookup.LeaveType")
+            new("Customer", "Index", "fa-user-tag", "Customers"),
+            new("SellType", "Index", "fa-tags", "SellTypes"),
+            new("Classification", "Index", "fa-layer-group", "Classifications"),
+            new("CustomerTier", "Index", "fa-medal", "CustomerTiers")
         }),
         new("SectionDefinitions", "GroupFinance", "fa-coins", new Item[]
         {
@@ -76,7 +70,10 @@ public static class AdminMenu
             new("ExitExpense", "Index", "fa-money-bill-transfer", "ExitExpenses"),
             new("Deposit", "Index", "fa-piggy-bank", "Deposits"),
             new("Scrounge", "Index", "fa-hand-holding-dollar", "Scrounges"),
-            new("Salary", "Index", "fa-wallet", "Salaries")
+            new("Salary", "Index", "fa-wallet", "Salaries"),
+            new("CostCenter", "Index", "fa-bullseye", "CostCenters"),
+            new("Company", "Index", "fa-city", "Companies"),
+            new("Currency", "Index", "fa-money-bill", "Currencies")
         }),
         new("SectionDefinitions", "Website", "fa-globe", new Item[]
         {

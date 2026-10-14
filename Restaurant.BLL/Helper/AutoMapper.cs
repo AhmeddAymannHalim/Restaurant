@@ -346,6 +346,61 @@ public class AutoMapper : Profile
 
         CreateMap<DeliveryZone, DeliveryZoneViewModel>().ReverseMap();
 
+        CreateMap<SellType, SellTypeViewModel>();
+        CreateMap<SellTypeViewModel, SellType>();
+
+        CreateMap<CostCenter, CostCenterViewModel>()
+            .ForMember(dest => dest.Parents, opt => opt.Ignore());
+        CreateMap<CostCenterViewModel, CostCenter>()
+            .ForMember(dest => dest.Code, opt => opt.Ignore())
+            .ForMember(dest => dest.Parent, opt => opt.Ignore());
+
+        CreateMap<Classification, ClassificationViewModel>();
+        CreateMap<ClassificationViewModel, Classification>()
+            .ForMember(dest => dest.Customers, opt => opt.Ignore());
+
+        CreateMap<CustomerTier, CustomerTierViewModel>();
+        CreateMap<CustomerTierViewModel, CustomerTier>();
+
+        CreateMap<Specialization, SpecializationViewModel>()
+            .ForMember(dest => dest.Parents, opt => opt.Ignore());
+        CreateMap<SpecializationViewModel, Specialization>()
+            .ForMember(dest => dest.Code, opt => opt.Ignore())
+            .ForMember(dest => dest.Parent, opt => opt.Ignore())
+            .ForMember(dest => dest.Employees, opt => opt.Ignore())
+            .ForMember(dest => dest.Technicians, opt => opt.Ignore());
+
+        CreateMap<ContractType, ContractTypeViewModel>();
+        CreateMap<ContractTypeViewModel, ContractType>();
+
+        CreateMap<Department, DepartmentViewModel>();
+        CreateMap<DepartmentViewModel, Department>()
+            .ForMember(dest => dest.Employees, opt => opt.Ignore());
+
+        CreateMap<JobType, JobTypeViewModel>();
+        CreateMap<JobTypeViewModel, JobType>();
+
+        CreateMap<InsuranceCategory, InsuranceCategoryViewModel>();
+        CreateMap<InsuranceCategoryViewModel, InsuranceCategory>();
+
+        CreateMap<InsuranceCompany, InsuranceCompanyViewModel>();
+        CreateMap<InsuranceCompanyViewModel, InsuranceCompany>();
+
+        CreateMap<LeaveType, LeaveTypeViewModel>();
+        CreateMap<LeaveTypeViewModel, LeaveType>();
+
+        CreateMap<Company, CompanyViewModel>()
+            .ForMember(dest => dest.Currencies, opt => opt.Ignore());
+        CreateMap<CompanyViewModel, Company>()
+            .ForMember(dest => dest.Currency, opt => opt.Ignore());
+
+        CreateMap<Currency, CurrencyViewModel>();
+        CreateMap<CurrencyViewModel, Currency>()
+            .ForMember(dest => dest.Code, opt => opt.Ignore())
+            .ForMember(dest => dest.Companies, opt => opt.Ignore())
+            .ForMember(dest => dest.CompanyBranches, opt => opt.Ignore())
+            .ForMember(dest => dest.Accounts, opt => opt.Ignore());
+
         CreateMap<Kitchen, KitchenViewModel>();
         CreateMap<KitchenViewModel, Kitchen>()
             .ForMember(dest => dest.MenuSections, opt => opt.Ignore());

@@ -140,9 +140,20 @@ public static class DependencyInjection
         services.AddScoped<IExitExpenseService, ExitExpenseService>();
         services.AddScoped<IScroungeService, ScroungeService>();
         services.AddScoped<ISalaryService, SalaryService>();
-        services.AddScoped(typeof(ILookupCrudRepository<>), typeof(LookupCrudRepository<>));
-        services.AddScoped(typeof(ILookupCrudService<>), typeof(LookupCrudService<>));
         services.AddScoped<IKitchenService, KitchenService>();
+        services.AddScoped<ICurrencyService, CurrencyService>();
+        services.AddScoped<ICompanyService, CompanyService>();
+        services.AddScoped<ILeaveTypeService, LeaveTypeService>();
+        services.AddScoped<IInsuranceCompanyService, InsuranceCompanyService>();
+        services.AddScoped<IInsuranceCategoryService, InsuranceCategoryService>();
+        services.AddScoped<IJobTypeService, JobTypeService>();
+        services.AddScoped<IDepartmentService, DepartmentService>();
+        services.AddScoped<IContractTypeService, ContractTypeService>();
+        services.AddScoped<ISpecializationService, SpecializationService>();
+        services.AddScoped<ICustomerTierService, CustomerTierService>();
+        services.AddScoped<IClassificationService, ClassificationService>();
+        services.AddScoped<ICostCenterService, CostCenterService>();
+        services.AddScoped<ISellTypeService, SellTypeService>();
         services.AddScoped<IDeliveryZoneService, DeliveryZoneService>();
         services.AddScoped<IExpenseService, ExpenseService>();
 
