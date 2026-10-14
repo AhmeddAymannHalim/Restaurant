@@ -22,6 +22,9 @@ namespace Restaurant.DAL.UnitOfWork
         public IInvoiceRepository Invoices { get; set; }
         public IStockMovementRepository StockMovements { get; set; }
         public IOrderRepository Orders { get; set; }
+        public IErpBillRepository ErpBills { get; set; }
+        public IAccountDefinitionRepository AccountDefinitions { get; set; }
+        public IErpEntryRepository ErpEntries { get; set; }
         public IOnlineOrderRepository OnlineOrders { get; set; }
         public IReportRepository Reports { get; set; }
         public IStoreConvertRepository StoreConverts { get; set; }

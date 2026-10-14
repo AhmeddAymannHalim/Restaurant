@@ -6,7 +6,6 @@ using Shared.ViewModels.Definitions;
 
 namespace Restaurant.BLL.Validations.Supplier;
 
-/// <summary>Code and names of a supplier live on its Account, so those checks run against the Account table.</summary>
 public class SupplierVmValidator : AbstractValidator<SupplierViewModel>
 {
     public SupplierVmValidator(
@@ -16,6 +15,18 @@ public class SupplierVmValidator : AbstractValidator<SupplierViewModel>
     {
         var required = localizer["Val.RequiredField"].Value;
         string MaxLength(int length) => string.Format(localizer["Val.MaxLength"].Value, length);
+
+        RuleFor(x => x.Email)
+            .Must((model, value) => !validator.IsValueExist(model.Id, "Email", value))
+            .When(x => !string.IsNullOrWhiteSpace(x.Email))
+            .WithMessage(localizer["Val.AlreadyExist"].Value);
+
+        RuleFor(x => x.VatNumber)
+            .Must((model, value) => !validator.IsValueExist(model.Id, "VatNumber", value))
+            .When(x => !string.IsNullOrWhiteSpace(x.VatNumber))
+            .WithMessage(localizer["Val.AlreadyExist"].Value);
+
+        this.AddPhoneRules(x => x.PhoneNumber, x => x.Phones, localizer);
 
         RuleFor(x => x.Code)
             .Must((model, code) => !accountValidator.IsCodeExist(model.AccountId ?? 0, code))
@@ -57,10 +68,6 @@ public class SupplierVmValidator : AbstractValidator<SupplierViewModel>
             .WithMessage(localizer["Val.InvalidEmail"].Value)
             .MaximumLength(100)
             .WithMessage(MaxLength(100));
-
-        RuleFor(x => x.PhoneNumber2)
-            .MaximumLength(20)
-            .WithMessage(MaxLength(20));
 
         RuleFor(x => x.Website)
             .MaximumLength(200)

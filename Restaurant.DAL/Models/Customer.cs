@@ -3,7 +3,6 @@ using Shared.Enums;
 
 namespace Restaurant.DAL.Models;
 
-/// <summary>Customer details. Code, names and balance live on the linked Account (created together with the customer).</summary>
 public class Customer : BaseEntity
 {
     public string Village { get; set; }
@@ -68,7 +67,8 @@ public class Customer : BaseEntity
     #region Restaurant
 
     public virtual ICollection<PaymentInvoiceCustomer> PaymentInvoices { get; set; } = new List<PaymentInvoiceCustomer>();
-    public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
 
     #endregion
+
+    public virtual ICollection<CustomerPhone> Phones { get; set; } = new List<CustomerPhone>();
 }

@@ -43,7 +43,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -72,7 +72,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -108,7 +108,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -147,13 +147,26 @@ namespace ResturantPL.Controllers.Definitions
                 return NotFound();
             }
 
-            return new ViewAsPdf("Pdf", model) { FileName = PdfFile.Name($"StoreConvert-{model.ConvertCode}.pdf") };
+            return new ViewAsPdf("Pdf", model) { FileName = Uri.EscapeDataString($"StoreConvert-{model.ConvertCode}.pdf") };
         }
 
         private async Task PopulateData(StoreConvertViewModel model)
         {
             model.Stores = await _lookup.StoreLookupAsync();
             model.Categories = await _lookup.ProductCategoryLookupAsync();
+
+            if (model.Items.Count > 0)
+            {
+                var products = (await _lookup.StoreProductLookupByStoreIdAsync(model.FromStoreId)).ToDictionary(p => p.ProductId);
+                foreach (var item in model.Items)
+                {
+                    if (products.TryGetValue(item.ProductId, out var product))
+                    {
+                        item.ProductArName = product.ProductArName;
+                        item.ProductEnName = product.ProductEnName;
+                    }
+                }
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Localization;
 using Newtonsoft.Json;
 using System.Globalization;
@@ -20,13 +20,13 @@ public class JsonStringLocalizer : IStringLocalizer
     #endregion
 
     #region Fields
-    private readonly IMemoryCacheService _memoryCacheService;
+    private readonly IMemoryCache _memoryCache;
     #endregion
 
     #region Ctor
-    public JsonStringLocalizer(IMemoryCacheService memoryCacheService)
+    public JsonStringLocalizer(IMemoryCache memoryCache)
     {
-        _memoryCacheService = memoryCacheService;
+        _memoryCache = memoryCache;
     }
     #endregion
 
@@ -72,10 +72,7 @@ public class JsonStringLocalizer : IStringLocalizer
             return result;
         }
 
-        var result = _memoryCacheService.GetOrSet(
-            cacheKey,
-            acuire,
-            new MemoryCacheEntryOptions());
+        var result = _memoryCache.GetOrCreate(cacheKey, _ => acuire());
         return result;
     }
 

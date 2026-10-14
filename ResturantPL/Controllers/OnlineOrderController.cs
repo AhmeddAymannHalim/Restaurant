@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Localization;
 using Restaurant.BLL.Services.IServices.Commons;
 using Restaurant.BLL.Services.IServices.Definitions;
-using ResturantPL.Hubs;
 using Shared;
 using Shared.Helpers.Localization;
 using Shared.ViewModels.Commons;
@@ -18,7 +16,6 @@ namespace ResturantPL.Controllers
         private readonly IOnlineOrderService _service;
         private readonly ILookupService _lookup;
         private readonly IAccountService _account;
-        private readonly IHubContext<OrderHub> _hub;
         private readonly IToastrService _toastr;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
@@ -26,14 +23,12 @@ namespace ResturantPL.Controllers
             IOnlineOrderService service,
             ILookupService lookup,
             IAccountService account,
-            IHubContext<OrderHub> hub,
             IToastrService toastr,
             IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
             _lookup = lookup;
             _account = account;
-            _hub = hub;
             _toastr = toastr;
             _localizer = localizer;
         }
@@ -48,7 +43,7 @@ namespace ResturantPL.Controllers
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -83,7 +78,7 @@ namespace ResturantPL.Controllers
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -112,7 +107,6 @@ namespace ResturantPL.Controllers
                     return RedirectToAction(nameof(Checkout));
                 }
 
-                await _hub.Clients.All.SendAsync("RefreshOnlineOrders");
                 _toastr.Success(_localizer["SavedSuccessfully"].Value);
                 TempData["OrderPlaced"] = true;
 
@@ -120,7 +114,7 @@ namespace ResturantPL.Controllers
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -133,7 +127,7 @@ namespace ResturantPL.Controllers
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -164,7 +158,6 @@ namespace ResturantPL.Controllers
                 var result = await _service.CancelOrderAsync(id, UserId, isStaff);
                 if (result.Success)
                 {
-                    await _hub.Clients.All.SendAsync("RefreshOnlineOrders");
                     return Json(new { success = true });
                 }
 

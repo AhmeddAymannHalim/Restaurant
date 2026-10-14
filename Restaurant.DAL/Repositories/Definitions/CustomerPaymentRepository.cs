@@ -1,3 +1,4 @@
+using Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Commons;
 using Restaurant.DAL.IRepositories.Definitions;
@@ -156,7 +157,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
@@ -198,7 +199,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
@@ -287,7 +288,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
@@ -338,7 +339,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
@@ -375,7 +376,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }

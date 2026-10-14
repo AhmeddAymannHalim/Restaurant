@@ -146,7 +146,7 @@ public class MenuItemRepository : IMenuItemRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
@@ -179,7 +179,7 @@ public class MenuItemRepository : IMenuItemRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }

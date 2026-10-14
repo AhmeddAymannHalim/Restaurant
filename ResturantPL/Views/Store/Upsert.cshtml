@@ -1,0 +1,213 @@
+@model StoreViewModel
+@{
+    var isNew = Model.Id == 0;
+    ViewBag.Title = isNew ? L["NewStore"].Value : L["UpdateStore"].Value;
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-warehouse" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title</h1>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Upsert" method="post" class="ad-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="ArName" class="control-label">@L["ArabicName"]</label>
+                <input asp-for="ArName" class="form-control" />
+                <span asp-validation-for="ArName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EnName" class="control-label">@L["EnglishName"]</label>
+                <input asp-for="EnName" class="form-control" />
+                <span asp-validation-for="EnName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Address" class="control-label">@L["Address"]</label>
+                <input asp-for="Address" class="form-control" />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PhoneNumber" class="control-label">@L["Phone"]</label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+            <partial name="_Phones" model="Model.Phones" />
+            <div class="form-group">
+                <label asp-for="StorekeeperId" class="control-label">@L["Storekeeper"]</label>
+                <select asp-for="StorekeeperId" class="form-control">
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.Storekeepers)
+                    {
+                        <option value="@item.Id" selected="@(Model.StorekeeperId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+                <span asp-validation-for="StorekeeperId" class="text-danger"></span>
+            </div>
+
+            <div data-location-cascade
+                 data-countries-url="@Url.Action("Countries", "Lookup")"
+                 data-governorates-url="@Url.Action("Governorates", "Lookup")"
+                 data-cities-url="@Url.Action("Cities", "Lookup")"
+                 data-arabic="@(LanguageHelper.IsArabic() ? "1" : "0")"
+                 data-placeholder="@L["Select"]"
+                 data-selected-country="@Model.CountryId"
+                 data-selected-governorate="@Model.GovernorateId"
+                 data-selected-city="@Model.TownId">
+                <div class="form-group">
+                    <label class="control-label">@L["Country"]</label>
+                    <select name="CountryId" class="form-select" data-cascade-level="country"></select>
+                </div>
+                <div class="form-group">
+                    <label class="control-label">@L["Governorate"]</label>
+                    <select name="GovernorateId" class="form-select" data-cascade-level="governorate" disabled></select>
+                </div>
+                <div class="form-group">
+                    <label asp-for="TownId" class="control-label">@L["City"]</label>
+                    <select asp-for="TownId" class="form-select" data-cascade-level="city" disabled></select>
+                    <span asp-validation-for="TownId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <details class="ad-section ad-full" open>
+                <summary>@L["Sto.Section.Details"]</summary>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="Code" class="control-label">@L["Sto.Code"]</label>
+                    <input asp-for="Code" class="form-control" readonly />
+                </div>
+                <div class="form-group">
+                    <label asp-for="ArName_Abbr" class="control-label">@L["Sto.ArName_Abbr"]</label>
+                    <input asp-for="ArName_Abbr" class="form-control" />
+                    <span asp-validation-for="ArName_Abbr" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="EnName_Abbr" class="control-label">@L["Sto.EnName_Abbr"]</label>
+                    <input asp-for="EnName_Abbr" class="form-control" />
+                    <span asp-validation-for="EnName_Abbr" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Printer" class="control-label">@L["Sto.Printer"]</label>
+                    <input asp-for="Printer" class="form-control" />
+                    <span asp-validation-for="Printer" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ParentId" class="control-label">@L["Sto.ParentId"]</label>
+                    <select asp-for="ParentId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.Stores.Where(item => true && item.Id != Model.Id))
+                        {
+                            <option value="@item.Id" selected="@(Model.ParentId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="ParentId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="BranchId" class="control-label">@L["Sto.BranchId"]</label>
+                    <select asp-for="BranchId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.Branches.Where(item => true))
+                        {
+                            <option value="@item.Id" selected="@(Model.BranchId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="BranchId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Village" class="control-label">@L["Sto.Village"]</label>
+                    <input asp-for="Village" class="form-control" />
+                    <span asp-validation-for="Village" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Note" class="control-label">@L["Sto.Note"]</label>
+                    <input asp-for="Note" class="form-control" />
+                    <span asp-validation-for="Note" class="text-danger"></span>
+                </div>
+                </div>
+            </details>
+
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+            @if (!isNew)
+            {
+                <button type="button" onclick="Delete('/Store/Delete/@Model.Id', '@Url.Action("Index")')" class="btn-ad btn-ad-danger push" ><i class="fas fa-trash" aria-hidden="true"></i> @L["Delete"]</button>
+            }
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    
+    <script>
+/* Reusable Country -> Governorate -> City cascading select.
+   Markup contract: a wrapper with [data-location-cascade] carrying the lookup URLs and
+   (optionally) the previously-saved ids to preselect, containing three <select>s marked
+   [data-cascade-level="country|governorate|city"]. Only the city select needs a `name`/`asp-for` —
+   country and governorate exist purely to narrow the city list down. */
+(function ($) {
+    'use strict';
+
+    function fillOptions($select, items, arabic, placeholder, selectedId) {
+        $select.empty().append($('<option>', { value: '', text: placeholder }));
+        items.forEach(function (item) {
+            $select.append($('<option>', { value: item.id, text: arabic ? item.arName : item.enName }));
+        });
+        $select.prop('disabled', items.length === 0);
+        if (selectedId) { $select.val(String(selectedId)); }
+    }
+
+    $('[data-location-cascade]').each(function () {
+        var $root = $(this);
+        var arabic = String($root.data('arabic')) === '1';
+        var placeholder = $root.data('placeholder') || '';
+        var urls = {
+            country: $root.data('countriesUrl'),
+            governorate: $root.data('governoratesUrl'),
+            city: $root.data('citiesUrl')
+        };
+        var $country = $root.find('[data-cascade-level="country"]');
+        var $governorate = $root.find('[data-cascade-level="governorate"]');
+        var $city = $root.find('[data-cascade-level="city"]');
+
+        function loadCities(governorateId, selectedCity) {
+            if (!governorateId) {
+                $city.empty().prop('disabled', true);
+                return;
+            }
+            $.get(urls.city, { governorateId: governorateId }, function (data) {
+                fillOptions($city, data, arabic, placeholder, selectedCity);
+            });
+        }
+
+        function loadGovernorates(countryId, selectedGovernorate, selectedCity) {
+            if (!countryId) {
+                $governorate.empty().prop('disabled', true);
+                $city.empty().prop('disabled', true);
+                return;
+            }
+            $.get(urls.governorate, { countryId: countryId }, function (data) {
+                fillOptions($governorate, data, arabic, placeholder, selectedGovernorate);
+                if (selectedGovernorate) { loadCities(selectedGovernorate, selectedCity); }
+                else { $city.empty().prop('disabled', true); }
+            });
+        }
+
+        $country.on('change', function () { loadGovernorates($(this).val()); });
+        $governorate.on('change', function () { loadCities($(this).val()); });
+
+        $.get(urls.country, function (data) {
+            var selectedCountry = $root.data('selectedCountry');
+            fillOptions($country, data, arabic, placeholder, selectedCountry);
+            if (selectedCountry) {
+                loadGovernorates(selectedCountry, $root.data('selectedGovernorate'), $root.data('selectedCity'));
+            }
+        });
+    });
+})(jQuery);
+</script>
+<partial name="_ValidationScriptsPartial" />
+}

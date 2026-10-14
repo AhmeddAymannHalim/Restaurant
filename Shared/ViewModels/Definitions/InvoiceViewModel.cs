@@ -9,7 +9,7 @@ public class InvoiceViewModel
     public string InvoiceCode { get; set; }
     public DateTime InvoiceDate { get; set; } = DateTime.Now;
     public InvoiceType InvoiceType { get; set; }
-    public PayTypes PayType { get; set; }
+    public PayType PayType { get; set; } = PayType.Cash;
     public int? SupplierId { get; set; }
     public int? CustomerId { get; set; }
     public int StoreId { get; set; }

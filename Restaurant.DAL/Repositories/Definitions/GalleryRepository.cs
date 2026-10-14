@@ -82,7 +82,7 @@ public class GalleryRepository : IGalleryRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
@@ -120,7 +120,7 @@ public class GalleryRepository : IGalleryRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }

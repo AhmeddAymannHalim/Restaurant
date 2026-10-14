@@ -17,9 +17,9 @@ public class StoreConvertProductConfig : IEntityTypeConfiguration<StoreConvertPr
             .OnDelete(DeleteBehavior.Cascade);
 
         builder
-            .HasOne(a => a.StoreProduct)
-            .WithMany(a => a.StoreConvertProducts)
-            .HasForeignKey(a => a.StoreProductId)
+            .HasOne(a => a.Product)
+            .WithMany()
+            .HasForeignKey(a => a.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

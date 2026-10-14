@@ -20,8 +20,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
 
-        // The ERP-shaped entities (BaseEntity) reference each other in many directions; deleting a parent
-        // must never silently cascade, so every relation of those entities restricts deletes.
         foreach (var foreignKey in modelBuilder.Model.GetEntityTypes()
                      .Where(a => typeof(BaseEntity).IsAssignableFrom(a.ClrType))
                      .SelectMany(a => a.GetForeignKeys()))
@@ -45,6 +43,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<InsuranceCategory> InsuranceCategories { get; set; }
     public DbSet<InsuranceCompany> InsuranceCompanies { get; set; }
     public DbSet<EmployeePhone> EmployeePhones { get; set; }
+    public DbSet<CustomerPhone> CustomerPhones { get; set; }
+    public DbSet<SupplierPhone> SupplierPhones { get; set; }
+    public DbSet<StorePhone> StorePhones { get; set; }
     public DbSet<EmployeeDocument> EmployeeDocuments { get; set; }
     public DbSet<EmployeeDependent> EmployeeDependents { get; set; }
     public DbSet<EmployeeLeave> EmployeeLeaves { get; set; }
@@ -66,7 +67,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductCategory> ProductCategories { get; set; }
     public DbSet<UnitPrice> UnitPrices { get; set; }
-    public DbSet<StoreProduct> StoreProducts { get; set; }
     public DbSet<StoreProductMovement> StoreProductMovements { get; set; }
     public DbSet<StoreConvert> StoreConverts { get; set; }
     public DbSet<StoreConvertProduct> StoreConvertProducts { get; set; }
@@ -77,8 +77,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Governorate> Governorates { get; set; }
     public DbSet<Town> Towns { get; set; }
     public DbSet<Village> Villages { get; set; }
-    public DbSet<Invoice> Invoices { get; set; }
-    public DbSet<InvoiceItem> InvoiceItems { get; set; }
     public DbSet<PaymentInvoiceSupplier> PaymentInvoiceSupplier { get; set; }
     public DbSet<PaymentInvoiceCustomer> PaymentInvoiceCustomer { get; set; }
     public DbSet<PaymentRefund> PaymentRefunds { get; set; }
@@ -114,12 +112,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<EntryDetail> EntryDetails { get; set; }
     public DbSet<EntrySetting> EntrySettings { get; set; }
 
-    public DbSet<JournalEntry> JournalEntries { get; set; }
-    public DbSet<JournalEntryLine> JournalEntryLines { get; set; }
-
-    public DbSet<Order> Orders { get; set; }
-    public DbSet<OrderMenuItem> OrderMenuItems { get; set; }
-    public DbSet<OrderIngredient> OrderIngredients { get; set; }
+    public DbSet<PosBill> PosBills { get; set; }
+    public DbSet<PosBillLine> PosBillLines { get; set; }
+    public DbSet<PosBillIngredient> PosBillIngredients { get; set; }
     public DbSet<OnlineOrder> OnlineOrders { get; set; }
     public DbSet<OnlineOrderMenuItem> OnlineOrderMenuItems { get; set; }
     public DbSet<ShiftCloseReport> ShiftCloseReports { get; set; }

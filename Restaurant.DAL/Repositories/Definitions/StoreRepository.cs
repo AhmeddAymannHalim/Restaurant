@@ -1,3 +1,4 @@
+using Shared.Helpers;
 using Restaurant.DAL.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
@@ -40,6 +41,7 @@ public class StoreRepository : IStoreRepository
     public async Task<Store> GetStoreByIdAsync(int id)
     {
         return await _context.Stores
+            .Include(a => a.Phones)
             .Include(a => a.Town).ThenInclude(a => a.Governorate)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
@@ -55,6 +57,10 @@ public class StoreRepository : IStoreRepository
     {
         try
         {
+            var phones = PhoneRows.Clean(entity.PhoneNumber1, entity.Phones);
+            entity.Phones = new List<StorePhone>();
+            entity.PhoneNumber2 = phones.ElementAtOrDefault(0);
+            entity.PhoneNumber3 = phones.ElementAtOrDefault(1);
             (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
 
             if (entity.Id == 0)
@@ -65,14 +71,12 @@ public class StoreRepository : IStoreRepository
                 }
 
                 entity.CreatedAt = DateTime.Now;
-                entity.StoreProducts = await _context.Products.AsNoTracking()
-                    .Select(a => new StoreProduct { ProductId = a.Id })
-                    .ToListAsync();
+                PhoneRows.Sync(_context, entity.Phones, phones);
                 await _context.Stores.AddAsync(entity);
             }
             else
             {
-                var existing = await _context.Stores.FirstOrDefaultAsync(a => a.Id == entity.Id);
+                var existing = await _context.Stores.Include(a => a.Phones).FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
                     return new ResultMessage
@@ -88,6 +92,7 @@ public class StoreRepository : IStoreRepository
                 entity.CreatedById = existing.CreatedById;
                 entity.UpdatedAt = DateTime.Now;
                 _context.Entry(existing).CurrentValues.SetValues(entity);
+                PhoneRows.Sync(_context, existing.Phones, phones);
             }
 
             await _context.SaveChangesAsync();
@@ -99,7 +104,7 @@ public class StoreRepository : IStoreRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
@@ -114,7 +119,7 @@ public class StoreRepository : IStoreRepository
                 return new ResultMessage { Success = true };
             }
 
-            if (await _context.StoreProducts.AnyAsync(a => a.StoreId == id && a.Quantity > 0))
+            if (await _context.StoreItemUnits.AnyAsync(a => a.StoreId == id && a.Quantity != 0))
             {
                 return new ResultMessage
                 {
@@ -123,6 +128,7 @@ public class StoreRepository : IStoreRepository
                 };
             }
 
+            _context.StoreItemUnits.RemoveRange(_context.StoreItemUnits.Where(a => a.StoreId == id));
             _context.Stores.Remove(entity);
             await _context.SaveChangesAsync();
 
@@ -141,7 +147,7 @@ public class StoreRepository : IStoreRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }

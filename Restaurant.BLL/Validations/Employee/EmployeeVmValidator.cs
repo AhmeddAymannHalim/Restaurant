@@ -15,6 +15,11 @@ public class EmployeeVmValidator : AbstractValidator<EmployeeViewModel>
     {
         var required = localizer["Val.RequiredField"].Value;
         string MaxLength(int length) => string.Format(localizer["Val.MaxLength"].Value, length);
+
+        RuleFor(x => x.Email)
+            .Must((model, value) => !validator.IsValueExist(model.Id, "Email", value))
+            .When(x => !string.IsNullOrWhiteSpace(x.Email))
+            .WithMessage(localizer["Val.AlreadyExist"].Value);
         string MinLength(int length) => string.Format(localizer["Val.MinLength"].Value, length);
         string ExactLength(int length) => string.Format(localizer["Val.ExactLength"].Value, length);
 
@@ -79,7 +84,6 @@ public class EmployeeVmValidator : AbstractValidator<EmployeeViewModel>
             .NotNull()
             .WithMessage(required);
 
-        // Extra mobiles typed with the "+ Add" button (blank rows are ignored when saving).
         RuleForEach(x => x.Phones)
             .ChildRules(phone =>
             {

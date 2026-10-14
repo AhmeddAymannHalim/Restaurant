@@ -1,3 +1,4 @@
+using Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -94,7 +95,7 @@ public class JobRepository : IJobRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
@@ -135,7 +136,7 @@ public class JobRepository : IJobRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }

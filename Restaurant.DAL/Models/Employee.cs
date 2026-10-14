@@ -32,7 +32,6 @@ public class Employee : BaseEntity
 
     public string Email { get; set; }
 
-    // Identity documents
     public DateTime? NationalIdIssueDate { get; set; }
     public DateTime? NationalIdExpiryDate { get; set; }
     public DateTime? BorderEntryDate { get; set; }
@@ -42,37 +41,30 @@ public class Employee : BaseEntity
     public string Port { get; set; }
     public string IssuingAuthority { get; set; }
 
-    // Bank
     public bool HasBankAccount { get; set; }
     public string AccountNumber { get; set; }
     public string IBAN { get; set; }
 
-    // Sponsor
     public string SponsorName { get; set; }
     public string SponsorPhone { get; set; }
 
-    // Driving license
     public string DrivingLicenseNumber { get; set; }
     public DateTime? DrivingLicenseIssueDate { get; set; }
     public DateTime? DrivingLicenseExpiryDate { get; set; }
 
-    // Leave defaults
     public int AnnualLeaveDays { get; set; }
     public int SickLeaveDays { get; set; }
     public int CasualLeaveDays { get; set; }
 
-    // Travel ticket
     public bool HasTravelTicket { get; set; }
     public TicketType? TicketType { get; set; }
     public string Destination { get; set; }
     public int TicketCount { get; set; }
 
-    // Car
     public bool HasCar { get; set; }
     public string CarType { get; set; }
     public string CarNumber { get; set; }
 
-    // Salary and work hours
     public bool IsSalaryStopped { get; set; }
     public decimal? BasicSalary { get; set; }
     public int? WorkDays { get; set; }
@@ -89,7 +81,6 @@ public class Employee : BaseEntity
     public decimal? MinuteRate { get; set; }
     public string SalaryNotes { get; set; }
 
-    // Foreign keys
     public int? ContractTypeId { get; set; }
     public int? AccountId { get; set; }
     public int? BranchId { get; set; }
@@ -100,7 +91,6 @@ public class Employee : BaseEntity
     public virtual CompanyBranch Branch { get; set; }
     public virtual Department Department { get; set; }
 
-    // Job info
     public string Administration { get; set; }
 
     public DateTime? HireDate { get; set; }
@@ -126,7 +116,6 @@ public class Employee : BaseEntity
     public virtual Specialization Specialization { get; set; }
     public virtual JobType JobType { get; set; }
 
-    // Insurance info
     public string InsuranceCardNumber { get; set; }
     public DateTime? IssueDate { get; set; }
     public DateTime? ExpiryDate { get; set; }
@@ -134,7 +123,6 @@ public class Employee : BaseEntity
     public decimal? InsurancePercent { get; set; }
     public string Notes { get; set; }
 
-    // Delay rule overrides
     public bool OverrideDelayRule { get; set; }
     public int? GracePeriodMinutesOverride { get; set; }
     public DelayDeductionMode? DelayDeductionModeOverride { get; set; }
@@ -145,7 +133,6 @@ public class Employee : BaseEntity
     public bool FullDayEscalationEnabledOverride { get; set; }
     public int? FullDayDeductionThresholdMinutesOverride { get; set; }
 
-    // Overtime
     public bool OverrideOvertimeRule { get; set; }
     public int? OvertimeRuleMinutesStartOverride { get; set; }
     public int? OvertimeRuleMinutesOverride { get; set; }
@@ -158,7 +145,6 @@ public class Employee : BaseEntity
     public bool OverrideOffDayOvertimeRule { get; set; }
     public bool OffDayAsOvertimeOverride { get; set; }
 
-    // Early leave override
     public bool OverrideEarlyLeaveRule { get; set; }
     public bool EarlyLeaveDeductionEnabledOverride { get; set; }
     public int? EarlyLeaveGraceMinutesOverride { get; set; }
@@ -186,14 +172,11 @@ public class Employee : BaseEntity
 
     #region Restaurant
 
-    /// <summary>Not persisted — true when a login (ApplicationUser) exists for this employee.</summary>
     [NotMapped]
     public bool HasLoginAccount { get; set; }
 
-    /// <summary>Profile picture, stored under the Employee Images folder.</summary>
     public string Image { get; set; }
 
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     public virtual ICollection<Salary> Salaries { get; set; } = new List<Salary>();
     public virtual ICollection<Scrounge> Scrounges { get; set; } = new List<Scrounge>();
 

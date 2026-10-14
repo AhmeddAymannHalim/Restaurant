@@ -1,7 +1,6 @@
-using AutoMapper;
 using Restaurant.BLL.Services.IServices.Definitions;
-using Restaurant.DAL.Models;
 using Restaurant.DAL.UnitOfWork;
+using Shared.Enums;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
 
@@ -10,33 +9,20 @@ namespace Restaurant.BLL.Services.Definitions;
 public class InvoiceService : IInvoiceService
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
 
-    public InvoiceService(IUnitOfWork unitOfWork, IMapper mapper)
+    public InvoiceService(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
-        _mapper = mapper;
-    }
-
-    public async Task<PaginatedResult<InvoiceViewModel>> GetPagedInvoicesAsync(PageRequest request)
-    {
-        var result = await _unitOfWork.Invoices.GetPagedInvoicesAsync(request);
-
-        return PaginatedResult<InvoiceViewModel>.Create(_mapper.Map<List<InvoiceViewModel>>(result.Data),
-            result.TotalRecords,
-            request);
     }
 
     public async Task<InvoiceViewModel> GetInvoiceByIdAsync(int id)
     {
-        var entity = await _unitOfWork.Invoices.GetInvoiceByIdAsync(id);
-
-        return _mapper.Map<InvoiceViewModel>(entity);
+        return await _unitOfWork.Invoices.GetInvoiceByIdAsync(id);
     }
 
-    public async Task<string> GetNextCodeAsync()
+    public async Task<string> GetNextCodeAsync(InvoiceType type)
     {
-        return await _unitOfWork.Invoices.GetNextCodeAsync();
+        return await _unitOfWork.Invoices.GetNextCodeAsync(type);
     }
 
     public async Task<decimal> GetSupplierBalanceAsync(int supplierId)
@@ -51,7 +37,7 @@ public class InvoiceService : IInvoiceService
 
     public async Task<ResultMessage> UpsertInvoiceAsync(InvoiceViewModel model)
     {
-        return await _unitOfWork.Invoices.UpsertInvoiceAsync(_mapper.Map<Invoice>(model));
+        return await _unitOfWork.Invoices.UpsertInvoiceAsync(model);
     }
 
     public async Task<ResultMessage> DeleteInvoiceAsync(int id)

@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Localization;
 using Restaurant.BLL.Services.IServices.Commons;
 using Restaurant.BLL.Services.IServices.Definitions;
 using ResturantPL.Helper;
-using ResturantPL.Hubs;
 using Rotativa.AspNetCore;
 using Shared;
 using Shared.Enums;
@@ -24,19 +22,16 @@ namespace ResturantPL.Controllers.Definitions
         private readonly ILookupService _lookup;
         private readonly ICustomerService _customers;
         private readonly ISettingService _settings;
-        private readonly IHubContext<OrderHub> _hub;
         private readonly IToastrService _toastr;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
         public OrderController(
-            IOrderService service, ILookupService lookup, ICustomerService customers, ISettingService settings,
-            IHubContext<OrderHub> hub, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
+            IOrderService service, ILookupService lookup, ICustomerService customers, ISettingService settings, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
             _lookup = lookup;
             _customers = customers;
             _settings = settings;
-            _hub = hub;
             _toastr = toastr;
             _localizer = localizer;
         }
@@ -51,7 +46,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -69,7 +64,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -97,7 +92,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -116,7 +111,6 @@ namespace ResturantPL.Controllers.Definitions
                 var result = await _service.CreateOrderAsync(model, UserId);
                 if (result.Success)
                 {
-                    await _hub.Clients.All.SendAsync("RefreshOrders");
                     return RedirectToAction(nameof(Details), new { id = int.Parse(result.Data) });
                 }
 
@@ -126,7 +120,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -146,7 +140,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -160,7 +154,7 @@ namespace ResturantPL.Controllers.Definitions
 
             ViewBag.IsPdf = true;
 
-            return new ViewAsPdf("Details", model) { FileName = PdfFile.Name($"Order-{model.OrderCode}.pdf") };
+            return new ViewAsPdf("Details", model) { FileName = Uri.EscapeDataString($"Order-{model.OrderCode}.pdf") };
         }
 
         [HttpPost, ValidateAntiForgeryToken]
@@ -175,14 +169,13 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(List), new { status = "pending" });
                 }
 
-                await _hub.Clients.All.SendAsync("RefreshOrders");
                 _toastr.Success(_localizer["OrderPaid"].Value);
 
                 return RedirectToAction(nameof(Details), new { id });
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -217,7 +210,6 @@ namespace ResturantPL.Controllers.Definitions
                 var result = await _service.DeleteOrderAsync(id);
                 if (result.Success)
                 {
-                    await _hub.Clients.All.SendAsync("RefreshOrders");
                     return Json(new { success = true });
                 }
 
@@ -263,7 +255,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -275,7 +267,6 @@ namespace ResturantPL.Controllers.Definitions
                 var result = await _service.CancelOnlineOrderAsync(id);
                 if (result.Success)
                 {
-                    await _hub.Clients.All.SendAsync("RefreshOnlineOrders");
                     return Json(new { success = true });
                 }
 
@@ -303,7 +294,6 @@ namespace ResturantPL.Controllers.Definitions
                 var result = await _service.RejectOnlineOrderAsync(id, reason);
                 if (result.Success)
                 {
-                    await _hub.Clients.All.SendAsync("RefreshOnlineOrders");
                     return Json(new { success = true });
                 }
 
@@ -340,7 +330,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -350,7 +340,6 @@ namespace ResturantPL.Controllers.Definitions
             {
                 if (result.Success)
                 {
-                    await _hub.Clients.All.SendAsync("RefreshOrders");
                     _toastr.Success(_localizer["UpdatedSuccessfully"].Value);
                     return RedirectToAction(nameof(List), new { status = "pending" });
                 }
@@ -360,7 +349,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -381,6 +370,21 @@ namespace ResturantPL.Controllers.Definitions
             model.TaxPercent = fresh?.TaxPercent ?? 0;
             model.DefaultService = fresh?.DefaultService ?? 0;
             model.Menu = fresh?.Menu ?? new();
+            foreach (var item in model.Items.ToList())
+            {
+                var dish = model.Menu.FirstOrDefault(m => m.Id == item.MenuItemId);
+                if (dish is null)
+                {
+                    model.Items.Remove(item);
+                    continue;
+                }
+
+                item.MenuItemArName = dish.ArName;
+                item.MenuItemEnName = dish.EnName;
+                item.PriceForUnit = dish.Price;
+                item.Price = dish.Price * item.Quantity;
+            }
+
             if (model.OnlineOrderId.HasValue)
             {
                 model.DeliveryZoneId = fresh?.DeliveryZoneId;

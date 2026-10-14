@@ -1,0 +1,941 @@
+@model EmployeeViewModel
+@{
+    var isNew = Model.Id == 0;
+    ViewBag.Title = isNew ? L["NewEmployee"].Value : L["UpdateEmployee"].Value;
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-users" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title</h1>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Upsert" method="post" enctype="multipart/form-data" class="ad-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Image" />
+            <ul class="nav emp-tabs ad-full" role="tablist">
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab active" id="tab-Basic" data-bs-toggle="tab" data-bs-target="#pane-Basic" role="tab" aria-controls="pane-Basic" aria-selected="true"><i class="fas fa-id-card" aria-hidden="true"></i> @L["Emp.Tab.Basic"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Identity" data-bs-toggle="tab" data-bs-target="#pane-Identity" role="tab" aria-controls="pane-Identity" aria-selected="false"><i class="fas fa-passport" aria-hidden="true"></i> @L["Emp.Tab.Identity"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Job" data-bs-toggle="tab" data-bs-target="#pane-Job" role="tab" aria-controls="pane-Job" aria-selected="false"><i class="fas fa-briefcase" aria-hidden="true"></i> @L["Emp.Tab.Job"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Pay" data-bs-toggle="tab" data-bs-target="#pane-Pay" role="tab" aria-controls="pane-Pay" aria-selected="false"><i class="fas fa-wallet" aria-hidden="true"></i> @L["Emp.Tab.Pay"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Insurance" data-bs-toggle="tab" data-bs-target="#pane-Insurance" role="tab" aria-controls="pane-Insurance" aria-selected="false"><i class="fas fa-shield-heart" aria-hidden="true"></i> @L["Emp.Tab.Insurance"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Attendance" data-bs-toggle="tab" data-bs-target="#pane-Attendance" role="tab" aria-controls="pane-Attendance" aria-selected="false"><i class="fas fa-clock" aria-hidden="true"></i> @L["Emp.Tab.Attendance"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Perks" data-bs-toggle="tab" data-bs-target="#pane-Perks" role="tab" aria-controls="pane-Perks" aria-selected="false"><i class="fas fa-plane" aria-hidden="true"></i> @L["Emp.Tab.Perks"]</button></li>
+            </ul>
+            <div class="tab-content ad-full">
+            <div class="tab-pane fade show active emp-pane" id="pane-Basic" role="tabpanel" aria-labelledby="tab-Basic" tabindex="0">
+            <div class="form-group">
+                <label asp-for="Code" class="control-label">@L["Code"]</label>
+                <input asp-for="Code" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label asp-for="ArName" class="control-label">@L["ArabicName"]</label>
+                <input asp-for="ArName" class="form-control" />
+                <span asp-validation-for="ArName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EnName" class="control-label">@L["EnglishName"]</label>
+                <input asp-for="EnName" class="form-control" />
+                <span asp-validation-for="EnName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PhoneNumber" class="control-label">@L["Phone"]</label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+            <partial name="_Phones" model="Model.Phones" />
+            <div class="form-group">
+                <label asp-for="IDNumber" class="control-label">@L["NationalID"]</label>
+                <input asp-for="IDNumber" class="form-control" />
+                <span asp-validation-for="IDNumber" class="text-danger"></span>
+            </div>
+            <div data-location-cascade
+                 data-countries-url="@Url.Action("Countries", "Lookup")"
+                 data-governorates-url="@Url.Action("Governorates", "Lookup")"
+                 data-cities-url="@Url.Action("Cities", "Lookup")"
+                 data-arabic="@(LanguageHelper.IsArabic() ? "1" : "0")"
+                 data-placeholder="@L["Select"]"
+                 data-selected-country="@Model.CountryId"
+                 data-selected-governorate="@Model.GovernorateId"
+                 data-selected-city="@Model.TownId">
+                <div class="form-group">
+                    <label class="control-label">@L["Country"]</label>
+                    <select name="CountryId" class="form-select" data-cascade-level="country"></select>
+                </div>
+                <div class="form-group">
+                    <label class="control-label">@L["Governorate"]</label>
+                    <select name="GovernorateId" class="form-select" data-cascade-level="governorate" disabled></select>
+                </div>
+                <div class="form-group">
+                    <label asp-for="TownId" class="control-label">@L["City"]</label>
+                    <select asp-for="TownId" class="form-select" data-cascade-level="city" disabled></select>
+                    <span asp-validation-for="TownId" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="Address" class="control-label">@L["Address"]</label>
+                <input asp-for="Address" class="form-control" />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BranchId" class="control-label">@L["Branch"]</label>
+                <select asp-for="BranchId" class="form-control">
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.Branches)
+                    {
+                        <option value="@item.Id" selected="@(Model.BranchId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+                <span asp-validation-for="BranchId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="JobId" class="control-label">@L["Job"]</label>
+                <select asp-for="JobId" class="form-control">
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.Jobs)
+                    {
+                        <option value="@item.Id" selected="@(Model.JobId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+                <span asp-validation-for="JobId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SalaryType" class="control-label">@L["SalaryType"]</label>
+                <select asp-for="SalaryType" class="form-control">
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.SalaryTypes)
+                    {
+                        <option value="@item.Id" selected="@(Model.SalaryType.HasValue && (int)Model.SalaryType.Value == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+                <span asp-validation-for="SalaryType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Salary" class="control-label">@L["Salary"]</label>
+                <input asp-for="Salary" type="number" step="0.01" class="form-control" />
+                <span asp-validation-for="Salary" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ImageFile" class="control-label">@L["Image"]</label>
+                @if (!string.IsNullOrEmpty(Model.Image))
+                {
+                    <div class="mb-2">
+                        <img src="@Model.Image" alt="@Model.ArName" class="rounded" style="width:80px; height:80px; object-fit:cover;" />
+                    </div>
+                }
+                <input asp-for="ImageFile" type="file" accept="image/*" class="form-control" />
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
+            </div>
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Emp.Section.Personal"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="Email" class="control-label">@L["Emp.Email"]</label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Religion" class="control-label">@L["Emp.Religion"]</label>
+                    <select asp-for="Religion" class="form-control" asp-items="Html.GetLocalizedEnumNameSelectList<Shared.Enums.Religion>(L, Model.Religion)">
+                        <option value="">@L["Select"]</option>
+                    </select>
+                    <span asp-validation-for="Religion" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="NationalityId" class="control-label">@L["Emp.NationalityId"]</label>
+                    <select asp-for="NationalityId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.Nationalities)
+                        {
+                            <option value="@item.Id" selected="@(Model.NationalityId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="NationalityId" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Identity" role="tabpanel" aria-labelledby="tab-Identity" tabindex="0">
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Emp.Section.Identity"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="NationalIdIssueDate" class="control-label">@L["Emp.NationalIdIssueDate"]</label>
+                    <input asp-for="NationalIdIssueDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                    <span asp-validation-for="NationalIdIssueDate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="NationalIdExpiryDate" class="control-label">@L["Emp.NationalIdExpiryDate"]</label>
+                    <input asp-for="NationalIdExpiryDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                    <span asp-validation-for="NationalIdExpiryDate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="BorderEntryDate" class="control-label">@L["Emp.BorderEntryDate"]</label>
+                    <input asp-for="BorderEntryDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                    <span asp-validation-for="BorderEntryDate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ProfessionInId" class="control-label">@L["Emp.ProfessionInId"]</label>
+                    <input asp-for="ProfessionInId" class="form-control" />
+                    <span asp-validation-for="ProfessionInId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ActualProfession" class="control-label">@L["Emp.ActualProfession"]</label>
+                    <input asp-for="ActualProfession" class="form-control" />
+                    <span asp-validation-for="ActualProfession" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="VisaNumber" class="control-label">@L["Emp.VisaNumber"]</label>
+                    <input asp-for="VisaNumber" class="form-control" />
+                    <span asp-validation-for="VisaNumber" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Port" class="control-label">@L["Emp.Port"]</label>
+                    <input asp-for="Port" class="form-control" />
+                    <span asp-validation-for="Port" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="IssuingAuthority" class="control-label">@L["Emp.IssuingAuthority"]</label>
+                    <input asp-for="IssuingAuthority" class="form-control" />
+                    <span asp-validation-for="IssuingAuthority" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Emp.Section.Sponsor"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="SponsorName" class="control-label">@L["Emp.SponsorName"]</label>
+                    <input asp-for="SponsorName" class="form-control" />
+                    <span asp-validation-for="SponsorName" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="SponsorPhone" class="control-label">@L["Emp.SponsorPhone"]</label>
+                    <input asp-for="SponsorPhone" class="form-control" />
+                    <span asp-validation-for="SponsorPhone" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Emp.Section.Driving"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="DrivingLicenseNumber" class="control-label">@L["Emp.DrivingLicenseNumber"]</label>
+                    <input asp-for="DrivingLicenseNumber" class="form-control" />
+                    <span asp-validation-for="DrivingLicenseNumber" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="DrivingLicenseIssueDate" class="control-label">@L["Emp.DrivingLicenseIssueDate"]</label>
+                    <input asp-for="DrivingLicenseIssueDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                    <span asp-validation-for="DrivingLicenseIssueDate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="DrivingLicenseExpiryDate" class="control-label">@L["Emp.DrivingLicenseExpiryDate"]</label>
+                    <input asp-for="DrivingLicenseExpiryDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                    <span asp-validation-for="DrivingLicenseExpiryDate" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="ad-section ad-full" data-row-list data-prefix="Documents">
+                <h2 class="ad-section-title">@L["Emp.Section.Documents"]</h2>
+                <div class="ad-rows" data-rows>
+                    @for (var i = 0; i < Model.Documents.Count; i++)
+                    {
+                        <div class="ad-row-item" data-row>
+                            <input type="hidden" name="Documents[@i].Id" value="@Model.Documents[i].Id" />
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.DocName"]</label><input type="text" name="Documents[@i].Name" value="@Model.Documents[i].Name" class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.File"]</label><input type="file" name="Documents[@i].File" class="form-control" /><input type="hidden" name="Documents[@i].Url" value="@Model.Documents[i].Url" />@if (!string.IsNullOrEmpty(Model.Documents[i].Url)){<a href="@Model.Documents[i].Url" target="_blank" rel="noopener">@L["Emp.Row.Current"]</a>}</div>
+                        <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                        </div>
+                    }
+                </div>
+                <button type="button" class="btn-ad btn-ad-ghost mb-3" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["Emp.Row.Add"]</button>
+                <template data-row-template>
+                    <div class="ad-row-item" data-row>
+                        <input type="hidden" name="Documents[__i__].Id" value="0" />
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.DocName"]</label><input type="text" name="Documents[__i__].Name"  class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.File"]</label><input type="file" name="Documents[__i__].File" class="form-control" /><input type="hidden" name="Documents[__i__].Url"  /></div>
+                        <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                    </div>
+                </template>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Job" role="tabpanel" aria-labelledby="tab-Job" tabindex="0">
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Emp.Section.Job"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="Administration" class="control-label">@L["Emp.Administration"]</label>
+                    <input asp-for="Administration" class="form-control" />
+                    <span asp-validation-for="Administration" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="HireDate" class="control-label">@L["Emp.HireDate"]</label>
+                    <input asp-for="HireDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                    <span asp-validation-for="HireDate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ContractDate" class="control-label">@L["Emp.ContractDate"]</label>
+                    <input asp-for="ContractDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                    <span asp-validation-for="ContractDate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ContractEndDate" class="control-label">@L["Emp.ContractEndDate"]</label>
+                    <input asp-for="ContractEndDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                    <span asp-validation-for="ContractEndDate" class="text-danger"></span>
+                </div>
+                <div class="form-group ad-check">
+                    <label class="control-label"><input asp-for="IsActive" type="checkbox" /> @L["Emp.IsActive"]</label>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Notes" class="control-label">@L["Emp.Notes"]</label>
+                    <input asp-for="Notes" class="form-control" />
+                    <span asp-validation-for="Notes" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="ad-section ad-full" data-fk-selects>
+                <h2 class="ad-section-title">@L["Emp.Section.Org"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="DepartmentId" class="control-label">@L["Emp.DepartmentId"]</label>
+                    <select asp-for="DepartmentId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.Departments)
+                        {
+                            <option value="@item.Id" selected="@(Model.DepartmentId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ContractTypeId" class="control-label">@L["Emp.ContractTypeId"]</label>
+                    <select asp-for="ContractTypeId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.ContractTypes)
+                        {
+                            <option value="@item.Id" selected="@(Model.ContractTypeId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="ContractTypeId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="SpecializationId" class="control-label">@L["Emp.SpecializationId"]</label>
+                    <select asp-for="SpecializationId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.Specializations)
+                        {
+                            <option value="@item.Id" selected="@(Model.SpecializationId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="SpecializationId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="JobTypeId" class="control-label">@L["Emp.JobTypeId"]</label>
+                    <select asp-for="JobTypeId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.JobTypes)
+                        {
+                            <option value="@item.Id" selected="@(Model.JobTypeId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="JobTypeId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="InsuranceCategoryId" class="control-label">@L["Emp.InsuranceCategoryId"]</label>
+                    <select asp-for="InsuranceCategoryId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.InsuranceCategories)
+                        {
+                            <option value="@item.Id" selected="@(Model.InsuranceCategoryId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="InsuranceCategoryId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="InsuranceCompanyId" class="control-label">@L["Emp.InsuranceCompanyId"]</label>
+                    <select asp-for="InsuranceCompanyId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.InsuranceCompanies)
+                        {
+                            <option value="@item.Id" selected="@(Model.InsuranceCompanyId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="InsuranceCompanyId" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Emp.Section.LeaveDefaults"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="AnnualLeaveDays" class="control-label">@L["Emp.AnnualLeaveDays"]</label>
+                    <input asp-for="AnnualLeaveDays" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="AnnualLeaveDays" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="SickLeaveDays" class="control-label">@L["Emp.SickLeaveDays"]</label>
+                    <input asp-for="SickLeaveDays" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="SickLeaveDays" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CasualLeaveDays" class="control-label">@L["Emp.CasualLeaveDays"]</label>
+                    <input asp-for="CasualLeaveDays" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="CasualLeaveDays" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="ad-section ad-full" data-row-list data-prefix="Leaves">
+                <h2 class="ad-section-title">@L["Emp.Section.Leaves"]</h2>
+                <div class="ad-rows" data-rows>
+                    @for (var i = 0; i < Model.Leaves.Count; i++)
+                    {
+                        <div class="ad-row-item" data-row>
+                            <input type="hidden" name="Leaves[@i].Id" value="@Model.Leaves[i].Id" />
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.LeaveType"]</label><select name="Leaves[@i].LeaveTypeId" class="form-control"><option value="">@L["Select"]</option>@foreach (var item in Model.LeaveTypes){<option value="@item.Id" selected="@(Model.Leaves[i].LeaveTypeId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>}</select></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.FromDate"]</label><input type="date" name="Leaves[@i].FromDate" value="@(Model.Leaves[i].FromDate?.ToString("yyyy-MM-dd"))" class="form-control" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.ToDate"]</label><input type="date" name="Leaves[@i].ToDate" value="@(Model.Leaves[i].ToDate?.ToString("yyyy-MM-dd"))" class="form-control" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.Days"]</label><input type="number" min="0" name="Leaves[@i].Days" value="@Model.Leaves[i].Days" class="form-control" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.Notes"]</label><input type="text" name="Leaves[@i].Notes" value="@Model.Leaves[i].Notes" class="form-control" maxlength="150" /></div>
+                        <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                        </div>
+                    }
+                </div>
+                <button type="button" class="btn-ad btn-ad-ghost mb-3" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["Emp.Row.Add"]</button>
+                <template data-row-template>
+                    <div class="ad-row-item" data-row>
+                        <input type="hidden" name="Leaves[__i__].Id" value="0" />
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.LeaveType"]</label><select name="Leaves[__i__].LeaveTypeId" class="form-control"><option value="">@L["Select"]</option>@foreach (var item in Model.LeaveTypes){<option value="@item.Id">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>}</select></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.FromDate"]</label><input type="date" name="Leaves[__i__].FromDate"  class="form-control" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.ToDate"]</label><input type="date" name="Leaves[__i__].ToDate"  class="form-control" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.Days"]</label><input type="number" min="0" name="Leaves[__i__].Days"  class="form-control" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.Notes"]</label><input type="text" name="Leaves[__i__].Notes"  class="form-control" maxlength="150" /></div>
+                        <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                    </div>
+                </template>
+            </div>
+
+            <div class="ad-section ad-full" data-row-list data-prefix="Dependents">
+                <h2 class="ad-section-title">@L["Emp.Section.Dependents"]</h2>
+                <div class="ad-rows" data-rows>
+                    @for (var i = 0; i < Model.Dependents.Count; i++)
+                    {
+                        <div class="ad-row-item" data-row>
+                            <input type="hidden" name="Dependents[@i].Id" value="@Model.Dependents[i].Id" />
+                        <div class="form-group"><label class="control-label">@L["ArabicName"]</label><input type="text" name="Dependents[@i].ArName" value="@Model.Dependents[i].ArName" class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["EnglishName"]</label><input type="text" name="Dependents[@i].EnName" value="@Model.Dependents[i].EnName" class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.Relation"]</label><input type="text" name="Dependents[@i].Relation" value="@Model.Dependents[i].Relation" class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.BirthDate"]</label><input type="date" name="Dependents[@i].BirthDate" value="@(Model.Dependents[i].BirthDate?.ToString("yyyy-MM-dd"))" class="form-control" /></div>
+                        <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                        </div>
+                    }
+                </div>
+                <button type="button" class="btn-ad btn-ad-ghost mb-3" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["Emp.Row.Add"]</button>
+                <template data-row-template>
+                    <div class="ad-row-item" data-row>
+                        <input type="hidden" name="Dependents[__i__].Id" value="0" />
+                        <div class="form-group"><label class="control-label">@L["ArabicName"]</label><input type="text" name="Dependents[__i__].ArName"  class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["EnglishName"]</label><input type="text" name="Dependents[__i__].EnName"  class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.Relation"]</label><input type="text" name="Dependents[__i__].Relation"  class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.BirthDate"]</label><input type="date" name="Dependents[__i__].BirthDate"  class="form-control" /></div>
+                        <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                    </div>
+                </template>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Pay" role="tabpanel" aria-labelledby="tab-Pay" tabindex="0">
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Emp.Section.Pay"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group ad-check">
+                    <label class="control-label"><input asp-for="IsSalaryStopped" type="checkbox" /> @L["Emp.IsSalaryStopped"]</label>
+                </div>
+                <div class="form-group">
+                    <label asp-for="WorkDays" class="control-label">@L["Emp.WorkDays"]</label>
+                    <input asp-for="WorkDays" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="WorkDays" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="DailyHours" class="control-label">@L["Emp.DailyHours"]</label>
+                    <input asp-for="DailyHours" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="DailyHours" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="WeeklyHours" class="control-label">@L["Emp.WeeklyHours"]</label>
+                    <input asp-for="WeeklyHours" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="WeeklyHours" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="MonthlyHours" class="control-label">@L["Emp.MonthlyHours"]</label>
+                    <input asp-for="MonthlyHours" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="MonthlyHours" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="PaymentMethod" class="control-label">@L["Emp.PaymentMethod"]</label>
+                    <select asp-for="PaymentMethod" asp-items="Html.GetLocalizedEnumSelectList<SalaryPaymentMethod>(L)" class="form-control">
+                        <option value="">@L["Select"]</option>
+                    </select>
+                    <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="AttendanceMethod" class="control-label">@L["Emp.AttendanceMethod"]</label>
+                    <select asp-for="AttendanceMethod" asp-items="Html.GetLocalizedEnumSelectList<AttendanceMethod>(L)" class="form-control">
+                        <option value="">@L["Select"]</option>
+                    </select>
+                    <span asp-validation-for="AttendanceMethod" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ShiftType" class="control-label">@L["Emp.ShiftType"]</label>
+                    <select asp-for="ShiftType" asp-items="Html.GetLocalizedEnumSelectList<ShiftType>(L)" class="form-control">
+                        <option value="">@L["Select"]</option>
+                    </select>
+                    <span asp-validation-for="ShiftType" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="StartTime" class="control-label">@L["Emp.StartTime"]</label>
+                    <input asp-for="StartTime" type="time" asp-format="{0:hh\:mm}" class="form-control" />
+                    <span asp-validation-for="StartTime" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="EndTime" class="control-label">@L["Emp.EndTime"]</label>
+                    <input asp-for="EndTime" type="time" asp-format="{0:hh\:mm}" class="form-control" />
+                    <span asp-validation-for="EndTime" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="DailyRate" class="control-label">@L["Emp.DailyRate"]</label>
+                    <input asp-for="DailyRate" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="DailyRate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="HourlyRate" class="control-label">@L["Emp.HourlyRate"]</label>
+                    <input asp-for="HourlyRate" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="HourlyRate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="MinuteRate" class="control-label">@L["Emp.MinuteRate"]</label>
+                    <input asp-for="MinuteRate" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="MinuteRate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="SalaryNotes" class="control-label">@L["Emp.SalaryNotes"]</label>
+                    <input asp-for="SalaryNotes" class="form-control" />
+                    <span asp-validation-for="SalaryNotes" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Emp.Section.Bank"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group ad-check">
+                    <label class="control-label"><input asp-for="HasBankAccount" type="checkbox" /> @L["Emp.HasBankAccount"]</label>
+                </div>
+                <div class="form-group">
+                    <label asp-for="AccountNumber" class="control-label">@L["Emp.AccountNumber"]</label>
+                    <input asp-for="AccountNumber" class="form-control" />
+                    <span asp-validation-for="AccountNumber" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="IBAN" class="control-label">@L["Emp.IBAN"]</label>
+                    <input asp-for="IBAN" class="form-control" />
+                    <span asp-validation-for="IBAN" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="ad-section ad-full" data-row-list data-prefix="Allowances">
+                <h2 class="ad-section-title">@L["Emp.Section.Allowances"]</h2>
+                <div class="ad-rows" data-rows>
+                    @for (var i = 0; i < Model.Allowances.Count; i++)
+                    {
+                        <div class="ad-row-item" data-row>
+                            <input type="hidden" name="Allowances[@i].Id" value="@Model.Allowances[i].Id" />
+                        <div class="form-group"><label class="control-label">@L["ArabicName"]</label><input type="text" name="Allowances[@i].ArName" value="@Model.Allowances[i].ArName" class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["EnglishName"]</label><input type="text" name="Allowances[@i].EnName" value="@Model.Allowances[i].EnName" class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.Amount"]</label><input type="number" step="0.01" min="0" name="Allowances[@i].Amount" value="@Model.Allowances[i].Amount" class="form-control" /></div>
+                        <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                        </div>
+                    }
+                </div>
+                <button type="button" class="btn-ad btn-ad-ghost mb-3" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["Emp.Row.Add"]</button>
+                <template data-row-template>
+                    <div class="ad-row-item" data-row>
+                        <input type="hidden" name="Allowances[__i__].Id" value="0" />
+                        <div class="form-group"><label class="control-label">@L["ArabicName"]</label><input type="text" name="Allowances[__i__].ArName"  class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["EnglishName"]</label><input type="text" name="Allowances[__i__].EnName"  class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.Amount"]</label><input type="number" step="0.01" min="0" name="Allowances[__i__].Amount"  class="form-control" /></div>
+                        <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                    </div>
+                </template>
+            </div>
+
+            <div class="ad-section ad-full" data-row-list data-prefix="FixedDeductions">
+                <h2 class="ad-section-title">@L["Emp.Section.FixedDeductions"]</h2>
+                <div class="ad-rows" data-rows>
+                    @for (var i = 0; i < Model.FixedDeductions.Count; i++)
+                    {
+                        <div class="ad-row-item" data-row>
+                            <input type="hidden" name="FixedDeductions[@i].Id" value="@Model.FixedDeductions[i].Id" />
+                        <div class="form-group"><label class="control-label">@L["ArabicName"]</label><input type="text" name="FixedDeductions[@i].ArName" value="@Model.FixedDeductions[i].ArName" class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["EnglishName"]</label><input type="text" name="FixedDeductions[@i].EnName" value="@Model.FixedDeductions[i].EnName" class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.Amount"]</label><input type="number" step="0.01" min="0" name="FixedDeductions[@i].Amount" value="@Model.FixedDeductions[i].Amount" class="form-control" /></div>
+                        <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                        </div>
+                    }
+                </div>
+                <button type="button" class="btn-ad btn-ad-ghost mb-3" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["Emp.Row.Add"]</button>
+                <template data-row-template>
+                    <div class="ad-row-item" data-row>
+                        <input type="hidden" name="FixedDeductions[__i__].Id" value="0" />
+                        <div class="form-group"><label class="control-label">@L["ArabicName"]</label><input type="text" name="FixedDeductions[__i__].ArName"  class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["EnglishName"]</label><input type="text" name="FixedDeductions[__i__].EnName"  class="form-control" maxlength="150" /></div>
+                        <div class="form-group"><label class="control-label">@L["Emp.Row.Amount"]</label><input type="number" step="0.01" min="0" name="FixedDeductions[__i__].Amount"  class="form-control" /></div>
+                        <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                    </div>
+                </template>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Insurance" role="tabpanel" aria-labelledby="tab-Insurance" tabindex="0">
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Emp.Section.Insurance"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="InsuranceNumber" class="control-label">@L["Emp.InsuranceNumber"]</label>
+                    <input asp-for="InsuranceNumber" class="form-control" />
+                    <span asp-validation-for="InsuranceNumber" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="InsuranceStartDate" class="control-label">@L["Emp.InsuranceStartDate"]</label>
+                    <input asp-for="InsuranceStartDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                    <span asp-validation-for="InsuranceStartDate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="InsuranceEndDate" class="control-label">@L["Emp.InsuranceEndDate"]</label>
+                    <input asp-for="InsuranceEndDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                    <span asp-validation-for="InsuranceEndDate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="InsuranceBasicSalary" class="control-label">@L["Emp.InsuranceBasicSalary"]</label>
+                    <input asp-for="InsuranceBasicSalary" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="InsuranceBasicSalary" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="InsuranceAllowancesAmount" class="control-label">@L["Emp.InsuranceAllowancesAmount"]</label>
+                    <input asp-for="InsuranceAllowancesAmount" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="InsuranceAllowancesAmount" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="EmployeeInsurancePercent" class="control-label">@L["Emp.EmployeeInsurancePercent"]</label>
+                    <input asp-for="EmployeeInsurancePercent" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="EmployeeInsurancePercent" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="EmployeeInsuranceAmount" class="control-label">@L["Emp.EmployeeInsuranceAmount"]</label>
+                    <input asp-for="EmployeeInsuranceAmount" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="EmployeeInsuranceAmount" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CompanyInsurancePercent" class="control-label">@L["Emp.CompanyInsurancePercent"]</label>
+                    <input asp-for="CompanyInsurancePercent" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="CompanyInsurancePercent" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CompanyInsuranceAmount" class="control-label">@L["Emp.CompanyInsuranceAmount"]</label>
+                    <input asp-for="CompanyInsuranceAmount" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="CompanyInsuranceAmount" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="InsuranceCardNumber" class="control-label">@L["Emp.InsuranceCardNumber"]</label>
+                    <input asp-for="InsuranceCardNumber" class="form-control" />
+                    <span asp-validation-for="InsuranceCardNumber" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="IssueDate" class="control-label">@L["Emp.IssueDate"]</label>
+                    <input asp-for="IssueDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                    <span asp-validation-for="IssueDate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ExpiryDate" class="control-label">@L["Emp.ExpiryDate"]</label>
+                    <input asp-for="ExpiryDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                    <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="InsuranceAmount" class="control-label">@L["Emp.InsuranceAmount"]</label>
+                    <input asp-for="InsuranceAmount" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="InsuranceAmount" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="InsurancePercent" class="control-label">@L["Emp.InsurancePercent"]</label>
+                    <input asp-for="InsurancePercent" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="InsurancePercent" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Attendance" role="tabpanel" aria-labelledby="tab-Attendance" tabindex="0">
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Emp.Section.Delay"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group ad-check">
+                    <label class="control-label"><input asp-for="OverrideDelayRule" type="checkbox" /> @L["Emp.OverrideDelayRule"]</label>
+                </div>
+                <div class="form-group">
+                    <label asp-for="GracePeriodMinutesOverride" class="control-label">@L["Emp.GracePeriodMinutesOverride"]</label>
+                    <input asp-for="GracePeriodMinutesOverride" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="GracePeriodMinutesOverride" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="DelayDeductionModeOverride" class="control-label">@L["Emp.DelayDeductionModeOverride"]</label>
+                    <select asp-for="DelayDeductionModeOverride" asp-items="Html.GetLocalizedEnumSelectList<DelayDeductionMode>(L)" class="form-control">
+                        <option value="">@L["Select"]</option>
+                    </select>
+                    <span asp-validation-for="DelayDeductionModeOverride" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="DelayRuleMinutesOverride" class="control-label">@L["Emp.DelayRuleMinutesOverride"]</label>
+                    <input asp-for="DelayRuleMinutesOverride" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="DelayRuleMinutesOverride" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="DelayRuleAmountOverride" class="control-label">@L["Emp.DelayRuleAmountOverride"]</label>
+                    <input asp-for="DelayRuleAmountOverride" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="DelayRuleAmountOverride" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="DelayDayFractionOverride" class="control-label">@L["Emp.DelayDayFractionOverride"]</label>
+                    <select asp-for="DelayDayFractionOverride" asp-items="Html.GetLocalizedEnumSelectList<DayFraction>(L)" class="form-control">
+                        <option value="">@L["Select"]</option>
+                    </select>
+                    <span asp-validation-for="DelayDayFractionOverride" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="LateDeductionMultiplierOverride" class="control-label">@L["Emp.LateDeductionMultiplierOverride"]</label>
+                    <input asp-for="LateDeductionMultiplierOverride" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="LateDeductionMultiplierOverride" class="text-danger"></span>
+                </div>
+                <div class="form-group ad-check">
+                    <label class="control-label"><input asp-for="FullDayEscalationEnabledOverride" type="checkbox" /> @L["Emp.FullDayEscalationEnabledOverride"]</label>
+                </div>
+                <div class="form-group">
+                    <label asp-for="FullDayDeductionThresholdMinutesOverride" class="control-label">@L["Emp.FullDayDeductionThresholdMinutesOverride"]</label>
+                    <input asp-for="FullDayDeductionThresholdMinutesOverride" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="FullDayDeductionThresholdMinutesOverride" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Emp.Section.Overtime"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group ad-check">
+                    <label class="control-label"><input asp-for="OverrideOvertimeRule" type="checkbox" /> @L["Emp.OverrideOvertimeRule"]</label>
+                </div>
+                <div class="form-group">
+                    <label asp-for="OvertimeRuleMinutesStartOverride" class="control-label">@L["Emp.OvertimeRuleMinutesStartOverride"]</label>
+                    <input asp-for="OvertimeRuleMinutesStartOverride" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="OvertimeRuleMinutesStartOverride" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="OvertimeRuleMinutesOverride" class="control-label">@L["Emp.OvertimeRuleMinutesOverride"]</label>
+                    <input asp-for="OvertimeRuleMinutesOverride" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="OvertimeRuleMinutesOverride" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="OvertimeRuleAmountOverride" class="control-label">@L["Emp.OvertimeRuleAmountOverride"]</label>
+                    <input asp-for="OvertimeRuleAmountOverride" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="OvertimeRuleAmountOverride" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="OvertimeCalculationModeOverride" class="control-label">@L["Emp.OvertimeCalculationModeOverride"]</label>
+                    <select asp-for="OvertimeCalculationModeOverride" asp-items="Html.GetLocalizedEnumSelectList<OvertimeCalculationMode>(L)" class="form-control">
+                        <option value="">@L["Select"]</option>
+                    </select>
+                    <span asp-validation-for="OvertimeCalculationModeOverride" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="OvertimeMultiplierOverride" class="control-label">@L["Emp.OvertimeMultiplierOverride"]</label>
+                    <input asp-for="OvertimeMultiplierOverride" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="OvertimeMultiplierOverride" class="text-danger"></span>
+                </div>
+                <div class="form-group ad-check">
+                    <label class="control-label"><input asp-for="OverrideWeeklyOffDays" type="checkbox" /> @L["Emp.OverrideWeeklyOffDays"]</label>
+                </div>
+                <div class="form-group ad-full">
+                    <label class="control-label">@L["Emp.WeeklyOffDaysSelected"]</label>
+                    <div class="ad-days">
+                        @foreach (var day in Enum.GetValues<WeeklyOffDays>().Where(a => a != WeeklyOffDays.None))
+                        {
+                            <label><input type="checkbox" name="WeeklyOffDaysSelected" value="@((int)day)" checked="@Model.WeeklyOffDaysSelected.Contains(day)" /> @Html.EnumText(L, day)</label>
+                        }
+                    </div>
+                </div>
+                <div class="form-group ad-check">
+                    <label class="control-label"><input asp-for="OverrideOffDayOvertimeRule" type="checkbox" /> @L["Emp.OverrideOffDayOvertimeRule"]</label>
+                </div>
+                <div class="form-group ad-check">
+                    <label class="control-label"><input asp-for="OffDayAsOvertimeOverride" type="checkbox" /> @L["Emp.OffDayAsOvertimeOverride"]</label>
+                </div>
+                </div>
+            </div>
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Emp.Section.EarlyLeave"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group ad-check">
+                    <label class="control-label"><input asp-for="OverrideEarlyLeaveRule" type="checkbox" /> @L["Emp.OverrideEarlyLeaveRule"]</label>
+                </div>
+                <div class="form-group ad-check">
+                    <label class="control-label"><input asp-for="EarlyLeaveDeductionEnabledOverride" type="checkbox" /> @L["Emp.EarlyLeaveDeductionEnabledOverride"]</label>
+                </div>
+                <div class="form-group">
+                    <label asp-for="EarlyLeaveGraceMinutesOverride" class="control-label">@L["Emp.EarlyLeaveGraceMinutesOverride"]</label>
+                    <input asp-for="EarlyLeaveGraceMinutesOverride" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="EarlyLeaveGraceMinutesOverride" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Perks" role="tabpanel" aria-labelledby="tab-Perks" tabindex="0">
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Emp.Section.Travel"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group ad-check">
+                    <label class="control-label"><input asp-for="HasTravelTicket" type="checkbox" /> @L["Emp.HasTravelTicket"]</label>
+                </div>
+                <div class="form-group">
+                    <label asp-for="TicketType" class="control-label">@L["Emp.TicketType"]</label>
+                    <select asp-for="TicketType" asp-items="Html.GetLocalizedEnumSelectList<TicketType>(L)" class="form-control">
+                        <option value="">@L["Select"]</option>
+                    </select>
+                    <span asp-validation-for="TicketType" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Destination" class="control-label">@L["Emp.Destination"]</label>
+                    <input asp-for="Destination" class="form-control" />
+                    <span asp-validation-for="Destination" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="TicketCount" class="control-label">@L["Emp.TicketCount"]</label>
+                    <input asp-for="TicketCount" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="TicketCount" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Emp.Section.Car"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group ad-check">
+                    <label class="control-label"><input asp-for="HasCar" type="checkbox" /> @L["Emp.HasCar"]</label>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CarType" class="control-label">@L["Emp.CarType"]</label>
+                    <input asp-for="CarType" class="form-control" />
+                    <span asp-validation-for="CarType" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CarNumber" class="control-label">@L["Emp.CarNumber"]</label>
+                    <input asp-for="CarNumber" class="form-control" />
+                    <span asp-validation-for="CarNumber" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+            </div>
+            </div>
+
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+            @if (!isNew)
+            {
+                <button type="button" onclick="Delete('/Employee/Delete/@Model.Id', '@Url.Action("Index")')" class="btn-ad btn-ad-danger push" ><i class="fas fa-trash" aria-hidden="true"></i> @L["Delete"]</button>
+            }
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+/* Reusable Country -> Governorate -> City cascading select.
+   Markup contract: a wrapper with [data-location-cascade] carrying the lookup URLs and
+   (optionally) the previously-saved ids to preselect, containing three <select>s marked
+   [data-cascade-level="country|governorate|city"]. Only the city select needs a `name`/`asp-for` —
+   country and governorate exist purely to narrow the city list down. */
+(function ($) {
+    'use strict';
+
+    function fillOptions($select, items, arabic, placeholder, selectedId) {
+        $select.empty().append($('<option>', { value: '', text: placeholder }));
+        items.forEach(function (item) {
+            $select.append($('<option>', { value: item.id, text: arabic ? item.arName : item.enName }));
+        });
+        $select.prop('disabled', items.length === 0);
+        if (selectedId) { $select.val(String(selectedId)); }
+    }
+
+    $('[data-location-cascade]').each(function () {
+        var $root = $(this);
+        var arabic = String($root.data('arabic')) === '1';
+        var placeholder = $root.data('placeholder') || '';
+        var urls = {
+            country: $root.data('countriesUrl'),
+            governorate: $root.data('governoratesUrl'),
+            city: $root.data('citiesUrl')
+        };
+        var $country = $root.find('[data-cascade-level="country"]');
+        var $governorate = $root.find('[data-cascade-level="governorate"]');
+        var $city = $root.find('[data-cascade-level="city"]');
+
+        function loadCities(governorateId, selectedCity) {
+            if (!governorateId) {
+                $city.empty().prop('disabled', true);
+                return;
+            }
+            $.get(urls.city, { governorateId: governorateId }, function (data) {
+                fillOptions($city, data, arabic, placeholder, selectedCity);
+            });
+        }
+
+        function loadGovernorates(countryId, selectedGovernorate, selectedCity) {
+            if (!countryId) {
+                $governorate.empty().prop('disabled', true);
+                $city.empty().prop('disabled', true);
+                return;
+            }
+            $.get(urls.governorate, { countryId: countryId }, function (data) {
+                fillOptions($governorate, data, arabic, placeholder, selectedGovernorate);
+                if (selectedGovernorate) { loadCities(selectedGovernorate, selectedCity); }
+                else { $city.empty().prop('disabled', true); }
+            });
+        }
+
+        $country.on('change', function () { loadGovernorates($(this).val()); });
+        $governorate.on('change', function () { loadCities($(this).val()); });
+
+        $.get(urls.country, function (data) {
+            var selectedCountry = $root.data('selectedCountry');
+            fillOptions($country, data, arabic, placeholder, selectedCountry);
+            if (selectedCountry) {
+                loadGovernorates(selectedCountry, $root.data('selectedGovernorate'), $root.data('selectedCity'));
+            }
+        });
+    });
+})(jQuery);
+</script>
+}

@@ -9,7 +9,9 @@ namespace Restaurant.DAL.SeedData
         public static async Task SeedData(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager,
+            bool seedDefaultUsers = true,
+            string defaultPassword = null)
         {
             await SeedJobs(context);
             await SeedLocations(context);
@@ -17,9 +19,9 @@ namespace Restaurant.DAL.SeedData
             await SeedTables(context);
             await SeedUnitPrices(context);
             await SeedProductCategories(context);
-            await SeedApplicationSettings(context);
+            await SeedApplicationSettings(context, defaultPassword);
             await SeedPrinterSettings(context);
-            await SeedAdminRoleAndUsers(userManager, roleManager);
+            await SeedAdminRoleAndUsers(userManager, roleManager, seedDefaultUsers, defaultPassword);
         }
 
         private static async Task SeedJobs(ApplicationDbContext context)
@@ -187,7 +189,6 @@ namespace Restaurant.DAL.SeedData
             {
                 var rows = new[]
                 {
-                    // Egypt Governorates (CountryId = 1)
                     new Governorate {CountryId = 1, ArName = "القاهرة", EnName = "Cairo"},
                     new Governorate {CountryId = 1, ArName = "الجيزة", EnName = "Giza"},
                     new Governorate {CountryId = 1, ArName = "الإسكندرية", EnName = "Alexandria"},
@@ -216,7 +217,6 @@ namespace Restaurant.DAL.SeedData
                     new Governorate {CountryId = 1, ArName = "سوهاج", EnName = "Sohag"},
                     new Governorate {CountryId = 1, ArName = "الأقصر", EnName = "Luxor"},
 
-                    // Saudi Arabia Governorates/Provinces (CountryId = 2)
                     new Governorate {CountryId = 2, ArName = "الرياض", EnName = "Riyadh"},
                     new Governorate {CountryId = 2, ArName = "مكة المكرمة", EnName = "Makkah"},
                     new Governorate {CountryId = 2, ArName = "جدة", EnName = "Jeddah"},
@@ -233,7 +233,6 @@ namespace Restaurant.DAL.SeedData
                     new Governorate {CountryId = 2, ArName = "الجوف", EnName = "Al Jawf"},
                     new Governorate {CountryId = 2, ArName = "بريدة", EnName = "Buraidah"},
                     new Governorate {CountryId = 2, ArName = "سكاكا", EnName = "Sakaka"}
-                    // Add more governorates as needed based on official lists
                 };
                 context.Governorates.AddRange(rows);
                 await context.SaveChangesAsync();
@@ -246,7 +245,6 @@ namespace Restaurant.DAL.SeedData
             {
                 var rows = new[]
                 {
-                    // Egypt (GovernorateId: 1-27)
                     new Town {GovernorateId = 1, ArName = "القاهرة", EnName = "Cairo"},
                     new Town {GovernorateId = 1, ArName = "حلوان", EnName = "Helwan"},
 
@@ -328,7 +326,6 @@ namespace Restaurant.DAL.SeedData
                     new Town {GovernorateId = 27, ArName = "الأقصر", EnName = "Luxor"},
                     new Town {GovernorateId = 27, ArName = "إسنا", EnName = "Esna"},
 
-                    // Saudi Arabia (GovernorateId: 28-43)
                     new Town {GovernorateId = 28, ArName = "الرياض", EnName = "Riyadh"},
                     new Town {GovernorateId = 28, ArName = "الدرعية", EnName = "Ad Diriyah"},
 
@@ -477,7 +474,7 @@ namespace Restaurant.DAL.SeedData
             }
         }
 
-        private static async Task SeedApplicationSettings(ApplicationDbContext context)
+        private static async Task SeedApplicationSettings(ApplicationDbContext context, string defaultPassword)
         {
             if (!context.ApplicationSettings.Any())
             {
@@ -485,7 +482,7 @@ namespace Restaurant.DAL.SeedData
                 {
                     new ApplicationSetting
                     {
-                        Password = ShiftPassword.Hash("@Qwe12"),
+                        Password = ShiftPassword.Hash(defaultPassword ?? Guid.NewGuid().ToString("N")),
                         OrderTax = 5,
                         OrderDiscount = 1,
                         OrderService = 10,
@@ -521,7 +518,9 @@ namespace Restaurant.DAL.SeedData
 
         private static async Task SeedAdminRoleAndUsers(
             UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager,
+            bool seedDefaultUsers,
+            string defaultPassword)
         {
             if (!await roleManager.RoleExistsAsync("Admin"))
             {
@@ -534,6 +533,11 @@ namespace Restaurant.DAL.SeedData
             if (!await roleManager.RoleExistsAsync("كاشير"))
             {
                 await roleManager.CreateAsync(new IdentityRole("كاشير"));
+            }
+
+            if (!seedDefaultUsers || string.IsNullOrEmpty(defaultPassword))
+            {
+                return;
             }
 
             var users = new[]
@@ -565,7 +569,7 @@ namespace Restaurant.DAL.SeedData
                 var existingUser = await userManager.FindByNameAsync(user.UserName);
                 if (existingUser == null)
                 {
-                    await userManager.CreateAsync(user, "@Qwe12");
+                    await userManager.CreateAsync(user, defaultPassword);
                     existingUser = user;
                 }
                 if (!await userManager.IsInRoleAsync(existingUser, "Admin"))

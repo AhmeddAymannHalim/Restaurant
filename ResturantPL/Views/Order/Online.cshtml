@@ -63,13 +63,8 @@
 </div>
 
 @section Scripts {
-    <script src="~/microsoft-signalr/signalr.min.js"></script>
     <script>
-        try {
-            var connection = new signalR.HubConnectionBuilder().withUrl("/OrderHub").withAutomaticReconnect().build();
-            connection.on("RefreshOnlineOrders", function () { location.reload(); });
-            connection.start();
-        } catch (e) { }
+        setInterval(function () { location.reload(); }, 30000);
 
         var rejectText = {
             title: @Html.Raw(Json.Serialize(L["RejectOrderTitle"].Value)),

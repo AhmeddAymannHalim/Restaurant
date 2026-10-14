@@ -53,7 +53,6 @@
                         {
                             <li><a class="dropdown-item" asp-controller="ApplicationSetting" asp-action="Index"><i class="bi bi-gear" aria-hidden="true"></i> @L["Settings"]</a></li>
                         }
-                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="bi bi-person" aria-hidden="true"></i> @L["MyProfile"]</a></li>
                         <li><a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword"><i class="bi bi-key" aria-hidden="true"></i> @L["ChangePassword"]</a></li>
                         <li><hr class="dropdown-divider" /></li>
                         <li><a class="dropdown-item is-exit" asp-controller="Account" asp-action="SignOut"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> @L["SignOut"]</a></li>
@@ -70,7 +69,9 @@
             <a class="site-lang" asp-controller="SetLanguage" asp-action="SetLanguage" asp-route-culture="@(isArabic ? "en" : "ar")" asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)">
                 <i class="bi bi-translate" aria-hidden="true"></i> @(isArabic ? "English" : "العربية")
             </a>
-            @await Component.InvokeAsync("SiteBrand")
+            <a class="site-brand" asp-controller="Home" asp-action="Index" title="@L["Website"]" aria-label="@L["Website"]">
+                <span class="site-logo" aria-hidden="true"><i class="bi bi-egg-fried"></i></span>
+            </a>
             <button type="button" class="site-cart" data-cart data-cart-open aria-haspopup="dialog" aria-controls="cartDrawer" data-added="@L["AddedToBasket"]" aria-label="@L["Cart"]" title="@L["Cart"]">
                 <i class="bi bi-bag" aria-hidden="true"></i>
                 <span class="site-cart-count" data-cart-count aria-live="polite" hidden>0</span>

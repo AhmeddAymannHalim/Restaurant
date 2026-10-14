@@ -1,19 +1,244 @@
-using ResturantPL;
-using ResturantPL.Extensions;
+using Microsoft.AspNetCore.Mvc.Razor;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
+using Restaurant.BLL.Services.Commons;
+using Restaurant.BLL.Services.Definitions;
+using Restaurant.BLL.Services.IServices.Commons;
+using Restaurant.BLL.Services.IServices.Definitions;
+using Restaurant.BLL.Validations.Branch;
+using Restaurant.DAL;
+using Restaurant.DAL.IRepositories.Commons;
+using Restaurant.DAL.IRepositories.Definitions;
+using Restaurant.DAL.Models;
+using Restaurant.DAL.Repositories.Commons;
+using Restaurant.DAL.Repositories.Definitions;
+using Restaurant.DAL.SeedData;
+using Restaurant.DAL.UnitOfWork;
+using ResturantPL.Filters;
+using ResturantPL.Services;
+using Rotativa.AspNetCore;
+using Shared.Helpers;
+using Shared.Helpers.Localization;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
+var services = builder.Services;
+var configuration = builder.Configuration;
 
-builder.AddWebServices();
-builder.Services
-    .AddPersistence(builder.Configuration)
-    .AddEmail(builder.Configuration)
-    .AddAuthenticationAndIdentity(builder.Configuration)
-    .AddAppSession()
-    .AddSignalR();
+services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("Default")));
+services.AddHttpContextAccessor();
+services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+services.AddMemoryCache();
+services.AddSingleton<IStringLocalizerFactory, JsonStringLocalizerFactory>();
+services.AddLocalization(options => options.ResourcesPath = "Resources");
+services.Configure<RequestLocalizationOptions>(options =>
+{
+    var arCulture = new CultureInfo("ar");
+    arCulture.DateTimeFormat.Calendar = new GregorianCalendar();
+    arCulture.NumberFormat.NativeDigits = new[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+    arCulture.NumberFormat.NumberDecimalSeparator = ".";
+    arCulture.NumberFormat.CurrencyDecimalSeparator = ".";
+    arCulture.NumberFormat.PercentDecimalSeparator = ".";
+    arCulture.NumberFormat.NumberGroupSeparator = ",";
+    arCulture.NumberFormat.CurrencyGroupSeparator = ",";
+    arCulture.NumberFormat.PercentGroupSeparator = ",";
+    arCulture.DateTimeFormat.DateSeparator = "/";
+    arCulture.DateTimeFormat.ShortDatePattern = "dd/MM/yyyy";
+
+    var supportedCultures = new[] { arCulture, new CultureInfo("en") };
+    options.DefaultRequestCulture = new RequestCulture(arCulture, arCulture);
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    options.RequestCultureProviders = new List<IRequestCultureProvider>
+    {
+        new QueryStringRequestCultureProvider(),
+        new CookieRequestCultureProvider()
+    };
+});
+
+var relaxedSecurity = configuration.GetValue<bool>("Security:Relaxed");
+services.AddAntiforgery(options => options.HeaderName = "RequestVerificationToken");
+services.AddControllersWithViews(options =>
+    {
+        options.Filters.Add<AjaxRedirectFilter>();
+        if (relaxedSecurity)
+        {
+            options.Filters.Add(new IgnoreAntiforgeryTokenAttribute { Order = 1001 });
+        }
+        else
+        {
+            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+        }
+    })
+    .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
+    .AddDataAnnotationsLocalization();
+services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
+services.AddValidatorsFromAssemblyContaining<BranchVmValidator>();
+services.AddAutoMapper(cfg => { }, typeof(Restaurant.BLL.Helper.AutoMapper).Assembly);
+
+services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+    {
+        options.SignIn.RequireConfirmedAccount = false;
+        options.Password.RequiredLength = 6;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = true;
+        options.User.RequireUniqueEmail = true;
+    })
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.LoginPath = "/Account/SignIn";
+        options.AccessDeniedPath = "/Home/Error";
+        options.Cookie.HttpOnly = true;
+        options.ExpireTimeSpan = TimeSpan.FromDays(6);
+    });
+
+if (relaxedSecurity)
+{
+    services.AddAuthorizationBuilder()
+        .AddPolicy("Staff", policy => policy.RequireAuthenticatedUser())
+        .AddPolicy("Management", policy => policy.RequireAuthenticatedUser())
+        .AddPolicy("Admin", policy => policy.RequireAuthenticatedUser());
+}
+else
+{
+    services.AddAuthorizationBuilder()
+        .AddPolicy("Staff", policy => policy
+            .RequireAuthenticatedUser()
+            .RequireAssertion(context => !context.User.IsInRole("User")))
+        .AddPolicy("Management", policy => policy.RequireRole("Admin", "Manager"))
+        .AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+}
+
+services.Configure<EmailOptions>(configuration.GetSection("Email"));
+services.AddScoped<IEmailService, EmailService>();
+services.AddScoped<IToastrService, ToastrService>();
+
+services.AddScoped<IUnitOfWork, UnitOfWork>();
+services.AddScoped(typeof(IValidatorRepository<>), typeof(ValidatorRepository<>));
+services.AddScoped(typeof(IValidatorService<>), typeof(ValidatorService<>));
+services.AddScoped<ILookupService, LookupService>();
+services.AddScoped<IHomeService, HomeService>();
+services.AddScoped<IChefService, ChefService>();
+services.AddScoped<IGalleryService, GalleryService>();
+services.AddScoped<IBranchService, BranchService>();
+services.AddScoped<IJobService, JobService>();
+services.AddScoped<ITableService, TableService>();
+services.AddScoped<IUnitPriceService, UnitPriceService>();
+services.AddScoped<IProductCategoryService, ProductCategoryService>();
+services.AddScoped<IMenuSectionService, MenuSectionService>();
+services.AddScoped<IMenuItemService, MenuItemService>();
+services.AddScoped<IProductService, ProductService>();
+services.AddScoped<IStoreService, StoreService>();
+services.AddScoped<ISupplierService, SupplierService>();
+services.AddScoped<IRoleRepository, RoleRepository>();
+services.AddScoped<IRoleService, RoleService>();
+services.AddScoped<IInvoiceService, InvoiceService>();
+services.AddScoped<IStockMovementService, StockMovementService>();
+services.AddScoped<IOrderService, OrderService>();
+services.AddScoped<IErpBillService, ErpBillService>();
+services.AddScoped<IAccountDefinitionService, AccountDefinitionService>();
+services.AddScoped<IErpEntryService, ErpEntryService>();
+services.AddScoped<IOnlineOrderService, OnlineOrderService>();
+services.AddScoped<IReportService, ReportService>();
+services.AddScoped<IStoreConvertService, StoreConvertService>();
+services.AddScoped<ISupplierPaymentService, SupplierPaymentService>();
+services.AddScoped<ICustomerPaymentService, CustomerPaymentService>();
+services.AddScoped<IUserRepository, UserRepository>();
+services.AddScoped<IUserService, UserService>();
+services.AddScoped<IEmployeeAccountRepository, EmployeeAccountRepository>();
+services.AddScoped<IEmployeeAccountService, EmployeeAccountService>();
+services.AddScoped<ISettingRepository, SettingRepository>();
+services.AddScoped<ISettingService, SettingService>();
+services.AddScoped<IAccountRepository, AccountRepository>();
+services.AddScoped<IAccountService, AccountService>();
+services.AddScoped<ICustomerService, CustomerService>();
+services.AddScoped<IEmployeeService, EmployeeService>();
+services.AddScoped<IDashboardService, DashboardService>();
+services.AddScoped<IDepositService, DepositService>();
+services.AddScoped<IExitExpenseService, ExitExpenseService>();
+services.AddScoped<IScroungeService, ScroungeService>();
+services.AddScoped<ISalaryService, SalaryService>();
+services.AddScoped<IKitchenService, KitchenService>();
+services.AddScoped<ICurrencyService, CurrencyService>();
+services.AddScoped<ICompanyService, CompanyService>();
+services.AddScoped<ILeaveTypeService, LeaveTypeService>();
+services.AddScoped<IInsuranceCompanyService, InsuranceCompanyService>();
+services.AddScoped<IInsuranceCategoryService, InsuranceCategoryService>();
+services.AddScoped<IJobTypeService, JobTypeService>();
+services.AddScoped<IDepartmentService, DepartmentService>();
+services.AddScoped<IContractTypeService, ContractTypeService>();
+services.AddScoped<ISpecializationService, SpecializationService>();
+services.AddScoped<ICustomerTierService, CustomerTierService>();
+services.AddScoped<IClassificationService, ClassificationService>();
+services.AddScoped<ICostCenterService, CostCenterService>();
+services.AddScoped<ISellTypeService, SellTypeService>();
+services.AddScoped<IDeliveryZoneService, DeliveryZoneService>();
+services.AddScoped<IExpenseService, ExpenseService>();
 
 var app = builder.Build();
 
-app.UseWebPipeline();
-await app.MigrateAndSeedAsync();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+
+ErrorLog.Logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("App");
+ErrorLog.ShowDetails = app.Environment.IsDevelopment();
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
+app.UseSession();
+app.UseRotativa();
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    if (configuration.GetValue("Database:MigrateOnStartup", true))
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+
+    if (configuration.GetValue("Database:SeedOnStartup", true))
+    {
+        await DataSeeder.SeedData(
+            dbContext,
+            scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
+            scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>(),
+            configuration.GetValue("Database:SeedDefaultUsers", true),
+            configuration["Database:DefaultPassword"] ?? (app.Environment.IsDevelopment() ? "@Qwe12" : null));
+    }
+}
 
 app.Run();

@@ -1,0 +1,93 @@
+@model PaginatedResult<ErpEntryViewModel>
+@{
+    ViewBag.Title = L["Erp.Entries"].Value;
+    var isArabic = LanguageHelper.IsArabic();
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-book" aria-hidden="true"></i></span>
+        <h1>@L["Erp.Entries"]</h1>
+        <a asp-action="Upsert" class="btn-ad btn-ad-primary"><i class="fas fa-plus" aria-hidden="true"></i> @L["Erp.NewEntry"]</a>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Index" method="get" class="ad-filters">
+            <div class="ad-search">
+                <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                <input id="Entry-search" type="search" class="form-control" name="searchString" value="@Model.SearchString" placeholder="@L["SearchHere"]" />
+            </div>
+            <select name="type" class="form-select w-auto" aria-label="@L["Erp.EntryType"]">
+                <option value="">@L["Erp.AllEntries"]</option>
+                <option value="JournalSales" selected="@(Model.Type == "JournalSales")">@L["Erp.EntryJournalSales"]</option>
+                <option value="JournalPurchases" selected="@(Model.Type == "JournalPurchases")">@L["Erp.EntryJournalPurchases"]</option>
+                <option value="ReturnJournalSales" selected="@(Model.Type == "ReturnJournalSales")">@L["Erp.EntryReturnJournalSales"]</option>
+                <option value="ReturnJournalPurchases" selected="@(Model.Type == "ReturnJournalPurchases")">@L["Erp.EntryReturnJournalPurchases"]</option>
+                <option value="CustomerPayment" selected="@(Model.Type == "CustomerPayment")">@L["Erp.EntryCustomerPayment"]</option>
+                <option value="SupplierPayment" selected="@(Model.Type == "SupplierPayment")">@L["Erp.EntrySupplierPayment"]</option>
+                <option value="CashPayment" selected="@(Model.Type == "CashPayment")">@L["Erp.EntryCashPayment"]</option>
+                <option value="Journal" selected="@(Model.Type == "Journal")">@L["Erp.EntryJournal"]</option>
+            </select>
+            <input type="date" name="fromDate" class="form-control w-auto" value="@Model.FromDate?.ToString("yyyy-MM-dd")" aria-label="@L["From"]" title="@L["From"]" />
+            <input type="date" name="toDate" class="form-control w-auto" value="@Model.ToDate?.ToString("yyyy-MM-dd")" aria-label="@L["To"]" title="@L["To"]" />
+            <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-magnifying-glass" aria-hidden="true"></i> @L["Search"]</button>
+            <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
+        </form>
+
+        @await Html.PartialAsync("_ExportToolbar", "Entry-table")
+        <div class="ad-table-wrap">
+            <table id="Entry-table" class="ad-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>@L["Code"]</th>
+                        <th>@L["InvoiceDate"]</th>
+                        <th>@L["Erp.EntryType"]</th>
+                        <th>@L["Erp.Bill"]</th>
+                        <th>@L["Erp.Total"]</th>
+                        <th>@L["Erp.Remarks"]</th>
+                        <th>@L["Erp.Entry"]</th>
+                        <th data-export-ignore="true"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Data.Any())
+                    {
+                        var counter = ((Model.PageNo - 1) * Model.PageSize) + 1;
+                        foreach (var item in Model.Data)
+                        {
+                            <tr>
+                                <td>@counter</td>
+                                <td>@item.Code</td>
+                                <td>@item.EntryDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>@(isArabic ? item.SettingArName : item.SettingEnName)</td>
+                                <td>
+                                    @if (item.BillId.HasValue)
+                                    {
+                                        <a asp-controller="Bill" asp-action="Details" asp-route-id="@item.BillId">@item.BillCode</a>
+                                    }
+                                </td>
+                                <td class="num">@item.Total.ToString("N2")</td>
+                                <td>@item.Remarks</td>
+                                <td>@(item.IsPosted ? L["Erp.Posted"] : L["Erp.NotPosted"])</td>
+                                <td class="ad-row-actions">
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Erp.Details"]" aria-label="@L["Erp.Details"]"><i class="fas fa-eye" aria-hidden="true"></i></a>
+                                </td>
+                            </tr>
+                            counter++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="ad-empty">@L["NoData"]</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="app-table-pagination">
+            @await Html.PartialAsync("_Pagination", Model)
+        </div>
+    </div>
+</div>

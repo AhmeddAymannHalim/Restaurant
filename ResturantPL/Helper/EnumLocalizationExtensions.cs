@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ResturantPL.Helper;
 
-/// <summary>Drop-down and label text of enums from the language files (key Enum.&lt;EnumName&gt;.&lt;Value&gt;), falling back to the value name.</summary>
 public static class EnumLocalizationExtensions
 {
     public static IEnumerable<SelectListItem> GetLocalizedEnumSelectList<TEnum>(this IHtmlHelper html, IViewLocalizer localizer) where TEnum : struct, Enum
@@ -15,7 +14,6 @@ public static class EnumLocalizationExtensions
         });
     }
 
-    /// <summary>For columns that store the enum value name as text (e.g. Religion): the option value is the name; a stored value that is not in the enum stays selectable.</summary>
     public static IEnumerable<SelectListItem> GetLocalizedEnumNameSelectList<TEnum>(this IHtmlHelper html, IViewLocalizer localizer, string selected) where TEnum : struct, Enum
     {
         var items = Enum.GetValues<TEnum>().Select(value => new SelectListItem

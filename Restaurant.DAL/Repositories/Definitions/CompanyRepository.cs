@@ -1,3 +1,4 @@
+using Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -78,7 +79,7 @@ public class CompanyRepository : ICompanyRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
@@ -111,7 +112,7 @@ public class CompanyRepository : ICompanyRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }

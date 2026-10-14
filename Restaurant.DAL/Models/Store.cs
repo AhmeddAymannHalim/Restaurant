@@ -38,8 +38,8 @@ public class Store : BaseEntity
 
     #region Restaurant
 
-    public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
-    public virtual ICollection<StoreProduct> StoreProducts { get; set; } = new List<StoreProduct>();
 
     #endregion
+
+    public virtual ICollection<StorePhone> Phones { get; set; } = new List<StorePhone>();
 }

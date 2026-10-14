@@ -3,7 +3,6 @@ using Shared.Enums;
 
 namespace Restaurant.DAL.Models;
 
-// Minimal shape; replaced by the full ERP class when merged.
 public class ItemUnit : BaseEntity
 {
     public decimal Factor { get; set; } = 1;

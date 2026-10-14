@@ -18,7 +18,6 @@ public class EmployeeConfig : IEntityTypeConfiguration<Employee>
         builder.Property(a => a.IDNumber).HasMaxLength(20);
         builder.Property(a => a.Salary).HasPrecision(18, 2);
 
-        // Every Account row that belongs to an employee (EmployeeId), and the employee's own main Account (AccountId).
         builder
             .HasMany(a => a.Accounts)
             .WithOne(a => a.Employee)

@@ -4,10 +4,6 @@ using Shared.Enums;
 
 namespace Restaurant.DAL.Models;
 
-/// <summary>
-/// The single core entity of the system: GL, bank, cash, expense, asset, customer, supplier and employee
-/// accounts all live here. Extra data of each kind is stored in its own table linked by a foreign key.
-/// </summary>
 public class Account : BaseEntity
 {
     public string Code { get; set; }
@@ -44,13 +40,10 @@ public class Account : BaseEntity
     public virtual AccountDetails AccountDetails { get; set; }
 
     public virtual ICollection<Account> ChildAccounts { get; set; } = new List<Account>();
-    public virtual ICollection<JournalEntryLine> JournalEntryLines { get; set; } = new List<JournalEntryLine>();
 
-    /// <summary>Same as BalanceValue, but translatable to SQL for projections and filters.</summary>
     public static Expression<Func<Account, decimal>> BalanceExpression =>
         a => a.BalanceType == AccountBalanceType.Debit ? a.DebitBalance - a.CreditBalance : a.CreditBalance - a.DebitBalance;
 
-    /// <summary>A positive amount grows the account on its natural side (debit or credit); a negative amount shrinks it.</summary>
     public void Adjust(decimal delta)
     {
         var growsDebit = (delta >= 0) == (BalanceType == AccountBalanceType.Debit);

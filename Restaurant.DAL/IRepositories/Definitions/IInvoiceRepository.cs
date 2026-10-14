@@ -1,15 +1,15 @@
-using Restaurant.DAL.Models;
+using Shared.Enums;
 using Shared.ViewModels.Commons;
+using Shared.ViewModels.Definitions;
 
 namespace Restaurant.DAL.IRepositories.Definitions;
 
 public interface IInvoiceRepository
 {
-    Task<PaginatedResult<Invoice>> GetPagedInvoicesAsync(PageRequest request);
-    Task<Invoice> GetInvoiceByIdAsync(int id);
-    Task<string> GetNextCodeAsync();
+    Task<InvoiceViewModel> GetInvoiceByIdAsync(int id);
+    Task<string> GetNextCodeAsync(InvoiceType type);
     Task<decimal> GetSupplierBalanceAsync(int supplierId);
     Task<decimal> GetCustomerBalanceAsync(int customerId);
-    Task<ResultMessage> UpsertInvoiceAsync(Invoice entity);
+    Task<ResultMessage> UpsertInvoiceAsync(InvoiceViewModel model);
     Task<ResultMessage> DeleteInvoiceAsync(int id);
 }

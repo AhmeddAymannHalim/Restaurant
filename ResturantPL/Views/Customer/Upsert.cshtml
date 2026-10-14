@@ -1,0 +1,420 @@
+@model CustomerViewModel
+@{
+    var isNew = Model.Id == 0;
+    ViewBag.Title = isNew ? L["NewCustomer"].Value : L["UpdateCustomer"].Value;
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-user-tag" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title</h1>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Upsert" method="post" enctype="multipart/form-data" class="ad-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="AccountId" />
+            <ul class="nav emp-tabs ad-full" role="tablist">
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab active" id="tab-Basic" data-bs-toggle="tab" data-bs-target="#pane-Basic" role="tab" aria-controls="pane-Basic" aria-selected="true"><i class="fas fa-id-card" aria-hidden="true"></i> @L["Cus.Tab.Basic"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Identity" data-bs-toggle="tab" data-bs-target="#pane-Identity" role="tab" aria-controls="pane-Identity" aria-selected="false"><i class="fas fa-passport" aria-hidden="true"></i> @L["Cus.Tab.Identity"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Credit" data-bs-toggle="tab" data-bs-target="#pane-Credit" role="tab" aria-controls="pane-Credit" aria-selected="false"><i class="fas fa-credit-card" aria-hidden="true"></i> @L["Cus.Tab.Credit"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Org" data-bs-toggle="tab" data-bs-target="#pane-Org" role="tab" aria-controls="pane-Org" aria-selected="false"><i class="fas fa-sitemap" aria-hidden="true"></i> @L["Cus.Tab.Org"]</button></li>
+            </ul>
+            <div class="tab-content ad-full">
+            <div class="tab-pane fade show active emp-pane" id="pane-Basic" role="tabpanel" aria-labelledby="tab-Basic" tabindex="0">
+            <div class="form-group">
+                <label asp-for="ArName" class="control-label">@L["ArabicName"]</label>
+                <input asp-for="ArName" class="form-control" />
+                <span asp-validation-for="ArName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EnName" class="control-label">@L["EnglishName"]</label>
+                <input asp-for="EnName" class="form-control" />
+                <span asp-validation-for="EnName" class="text-danger"></span>
+            </div>
+            <div data-location-cascade
+                 data-countries-url="@Url.Action("Countries", "Lookup")"
+                 data-governorates-url="@Url.Action("Governorates", "Lookup")"
+                 data-cities-url="@Url.Action("Cities", "Lookup")"
+                 data-arabic="@(LanguageHelper.IsArabic() ? "1" : "0")"
+                 data-placeholder="@L["Select"]"
+                 data-selected-country="@Model.CountryId"
+                 data-selected-governorate="@Model.GovernorateId"
+                 data-selected-city="@Model.TownId">
+                <div class="form-group">
+                    <label class="control-label">@L["Country"]</label>
+                    <select name="CountryId" class="form-select" data-cascade-level="country"></select>
+                </div>
+                <div class="form-group">
+                    <label class="control-label">@L["Governorate"]</label>
+                    <select name="GovernorateId" class="form-select" data-cascade-level="governorate" disabled></select>
+                </div>
+                <div class="form-group">
+                    <label asp-for="TownId" class="control-label">@L["City"]</label>
+                    <select asp-for="TownId" class="form-select" data-cascade-level="city" disabled></select>
+                    <span asp-validation-for="TownId" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="Address" class="control-label">@L["Address"]</label>
+                <input asp-for="Address" class="form-control" />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PhoneNumber" class="control-label">@L["Phone"]</label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+            <partial name="_Phones" model="Model.Phones" />
+            <div class="form-group">
+                <label asp-for="Balance" class="control-label">@L["Balance"]</label>
+                <input asp-for="Balance" type="number" step="0.01" class="form-control" />
+                <span asp-validation-for="Balance" class="text-danger"></span>
+            </div>
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Cus.Section.Contact"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="Email" class="control-label">@L["Cus.Email"]</label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Website" class="control-label">@L["Cus.Website"]</label>
+                    <input asp-for="Website" class="form-control" />
+                    <span asp-validation-for="Website" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Village" class="control-label">@L["Cus.Village"]</label>
+                    <input asp-for="Village" class="form-control" />
+                    <span asp-validation-for="Village" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="StreetName" class="control-label">@L["Cus.StreetName"]</label>
+                    <input asp-for="StreetName" class="form-control" />
+                    <span asp-validation-for="StreetName" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="BuildingNo" class="control-label">@L["Cus.BuildingNo"]</label>
+                    <input asp-for="BuildingNo" class="form-control" />
+                    <span asp-validation-for="BuildingNo" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="PostalCode" class="control-label">@L["Cus.PostalCode"]</label>
+                    <input asp-for="PostalCode" class="form-control" />
+                    <span asp-validation-for="PostalCode" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="MapAddress" class="control-label">@L["Cus.MapAddress"]</label>
+                    <input asp-for="MapAddress" class="form-control" />
+                    <span asp-validation-for="MapAddress" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="GoogleLink" class="control-label">@L["Cus.GoogleLink"]</label>
+                    <input asp-for="GoogleLink" class="form-control" />
+                    <span asp-validation-for="GoogleLink" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Identity" role="tabpanel" aria-labelledby="tab-Identity" tabindex="0">
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Cus.Section.Identity"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="IDNumber" class="control-label">@L["Cus.IDNumber"]</label>
+                    <input asp-for="IDNumber" class="form-control" />
+                    <span asp-validation-for="IDNumber" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Religion" class="control-label">@L["Cus.Religion"]</label>
+                    <select asp-for="Religion" class="form-control" asp-items="Html.GetLocalizedEnumNameSelectList<Shared.Enums.Religion>(L, Model.Religion)">
+                        <option value="">@L["Select"]</option>
+                    </select>
+                    <span asp-validation-for="Religion" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="NationalityId" class="control-label">@L["Cus.NationalityId"]</label>
+                    <select asp-for="NationalityId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.Nationalities.Where(item => true))
+                        {
+                            <option value="@item.Id" selected="@(Model.NationalityId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="NationalityId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="VatNumber" class="control-label">@L["Cus.VatNumber"]</label>
+                    <input asp-for="VatNumber" class="form-control" />
+                    <span asp-validation-for="VatNumber" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="RegistrationNumber" class="control-label">@L["Cus.RegistrationNumber"]</label>
+                    <input asp-for="RegistrationNumber" class="form-control" />
+                    <span asp-validation-for="RegistrationNumber" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="SecondBusinessType" class="control-label">@L["Cus.SecondBusinessType"]</label>
+                    <input asp-for="SecondBusinessType" class="form-control" />
+                    <span asp-validation-for="SecondBusinessType" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="SecondBusinessId" class="control-label">@L["Cus.SecondBusinessId"]</label>
+                    <input asp-for="SecondBusinessId" class="form-control" />
+                    <span asp-validation-for="SecondBusinessId" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Cus.Section.Other"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="ImageFile" class="control-label">@L["Cus.ImageUrl"]</label>
+                    <input type="hidden" asp-for="ImageUrl" />
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <div class="mb-2"><img src="@Model.ImageUrl" alt="@Model.ArName" class="rounded" style="width:80px; height:80px; object-fit:cover;" /></div>
+                    }
+                    <input asp-for="ImageFile" type="file" accept="image/*" class="form-control" />
+                    <span asp-validation-for="ImageFile" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Remark" class="control-label">@L["Cus.Remark"]</label>
+                    <input asp-for="Remark" class="form-control" />
+                    <span asp-validation-for="Remark" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Credit" role="tabpanel" aria-labelledby="tab-Credit" tabindex="0">
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Cus.Section.Credit"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="CustomerType" class="control-label">@L["Cus.CustomerType"]</label>
+                    <select asp-for="CustomerType" asp-items="Html.GetLocalizedEnumSelectList<CustomerType>(L)" class="form-control"></select>
+                    <span asp-validation-for="CustomerType" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="BillPayType" class="control-label">@L["Cus.BillPayType"]</label>
+                    <select asp-for="BillPayType" asp-items="Html.GetLocalizedEnumSelectList<PayType>(L)" class="form-control"></select>
+                    <span asp-validation-for="BillPayType" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CreditLimit" class="control-label">@L["Cus.CreditLimit"]</label>
+                    <input asp-for="CreditLimit" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="CreditLimit" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CreditDurationInDays" class="control-label">@L["Cus.CreditDurationInDays"]</label>
+                    <input asp-for="CreditDurationInDays" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="CreditDurationInDays" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CreditDurationInMonth" class="control-label">@L["Cus.CreditDurationInMonth"]</label>
+                    <input asp-for="CreditDurationInMonth" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="CreditDurationInMonth" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CreditDurationInYears" class="control-label">@L["Cus.CreditDurationInYears"]</label>
+                    <input asp-for="CreditDurationInYears" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="CreditDurationInYears" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CompanyBranchId" class="control-label">@L["Cus.CompanyBranchId"]</label>
+                    <select asp-for="CompanyBranchId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.Branches.Where(item => true))
+                        {
+                            <option value="@item.Id" selected="@(Model.CompanyBranchId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CompanyBranchId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="EmployeeId" class="control-label">@L["Cus.EmployeeId"]</label>
+                    <select asp-for="EmployeeId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.Employees.Where(item => true))
+                        {
+                            <option value="@item.Id" selected="@(Model.EmployeeId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Cus.Section.Loyalty"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="BarCodeNumeric" class="control-label">@L["Cus.BarCodeNumeric"]</label>
+                    <input asp-for="BarCodeNumeric" class="form-control" />
+                    <span asp-validation-for="BarCodeNumeric" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="LoyaltyPointsNumber" class="control-label">@L["Cus.LoyaltyPointsNumber"]</label>
+                    <input asp-for="LoyaltyPointsNumber" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="LoyaltyPointsNumber" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="LoyaltyPointsExpiryDays" class="control-label">@L["Cus.LoyaltyPointsExpiryDays"]</label>
+                    <input asp-for="LoyaltyPointsExpiryDays" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="LoyaltyPointsExpiryDays" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Org" role="tabpanel" aria-labelledby="tab-Org" tabindex="0">
+
+            <div class="ad-section ad-full" data-fk-selects>
+                <h2 class="ad-section-title">@L["Cus.Section.Org"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="SellTypeId" class="control-label">@L["Cus.SellTypeId"]</label>
+                    <select asp-for="SellTypeId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.SellTypes)
+                        {
+                            <option value="@item.Id" selected="@(Model.SellTypeId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="SellTypeId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CostCenterId" class="control-label">@L["Cus.CostCenterId"]</label>
+                    <select asp-for="CostCenterId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.CostCenters)
+                        {
+                            <option value="@item.Id" selected="@(Model.CostCenterId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CostCenterId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ClassificationId" class="control-label">@L["Cus.ClassificationId"]</label>
+                    <select asp-for="ClassificationId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.Classifications)
+                        {
+                            <option value="@item.Id" selected="@(Model.ClassificationId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="ClassificationId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CustomerTierId" class="control-label">@L["Cus.CustomerTierId"]</label>
+                    <select asp-for="CustomerTierId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.CustomerTiers)
+                        {
+                            <option value="@item.Id" selected="@(Model.CustomerTierId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CustomerTierId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="SpecializationId" class="control-label">@L["Cus.SpecializationId"]</label>
+                    <select asp-for="SpecializationId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.Specializations)
+                        {
+                            <option value="@item.Id" selected="@(Model.SpecializationId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="SpecializationId" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+            </div>
+            </div>
+
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+            @if (!isNew)
+            {
+                <button type="button" onclick="Delete('/Customer/Delete/@Model.Id', '@Url.Action("Index")')" class="btn-ad btn-ad-danger push" ><i class="fas fa-trash" aria-hidden="true"></i> @L["Delete"]</button>
+            }
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+/* Reusable Country -> Governorate -> City cascading select.
+   Markup contract: a wrapper with [data-location-cascade] carrying the lookup URLs and
+   (optionally) the previously-saved ids to preselect, containing three <select>s marked
+   [data-cascade-level="country|governorate|city"]. Only the city select needs a `name`/`asp-for` —
+   country and governorate exist purely to narrow the city list down. */
+(function ($) {
+    'use strict';
+
+    function fillOptions($select, items, arabic, placeholder, selectedId) {
+        $select.empty().append($('<option>', { value: '', text: placeholder }));
+        items.forEach(function (item) {
+            $select.append($('<option>', { value: item.id, text: arabic ? item.arName : item.enName }));
+        });
+        $select.prop('disabled', items.length === 0);
+        if (selectedId) { $select.val(String(selectedId)); }
+    }
+
+    $('[data-location-cascade]').each(function () {
+        var $root = $(this);
+        var arabic = String($root.data('arabic')) === '1';
+        var placeholder = $root.data('placeholder') || '';
+        var urls = {
+            country: $root.data('countriesUrl'),
+            governorate: $root.data('governoratesUrl'),
+            city: $root.data('citiesUrl')
+        };
+        var $country = $root.find('[data-cascade-level="country"]');
+        var $governorate = $root.find('[data-cascade-level="governorate"]');
+        var $city = $root.find('[data-cascade-level="city"]');
+
+        function loadCities(governorateId, selectedCity) {
+            if (!governorateId) {
+                $city.empty().prop('disabled', true);
+                return;
+            }
+            $.get(urls.city, { governorateId: governorateId }, function (data) {
+                fillOptions($city, data, arabic, placeholder, selectedCity);
+            });
+        }
+
+        function loadGovernorates(countryId, selectedGovernorate, selectedCity) {
+            if (!countryId) {
+                $governorate.empty().prop('disabled', true);
+                $city.empty().prop('disabled', true);
+                return;
+            }
+            $.get(urls.governorate, { countryId: countryId }, function (data) {
+                fillOptions($governorate, data, arabic, placeholder, selectedGovernorate);
+                if (selectedGovernorate) { loadCities(selectedGovernorate, selectedCity); }
+                else { $city.empty().prop('disabled', true); }
+            });
+        }
+
+        $country.on('change', function () { loadGovernorates($(this).val()); });
+        $governorate.on('change', function () { loadCities($(this).val()); });
+
+        $.get(urls.country, function (data) {
+            var selectedCountry = $root.data('selectedCountry');
+            fillOptions($country, data, arabic, placeholder, selectedCountry);
+            if (selectedCountry) {
+                loadGovernorates(selectedCountry, $root.data('selectedGovernorate'), $root.data('selectedCity'));
+            }
+        });
+    });
+})(jQuery);
+</script>
+}

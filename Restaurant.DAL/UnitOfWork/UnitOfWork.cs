@@ -49,6 +49,9 @@ namespace Restaurant.DAL.UnitOfWork
             Invoices = new InvoiceRepository(_context, Journals);
             StockMovements = new StockMovementRepository(_context);
             Orders = new OrderRepository(_context);
+            ErpBills = new ErpBillRepository(_context);
+            AccountDefinitions = new AccountDefinitionRepository(_context);
+            ErpEntries = new ErpEntryRepository(_context);
             OnlineOrders = new OnlineOrderRepository(_context);
             Reports = new ReportRepository(_context);
             StoreConverts = new StoreConvertRepository(_context);
@@ -57,10 +60,10 @@ namespace Restaurant.DAL.UnitOfWork
             Customers = new CustomerRepository(_context);
             Employees = new EmployeeRepository(_context);
             Dashboard = new DashboardRepository(_context);
-            Deposits = new DepositRepository(_context);
-            ExitExpenses = new ExitExpenseRepository(_context);
-            Scrounges = new ScroungeRepository(_context);
-            Salaries = new SalaryRepository(_context);
+            Deposits = new DepositRepository(_context, Journals);
+            ExitExpenses = new ExitExpenseRepository(_context, Journals);
+            Scrounges = new ScroungeRepository(_context, Journals);
+            Salaries = new SalaryRepository(_context, Journals);
             Lookups = new LookupRepository(_context);
             Home = new HomeRepository(_context);
             Chefs = new ChefRepository(_context);
@@ -80,6 +83,9 @@ namespace Restaurant.DAL.UnitOfWork
         public IInvoiceRepository Invoices { get; set; }
         public IStockMovementRepository StockMovements { get; set; }
         public IOrderRepository Orders { get; set; }
+        public IErpBillRepository ErpBills { get; set; }
+        public IAccountDefinitionRepository AccountDefinitions { get; set; }
+        public IErpEntryRepository ErpEntries { get; set; }
         public IOnlineOrderRepository OnlineOrders { get; set; }
         public IReportRepository Reports { get; set; }
         public IStoreConvertRepository StoreConverts { get; set; }

@@ -1,3 +1,5 @@
+using Restaurant.DAL.IRepositories.Commons;
+using Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -10,10 +12,12 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class ScroungeRepository : IScroungeRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IJournalEntryRepository _journals;
 
-    public ScroungeRepository(ApplicationDbContext context)
+    public ScroungeRepository(ApplicationDbContext context, IJournalEntryRepository journals)
     {
         _context = context;
+        _journals = journals;
     }
 
     public async Task<PaginatedResult<Scrounge>> GetPagedScroungesAsync(PageRequest request)
@@ -48,6 +52,8 @@ public class ScroungeRepository : IScroungeRepository
 
     public async Task<ResultMessage> UpsertScroungeAsync(Scrounge entity, string userId)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
             if (entity.Id == 0)
@@ -74,6 +80,30 @@ public class ScroungeRepository : IScroungeRepository
                 await _context.SaveChangesAsync();
             }
 
+            await _journals.RemoveSourceEntriesAsync(JournalSourceType.Scrounge, entity.Id);
+
+            var debitCode = entity.State == MoneyState.Incentive ? AccountCodes.Salaries
+                : entity.State == MoneyState.Dept ? AccountCodes.EmployeesPayable
+                : null;
+            if (debitCode is not null)
+            {
+                var posting = await _journals.PostSourceEntryAsync(JournalSourceType.Scrounge,
+                    entity.Id,
+                    entity.Date,
+                    $"{entity.State} {entity.Id}",
+                    new[]
+                    {
+                        new JournalLineRequest(debitCode, entity.Amount, 0),
+                        new JournalLineRequest(AccountCodes.Cash, 0, entity.Amount)
+                    });
+                if (!posting.Success)
+                {
+                    return posting;
+                }
+            }
+
+            await transaction.CommitAsync();
+
             return new ResultMessage { Success = true };
         }
         catch (Exception ex)
@@ -81,7 +111,7 @@ public class ScroungeRepository : IScroungeRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
@@ -96,6 +126,7 @@ public class ScroungeRepository : IScroungeRepository
                 return new ResultMessage { Success = true };
             }
 
+            await _journals.RemoveSourceEntriesAsync(JournalSourceType.Scrounge, entity.Id);
             _context.Scrounges.Remove(entity);
             await _context.SaveChangesAsync();
 
@@ -114,7 +145,7 @@ public class ScroungeRepository : IScroungeRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }

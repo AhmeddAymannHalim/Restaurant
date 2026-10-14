@@ -1,0 +1,117 @@
+@model ErpEntryViewModel
+@{
+    ViewBag.Title = L["Erp.NewEntry"].Value;
+    var isArabic = LanguageHelper.IsArabic();
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-book" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title</h1>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Upsert" method="post" class="ad-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="EntryType" class="control-label">@L["Erp.EntryType"]</label>
+                <select asp-for="EntryType" class="form-control">
+                    <option value="@((int)EntryType.Journal)" selected="@(Model.EntryType == EntryType.Journal)">@L["Erp.EntryJournal"]</option>
+                    <option value="@((int)EntryType.CashReceipt)" selected="@(Model.EntryType == EntryType.CashReceipt)">@L["Erp.EntryCashReceipt"]</option>
+                    <option value="@((int)EntryType.CashPayment)" selected="@(Model.EntryType == EntryType.CashPayment)">@L["Erp.EntryCashPayment"]</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="EntryDate" class="control-label">@L["InvoiceDate"]</label>
+                <input asp-for="EntryDate" type="date" class="form-control" />
+                <span asp-validation-for="EntryDate" class="text-danger"></span>
+            </div>
+            <div class="form-group ad-full">
+                <label asp-for="Remarks" class="control-label">@L["Erp.Remarks"]</label>
+                <input asp-for="Remarks" class="form-control" />
+                <span asp-validation-for="Remarks" class="text-danger"></span>
+            </div>
+
+            <div class="ad-section ad-full" data-row-list data-prefix="Lines">
+                <h2 class="ad-section-title">@L["Erp.EntryLines"]</h2>
+                <div asp-validation-for="Lines" class="text-danger"></div>
+                <div class="ad-rows" data-rows>
+                    @for (var i = 0; i < Model.Lines.Count; i++)
+                    {
+                        <div class="ad-row-item" data-row>
+                            <div class="form-group">
+                                <label class="control-label">@L["Erp.Account"]</label>
+                                <select name="Lines[@i].AccountId" class="form-control">
+                                    <option value="">@L["Select"]</option>
+                                    @foreach (var item in Model.Accounts)
+                                    {
+                                        <option value="@item.Id" selected="@(Model.Lines[i].AccountId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group"><label class="control-label">@L["Erp.Debit"]</label><input type="number" step="0.01" min="0" name="Lines[@i].Debit" value="@(Model.Lines[i].Debit is null or 0 ? "" : Model.Lines[i].Debit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))" class="form-control line-debit" /></div>
+                            <div class="form-group"><label class="control-label">@L["Erp.Credit"]</label><input type="number" step="0.01" min="0" name="Lines[@i].Credit" value="@(Model.Lines[i].Credit is null or 0 ? "" : Model.Lines[i].Credit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))" class="form-control line-credit" /></div>
+                            <div class="form-group"><label class="control-label">@L["Erp.Remarks"]</label><input type="text" name="Lines[@i].Remarks" value="@Model.Lines[i].Remarks" class="form-control" maxlength="250" /></div>
+                            <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                        </div>
+                    }
+                </div>
+                <button type="button" class="btn-ad btn-ad-ghost mb-3" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["Erp.AddLine"]</button>
+                <template data-row-template>
+                    <div class="ad-row-item" data-row>
+                        <div class="form-group">
+                            <label class="control-label">@L["Erp.Account"]</label>
+                            <select name="Lines[__i__].AccountId" class="form-control">
+                                <option value="">@L["Select"]</option>
+                                @foreach (var item in Model.Accounts)
+                                {
+                                    <option value="@item.Id">@(isArabic ? item.ArName : item.EnName)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group"><label class="control-label">@L["Erp.Debit"]</label><input type="number" step="0.01" min="0" name="Lines[__i__].Debit" class="form-control line-debit" /></div>
+                        <div class="form-group"><label class="control-label">@L["Erp.Credit"]</label><input type="number" step="0.01" min="0" name="Lines[__i__].Credit" class="form-control line-credit" /></div>
+                        <div class="form-group"><label class="control-label">@L["Erp.Remarks"]</label><input type="text" name="Lines[__i__].Remarks" class="form-control" maxlength="250" /></div>
+                        <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                    </div>
+                </template>
+                <p class="ad-meta">
+                    @L["Erp.Debit"]: <b id="sumDebit">0.00</b>
+                    &nbsp;|&nbsp; @L["Erp.Credit"]: <b id="sumCredit">0.00</b>
+                    &nbsp;|&nbsp; <b id="sumState"></b>
+                </p>
+            </div>
+
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(function () {
+            var balanced = @Html.Raw(Json.Serialize(L["Erp.Balanced"].Value));
+            var unbalanced = @Html.Raw(Json.Serialize(L["Erp.Unbalanced"].Value));
+
+            function sum(selector) {
+                var total = 0;
+                $(selector).each(function () { total += parseFloat($(this).val()) || 0; });
+                return total;
+            }
+
+            function refresh() {
+                var d = sum('.line-debit'), c = sum('.line-credit');
+                $('#sumDebit').text(d.toFixed(2));
+                $('#sumCredit').text(c.toFixed(2));
+                $('#sumState').text(d > 0 && Math.abs(d - c) < 0.005 ? balanced : unbalanced);
+            }
+
+            $(document).on('input', '.line-debit, .line-credit', refresh);
+            $(document).on('click', '[data-row-remove], [data-row-add]', function () { setTimeout(refresh, 0); });
+            refresh();
+        });
+    </script>
+}

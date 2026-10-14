@@ -47,7 +47,7 @@ namespace ResturantPL.Controllers
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -92,7 +92,7 @@ namespace ResturantPL.Controllers
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
     }

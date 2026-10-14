@@ -9,11 +9,9 @@ public class EmployeeViewModel
     public string ArName { get; set; }
     public string EnName { get; set; }
 
-    /// <summary>The main mobile. It is saved on the employee and also as the first row of EmployeePhones.</summary>
     public string PhoneNumber { get; set; }
 
-    /// <summary>Extra mobiles added with the "+ Add" button; each one is saved as a row of EmployeePhones.</summary>
-    public List<EmployeePhoneViewModel> Phones { get; set; } = new();
+    public List<PhoneViewModel> Phones { get; set; } = new();
     public List<EmployeeDependentViewModel> Dependents { get; set; } = new();
     public List<EmployeeAllowanceViewModel> Allowances { get; set; } = new();
     public List<EmployeeFixedDeductionViewModel> FixedDeductions { get; set; } = new();
@@ -22,9 +20,7 @@ public class EmployeeViewModel
     public int TownId { get; set; }
     public string Address { get; set; }
 
-    /// <summary>Not persisted — used only to preselect the Country/Governorate dropdowns when editing.</summary>
     public int? CountryId { get; set; }
-    /// <summary>Not persisted — used only to preselect the Governorate dropdown when editing.</summary>
     public int? GovernorateId { get; set; }
     public string IDNumber { get; set; }
     public SalaryType? SalaryType { get; set; }
@@ -42,7 +38,6 @@ public class EmployeeViewModel
     public string TownEnName { get; set; }
     public bool HasLoginAccount { get; set; }
 
-    // ---- the rest of the ERP employee data
     public string Email { get; set; }
     public string Religion { get; set; }
     public int? NationalityId { get; set; }

@@ -109,22 +109,22 @@ public class ReportRepository : IReportRepository
 
         var sales = await ClosedOrders(from, end)
             .Where(a => !a.OnAccount)
-            .SumAsync(a => (decimal?)a.TotalPrice) ?? 0;
+            .SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0;
 
-        var supplierReturns = await _context.Invoices
+        var supplierReturns = await _context.BillMasters
             .AsNoTracking()
-            .Where(a => a.InvoiceType == InvoiceType.Returns && a.InvoiceDate >= from && a.InvoiceDate < end)
-            .SumAsync(a => (decimal?)a.Paid) ?? 0;
+            .Where(a => a.BillSetting.Code == "PRET" && a.Date >= from && a.Date < end)
+            .SumAsync(a => (decimal?)a.AmountPaided) ?? 0;
 
         var customerPayments = await _context.PaymentInvoiceCustomer
             .AsNoTracking()
             .Where(a => a.Date >= from && a.Date < end)
             .SumAsync(a => (decimal?)a.Paid) ?? 0;
 
-        var purchases = await _context.Invoices
+        var purchases = await _context.BillMasters
             .AsNoTracking()
-            .Where(a => a.InvoiceType == InvoiceType.Purchases && a.InvoiceDate >= from && a.InvoiceDate < end)
-            .SumAsync(a => (decimal?)a.Paid) ?? 0;
+            .Where(a => a.BillSetting.Code == "PUR" && a.Date >= from && a.Date < end)
+            .SumAsync(a => (decimal?)a.AmountPaided) ?? 0;
 
         var expenses = await _context.ExitExpenses
             .AsNoTracking()
@@ -178,23 +178,23 @@ public class ReportRepository : IReportRepository
 
     private async Task BuildProfitAsync(ReportViewModel report, DateTime from, DateTime end)
     {
-        var lines = await _context.OrderMenuItems
+        var lines = await _context.PosBillLines
             .AsNoTracking()
-            .Where(a => a.Order.Cash
-                && a.Order.FinishShift
-                && a.Order.OrderDate >= from
-                && a.Order.OrderDate < end)
+            .Where(a => a.PosBill.Cash
+                && a.PosBill.FinishShift
+                && a.PosBill.Bill.Date >= from
+                && a.PosBill.Bill.Date < end)
             .Select(a => new
             {
-                a.Price,
-                Cost = a.UnitCost * a.Quantity
+                Price = a.BillDetail.TotalAmount ?? 0,
+                Cost = (a.BillDetail.UnitCostAtPosting ?? 0) * (a.BillDetail.Quantity ?? 0)
             })
             .ToListAsync();
 
         var orders = await ClosedOrders(from, end)
             .Select(a => new
             {
-                a.Discount,
+                Discount = a.Bill.BillDiscountValue,
                 a.Service
             })
             .ToListAsync();
@@ -264,7 +264,8 @@ public class ReportRepository : IReportRepository
         }
 
         var orders = await query
-            .OrderByDescending(a => a.OrderDate)
+            .Include(a => a.Bill)
+            .OrderByDescending(a => a.Bill.Date)
             .ToListAsync();
 
         report.Columns = new List<string>
@@ -307,23 +308,33 @@ public class ReportRepository : IReportRepository
 
     private async Task BuildInvoicesAsync(ReportViewModel report, DateTime from, DateTime end, string type)
     {
-        var query = _context.Invoices
+        var settingCodes = Helpers.ErpBillSupport.InvoiceSettingCodes;
+        var query = _context.BillMasters
             .AsNoTracking()
-            .Include(a => a.Supplier).ThenInclude(a => a.Account)
-            .Include(a => a.Customer).ThenInclude(a => a.Account)
-            .Include(a => a.Store)
-            .Where(a => a.InvoiceDate >= from && a.InvoiceDate < end);
+            .Where(a => settingCodes.Contains(a.BillSetting.Code) && a.Date >= from && a.Date < end);
 
         if (Enum.TryParse<InvoiceType>(type, out var invoiceType))
         {
-            query = query.Where(a => a.InvoiceType == invoiceType);
+            var code = Helpers.ErpBillSupport.Types[invoiceType].Code;
+            query = query.Where(a => a.BillSetting.Code == code);
         }
 
-        var invoices = await query
-            .OrderByDescending(a => a.InvoiceDate)
-            .ToListAsync();
-
         var isArabic = LanguageHelper.IsArabic();
+
+        var invoices = await query
+            .OrderByDescending(a => a.Date)
+            .Select(a => new
+            {
+                a.Code,
+                a.Date,
+                SettingCode = a.BillSetting.Code,
+                Partner = isArabic ? a.CustomerOrSupplierAccount.ArName : a.CustomerOrSupplierAccount.EnName,
+                Store = isArabic ? a.Store.ArName : a.Store.EnName,
+                Total = a.TotalBillAmountAfterDiscountAndExtra,
+                Paid = a.AmountPaided,
+                Remaining = a.CasherRemainingAmount
+            })
+            .ToListAsync();
 
         report.UsesType = true;
         report.Types = new List<string>
@@ -350,14 +361,12 @@ public class ReportRepository : IReportRepository
         {
             report.Rows.Add(new List<object>
             {
-                invoice.InvoiceCode,
-                invoice.InvoiceDate,
-                invoice.InvoiceType,
-                isArabic
-                    ? invoice.Supplier?.Account?.ArName ?? invoice.Customer?.Account?.ArName
-                    : invoice.Supplier?.Account?.EnName ?? invoice.Customer?.Account?.EnName,
-                isArabic ? invoice.Store.ArName : invoice.Store.EnName,
-                invoice.TotalPrice,
+                invoice.Code,
+                invoice.Date,
+                Helpers.ErpBillSupport.TypeOf(invoice.SettingCode),
+                invoice.Partner,
+                invoice.Store,
+                invoice.Total,
                 invoice.Paid,
                 invoice.Remaining
             });
@@ -366,7 +375,7 @@ public class ReportRepository : IReportRepository
         report.Totals = new List<ReportTotal>
         {
             Total("Count", invoices.Count),
-            Total("NetTotal", invoices.Sum(a => a.TotalPrice)),
+            Total("NetTotal", invoices.Sum(a => a.Total)),
             Total("Paid", invoices.Sum(a => a.Paid)),
             Total("Remaining", invoices.Sum(a => a.Remaining))
         };
@@ -483,15 +492,15 @@ public class ReportRepository : IReportRepository
             return;
         }
 
-        var orders = await _context.Orders
+        var orders = await _context.PosBills
             .AsNoTracking()
-            .Where(a => a.OnAccount && a.CustomerId == customerId && a.OrderDate >= from)
+            .Where(a => a.OnAccount && a.CustomerId == customerId && a.Bill.Date >= from)
             .Select(a => new CustomerMovement
             {
-                Date = a.OrderDate,
+                Date = a.Bill.Date,
                 Info = "Orders",
                 Code = a.OrderCode,
-                Debit = a.TotalPrice,
+                Debit = a.Bill.TotalBillAmountAfterDiscountAndExtra,
                 Credit = 0
             })
             .ToListAsync();
@@ -622,9 +631,14 @@ public class ReportRepository : IReportRepository
 
     private async Task<List<SupplierMovement>> GetSupplierMovementsAsync(int supplierId, DateTime? from, DateTime? until)
     {
-        var invoices = _context.Invoices
+        var accountId = await _context.Suppliers.AsNoTracking()
+            .Where(a => a.Id == supplierId)
+            .Select(a => a.AccountId)
+            .FirstOrDefaultAsync();
+        var invoices = _context.BillMasters
             .AsNoTracking()
-            .Where(a => a.SupplierId == supplierId);
+            .Where(a => accountId != null && a.CustomerOrSupplierAccountId == accountId
+                && (a.BillSetting.Code == "PUR" || a.BillSetting.Code == "PRET"));
 
         var payments = _context.PaymentInvoiceSupplier
             .AsNoTracking()
@@ -632,27 +646,27 @@ public class ReportRepository : IReportRepository
 
         if (from.HasValue)
         {
-            invoices = invoices.Where(a => a.InvoiceDate >= from.Value);
+            invoices = invoices.Where(a => a.Date >= from.Value);
             payments = payments.Where(a => a.Date >= from.Value);
         }
 
         if (until.HasValue)
         {
-            invoices = invoices.Where(a => a.InvoiceDate < until.Value);
+            invoices = invoices.Where(a => a.Date < until.Value);
             payments = payments.Where(a => a.Date < until.Value);
         }
 
         var movements = new List<SupplierMovement>();
 
-        foreach (var invoice in await invoices.ToListAsync())
+        foreach (var invoice in await invoices.Select(a => new { a.Date, a.Code, SettingCode = a.BillSetting.Code, Remaining = a.CasherRemainingAmount }).ToListAsync())
         {
-            var isPurchase = invoice.InvoiceType == InvoiceType.Purchases;
+            var isPurchase = invoice.SettingCode == "PUR";
 
             movements.Add(new SupplierMovement
             {
-                Date = invoice.InvoiceDate,
+                Date = invoice.Date,
                 Info = isPurchase ? "Purchases" : "Returns",
-                Code = invoice.InvoiceCode,
+                Code = invoice.Code,
                 Debit = isPurchase ? invoice.Remaining : 0,
                 Credit = isPurchase ? 0 : invoice.Remaining
             });
@@ -907,14 +921,14 @@ public class ReportRepository : IReportRepository
         };
     }
 
-    private IQueryable<Order> ClosedOrders(DateTime from, DateTime end)
+    private IQueryable<PosBill> ClosedOrders(DateTime from, DateTime end)
     {
-        return _context.Orders
+        return _context.PosBills
             .AsNoTracking()
             .Where(a => a.Cash
                 && a.FinishShift
-                && a.OrderDate >= from
-                && a.OrderDate < end);
+                && a.Bill.Date >= from
+                && a.Bill.Date < end);
     }
 
     private static List<object> Row(string label, decimal amount)

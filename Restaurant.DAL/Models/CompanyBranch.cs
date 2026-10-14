@@ -3,7 +3,6 @@ using Shared.Enums;
 
 namespace Restaurant.DAL.Models;
 
-// Replaces the old Branche. Company/Currency links are optional so a single-branch restaurant can ignore them.
 public class CompanyBranch : BaseEntity
 {
     public string Code { get; set; }

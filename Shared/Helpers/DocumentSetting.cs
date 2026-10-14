@@ -2,10 +2,6 @@ namespace Shared.Helpers
 {
     public static class DocumentSetting
     {
-        /// <summary>
-        /// Saves the file under wwwroot/&lt;folder&gt; (created when missing) with a unique name, so two uploads called
-        /// "id.pdf" never overwrite each other, and returns the web path to store.
-        /// </summary>
         public static string UploadFile(IFormFile file, string FolderName)
         {
             string FolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", FolderName);

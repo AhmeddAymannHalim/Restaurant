@@ -85,7 +85,28 @@ public class OrderService : IOrderService
 
     public async Task<ResultMessage> CreateOrderAsync(OrderViewModel model, string userId)
     {
-        return await _unitOfWork.Orders.CreateOrderAsync(_mapper.Map<Order>(model), model.OnlineOrderId, userId);
+        var order = new PosBill
+        {
+            Type = model.Type,
+            Cash = model.Cash,
+            PaymentMethod = model.PaymentMethod,
+            OnAccount = model.OnAccount,
+            CustomerName = model.CustomerName,
+            CustomerId = model.CustomerId,
+            TableId = model.TableId,
+            EmployeeId = model.EmployeeId,
+            Address = model.Address,
+            PhoneNumber = model.PhoneNumber,
+            DeliveryZoneId = model.DeliveryZoneId,
+            Bill = new BillMaster { BillDiscountValue = model.Discount },
+            Lines = model.Items.Select(a => new PosBillLine
+            {
+                MenuItemId = a.MenuItemId,
+                BillDetail = new BillDetail { Quantity = a.Quantity }
+            }).ToList()
+        };
+
+        return await _unitOfWork.Orders.CreateOrderAsync(order, model.OnlineOrderId, userId);
     }
 
     public async Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method)
