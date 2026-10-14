@@ -39,8 +39,9 @@ public class Supplier : BaseEntity
 
     public decimal? LastBalance { get; set; }
 
-    public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
     public virtual ICollection<PaymentInvoiceSupplier> PaymentInvoices { get; set; } = new List<PaymentInvoiceSupplier>();
 
     #endregion
+
+    public virtual ICollection<SupplierPhone> Phones { get; set; } = new List<SupplierPhone>();
 }

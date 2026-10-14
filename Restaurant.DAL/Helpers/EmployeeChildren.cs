@@ -4,11 +4,6 @@ using Shared.Helpers;
 
 namespace Restaurant.DAL.Helpers;
 
-/// <summary>
-/// The repeating rows of the employee form (dependents, allowances, fixed deductions, leaves, documents).
-/// Rows are matched by Id: a row with an Id is updated, a row without one is added, a missing row is deleted,
-/// and a blank row (nothing typed) is ignored.
-/// </summary>
 public static class EmployeeChildren
 {
     private const string DocumentsFolder = "Employee Documents";
@@ -75,7 +70,6 @@ public static class EmployeeChildren
         SyncDocuments(context, existing, (incoming.Documents ?? new List<EmployeeDocument>()).ToList(), documentFiles);
     }
 
-    /// <summary>Deletes every row of the employee (the employee itself is deleted by the caller) and its uploaded files.</summary>
     public static void Remove(ApplicationDbContext context, Employee employee)
     {
         foreach (var document in employee.Documents)

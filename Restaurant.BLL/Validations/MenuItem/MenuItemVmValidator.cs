@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.Extensions.Localization;
+using Restaurant.BLL.Services.IServices.Commons;
 using Shared;
 using Shared.ViewModels.Definitions;
 
@@ -7,10 +8,20 @@ namespace Restaurant.BLL.Validations.MenuItem;
 
 public class MenuItemVmValidator : AbstractValidator<MenuItemViewModel>
 {
-    public MenuItemVmValidator(IStringLocalizer<SharedResource> localizer)
+    public MenuItemVmValidator(IStringLocalizer<SharedResource> localizer, IValidatorService<Restaurant.DAL.Models.MenuItem> validator)
     {
         var required = localizer["Val.RequiredField"].Value;
         string MaxLength(int length) => string.Format(localizer["Val.MaxLength"].Value, length);
+
+        RuleFor(x => x.ArName)
+            .Must((model, value) => !validator.IsArNameExist(model.Id, value))
+            .When(x => !string.IsNullOrWhiteSpace(x.ArName))
+            .WithMessage(localizer["Val.NameAlreadyExist"].Value);
+
+        RuleFor(x => x.EnName)
+            .Must((model, value) => !validator.IsEnNameExist(model.Id, value))
+            .When(x => !string.IsNullOrWhiteSpace(x.EnName))
+            .WithMessage(localizer["Val.NameAlreadyExist"].Value);
 
         RuleFor(x => x.ArName)
             .NotEmpty()

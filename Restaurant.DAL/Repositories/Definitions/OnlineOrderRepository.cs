@@ -1,3 +1,4 @@
+using Shared.Helpers;
 using Restaurant.DAL.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
@@ -146,12 +147,11 @@ public class OnlineOrderRepository : IOnlineOrderRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
 
-    // Every web customer becomes a restaurant customer, matched by mobile number.
     private async Task AddToCustomerListAsync(OnlineOrder order)
     {
         var name = order.CustomerName.Trim();
@@ -169,7 +169,6 @@ public class OnlineOrderRepository : IOnlineOrderRepository
             return;
         }
 
-        // Names are unique across accounts, so two different people called the same name get their number appended.
         var taken = await _context.Accounts.AnyAsync(a => a.ArName == name || a.EnName == name);
         var unique = taken ? $"{name} - {mobile}" : name;
         if (unique.Length > 100)
@@ -240,7 +239,7 @@ public class OnlineOrderRepository : IOnlineOrderRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }

@@ -1,6 +1,6 @@
 namespace Shared.ViewModels.Definitions;
 
-public class EmployeePhoneViewModel
+public class PhoneViewModel
 {
     public int Id { get; set; }
     public string PhoneNumber { get; set; }

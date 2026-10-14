@@ -1,3 +1,5 @@
+using Shared.Helpers;
+using Restaurant.DAL.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -20,7 +22,6 @@ public class ProductRepository : IProductRepository
     {
         var query = _context.Products.AsNoTracking()
             .Include(a => a.ProductCategory)
-            .Include(a => a.StoreProducts)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
@@ -36,30 +37,50 @@ public class ProductRepository : IProductRepository
             .Take(request.PageSize)
             .ToListAsync();
 
+        await FillStocksAsync(data);
+
         return PaginatedResult<Product>.Create(data, total, request);
     }
 
     public async Task<Product> GetProductByIdAsync(int id)
     {
-        return await _context.Products.AsNoTracking()
+        var product = await _context.Products.AsNoTracking()
             .Include(a => a.ProductCategory)
-            .Include(a => a.StoreProducts).ThenInclude(a => a.Store)
             .FirstOrDefaultAsync(a => a.Id == id);
+        if (product is not null)
+        {
+            await FillStocksAsync(new List<Product> { product });
+        }
+
+        return product;
     }
 
-    public async Task<ResultMessage> UpsertProductAsync(Product entity, IEnumerable<StoreProduct> stocks)
+    private async Task FillStocksAsync(List<Product> products)
     {
+        var stores = await _context.Stores.AsNoTracking().OrderBy(a => a.Id).ToListAsync();
+        var quantities = await StoreStock.QuantitiesAsync(_context);
+
+        foreach (var product in products)
+        {
+            product.Stocks = stores.Select(store => new ProductStock
+            {
+                StoreId = store.Id,
+                Store = store,
+                Quantity = quantities.GetValueOrDefault((store.Id, product.Id))
+            }).ToList();
+        }
+    }
+
+    public async Task<ResultMessage> UpsertProductAsync(Product entity, IEnumerable<ProductStock> stocks)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
             if (entity.Id == 0)
             {
-                var storeIds = await _context.Stores.AsNoTracking().Select(a => a.Id).ToListAsync();
-                entity.StoreProducts = storeIds.Select(storeId => new StoreProduct
-                {
-                    StoreId = storeId,
-                    Quantity = stocks.Where(a => a.StoreId == storeId).Select(a => a.Quantity).FirstOrDefault()
-                }).ToList();
                 await _context.Products.AddAsync(entity);
+                await _context.SaveChangesAsync();
             }
             else
             {
@@ -73,28 +94,23 @@ public class ProductRepository : IProductRepository
                 }
 
                 _context.Products.Update(entity);
+                await _context.SaveChangesAsync();
+            }
 
-                var current = await _context.StoreProducts.Where(a => a.ProductId == entity.Id).ToListAsync();
-                foreach (var stock in stocks)
+            var current = await StoreStock.QuantitiesAsync(_context);
+            foreach (var stock in stocks)
+            {
+                if (current.GetValueOrDefault((stock.StoreId, entity.Id)) == stock.Quantity)
                 {
-                    var row = current.FirstOrDefault(a => a.StoreId == stock.StoreId);
-                    if (row is null)
-                    {
-                        await _context.StoreProducts.AddAsync(new StoreProduct
-                        {
-                            ProductId = entity.Id,
-                            StoreId = stock.StoreId,
-                            Quantity = stock.Quantity
-                        });
-                    }
-                    else
-                    {
-                        row.Quantity = stock.Quantity;
-                    }
+                    continue;
                 }
+
+                var row = await StoreStock.RowAsync(_context, stock.StoreId, entity.Id);
+                row.Quantity = stock.Quantity;
             }
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return new ResultMessage { Success = true };
         }
@@ -103,7 +119,7 @@ public class ProductRepository : IProductRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
@@ -118,7 +134,8 @@ public class ProductRepository : IProductRepository
                 return new ResultMessage { Success = true };
             }
 
-            if (await _context.StoreProducts.AnyAsync(a => a.ProductId == id && a.Quantity > 0))
+            var itemCode = ErpBillSupport.ItemCodePrefix + id;
+            if (await StoreStock.Rows(_context).AnyAsync(a => a.Item.Code == itemCode && a.Quantity > 0))
             {
                 return new ResultMessage
                 {
@@ -145,7 +162,7 @@ public class ProductRepository : IProductRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }

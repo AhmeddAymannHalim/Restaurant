@@ -5,10 +5,6 @@ using Shared.Enums;
 
 namespace Restaurant.DAL.Helpers;
 
-/// <summary>
-/// Every Customer, Supplier and Employee must have a row in Accounts (the core entity of the system).
-/// This builds that row under the right control account; callers save it together with the owner row.
-/// </summary>
 public static class AccountProvisioner
 {
     private const int CodeSuffixLength = 4;

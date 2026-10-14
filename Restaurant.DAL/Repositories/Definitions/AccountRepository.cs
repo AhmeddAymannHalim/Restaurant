@@ -210,31 +210,4 @@ public class AccountRepository : IAccountRepository
             .Include(a => a.Town).ThenInclude(a => a.Governorate)
             .FirstOrDefaultAsync(a => a.Id == userId);
     }
-
-    public async Task<ResultMessage> UpdateProfileAsync(string userId, ProfileViewModel model)
-    {
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user is null)
-        {
-            return new ResultMessage
-            {
-                Success = false,
-                Message = "RecordNotFound"
-            };
-        }
-
-        user.FirstName = model.FirstName;
-        user.LastName = model.LastName;
-        user.PhoneNumber = model.PhoneNumber;
-        user.TownId = model.TownId;
-        user.Street = model.Street;
-
-        var result = await _userManager.UpdateAsync(user);
-
-        return new ResultMessage
-        {
-            Success = result.Succeeded,
-            Message = result.Succeeded ? null : result.Errors.First().Description
-        };
-    }
 }

@@ -2,7 +2,6 @@ using Shared.Enums;
 
 namespace Restaurant.DAL.Models;
 
-/// <summary>Codes of the default chart of accounts the automatic postings rely on.</summary>
 public static class AccountCodes
 {
     public const string Assets = "1000";
@@ -13,12 +12,15 @@ public static class AccountCodes
     public const string AccountsPayable = "2010";
     public const string EmployeesPayable = "2020";
     public const string Equity = "3000";
+    public const string Deposits = "3010";
     public const string Revenue = "4000";
     public const string SalesRevenue = "4010";
     public const string SalesReturns = "4090";
     public const string Expenses = "5000";
     public const string Purchases = "5010";
     public const string PurchaseReturns = "5090";
+    public const string OperatingExpenses = "5020";
+    public const string Salaries = "5030";
 
     public record Definition(string Code, string NameAr, string NameEn, AccountType AccountType, AccountBalanceType BalanceType, string ParentCode);
 
@@ -29,6 +31,9 @@ public static class AccountCodes
         new(Equity, "حقوق الملكية", "Equity", AccountType.Collective, AccountBalanceType.Credit, null),
         new(Revenue, "الإيرادات", "Revenue", AccountType.Collective, AccountBalanceType.Credit, null),
         new(Expenses, "المصروفات", "Expenses", AccountType.Collective, AccountBalanceType.Debit, null),
+        new(Deposits, "إيداعات", "Deposits", AccountType.Normal, AccountBalanceType.Credit, Equity),
+        new(OperatingExpenses, "مصروفات التشغيل", "Operating expenses", AccountType.Normal, AccountBalanceType.Debit, Expenses),
+        new(Salaries, "المرتبات والأجور", "Salaries and wages", AccountType.Normal, AccountBalanceType.Debit, Expenses),
         new(Cash, "النقدية والبنك", "Cash and bank", AccountType.Normal, AccountBalanceType.Debit, Assets),
         new(AccountsReceivable, "العملاء", "Accounts receivable", AccountType.Normal, AccountBalanceType.Debit, Assets),
         new(Inventory, "المخزون", "Inventory", AccountType.Normal, AccountBalanceType.Debit, Assets),

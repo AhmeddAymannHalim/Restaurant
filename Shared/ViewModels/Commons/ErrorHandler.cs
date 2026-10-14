@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
@@ -24,9 +24,11 @@ public static class ErrorHandler
     }
     public static ViewResult ErrorView(Exception ex)
     {
+        Shared.Helpers.ErrorLog.Message(ex);
+
         var errorViewModel = new ErrorViewModel
         {
-            ErrorMessage = ex?.Message ?? "An unexpected error occurred. Please try again later."
+            ErrorMessage = ex is null || !Shared.Helpers.ErrorLog.ShowDetails ? "An unexpected error occurred. Please try again later." : ex.Message
         };
 
         return new ViewResult

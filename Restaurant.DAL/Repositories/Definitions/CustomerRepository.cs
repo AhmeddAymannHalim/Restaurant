@@ -49,6 +49,7 @@ public class CustomerRepository : ICustomerRepository
     {
         return await _context.Customers
             .Include(a => a.Account)
+            .Include(a => a.Phones)
             .Include(a => a.Town).ThenInclude(a => a.Governorate)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
@@ -64,16 +65,15 @@ public class CustomerRepository : ICustomerRepository
         return account?.BalanceValue;
     }
 
-    /// <summary>
-    /// The incoming entity carries the ArName/EnName of the form on a transient <see cref="Customer.Account"/>;
-    /// a new customer always gets its real Account row created here.
-    /// </summary>
     public async Task<ResultMessage> UpsertCustomerAsync(Customer entity, IFormFile imageFile)
     {
         try
         {
             var form = entity.Account;
             entity.Account = null;
+            var phones = PhoneRows.Clean(entity.PhoneNumber1, entity.Phones);
+            entity.Phones = new List<CustomerPhone>();
+            entity.PhoneNumber2 = phones.ElementAtOrDefault(0);
             (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
             string replacedImage = null;
 
@@ -89,12 +89,14 @@ public class CustomerRepository : ICustomerRepository
                 entity.CreatedAt = DateTime.Now;
                 entity.ImageUrl = imageFile is null ? null : DocumentSetting.UploadFile(imageFile, ImagesFolder);
 
+                PhoneRows.Sync(_context, entity.Phones, phones);
                 await _context.Customers.AddAsync(entity);
             }
             else
             {
                 var existing = await _context.Customers
                     .Include(a => a.Account)
+                    .Include(a => a.Phones)
                     .FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
@@ -117,6 +119,7 @@ public class CustomerRepository : ICustomerRepository
                 existing.Account.EnName = form.EnName;
                 existing.Account.Adjust(form.DebitBalance - existing.Account.BalanceValue);
                 _context.Entry(existing).CurrentValues.SetValues(entity);
+                PhoneRows.Sync(_context, existing.Phones, phones);
             }
 
             await _context.SaveChangesAsync();
@@ -133,7 +136,7 @@ public class CustomerRepository : ICustomerRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
@@ -178,7 +181,7 @@ public class CustomerRepository : ICustomerRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }

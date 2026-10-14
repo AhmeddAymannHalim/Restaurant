@@ -64,7 +64,7 @@ namespace ResturantPL.Controllers
 
             return new ViewAsPdf("Pdf", request)
             {
-                FileName = PdfFile.Name(FileName(request, ".pdf")),
+                FileName = Uri.EscapeDataString(FileName(request, ".pdf")),
                 PageOrientation = Rotativa.AspNetCore.Options.Orientation.Landscape
             };
         }

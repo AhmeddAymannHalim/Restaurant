@@ -1,3 +1,5 @@
+using Shared.Helpers;
+using Restaurant.DAL.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -57,7 +59,7 @@ public class StoreConvertRepository : IStoreConvertRepository
         return await _context.StoreConverts.AsNoTracking()
             .Include(a => a.FromStore)
             .Include(a => a.ToStore)
-            .Include(a => a.StoreConvertProducts).ThenInclude(a => a.StoreProduct).ThenInclude(a => a.Product)
+            .Include(a => a.StoreConvertProducts).ThenInclude(a => a.Product)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
@@ -73,6 +75,8 @@ public class StoreConvertRepository : IStoreConvertRepository
 
     public async Task<ResultMessage> CreateConvertAsync(StoreConvert convert)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
             if (convert.FromStoreId == convert.ToStoreId)
@@ -85,7 +89,7 @@ public class StoreConvertRepository : IStoreConvertRepository
             }
 
             var wanted = convert.StoreConvertProducts
-                .GroupBy(a => a.StoreProduct.ProductId)
+                .GroupBy(a => a.ProductId)
                 .Select(g => new
                     {
                         ProductId = g.Key,
@@ -97,9 +101,7 @@ public class StoreConvertRepository : IStoreConvertRepository
             var movements = new List<(int StoreId, int ProductId, decimal Delta)>();
             foreach (var item in wanted)
             {
-                var from = await _context.StoreProducts.FirstOrDefaultAsync(a => a.StoreId == convert.FromStoreId
-                    && a.ProductId == item.ProductId);
-                if (from is null || from.Quantity < item.Quantity)
+                if (!await StoreStock.AdjustAsync(_context, convert.FromStoreId, item.ProductId, -item.Quantity, createIfMissing: false))
                 {
                     return new ResultMessage
                     {
@@ -108,23 +110,10 @@ public class StoreConvertRepository : IStoreConvertRepository
                     };
                 }
 
-                var to = await _context.StoreProducts.FirstOrDefaultAsync(a => a.StoreId == convert.ToStoreId
-                    && a.ProductId == item.ProductId);
-                if (to is null)
-                {
-                    to = new StoreProduct
-                    {
-                        StoreId = convert.ToStoreId,
-                        ProductId = item.ProductId
-                    };
-                    await _context.StoreProducts.AddAsync(to);
-                }
-
-                from.Quantity -= item.Quantity;
-                to.Quantity += item.Quantity;
+                await StoreStock.AdjustAsync(_context, convert.ToStoreId, item.ProductId, item.Quantity);
                 lines.Add(new StoreConvertProduct
                 {
-                    StoreProduct = from,
+                    ProductId = item.ProductId,
                     Quantity = item.Quantity
                 });
                 movements.Add((convert.FromStoreId, item.ProductId, -item.Quantity));
@@ -154,6 +143,7 @@ public class StoreConvertRepository : IStoreConvertRepository
 
             await _context.StoreConverts.AddAsync(entity);
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return new ResultMessage
             {
@@ -174,17 +164,19 @@ public class StoreConvertRepository : IStoreConvertRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
 
     public async Task<ResultMessage> DeleteConvertAsync(int id)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
             var convert = await _context.StoreConverts
-                .Include(a => a.StoreConvertProducts).ThenInclude(a => a.StoreProduct)
+                .Include(a => a.StoreConvertProducts)
                 .FirstOrDefaultAsync(a => a.Id == id);
             if (convert is null)
             {
@@ -193,9 +185,7 @@ public class StoreConvertRepository : IStoreConvertRepository
 
             foreach (var line in convert.StoreConvertProducts)
             {
-                var to = await _context.StoreProducts.FirstOrDefaultAsync(a => a.StoreId == convert.ToStoreId
-                    && a.ProductId == line.StoreProduct.ProductId);
-                if (to is null || to.Quantity < line.Quantity)
+                if (!await StoreStock.AdjustAsync(_context, convert.ToStoreId, line.ProductId, -line.Quantity, createIfMissing: false))
                 {
                     return new ResultMessage
                     {
@@ -204,29 +194,28 @@ public class StoreConvertRepository : IStoreConvertRepository
                     };
                 }
 
-                to.Quantity -= line.Quantity;
-                line.StoreProduct.Quantity += line.Quantity;
+                await StoreStock.AdjustAsync(_context, convert.FromStoreId, line.ProductId, line.Quantity);
 
                 await _context.StoreProductMovements.AddAsync(new StoreProductMovement
                 {
                     StoreId = convert.ToStoreId,
-                    ProductId = line.StoreProduct.ProductId,
+                    ProductId = line.ProductId,
                     QuantityDelta = -line.Quantity,
                     Source = StockMovementSource.StoreConvert,
                     ReferenceCode = convert.ConvertCode
                 });
                 await _context.StoreProductMovements.AddAsync(new StoreProductMovement
                 {
-                    StoreId = line.StoreProduct.StoreId,
-                    ProductId = line.StoreProduct.ProductId,
+                    StoreId = convert.FromStoreId,
+                    ProductId = line.ProductId,
                     QuantityDelta = line.Quantity,
                     Source = StockMovementSource.StoreConvert,
                     ReferenceCode = convert.ConvertCode
                 });
             }
-
             _context.StoreConverts.Remove(convert);
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return new ResultMessage { Success = true };
         }
@@ -243,7 +232,7 @@ public class StoreConvertRepository : IStoreConvertRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }

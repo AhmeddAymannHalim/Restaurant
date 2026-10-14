@@ -1,3 +1,4 @@
+using Restaurant.DAL.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Commons;
 using Restaurant.DAL.Models;
@@ -213,14 +214,12 @@ public class LookupRepository : ILookupRepository
         var storeEnName = store?.EnName;
         var isArabic = LanguageHelper.IsArabic();
 
-        return await _context.Products
+        var quantities = await StoreStock.QuantitiesAsync(_context, storeId);
+        var products = await _context.Products
             .AsNoTracking()
             .Select(a => new StoreProductLookupItem
             {
-                Id = a.StoreProducts
-                    .Where(s => s.StoreId == storeId)
-                    .Select(s => s.Id)
-                    .FirstOrDefault(),
+                Id = a.Id,
                 ProductId = a.Id,
                 ProductCategoryId = a.ProductCategoryId,
                 StoreId = storeId,
@@ -228,14 +227,16 @@ public class LookupRepository : ILookupRepository
                 ProductEnName = a.EnName,
                 StoreArName = storeArName,
                 StoreEnName = storeEnName,
-                Quantity = a.StoreProducts
-                    .Where(s => s.StoreId == storeId)
-                    .Select(s => s.Quantity)
-                    .FirstOrDefault(),
                 Cost = a.Cost
             })
-            .OrderBy(a => isArabic ? a.ProductArName : a.ProductEnName)
             .ToListAsync();
+
+        foreach (var product in products)
+        {
+            product.Quantity = quantities.GetValueOrDefault((storeId, product.ProductId));
+        }
+
+        return products.OrderBy(a => isArabic ? a.ProductArName : a.ProductEnName).ToList();
     }
 
     public async Task<IEnumerable<LookupItem>> ExpenseLookupAsync()
@@ -296,7 +297,6 @@ public class LookupRepository : ILookupRepository
             }));
     }
 
-    /// <summary>Id + Arabic/English name of every row of any table that has those columns.</summary>
     public async Task<IEnumerable<LookupItem>> NamedLookupAsync<T>() where T : class
     {
         return await ToListAsync(_context.Set<T>().AsNoTracking()

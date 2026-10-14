@@ -1,12 +1,13 @@
-﻿using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Localization;
 
 namespace Shared.Helpers;
 
 public class JsonStringLocalizerFactory : IStringLocalizerFactory
 {
-    private readonly IMemoryCacheService _cacheService;
+    private readonly IMemoryCache _cacheService;
 
-    public JsonStringLocalizerFactory(IMemoryCacheService cacheService)
+    public JsonStringLocalizerFactory(IMemoryCache cacheService)
     {
         _cacheService = cacheService;
     }

@@ -1,13 +1,91 @@
-@using ResturantPL.Extensions
 @{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString();
     var action = ViewContext.RouteData.Values["action"]?.ToString();
     var isManager = User.IsInRole("Admin") || User.IsInRole("Manager");
 
-    string Active(AdminMenu.Item item)
+    var groups = new (string Section, string Title, string Icon, (string Controller, string Action, string Icon, string Label, bool ManagementOnly)[] Items)[]
+    {
+            ("SectionOperations", "GroupOperations", "fa-cash-register", new (string Controller, string Action, string Icon, string Label, bool ManagementOnly)[]
+            {
+                ("Order", "Upsert", "fa-cash-register", "NewOrder", false),
+                ("Order", "Index", "fa-gauge", "ShiftSummary", false),
+                ("Order", "List", "fa-bell-concierge", "Orders", false),
+                ("Order", "Online", "fa-globe", "OnlineOrders", false),
+                ("KitchenOrder", "Index", "fa-fire-burner", "KitchenOrders", false),
+                ("Bill", "Index", "fa-file-invoice-dollar", "Erp.Bills", false),
+                ("Entry", "Index", "fa-book", "Erp.Entries", false),
+                ("StoreConvert", "Index", "fa-right-left", "StoreConverts", false),
+                ("StockMovement", "Index", "fa-arrow-right-arrow-left", "StockMovements", false),
+                ("SupplierPayment", "Index", "fa-file-invoice-dollar", "SupplierPayments", false),
+                ("CustomerPayment", "Index", "fa-hand-holding-dollar", "CustomerPayments", false),
+            }),
+            ("SectionOperations", "GroupReports", "fa-chart-column", new (string Controller, string Action, string Icon, string Label, bool ManagementOnly)[]
+            {
+                ("Report", "Index", "fa-chart-column", "Reports", true),
+            }),
+            ("SectionDefinitions", "GroupOrganization", "fa-sitemap", new (string Controller, string Action, string Icon, string Label, bool ManagementOnly)[]
+            {
+                ("Branch", "Index", "fa-code-branch", "Branches", false),
+                ("Job", "Index", "fa-id-badge", "Jobs", false),
+                ("Employee", "Index", "fa-users", "Employees", false),
+                ("EmployeeAccount", "Index", "fa-user-lock", "EmployeeAccounts", true),
+                ("User", "Index", "fa-user-group", "Users", true),
+                ("Role", "Index", "fa-user-shield", "Roles", true),
+                ("Specialization", "Index", "fa-user-graduate", "Specializations", false),
+                ("ContractType", "Index", "fa-file-signature", "ContractTypes", false),
+                ("Department", "Index", "fa-building", "Departments", false),
+                ("JobType", "Index", "fa-briefcase", "JobTypes", false),
+                ("InsuranceCategory", "Index", "fa-shield-heart", "InsuranceCategories", false),
+                ("InsuranceCompany", "Index", "fa-building-shield", "InsuranceCompanies", false),
+                ("LeaveType", "Index", "fa-umbrella-beach", "LeaveTypes", false),
+            }),
+            ("SectionDefinitions", "GroupKitchen", "fa-utensils", new (string Controller, string Action, string Icon, string Label, bool ManagementOnly)[]
+            {
+                ("Kitchen", "Index", "fa-kitchen-set", "Kitchens", false),
+                ("MenuSection", "Index", "fa-list", "MenuSections", false),
+                ("Menu", "Index", "fa-utensils", "MenuItems", false),
+                ("Table", "Index", "fa-chair", "Tables", false),
+                ("DeliveryZone", "Index", "fa-motorcycle", "DeliveryZones", false),
+            }),
+            ("SectionDefinitions", "GroupInventory", "fa-boxes-stacked", new (string Controller, string Action, string Icon, string Label, bool ManagementOnly)[]
+            {
+                ("Store", "Index", "fa-warehouse", "Stores", false),
+                ("Product", "Index", "fa-box", "Products", false),
+                ("ProductCategory", "Index", "fa-tags", "ProductCategories", false),
+                ("UnitPrice", "Index", "fa-weight-scale", "UnitPrices", false),
+            }),
+            ("SectionDefinitions", "GroupPartners", "fa-handshake", new (string Controller, string Action, string Icon, string Label, bool ManagementOnly)[]
+            {
+                ("Supplier", "Index", "fa-truck", "Suppliers", false),
+                ("Customer", "Index", "fa-user-tag", "Customers", false),
+                ("SellType", "Index", "fa-tags", "SellTypes", false),
+                ("Classification", "Index", "fa-layer-group", "Classifications", false),
+                ("CustomerTier", "Index", "fa-medal", "CustomerTiers", false),
+            }),
+            ("SectionDefinitions", "GroupFinance", "fa-coins", new (string Controller, string Action, string Icon, string Label, bool ManagementOnly)[]
+            {
+                ("Expense", "Index", "fa-receipt", "Expenses", false),
+                ("ExitExpense", "Index", "fa-money-bill-transfer", "ExitExpenses", false),
+                ("Deposit", "Index", "fa-piggy-bank", "Deposits", false),
+                ("Scrounge", "Index", "fa-hand-holding-dollar", "Scrounges", false),
+                ("Salary", "Index", "fa-wallet", "Salaries", false),
+                ("CostCenter", "Index", "fa-bullseye", "CostCenters", false),
+                ("Company", "Index", "fa-city", "Companies", false),
+                ("Currency", "Index", "fa-money-bill", "Currencies", false),
+                ("ChartAccount", "Index", "fa-sitemap", "ChartOfAccounts", true),
+                ("Asset", "Index", "fa-building-columns", "Assets", true),
+            }),
+            ("SectionDefinitions", "Website", "fa-globe", new (string Controller, string Action, string Icon, string Label, bool ManagementOnly)[]
+            {
+                ("Chef", "Index", "fa-user-tie", "Chefs", false),
+                ("Gallery", "Index", "fa-images", "Gallery", false),
+            }),
+    };
+
+    string Active((string Controller, string Action, string Icon, string Label, bool ManagementOnly) item)
     {
         var sameController = string.Equals(controller, item.Controller, StringComparison.OrdinalIgnoreCase);
-        var shared = AdminMenu.Groups.SelectMany(g => g.Items).Count(i => i.Controller == item.Controller) > 1;
+        var shared = groups.SelectMany(g => g.Items).Count(i => i.Controller == item.Controller) > 1;
 
         return sameController && (!shared || string.Equals(action, item.Action, StringComparison.OrdinalIgnoreCase)) ? "is-active" : "";
     }
@@ -36,7 +114,7 @@
         @{
             var currentSection = string.Empty;
         }
-        @foreach (var group in AdminMenu.Groups)
+        @foreach (var group in groups)
         {
             var items = group.Items.Where(i => isManager || !i.ManagementOnly).ToList();
             if (items.Count == 0)

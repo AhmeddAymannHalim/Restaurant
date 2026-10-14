@@ -2,7 +2,6 @@ using Shared.Enums;
 
 namespace Restaurant.DAL.Models;
 
-/// <summary>Asset data (purchase, depreciation) kept apart from the core account row.</summary>
 public class AccountDetails : BaseEntity
 {
     public string Location { get; set; }

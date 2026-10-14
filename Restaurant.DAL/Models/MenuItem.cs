@@ -21,7 +21,6 @@ public class MenuItem
     public virtual MenuSection MenuSection { get; set; }
     public virtual ICollection<MenuItemComponent> Components { get; set; }
     public virtual ICollection<OnlineOrderMenuItem> OnlineOrderMenuItems { get; set; }
-    public virtual ICollection<OrderMenuItem> OrderMenuItems { get; set; }
 
     public decimal TotalCost => Components?.Sum(a => a.Quantity * (a.Product?.Cost ?? 0)) ?? 0;
     public decimal Benefit => Price - TotalCost;

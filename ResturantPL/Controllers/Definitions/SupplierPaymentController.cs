@@ -45,7 +45,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -75,7 +75,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -106,7 +106,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -145,7 +145,7 @@ namespace ResturantPL.Controllers.Definitions
                 return NotFound();
             }
 
-            return new ViewAsPdf("Pdf", model) { FileName = PdfFile.Name($"SupplierPayment-{model.ProcessCode}.pdf") };
+            return new ViewAsPdf("Pdf", model) { FileName = Uri.EscapeDataString($"SupplierPayment-{model.ProcessCode}.pdf") };
         }
 
         [HttpGet]
@@ -169,7 +169,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -199,7 +199,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -224,7 +224,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -249,7 +249,7 @@ namespace ResturantPL.Controllers.Definitions
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 

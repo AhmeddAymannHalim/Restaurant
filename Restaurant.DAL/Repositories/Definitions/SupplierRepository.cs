@@ -1,3 +1,4 @@
+using Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Definitions;
@@ -45,6 +46,7 @@ public class SupplierRepository : ISupplierRepository
     {
         return await _context.Suppliers
             .Include(a => a.Account)
+            .Include(a => a.Phones)
             .Include(a => a.Town).ThenInclude(a => a.Governorate)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
@@ -55,6 +57,9 @@ public class SupplierRepository : ISupplierRepository
         {
             var form = entity.Account;
             entity.Account = null;
+            var phones = PhoneRows.Clean(entity.PhoneNumber1, entity.Phones);
+            entity.Phones = new List<SupplierPhone>();
+            entity.PhoneNumber2 = phones.ElementAtOrDefault(0);
             (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
 
             if (entity.Id == 0)
@@ -71,12 +76,14 @@ public class SupplierRepository : ISupplierRepository
                 entity.LastBalance = form.CreditBalance;
                 entity.CreatedAt = DateTime.Now;
 
+                PhoneRows.Sync(_context, entity.Phones, phones);
                 await _context.Suppliers.AddAsync(entity);
             }
             else
             {
                 var existing = await _context.Suppliers
                     .Include(a => a.Account)
+                    .Include(a => a.Phones)
                     .FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
@@ -98,6 +105,7 @@ public class SupplierRepository : ISupplierRepository
                 existing.Account.EnName = form.EnName;
                 existing.Account.Adjust(form.CreditBalance - existing.Account.BalanceValue);
                 _context.Entry(existing).CurrentValues.SetValues(entity);
+                PhoneRows.Sync(_context, existing.Phones, phones);
             }
 
             await _context.SaveChangesAsync();
@@ -109,7 +117,7 @@ public class SupplierRepository : ISupplierRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
@@ -149,7 +157,7 @@ public class SupplierRepository : ISupplierRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }

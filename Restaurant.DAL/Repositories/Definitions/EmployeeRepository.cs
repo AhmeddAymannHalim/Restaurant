@@ -89,7 +89,6 @@ public class EmployeeRepository : IEmployeeRepository
         return nextCode.ToString();
     }
 
-    /// <summary>A new employee always gets its Account row (mandatory object creation); the rest of the ERP data stays empty.</summary>
     public async Task<ResultMessage> UpsertEmployeeAsync(Employee entity, IFormFile imageFile, IList<IFormFile> documentFiles)
     {
         try
@@ -205,12 +204,11 @@ public class EmployeeRepository : IEmployeeRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
 
-    // The main mobile plus the extra ones typed with the "+ Add" button, without blanks or repeats.
     private static List<EmployeePhone> BuildPhones(Employee entity)
     {
         var numbers = new List<string>();
@@ -344,7 +342,7 @@ public class EmployeeRepository : IEmployeeRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }

@@ -44,7 +44,6 @@
 </div>
 
 @section Scripts {
-    <script src="~/microsoft-signalr/signalr.min.js"></script>
     <script>
         $(function () {
             $('.kitchen-done').on('click', function () {
@@ -54,11 +53,7 @@
                 });
             });
 
-            try {
-                var connection = new signalR.HubConnectionBuilder().withUrl("/OrderHub").withAutomaticReconnect().build();
-                connection.on("RefreshOrders", function () { location.reload(); });
-                connection.start();
-            } catch (e) { }
+            setInterval(function () { location.reload(); }, 30000);
         });
     </script>
 }

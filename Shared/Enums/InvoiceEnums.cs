@@ -7,11 +7,3 @@ public enum InvoiceType
     Sales,
     SalesReturn
 }
-
-public enum PayTypes
-{
-    Cash,
-    Later,
-    Money,
-    Visa
-}

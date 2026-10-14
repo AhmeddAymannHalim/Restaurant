@@ -1,3 +1,4 @@
+using Restaurant.DAL.IRepositories.Commons;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -11,10 +12,12 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class SalaryRepository : ISalaryRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IJournalEntryRepository _journals;
 
-    public SalaryRepository(ApplicationDbContext context)
+    public SalaryRepository(ApplicationDbContext context, IJournalEntryRepository journals)
     {
         _context = context;
+        _journals = journals;
     }
 
     public async Task<PaginatedResult<Salary>> GetPagedSalariesAsync(PageRequest request)
@@ -89,6 +92,8 @@ public class SalaryRepository : ISalaryRepository
 
     public async Task<ResultMessage> UpsertSalaryAsync(Salary entity, string userId)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
             if (entity.Id == 0)
@@ -118,6 +123,23 @@ public class SalaryRepository : ISalaryRepository
                 await _context.SaveChangesAsync();
             }
 
+            await _journals.RemoveSourceEntriesAsync(JournalSourceType.Salary, entity.Id);
+            var posting = await _journals.PostSourceEntryAsync(JournalSourceType.Salary,
+                entity.Id,
+                entity.SalaryDate,
+                $"Salary {entity.SalaryCode}",
+                new[]
+                {
+                    new JournalLineRequest(AccountCodes.Salaries, entity.SalaryAmount, 0),
+                    new JournalLineRequest(AccountCodes.Cash, 0, entity.SalaryAmount)
+                });
+            if (!posting.Success)
+            {
+                return posting;
+            }
+
+            await transaction.CommitAsync();
+
             return new ResultMessage { Success = true };
         }
         catch (Exception ex)
@@ -125,7 +147,7 @@ public class SalaryRepository : ISalaryRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }
@@ -140,6 +162,7 @@ public class SalaryRepository : ISalaryRepository
                 return new ResultMessage { Success = true };
             }
 
+            await _journals.RemoveSourceEntriesAsync(JournalSourceType.Salary, entity.Id);
             _context.Salaries.Remove(entity);
             await _context.SaveChangesAsync();
 
@@ -158,7 +181,7 @@ public class SalaryRepository : ISalaryRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = ex.Message
+                Message = ErrorLog.Message(ex)
             };
         }
     }

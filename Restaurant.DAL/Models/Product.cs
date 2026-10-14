@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Restaurant.DAL.Models;
 
 public class Product
@@ -10,7 +12,8 @@ public class Product
 
     public virtual ProductCategory ProductCategory { get; set; }
 
-    public virtual ICollection<StoreProduct> StoreProducts { get; set; }
     public virtual ICollection<MenuItemComponent> MenuItemComponents { get; set; }
-    public virtual ICollection<InvoiceItem> InvoiceItems { get; set; }
+
+    [NotMapped]
+    public List<ProductStock> Stocks { get; set; } = new();
 }

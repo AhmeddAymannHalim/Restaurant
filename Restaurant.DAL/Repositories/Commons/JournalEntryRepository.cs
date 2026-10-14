@@ -1,5 +1,5 @@
-using Restaurant.DAL.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Commons;
 using Restaurant.DAL.Models;
 using Shared.Enums;
@@ -9,6 +9,17 @@ namespace Restaurant.DAL.Repositories.Commons;
 
 public class JournalEntryRepository : IJournalEntryRepository
 {
+    private static readonly Dictionary<JournalSourceType, (EntryType Type, string ArName, string EnName)> EntryTypes = new()
+    {
+        [JournalSourceType.CustomerPaymentVoucher] = (EntryType.CustomerPayment, "دفعات عملاء", "Customer payment"),
+        [JournalSourceType.SupplierPaymentVoucher] = (EntryType.SupplierPayment, "دفعات موردين", "Supplier payment"),
+        [JournalSourceType.ExitExpense] = (EntryType.Expenses, "مصروفات", "Expenses"),
+        [JournalSourceType.Deposit] = (EntryType.CashReceipt, "قبض نقدي", "Cash receipt"),
+        [JournalSourceType.Salary] = (EntryType.AdvancesAndEmployeeSalaries, "مرتبات", "Salaries"),
+        [JournalSourceType.Scrounge] = (EntryType.AdvancesAndEmployeeSalaries, "سلف وحوافز", "Advances and incentives"),
+        [JournalSourceType.Manual] = (EntryType.Journal, "قيد يومي", "Journal")
+    };
+
     private readonly ApplicationDbContext _context;
 
     public JournalEntryRepository(ApplicationDbContext context)
@@ -18,12 +29,15 @@ public class JournalEntryRepository : IJournalEntryRepository
 
     public async Task<string> GetNextEntryNumberAsync()
     {
-        var last = await _context.JournalEntries.AsNoTracking()
+        var recent = await _context.EntryMasters.AsNoTracking()
             .OrderByDescending(a => a.Id)
-            .Select(a => a.EntryNumber)
-            .FirstOrDefaultAsync();
+            .Select(a => a.Code)
+            .Take(50)
+            .ToListAsync();
 
-        return int.TryParse(last, out var number) ? (number + 1).ToString() : "1";
+        var last = recent.Where(a => int.TryParse(a, out _)).Select(int.Parse).DefaultIfEmpty(0).Max();
+
+        return (last + 1).ToString();
     }
 
     public async Task EnsureDefaultAccountsAsync()
@@ -51,7 +65,6 @@ public class JournalEntryRepository : IJournalEntryRepository
 
         await _context.SaveChangesAsync();
 
-        // Parents are linked in a second pass so the roots already have identities.
         var accounts = await _context.Accounts.ToListAsync();
         foreach (var definition in AccountCodes.Default.Where(a => a.ParentCode is not null))
         {
@@ -66,57 +79,6 @@ public class JournalEntryRepository : IJournalEntryRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<ResultMessage> PostEntryAsync(JournalEntry entry, bool saveChanges = true)
-    {
-        var lines = (entry.Lines ?? new List<JournalEntryLine>()).ToList();
-        if (lines.Count == 0)
-        {
-            return new ResultMessage
-            {
-                Success = false,
-                Message = "JournalNotBalanced"
-            };
-        }
-
-        if (lines.Any(a => (a.Debit > 0) == (a.Credit > 0) || a.Debit < 0 || a.Credit < 0))
-        {
-            return new ResultMessage
-            {
-                Success = false,
-                Message = "JournalLineInvalid"
-            };
-        }
-
-        if (Math.Round(lines.Sum(a => a.Debit), 2) != Math.Round(lines.Sum(a => a.Credit), 2))
-        {
-            return new ResultMessage
-            {
-                Success = false,
-                Message = "JournalNotBalanced"
-            };
-        }
-
-        if (string.IsNullOrWhiteSpace(entry.EntryNumber))
-        {
-            entry.EntryNumber = await GetNextEntryNumberAsync();
-        }
-
-        entry.Lines = lines;
-        await _context.JournalEntries.AddAsync(entry);
-        await ErpEntryMirror.AddAsync(_context, entry);
-
-        if (saveChanges)
-        {
-            await _context.SaveChangesAsync();
-        }
-
-        return new ResultMessage
-        {
-            Success = true,
-            Data = entry.EntryNumber
-        };
-    }
-
     public async Task<ResultMessage> PostSourceEntryAsync(JournalSourceType sourceType,
         int sourceId,
         DateTime date,
@@ -128,6 +90,21 @@ public class JournalEntryRepository : IJournalEntryRepository
             .Where(a => a.Debit > 0 || a.Credit > 0)
             .ToList();
         if (requested.Count == 0)
+        {
+            return new ResultMessage { Success = true };
+        }
+
+        if (requested.Any(a => (a.Debit > 0) == (a.Credit > 0) || a.Debit < 0 || a.Credit < 0))
+        {
+            return Fail("JournalLineInvalid");
+        }
+
+        if (Math.Round(requested.Sum(a => a.Debit), 2) != Math.Round(requested.Sum(a => a.Credit), 2))
+        {
+            return Fail("JournalNotBalanced");
+        }
+
+        if (sourceType == JournalSourceType.Invoice || !EntryTypes.TryGetValue(sourceType, out var type))
         {
             return new ResultMessage { Success = true };
         }
@@ -149,78 +126,82 @@ public class JournalEntryRepository : IJournalEntryRepository
 
         if (accounts.Count != codes.Count)
         {
-            return new ResultMessage
-            {
-                Success = false,
-                Message = "RecordNotFound"
-            };
+            return Fail("RecordNotFound");
         }
 
         var accountIds = accounts.ToDictionary(a => a.Code, a => a.Id);
+        var setting = await ErpBillSupport.GetEntrySettingAsync(_context, type.Type, type.ArName, type.EnName);
+        var cashId = await _context.Accounts.AsNoTracking()
+            .Where(a => a.Code == AccountCodes.Cash)
+            .Select(a => (int?)a.Id)
+            .FirstOrDefaultAsync();
+        var number = await GetNextEntryNumberAsync();
 
-        var entry = new JournalEntry
+        var entry = new EntryMaster
         {
-            Date = date,
-            Description = description,
-            SourceType = sourceType,
-            SourceId = sourceId,
-            Lines = requested.Select(a => new JournalEntryLine
+            Code = number,
+            EntryDate = date,
+            TotalBalance = requested.Sum(a => Math.Round(a.Debit, 2)),
+            CurrencyRate = 1,
+            IsPosted = true,
+            EntryRemarks = description,
+            CollectEntryCode = SourceTag(sourceType, sourceId),
+            AccountBoxOrBankId = cashId.HasValue && requested.Any(a => a.AccountCode == AccountCodes.Cash) ? cashId : null,
+            EntrySetting = setting,
+            CreatedAt = DateTime.Now,
+            EntryDetails = requested.Select((line, index) => new EntryDetail
             {
-                AccountId = accountIds[a.AccountCode],
-                Debit = Math.Round(a.Debit, 2),
-                Credit = Math.Round(a.Credit, 2),
-                Description = a.Description
+                EntryRowCode = (short)(index + 1),
+                AccountId = accountIds[line.AccountCode],
+                Debit = Math.Round(line.Debit, 2),
+                Credit = Math.Round(line.Credit, 2),
+                EntryDetailsRemarks = line.Description,
+                CreatedAt = DateTime.Now
             }).ToList()
         };
 
-        return await PostEntryAsync(entry, saveChanges);
+        await _context.EntryMasters.AddAsync(entry);
+
+        if (saveChanges)
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        return new ResultMessage
+        {
+            Success = true,
+            Data = number
+        };
     }
 
     public async Task RemoveSourceEntriesAsync(JournalSourceType sourceType, int sourceId)
     {
-        await ErpEntryMirror.RemoveAsync(_context, sourceType, sourceId);
-
-        var entries = await _context.JournalEntries
-            .Include(a => a.Lines)
-            .Where(a => a.SourceType == sourceType && a.SourceId == sourceId)
-            .ToListAsync();
-
-        if (entries.Count == 0)
+        if (sourceType == JournalSourceType.Invoice)
         {
             return;
         }
 
-        _context.JournalEntryLines.RemoveRange(entries.SelectMany(a => a.Lines));
-        _context.JournalEntries.RemoveRange(entries);
+        var tag = SourceTag(sourceType, sourceId);
+        var entries = await _context.EntryMasters
+            .Include(a => a.EntryDetails)
+            .Where(a => a.CollectEntryCode == tag)
+            .ToListAsync();
+
+        _context.EntryDetails.RemoveRange(entries.SelectMany(a => a.EntryDetails));
+        _context.EntryMasters.RemoveRange(entries);
     }
 
-    public async Task<IEnumerable<TrialBalanceLine>> GetTrialBalanceAsync(DateTime? from = null, DateTime? to = null)
+    private static string SourceTag(JournalSourceType sourceType, int? sourceId)
     {
-        var query = _context.JournalEntryLines.AsNoTracking().AsQueryable();
+        return $"{sourceType}:{sourceId}";
+    }
 
-        if (from.HasValue)
+    private static ResultMessage Fail(string message)
+    {
+        return new ResultMessage
         {
-            query = query.Where(a => a.JournalEntry.Date >= from.Value.Date);
-        }
-
-        if (to.HasValue)
-        {
-            query = query.Where(a => a.JournalEntry.Date < to.Value.Date.AddDays(1));
-        }
-
-        return await query
-            .GroupBy(a => new { a.AccountId, a.Account.Code, a.Account.ArName, a.Account.EnName, a.Account.AccountType })
-            .Select(a => new TrialBalanceLine
-            {
-                AccountId = a.Key.AccountId,
-                Code = a.Key.Code,
-                NameAr = a.Key.ArName,
-                NameEn = a.Key.EnName,
-                AccountType = a.Key.AccountType,
-                TotalDebit = a.Sum(b => b.Debit),
-                TotalCredit = a.Sum(b => b.Credit)
-            })
-            .OrderBy(a => a.Code)
-            .ToListAsync();
+            Success = false,
+            Message = message
+        };
     }
 }

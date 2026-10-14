@@ -137,9 +137,4 @@ public class AccountService : IAccountService
             CountryId = user.Town?.Governorate?.CountryId
         };
     }
-
-    public async Task<ResultMessage> UpdateProfileAsync(string userId, ProfileViewModel model)
-    {
-        return await _repository.UpdateProfileAsync(userId, model);
-    }
 }

@@ -8,6 +8,6 @@ public interface IProductRepository
 {
     Task<PaginatedResult<Product>> GetPagedProductsAsync(PageRequest request);
     Task<Product> GetProductByIdAsync(int id);
-    Task<ResultMessage> UpsertProductAsync(Product entity, IEnumerable<StoreProduct> stocks);
+    Task<ResultMessage> UpsertProductAsync(Product entity, IEnumerable<ProductStock> stocks);
     Task<ResultMessage> DeleteProductAsync(int id);
 }

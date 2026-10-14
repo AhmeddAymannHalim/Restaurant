@@ -38,7 +38,7 @@ public class ProductService : IProductService
     {
         var entity = _mapper.Map<Product>(model);
 
-        var stocks = model.Stocks.Select(a => new StoreProduct
+        var stocks = model.Stocks.Select(a => new ProductStock
         {
             StoreId = a.StoreId,
             Quantity = a.Quantity

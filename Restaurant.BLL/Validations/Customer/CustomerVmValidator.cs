@@ -16,6 +16,23 @@ public class CustomerVmValidator : AbstractValidator<CustomerViewModel>
         var required = localizer["Val.RequiredField"].Value;
         string MaxLength(int length) => string.Format(localizer["Val.MaxLength"].Value, length);
 
+        RuleFor(x => x.Email)
+            .Must((model, value) => !validator.IsValueExist(model.Id, "Email", value))
+            .When(x => !string.IsNullOrWhiteSpace(x.Email))
+            .WithMessage(localizer["Val.AlreadyExist"].Value);
+
+        RuleFor(x => x.VatNumber)
+            .Must((model, value) => !validator.IsValueExist(model.Id, "VatNumber", value))
+            .When(x => !string.IsNullOrWhiteSpace(x.VatNumber))
+            .WithMessage(localizer["Val.AlreadyExist"].Value);
+
+        RuleFor(x => x.IDNumber)
+            .Must((model, value) => !validator.IsValueExist(model.Id, "IDNumber", value))
+            .When(x => !string.IsNullOrWhiteSpace(x.IDNumber))
+            .WithMessage(localizer["Val.AlreadyExist"].Value);
+
+        this.AddPhoneRules(x => x.PhoneNumber, x => x.Phones, localizer);
+
         RuleFor(x => x.Code)
             .Must((model, code) => !accountValidator.IsCodeExist(model.AccountId ?? 0, code))
             .When(x => !string.IsNullOrWhiteSpace(x.Code))
@@ -56,10 +73,6 @@ public class CustomerVmValidator : AbstractValidator<CustomerViewModel>
             .WithMessage(localizer["Val.InvalidEmail"].Value)
             .MaximumLength(100)
             .WithMessage(MaxLength(100));
-
-        RuleFor(x => x.PhoneNumber2)
-            .MaximumLength(20)
-            .WithMessage(MaxLength(20));
 
         RuleFor(x => x.Website)
             .MaximumLength(200)

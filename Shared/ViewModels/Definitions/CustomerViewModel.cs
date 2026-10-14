@@ -11,6 +11,7 @@ public class CustomerViewModel
     public string EnName { get; set; }
     public string Address { get; set; }
     public string PhoneNumber { get; set; }
+    public List<PhoneViewModel> Phones { get; set; } = new();
     public decimal Balance { get; set; }
     public int? TownId { get; set; }
 
@@ -20,9 +21,7 @@ public class CustomerViewModel
     public int? CountryId { get; set; }
     public int? GovernorateId { get; set; }
 
-    // ---- the rest of the table columns
     public string Email { get; set; }
-    public string PhoneNumber2 { get; set; }
     public string Website { get; set; }
     public string Village { get; set; }
     public string StreetName { get; set; }

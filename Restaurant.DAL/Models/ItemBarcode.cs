@@ -3,7 +3,6 @@ using Shared.Enums;
 
 namespace Restaurant.DAL.Models;
 
-// Minimal shape; replaced by the full ERP class when merged.
 public class ItemBarcode : BaseEntity
 {
     public string Barcode { get; set; }

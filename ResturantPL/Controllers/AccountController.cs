@@ -120,54 +120,6 @@ namespace ResturantPL.Controllers
             return RedirectToAction(nameof(ChangePassword));
         }
 
-        [Authorize]
-        public async Task<IActionResult> Profile()
-        {
-            var model = await _service.GetProfileAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            return View(model ?? new ProfileViewModel());
-        }
-
-        [Authorize]
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Profile(ProfileViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            var result = await _service.UpdateProfileAsync(User.FindFirstValue(ClaimTypes.NameIdentifier), model);
-            if (!result.Success)
-            {
-                ModelState.AddModelError(string.Empty, _localizer[result.Message ?? "ErrorWhileSaving"].Value);
-                return View(model);
-            }
-
-            TempData["ProfileSaved"] = true;
-            return RedirectToAction(nameof(Profile));
-        }
-
-        [Authorize]
-        [HttpGet]
-        public async Task<IActionResult> Countries()
-        {
-            return Json(await _lookup.CountryLookupAsync());
-        }
-
-        [Authorize]
-        [HttpGet]
-        public async Task<IActionResult> Governorates(int countryId)
-        {
-            return Json(await _lookup.GovernorateLookupAsync(countryId));
-        }
-
-        [Authorize]
-        [HttpGet]
-        public async Task<IActionResult> Cities(int governorateId)
-        {
-            return Json(await _lookup.CityLookupAsync(governorateId));
-        }
-
         public IActionResult CheckYourInbox(string type = "confirm")
         {
             ViewBag.Type = type;

@@ -1,0 +1,142 @@
+@model AccountDefinitionViewModel
+@{
+    var isNew = Model.Id == 0;
+    ViewBag.Title = isNew ? L["NewAsset"].Value : L["UpdateAsset"].Value;
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-building-columns" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title</h1>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Upsert" method="post" class="ad-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Kind" />
+            <div class="form-group">
+                <label asp-for="Code" class="control-label">@L["Code"]</label>
+                <input asp-for="Code" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label asp-for="ArName" class="control-label">@L["ArabicName"]</label>
+                <input asp-for="ArName" class="form-control" />
+                <span asp-validation-for="ArName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EnName" class="control-label">@L["EnglishName"]</label>
+                <input asp-for="EnName" class="form-control" />
+                <span asp-validation-for="EnName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ParentAccountId" class="control-label">@L["Account.Parent"]</label>
+                <select asp-for="ParentAccountId" class="form-control">
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.Parents)
+                    {
+                        <option value="@item.Id" selected="@(Model.ParentAccountId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="CurrencyId" class="control-label">@L["Account.Currency"]</label>
+                <select asp-for="CurrencyId" class="form-control">
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.Currencies)
+                    {
+                        <option value="@item.Id" selected="@(Model.CurrencyId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+            </div>
+            @if (isNew)
+            {
+                <div class="form-group">
+                    <label asp-for="OpeningBalance" class="control-label">@L["Account.OpeningBalance"]</label>
+                    <input asp-for="OpeningBalance" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="OpeningBalance" class="text-danger"></span>
+                </div>
+            }
+            else
+            {
+                <div class="form-group">
+                    <label class="control-label">@L["Account.Balance"]</label>
+                    <div class="form-control">@Model.Balance.ToString("N2")</div>
+                </div>
+            }
+
+            <h2 class="ad-section-title ad-full">@L["Asset.Details"]</h2>
+            <div class="form-group">
+                <label asp-for="Location" class="control-label">@L["Asset.Location"]</label>
+                <input asp-for="Location" class="form-control" />
+                <span asp-validation-for="Location" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BuyValue" class="control-label">@L["Asset.BuyValue"]</label>
+                <input asp-for="BuyValue" type="number" step="0.01" min="0" class="form-control" />
+                <span asp-validation-for="BuyValue" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BuyDate" class="control-label">@L["Asset.BuyDate"]</label>
+                <input asp-for="BuyDate" type="date" class="form-control" />
+                <span asp-validation-for="BuyDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StartUsingDate" class="control-label">@L["Asset.StartUsingDate"]</label>
+                <input asp-for="StartUsingDate" type="date" class="form-control" />
+                <span asp-validation-for="StartUsingDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DepreciationType" class="control-label">@L["Asset.DepreciationType"]</label>
+                <select asp-for="DepreciationType" asp-items="Html.GetLocalizedEnumSelectList<Shared.Enums.DepreciationType>(L)" class="form-control"></select>
+                <span asp-validation-for="DepreciationType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ProductAge" class="control-label">@L["Asset.ProductAge"]</label>
+                <input asp-for="ProductAge" type="number" min="0" class="form-control" />
+                <span asp-validation-for="ProductAge" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ScrapValue" class="control-label">@L["Asset.ScrapValue"]</label>
+                <input asp-for="ScrapValue" type="number" step="0.01" min="0" class="form-control" />
+                <span asp-validation-for="ScrapValue" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DepreciationAccountId" class="control-label">@L["Asset.DepreciationAccount"]</label>
+                <select asp-for="DepreciationAccountId" class="form-control">
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.PostingAccounts)
+                    {
+                        <option value="@item.Id" selected="@(Model.DepreciationAccountId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="DepreciationExpensesAccountId" class="control-label">@L["Asset.DepreciationExpensesAccount"]</label>
+                <select asp-for="DepreciationExpensesAccountId" class="form-control">
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.PostingAccounts)
+                    {
+                        <option value="@item.Id" selected="@(Model.DepreciationExpensesAccountId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group ad-full">
+                <label asp-for="Remarks" class="control-label">@L["Erp.Remarks"]</label>
+                <input asp-for="Remarks" class="form-control" />
+            </div>
+
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+                @if (!isNew)
+                {
+                    <button type="button" onclick="Delete('/Asset/Delete/@Model.Id', '@Url.Action("Index")')" class="btn-ad btn-ad-danger push"><i class="fas fa-trash" aria-hidden="true"></i> @L["Delete"]</button>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

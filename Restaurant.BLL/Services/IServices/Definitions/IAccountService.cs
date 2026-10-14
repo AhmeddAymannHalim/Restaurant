@@ -13,5 +13,4 @@ public interface IAccountService
     Task<ResultMessage> ResetPasswordAsync(ResetPasswordViewModel model);
     Task<ResultMessage> ChangePasswordAsync(string userId, ChangePasswordViewModel model);
     Task<ProfileViewModel> GetProfileAsync(string userId);
-    Task<ResultMessage> UpdateProfileAsync(string userId, ProfileViewModel model);
 }

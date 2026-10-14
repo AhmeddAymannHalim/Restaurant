@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Localization;
 using Restaurant.BLL.Services.IServices.Definitions;
-using ResturantPL.Hubs;
 using Shared;
 using Shared.ViewModels.Commons;
 
@@ -13,16 +11,13 @@ namespace ResturantPL.Controllers
     public class KitchenOrderController : Controller
     {
         private readonly IOrderService _service;
-        private readonly IHubContext<OrderHub> _hub;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
         public KitchenOrderController(
             IOrderService service,
-            IHubContext<OrderHub> hub,
             IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
-            _hub = hub;
             _localizer = localizer;
         }
 
@@ -34,7 +29,7 @@ namespace ResturantPL.Controllers
             }
             catch (Exception ex)
             {
-                return ErrorHandler.ErrorView(ex.Message);
+                return ErrorHandler.ErrorView(ex);
             }
         }
 
@@ -46,7 +41,6 @@ namespace ResturantPL.Controllers
                 var result = await _service.CompleteOrderAsync(id);
                 if (result.Success)
                 {
-                    await _hub.Clients.All.SendAsync("RefreshOrders");
                     return Json(new { success = true });
                 }
 
