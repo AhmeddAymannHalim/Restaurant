@@ -29,6 +29,7 @@
             <th>@L["Image"]</th>
             <th>@L["Name"]</th>
             <th>@L["MenuSection"]</th>
+            <th>@L["Ingredients"]</th>
             <th>@L["Size"]</th>
             <th>@L["TotalCost"]</th>
             <th>@L["Price"]</th>
@@ -53,6 +54,7 @@
                     </td>
                     <td>@(isArabic ? item.ArName : item.EnName)</td>
                     <td>@(isArabic ? item.MenuSectionArName : item.MenuSectionEnName)</td>
+                    <td>@(isArabic ? item.ArIngredients : item.EnIngredients)</td>
                     <td>@(item.Size.HasValue ? L["Size." + item.Size.Value].Value : L["Size.regular"].Value)</td>
                     <td>@item.TotalCost.ToString("0.00")</td>
                     <td>@item.Price.ToString("0.00")</td>
@@ -69,7 +71,7 @@
         else
         {
             <tr>
-                <td colspan="10" class="ad-empty">@L["NoData"]</td>
+                <td colspan="11" class="ad-empty">@L["NoData"]</td>
             </tr>
         }
     </tbody>

@@ -178,6 +178,7 @@ public class OrderRepository : IOrderRepository
     {
         return await _context.MenuItems.AsNoTracking()
             .Include(a => a.MenuSection)
+            .Include(a => a.Components).ThenInclude(a => a.Product)
             .OrderBy(a => a.MenuSection.ArName)
             .ThenBy(a => a.ArName)
             .ToListAsync();
@@ -529,6 +530,7 @@ public class OrderRepository : IOrderRepository
             order.OrderDate = DateTime.Now;
 
             await _context.SaveChangesAsync();
+            await ErpOrderMirror.SyncAsync(_context, order);
 
             return new ResultMessage
             {
@@ -682,6 +684,7 @@ public class OrderRepository : IOrderRepository
             }
 
             await FreeTableAsync(order);
+            await ErpOrderMirror.RemoveAsync(_context, order);
             _context.Orders.Remove(order);
             await _context.SaveChangesAsync();
 

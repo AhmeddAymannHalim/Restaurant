@@ -43,6 +43,7 @@ public class HomeRepository : IHomeRepository
     {
         return await _context.MenuItems
             .AsNoTracking()
+            .Include(a => a.Components).ThenInclude(a => a.Product)
             .Where(a => a.ShowOnWebsite && (sectionId == null || a.MenuSectionId == sectionId))
             .OrderBy(a => a.MenuSectionId)
             .ThenBy(a => a.ArName)

@@ -56,13 +56,15 @@
         var size = item.size ? '<span class="ws-dish-size">' + esc(sizeNames[item.size] || item.size) + "</span>" : "";
         var text = arabic ? (item.arDescription || item.enDescription) : (item.enDescription || item.arDescription);
         var desc = text ? '<p class="ws-dish-desc">' + esc(text) + "</p>" : "";
+        var ingredients = arabic ? (item.arIngredients || item.enIngredients) : (item.enIngredients || item.arIngredients);
+        var made = ingredients ? '<p class="ws-dish-desc ws-dish-made">' + esc(root.dataset.madeOf) + " " + esc(ingredients) + "</p>" : "";
 
         return '<article class="ws-dish" style="--i:' + index + '">' +
             '<div class="ws-dish-img">' + image + "</div>" +
             '<div class="ws-dish-body">' +
             '<div class="ws-dish-head"><h3 class="ws-dish-name">' + esc(name) + '</h3>' +
             '<span class="ws-dish-price">' + price + " " + esc(root.dataset.currency) + "</span></div>" +
-            size + desc +
+            size + desc + made +
             '<button type="button" class="ws-dish-add" data-cart-add="' + esc(String(item.id)) + '">' +
             '<i class="bi bi-bag-plus" aria-hidden="true"></i> ' + esc(root.dataset.add) + "</button>" +
             "</div></article>";

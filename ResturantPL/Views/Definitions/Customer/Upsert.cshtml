@@ -14,6 +14,14 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="AccountId" />
+            <ul class="nav emp-tabs ad-full" role="tablist">
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab active" id="tab-Basic" data-bs-toggle="tab" data-bs-target="#pane-Basic" role="tab" aria-controls="pane-Basic" aria-selected="true"><i class="fas fa-id-card" aria-hidden="true"></i> @L["Cus.Tab.Basic"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Identity" data-bs-toggle="tab" data-bs-target="#pane-Identity" role="tab" aria-controls="pane-Identity" aria-selected="false"><i class="fas fa-passport" aria-hidden="true"></i> @L["Cus.Tab.Identity"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Credit" data-bs-toggle="tab" data-bs-target="#pane-Credit" role="tab" aria-controls="pane-Credit" aria-selected="false"><i class="fas fa-credit-card" aria-hidden="true"></i> @L["Cus.Tab.Credit"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Org" data-bs-toggle="tab" data-bs-target="#pane-Org" role="tab" aria-controls="pane-Org" aria-selected="false"><i class="fas fa-sitemap" aria-hidden="true"></i> @L["Cus.Tab.Org"]</button></li>
+            </ul>
+            <div class="tab-content ad-full">
+            <div class="tab-pane fade show active emp-pane" id="pane-Basic" role="tabpanel" aria-labelledby="tab-Basic" tabindex="0">
             <div class="form-group">
                 <label asp-for="ArName" class="control-label">@L["ArabicName"]</label>
                 <input asp-for="ArName" class="form-control" />
@@ -63,8 +71,8 @@
                 <span asp-validation-for="Balance" class="text-danger"></span>
             </div>
 
-            <details class="ad-section ad-full" open>
-                <summary>@L["Cus.Section.Contact"]</summary>
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Cus.Section.Contact"]</h2>
                 <div class="ad-section-grid">
                 <div class="form-group">
                     <label asp-for="Email" class="control-label">@L["Cus.Email"]</label>
@@ -112,10 +120,12 @@
                     <span asp-validation-for="GoogleLink" class="text-danger"></span>
                 </div>
                 </div>
-            </details>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Identity" role="tabpanel" aria-labelledby="tab-Identity" tabindex="0">
 
-            <details class="ad-section ad-full">
-                <summary>@L["Cus.Section.Identity"]</summary>
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Cus.Section.Identity"]</h2>
                 <div class="ad-section-grid">
                 <div class="form-group">
                     <label asp-for="IDNumber" class="control-label">@L["Cus.IDNumber"]</label>
@@ -161,10 +171,33 @@
                     <span asp-validation-for="SecondBusinessId" class="text-danger"></span>
                 </div>
                 </div>
-            </details>
+            </div>
 
-            <details class="ad-section ad-full" open>
-                <summary>@L["Cus.Section.Credit"]</summary>
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Cus.Section.Other"]</h2>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="ImageFile" class="control-label">@L["Cus.ImageUrl"]</label>
+                    <input type="hidden" asp-for="ImageUrl" />
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <div class="mb-2"><img src="@Model.ImageUrl" alt="@Model.ArName" class="rounded" style="width:80px; height:80px; object-fit:cover;" /></div>
+                    }
+                    <input asp-for="ImageFile" type="file" accept="image/*" class="form-control" />
+                    <span asp-validation-for="ImageFile" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Remark" class="control-label">@L["Cus.Remark"]</label>
+                    <input asp-for="Remark" class="form-control" />
+                    <span asp-validation-for="Remark" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Credit" role="tabpanel" aria-labelledby="tab-Credit" tabindex="0">
+
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Cus.Section.Credit"]</h2>
                 <div class="ad-section-grid">
                 <div class="form-group">
                     <label asp-for="CustomerType" class="control-label">@L["Cus.CustomerType"]</label>
@@ -219,10 +252,10 @@
                     <span asp-validation-for="EmployeeId" class="text-danger"></span>
                 </div>
                 </div>
-            </details>
+            </div>
 
-            <details class="ad-section ad-full">
-                <summary>@L["Cus.Section.Loyalty"]</summary>
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Cus.Section.Loyalty"]</h2>
                 <div class="ad-section-grid">
                 <div class="form-group">
                     <label asp-for="BarCodeNumeric" class="control-label">@L["Cus.BarCodeNumeric"]</label>
@@ -240,31 +273,12 @@
                     <span asp-validation-for="LoyaltyPointsExpiryDays" class="text-danger"></span>
                 </div>
                 </div>
-            </details>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Org" role="tabpanel" aria-labelledby="tab-Org" tabindex="0">
 
-            <details class="ad-section ad-full">
-                <summary>@L["Cus.Section.Other"]</summary>
-                <div class="ad-section-grid">
-                <div class="form-group">
-                    <label asp-for="ImageFile" class="control-label">@L["Cus.ImageUrl"]</label>
-                    <input type="hidden" asp-for="ImageUrl" />
-                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
-                    {
-                        <div class="mb-2"><img src="@Model.ImageUrl" alt="@Model.ArName" class="rounded" style="width:80px; height:80px; object-fit:cover;" /></div>
-                    }
-                    <input asp-for="ImageFile" type="file" accept="image/*" class="form-control" />
-                    <span asp-validation-for="ImageFile" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <label asp-for="Remark" class="control-label">@L["Cus.Remark"]</label>
-                    <input asp-for="Remark" class="form-control" />
-                    <span asp-validation-for="Remark" class="text-danger"></span>
-                </div>
-                </div>
-            </details>
-
-            <details class="ad-section ad-full" open data-fk-selects>
-                <summary>@L["Cus.Section.Org"]</summary>
+            <div class="ad-section ad-full" data-fk-selects>
+                <h2 class="ad-section-title">@L["Cus.Section.Org"]</h2>
                 <div class="ad-section-grid">
                 <div class="form-group">
                     <label asp-for="SellTypeId" class="control-label">@L["Cus.SellTypeId"]</label>
@@ -322,7 +336,9 @@
                     <span asp-validation-for="SpecializationId" class="text-danger"></span>
                 </div>
                 </div>
-            </details>
+            </div>
+            </div>
+            </div>
 
             <div class="ad-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
@@ -337,6 +353,7 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/row-lists.js" asp-append-version="true"></script>
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/location-cascade.js" asp-append-version="true"></script>
 }

@@ -24,6 +24,8 @@ public class MenuItemViewModel
     public decimal Price { get; set; }
 
     public decimal TotalCost { get; set; }
+    public string ArIngredients { get; set; }
+    public string EnIngredients { get; set; }
     public decimal Benefit { get; set; }
 
     public List<MenuItemComponentViewModel> Components { get; set; } = new();

@@ -14,6 +14,14 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="AccountId" />
+            <ul class="nav emp-tabs ad-full" role="tablist">
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab active" id="tab-Basic" data-bs-toggle="tab" data-bs-target="#pane-Basic" role="tab" aria-controls="pane-Basic" aria-selected="true"><i class="fas fa-id-card" aria-hidden="true"></i> @L["Sup.Tab.Basic"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Tax" data-bs-toggle="tab" data-bs-target="#pane-Tax" role="tab" aria-controls="pane-Tax" aria-selected="false"><i class="fas fa-file-invoice" aria-hidden="true"></i> @L["Sup.Tab.Tax"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Credit" data-bs-toggle="tab" data-bs-target="#pane-Credit" role="tab" aria-controls="pane-Credit" aria-selected="false"><i class="fas fa-credit-card" aria-hidden="true"></i> @L["Sup.Tab.Credit"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Org" data-bs-toggle="tab" data-bs-target="#pane-Org" role="tab" aria-controls="pane-Org" aria-selected="false"><i class="fas fa-sitemap" aria-hidden="true"></i> @L["Sup.Tab.Org"]</button></li>
+            </ul>
+            <div class="tab-content ad-full">
+            <div class="tab-pane fade show active emp-pane" id="pane-Basic" role="tabpanel" aria-labelledby="tab-Basic" tabindex="0">
             <div class="form-group">
                 <label asp-for="ArName" class="control-label">@L["ArabicName"]</label>
                 <input asp-for="ArName" class="form-control" />
@@ -64,8 +72,8 @@
                 </div>
             </div>
 
-            <details class="ad-section ad-full" open>
-                <summary>@L["Sup.Section.Contact"]</summary>
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Sup.Section.Contact"]</h2>
                 <div class="ad-section-grid">
                 <div class="form-group">
                     <label asp-for="Email" class="control-label">@L["Sup.Email"]</label>
@@ -98,10 +106,12 @@
                     <span asp-validation-for="PostalCode" class="text-danger"></span>
                 </div>
                 </div>
-            </details>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Tax" role="tabpanel" aria-labelledby="tab-Tax" tabindex="0">
 
-            <details class="ad-section ad-full">
-                <summary>@L["Sup.Section.Tax"]</summary>
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Sup.Section.Tax"]</h2>
                 <div class="ad-section-grid">
                 <div class="form-group">
                     <label asp-for="VatNumber" class="control-label">@L["Sup.VatNumber"]</label>
@@ -114,10 +124,12 @@
                     <span asp-validation-for="RegistrationNumber" class="text-danger"></span>
                 </div>
                 </div>
-            </details>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Credit" role="tabpanel" aria-labelledby="tab-Credit" tabindex="0">
 
-            <details class="ad-section ad-full" open>
-                <summary>@L["Sup.Section.Credit"]</summary>
+            <div class="ad-section ad-full">
+                <h2 class="ad-section-title">@L["Sup.Section.Credit"]</h2>
                 <div class="ad-section-grid">
                 <div class="form-group">
                     <label asp-for="BillPayType" class="control-label">@L["Sup.BillPayType"]</label>
@@ -162,10 +174,12 @@
                     <span asp-validation-for="Remark" class="text-danger"></span>
                 </div>
                 </div>
-            </details>
+            </div>
+            </div>
+            <div class="tab-pane fade emp-pane" id="pane-Org" role="tabpanel" aria-labelledby="tab-Org" tabindex="0">
 
-            <details class="ad-section ad-full" open data-fk-selects>
-                <summary>@L["Sup.Section.Org"]</summary>
+            <div class="ad-section ad-full" data-fk-selects>
+                <h2 class="ad-section-title">@L["Sup.Section.Org"]</h2>
                 <div class="ad-section-grid">
                 <div class="form-group">
                     <label asp-for="CostCenterId" class="control-label">@L["Sup.CostCenterId"]</label>
@@ -179,7 +193,9 @@
                     <span asp-validation-for="CostCenterId" class="text-danger"></span>
                 </div>
                 </div>
-            </details>
+            </div>
+            </div>
+            </div>
 
             <div class="ad-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
@@ -194,6 +210,7 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/row-lists.js" asp-append-version="true"></script>
     
     <script src="~/js/location-cascade.js" asp-append-version="true"></script>
 <partial name="_ValidationScriptsPartial" />
