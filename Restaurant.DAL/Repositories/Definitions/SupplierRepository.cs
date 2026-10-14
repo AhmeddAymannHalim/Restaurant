@@ -55,6 +55,7 @@ public class SupplierRepository : ISupplierRepository
         {
             var form = entity.Account;
             entity.Account = null;
+            (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
 
             if (entity.Id == 0)
             {

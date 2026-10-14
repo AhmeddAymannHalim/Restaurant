@@ -104,6 +104,8 @@ public class EmployeeRepository : IEmployeeRepository
                 };
             }
 
+            (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
+
             if (entity.Id == 0)
             {
                 entity.Code = await NewEmployeeCodeAsync();

@@ -1,3 +1,4 @@
+using Restaurant.DAL.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -54,6 +55,8 @@ public class StoreRepository : IStoreRepository
     {
         try
         {
+            (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
+
             if (entity.Id == 0)
             {
                 if (string.IsNullOrWhiteSpace(entity.Code))

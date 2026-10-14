@@ -1,3 +1,4 @@
+using Restaurant.DAL.Helpers;
 using Shared.Enums;
 using Shared.ViewModels.Commons;
 using AutoMapper;
@@ -270,7 +271,7 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.SectionEnName, opt => opt.MapFrom(src => src.MenuSection.EnName));
 
         CreateMap<Supplier, SupplierViewModel>()
-            .ForMember(dest => dest.GovernorateId, opt => opt.MapFrom(src => src.GovId))
+            .ForMember(dest => dest.GovernorateId, opt => opt.MapFrom(src => src.GovId ?? src.Town.GovernorateId))
             .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.CountryId ?? src.Town.Governorate.CountryId))
             .ForMember(dest => dest.Branches, opt => opt.Ignore())
             .ForMember(dest => dest.Employees, opt => opt.Ignore())

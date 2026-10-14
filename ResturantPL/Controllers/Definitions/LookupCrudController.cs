@@ -12,9 +12,6 @@ using Shared.ViewModels.Definitions;
 
 namespace ResturantPL.Controllers.Definitions
 {
-    /// <summary>
-    /// One list + one form for every simple lookup table. A concrete controller only names the table, its icon and
-    /// its extra columns; the views are shared (Views/Definitions/LookupCrud).
     /// </summary>
     [Authorize(Policy = "Staff")]
     public abstract class LookupCrudController<T> : Controller where T : BaseEntity, new()
@@ -33,14 +30,12 @@ namespace ResturantPL.Controllers.Definitions
             _localizer = localizer;
         }
 
-        /// <summary>Resource key of the table's plural title (for example Lookup.SellType).</summary>
         protected abstract string TitleKey { get; }
 
         protected abstract string Icon { get; }
 
         protected virtual IReadOnlyList<LookupField> Fields => Array.Empty<LookupField>();
 
-        /// <summary>Loads the drop-down options of Reference fields (Parent options are loaded here already).</summary>
         protected virtual Task LoadReferenceOptionsAsync(LookupEditViewModel model)
         {
             return Task.CompletedTask;

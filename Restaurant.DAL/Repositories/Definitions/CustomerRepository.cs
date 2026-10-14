@@ -74,6 +74,7 @@ public class CustomerRepository : ICustomerRepository
         {
             var form = entity.Account;
             entity.Account = null;
+            (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
             string replacedImage = null;
 
             if (entity.Id == 0)
