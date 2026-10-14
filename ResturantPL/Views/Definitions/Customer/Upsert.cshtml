@@ -124,7 +124,9 @@
                 </div>
                 <div class="form-group">
                     <label asp-for="Religion" class="control-label">@L["Cus.Religion"]</label>
-                    <input asp-for="Religion" class="form-control" />
+                    <select asp-for="Religion" class="form-control" asp-items="Html.GetLocalizedEnumNameSelectList<Shared.Enums.Religion>(L, Model.Religion)">
+                        <option value="">@L["Select"]</option>
+                    </select>
                     <span asp-validation-for="Religion" class="text-danger"></span>
                 </div>
                 <div class="form-group">
