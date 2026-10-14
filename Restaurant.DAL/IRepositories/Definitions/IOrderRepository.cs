@@ -1,3 +1,4 @@
+using PaymentMethod = Shared.Enums.PaymentMethod;
 using Shared.Enums;
 using Restaurant.DAL.Models;
 using Shared.ViewModels.Commons;

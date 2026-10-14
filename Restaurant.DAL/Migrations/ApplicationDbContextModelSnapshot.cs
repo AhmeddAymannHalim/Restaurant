@@ -163,7 +163,27 @@ namespace Restaurant.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("AccCheckDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AccCustomerCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("AccDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("AccountClass")
+                        .HasColumnType("bit");
+
                     b.Property<int>("AccountType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ArName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("BalanceType")
                         .HasColumnType("int");
 
                     b.Property<string>("Code")
@@ -171,33 +191,164 @@ namespace Restaurant.DAL.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
 
-                    b.Property<string>("NameAr")
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("CreditBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("DebitBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EnName")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                    b.Property<int?>("FinalAccountId")
+                        .HasColumnType("int");
 
-                    b.Property<int>("Nature")
+                    b.Property<int?>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("MaxDebitAllowed")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("NumberOfSubAccounts")
                         .HasColumnType("int");
 
                     b.Property<int?>("ParentAccountId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("RequiresCostCenter")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("RequiresTurning")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Code")
                         .IsUnique();
 
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("FinalAccountId");
+
                     b.HasIndex("ParentAccountId");
 
                     b.ToTable("Accounts");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.AccountDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("BuyDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("BuyValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DepreciationAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DepreciationExpensesAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DepreciationType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("MainParentAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ParentAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProductAge")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("ScrapValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("StartUsingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique()
+                        .HasFilter("[AccountId] IS NOT NULL");
+
+                    b.ToTable("AccountDetails");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.ApplicationSetting", b =>
@@ -257,12 +408,6 @@ namespace Restaurant.DAL.Migrations
                     b.Property<byte>("Age")
                         .HasColumnType("tinyint");
 
-                    b.Property<int?>("BrancheId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CityId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Code")
                         .HasColumnType("nvarchar(max)");
 
@@ -309,14 +454,14 @@ namespace Restaurant.DAL.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("SalaryTypeId")
-                        .HasColumnType("int");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Street")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("TownId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
@@ -330,10 +475,6 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BrancheId");
-
-                    b.HasIndex("CityId");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -342,12 +483,12 @@ namespace Restaurant.DAL.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.HasIndex("SalaryTypeId");
+                    b.HasIndex("TownId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Restaurant.DAL.Models.Branche", b =>
+            modelBuilder.Entity("Restaurant.DAL.Models.AttendanceInOut", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -355,52 +496,482 @@ namespace Restaurant.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                    b.Property<TimeSpan?>("CheckIn")
+                        .HasColumnType("time");
 
-                    b.Property<string>("ArName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                    b.Property<TimeSpan?>("CheckOut")
+                        .HasColumnType("time");
 
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
 
-                    b.Property<string>("EnName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Mobile1")
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
 
-                    b.Property<string>("Mobile2")
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
 
-                    b.Property<string>("Phone1")
-                        .IsRequired()
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Phone2")
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ArName")
-                        .IsUnique();
+                    b.HasIndex("EmployeeId");
 
-                    b.HasIndex("EnName")
-                        .IsUnique();
+                    b.ToTable("AttendanceInOuts");
+                });
 
-                    b.ToTable("Branches");
+            modelBuilder.Entity("Restaurant.DAL.Models.BillDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("BillMasterId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DetailRemarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("DiscountAmountPercentage")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("DiscountAmountValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("DiscountFromBillLevel")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("ExtraAmountPercentage")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ExtraAmountValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("OwnDiscountPercentage")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal?>("OwnDiscountValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<DateTime?>("ProductionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("Quantity")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<byte?>("RowNumber")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("TransRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("UnitCostAtPosting")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int?>("UnitId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BillMasterId");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("StoreId");
+
+                    b.HasIndex("UnitId");
+
+                    b.ToTable("BillDetails");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.BillMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AccountDiscountId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AccountExtraId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AccountItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AccountPayId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("AmountPaided")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("BillCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int>("BillDailyNo")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("BillDiscountPercentage")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("BillDiscountValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("BillExtraPercentage")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("BillExtraValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("BillProfit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int?>("BillSettingId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("CasherCurrentPaidedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("CasherDifferenceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("CasherRemainingAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CodeWithoutSuffix")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CompanyBranchId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CostCenterId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("CurrencyRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("CustomerOrSupplierAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CustomerOrSupplierPhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeliveryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EntryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EtaSubmissionId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EtaUuid")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsCostingApplied")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsEntryPosted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsExport")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSentToEta")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSentToZatca")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsStorageEffected")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastDeliveryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OfflineLocalId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OriginalBillNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PayType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SellTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ToStoreId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalAmountBeforeDiscountOrExtra")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalBillAmountAfterDiscountAndExtra")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalDiscountValueOnBillAndItems")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalExtraValueOnBillAndItems")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalItemsAmountAfterDiscountAndExtra")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalItemsDiscountValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalItemsExtraValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VatCategoryCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VatCategorySubTypeCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ZatcaInvType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ZatcaReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountDiscountId");
+
+                    b.HasIndex("AccountExtraId");
+
+                    b.HasIndex("AccountPayId");
+
+                    b.HasIndex("BillSettingId");
+
+                    b.HasIndex("CompanyBranchId");
+
+                    b.HasIndex("CostCenterId");
+
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("CustomerOrSupplierAccountId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("SellTypeId");
+
+                    b.HasIndex("StoreId");
+
+                    b.HasIndex("ToStoreId");
+
+                    b.ToTable("BillMasters");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.BillSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BillSettings");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Brand", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Brands");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.ChefItem", b =>
@@ -428,7 +999,50 @@ namespace Restaurant.DAL.Migrations
                     b.ToTable("ChefItem");
                 });
 
-            modelBuilder.Entity("Restaurant.DAL.Models.City", b =>
+            modelBuilder.Entity("Restaurant.DAL.Models.Classification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Classifications");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Company", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -438,22 +1052,219 @@ namespace Restaurant.DAL.Migrations
 
                     b.Property<string>("ArName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EnName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
-                    b.Property<int>("GovernorateId")
+                    b.Property<int?>("State")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GovernorateId");
+                    b.HasIndex("CurrencyId");
 
-                    b.ToTable("Cities");
+                    b.ToTable("Companies");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.CompanyBranch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("ArName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Mobile1")
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
+
+                    b.Property<string>("Mobile2")
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
+
+                    b.Property<string>("Phone1")
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
+
+                    b.Property<string>("Phone2")
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
+                    b.ToTable("CompanyBranches");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.ContractType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ContractTypes");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.CostCenter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
+
+                    b.ToTable("CostCenters");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Country", b =>
@@ -469,14 +1280,104 @@ namespace Restaurant.DAL.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("ArNationality")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("EnName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("EnNationality")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Countries");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Currency", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("CurrencyFixedRate")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("CurrencyRate")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SubArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SubEnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<short?>("SubToCurrencyTrans")
+                        .HasColumnType("smallint");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Currencies");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Customer", b =>
@@ -487,42 +1388,225 @@ namespace Restaurant.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Address")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("ArName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<string>("BarCodeNumeric")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("Balance")
+                    b.Property<int>("BillPayType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("BuildingNo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CenterId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ClassificationId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CompanyBranchId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CostCenterId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CountryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CreditDurationInDays")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CreditDurationInMonth")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CreditDurationInYears")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("CreditLimit")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("CityId")
+                    b.Property<int?>("CustomerTierId")
                         .HasColumnType("int");
 
-                    b.Property<string>("EnName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<int>("CustomerType")
+                        .HasColumnType("int");
 
-                    b.Property<string>("PhoneNumber")
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DetailedAddress")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("GoogleLink")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("GovId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("IDNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("LoyaltyPointsExpiryDays")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("LoyaltyPointsNumber")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("MapAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("NationalityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PhoneNumber1")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PhoneNumber2")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PostalCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RegistrationNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Religion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Remark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SecondBusinessId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SecondBusinessType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SellTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SpecializationId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StreetName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("TownId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VatNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Village")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Website")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ArName")
-                        .IsUnique();
+                    b.HasIndex("AccountId")
+                        .IsUnique()
+                        .HasFilter("[AccountId] IS NOT NULL");
 
-                    b.HasIndex("CityId");
+                    b.HasIndex("ClassificationId");
 
-                    b.HasIndex("EnName")
-                        .IsUnique();
+                    b.HasIndex("CompanyBranchId");
+
+                    b.HasIndex("CostCenterId");
+
+                    b.HasIndex("CountryId");
+
+                    b.HasIndex("CustomerTierId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("GovId");
+
+                    b.HasIndex("NationalityId");
+
+                    b.HasIndex("SellTypeId");
+
+                    b.HasIndex("SpecializationId");
+
+                    b.HasIndex("TownId");
 
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.CustomerTier", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CustomerTiers");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.DeliveryZone", b =>
@@ -556,6 +1640,46 @@ namespace Restaurant.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("DeliveryZones");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Department", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Departments");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Deposit", b =>
@@ -604,19 +1728,56 @@ namespace Restaurant.DAL.Migrations
 
             modelBuilder.Entity("Restaurant.DAL.Models.Employee", b =>
                 {
-                    b.Property<int>("EmployeeId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmployeeId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<byte>("Age")
-                        .HasColumnType("tinyint");
-
-                    b.Property<int>("BrancheId")
+                    b.Property<int?>("AccountId")
                         .HasColumnType("int");
 
-                    b.Property<int>("CityId")
+                    b.Property<string>("AccountNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ActualProfession")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Administration")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("AnnualLeaveDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ArName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("AttendanceMethod")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("BasicSalary")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("BorderEntryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CarNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CarType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CasualLeaveDays")
                         .HasColumnType("int");
 
                     b.Property<string>("Code")
@@ -624,59 +1785,1002 @@ namespace Restaurant.DAL.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("FirstName")
+                    b.Property<decimal?>("CompanyInsuranceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("CompanyInsurancePercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("ContractDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ContractEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ContractTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CountryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("DailyHours")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("DailyRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("DelayDayFractionOverride")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DelayDeductionModeOverride")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("DelayRuleAmountOverride")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("DelayRuleMinutesOverride")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Destination")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DrivingLicenseExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DrivingLicenseIssueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DrivingLicenseNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("EarlyLeaveDeductionEnabledOverride")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("EarlyLeaveGraceMinutesOverride")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("EmployeeInsuranceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("EmployeeInsurancePercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("EnName")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<TimeSpan?>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("FullDayDeductionThresholdMinutesOverride")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("FullDayEscalationEnabledOverride")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("GovId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GracePeriodMinutesOverride")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("HasBankAccount")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasCar")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasTravelTicket")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("HireDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("HourlyRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("IBAN")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IDNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Image")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("JobId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("NationalID")
-                        .IsRequired()
-                        .HasMaxLength(14)
-                        .HasColumnType("nvarchar(14)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
-
-                    b.Property<decimal>("Salary")
+                    b.Property<decimal?>("InsuranceAllowancesAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("SalaryTypeId")
+                    b.Property<decimal?>("InsuranceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("InsuranceBasicSalary")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("InsuranceCardNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("InsuranceCategoryId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Street")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<int?>("InsuranceCompanyId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("UserType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<DateTime?>("InsuranceEndDate")
+                        .HasColumnType("datetime2");
 
-                    b.HasKey("EmployeeId");
+                    b.Property<string>("InsuranceNumber")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasIndex("BrancheId");
+                    b.Property<decimal?>("InsurancePercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
-                    b.HasIndex("CityId");
+                    b.Property<DateTime?>("InsuranceStartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSalaryStopped")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("IssueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IssuingAuthority")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("JobId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("JobTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("LateDeductionMultiplierOverride")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MinuteRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MonthlyHours")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("NationalIdExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NationalIdIssueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("NationalityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("OffDayAsOvertimeOverride")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("OverrideDelayRule")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("OverrideEarlyLeaveRule")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("OverrideOffDayOvertimeRule")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("OverrideOvertimeRule")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("OverrideWeeklyOffDays")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("OvertimeCalculationModeOverride")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("OvertimeMultiplierOverride")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("OvertimeRuleAmountOverride")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("OvertimeRuleMinutesOverride")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("OvertimeRuleMinutesStartOverride")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PaymentMethod")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Port")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProfessionInId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Religion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Salary")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("float(18)");
+
+                    b.Property<string>("SalaryNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SalaryType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ShiftType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SickLeaveDays")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SpecializationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SponsorName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SponsorPhone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeSpan?>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TicketCount")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TicketType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TownId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("VisaNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("WeeklyHours")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("WeeklyOffDaysOverride")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("WorkDays")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("ContractTypeId");
+
+                    b.HasIndex("CountryId");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("GovId");
+
+                    b.HasIndex("InsuranceCategoryId");
+
+                    b.HasIndex("InsuranceCompanyId");
 
                     b.HasIndex("JobId");
 
-                    b.HasIndex("SalaryTypeId");
+                    b.HasIndex("JobTypeId");
+
+                    b.HasIndex("NationalityId");
+
+                    b.HasIndex("SpecializationId");
+
+                    b.HasIndex("TownId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Employees");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeeAllowance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ArName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EnName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("EmployeeAllowances");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeeDependent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("BirthDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EnName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Relation")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("EmployeeDependents");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeeDocument", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Url")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("EmployeeDocuments");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeeFixedDeduction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ArName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EnName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("EmployeeFixedDeductions");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeeLeave", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Days")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FromDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("LeaveTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ToDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("LeaveTypeId");
+
+                    b.ToTable("EmployeeLeaves");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeePhone", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId", "PhoneNumber")
+                        .IsUnique();
+
+                    b.ToTable("EmployeePhones");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeeRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("FromDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsProcessed")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("LeaveTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ProcessedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("RequestDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RequestType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ToDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("LeaveTypeId");
+
+                    b.ToTable("EmployeeRequests");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EntryDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CostCenterId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Credit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Debit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EntryDetailsRemarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EntryMasterId")
+                        .HasColumnType("int");
+
+                    b.Property<short>("EntryRowCode")
+                        .HasColumnType("smallint");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("CostCenterId");
+
+                    b.HasIndex("EntryMasterId");
+
+                    b.ToTable("EntryDetails");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EntryMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AccountBoxOrBankId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("BankName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("BillId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ChequeDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ChequeNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ChequePaperType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ChequeType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CollectEntryCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<double>("CurrencyRate")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Disable")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EmployeeRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EntryCurrencyDifference")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EntryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EntryRemarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EntrySettingId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ForKest")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GlobalCostCenterId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsPosted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MoneyType")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Paid")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("PayrollId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountBoxOrBankId");
+
+                    b.HasIndex("BillId");
+
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("EmployeeRequestId");
+
+                    b.HasIndex("EntrySettingId");
+
+                    b.HasIndex("GlobalCostCenterId");
+
+                    b.HasIndex("PayrollId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("EntryMasters");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EntrySetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ArAbbreviation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("AutoPosting")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CostCenterBelong")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnAbbreviation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EntryType")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("ShowTheLastBalance")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("CurrencyId");
+
+                    b.ToTable("EntrySettings");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.ExitExpense", b =>
@@ -776,16 +2880,85 @@ namespace Restaurant.DAL.Migrations
                     b.Property<int>("CountryId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("EnName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CountryId");
 
                     b.ToTable("Governorates");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Group", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
+
+                    b.ToTable("Groups");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.IndexSettings", b =>
@@ -860,6 +3033,86 @@ namespace Restaurant.DAL.Migrations
                     b.ToTable("IndexSettings");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.InsuranceCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("InsuranceCategories");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.InsuranceCompany", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("InsuranceCompanies");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.Invoice", b =>
                 {
                     b.Property<int>("Id")
@@ -867,6 +3120,9 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("BillMasterId")
+                        .HasColumnType("int");
 
                     b.Property<int?>("CustomerId")
                         .HasColumnType("int");
@@ -908,6 +3164,8 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BillMasterId");
 
                     b.HasIndex("CustomerId");
 
@@ -959,13 +3217,357 @@ namespace Restaurant.DAL.Migrations
                     b.ToTable("InvoiceItems");
                 });
 
-            modelBuilder.Entity("Restaurant.DAL.Models.Job", b =>
+            modelBuilder.Entity("Restaurant.DAL.Models.Item", b =>
                 {
-                    b.Property<int>("JobId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("JobId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("BrandId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EtaItemCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EtaItemType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EtaTaxSubTypeCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EtaTaxTypeCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("GroupId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("HasExpiry")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasProduction")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasSerialInput")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasSerialOutput")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasVat")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasWeightedAverageHistory")
+                        .HasColumnType("bit");
+
+                    b.Property<double?>("MinQty")
+                        .HasColumnType("float");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("RequiresAverageRecalculation")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("RequiresCostingRebuild")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("StopTrading")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("SupplierAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TaxPercentage")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("WeightInGrams")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("WeightedAverageQuantityOnHand")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BrandId");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("SupplierAccountId");
+
+                    b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.ItemBarcode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Barcode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("ItemBarcodes");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.ItemCostingError", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("ItemCostingErrors");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.ItemDiscountWithQuantity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MinQuantity")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("ItemDiscountWithQuantities");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.ItemLocation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("StoreId");
+
+                    b.ToTable("ItemLocations");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.ItemUnit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Factor")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UnitId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("UnitId");
+
+                    b.ToTable("ItemUnits");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Job", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ArName")
                         .IsRequired()
@@ -977,12 +3579,36 @@ namespace Restaurant.DAL.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("EnName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.HasKey("JobId");
+                    b.Property<int?>("JobTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("ArName")
                         .IsUnique();
@@ -990,7 +3616,49 @@ namespace Restaurant.DAL.Migrations
                     b.HasIndex("EnName")
                         .IsUnique();
 
+                    b.HasIndex("JobTypeId");
+
                     b.ToTable("Jobs");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.JobType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("JobTypes");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.JournalEntry", b =>
@@ -1098,6 +3766,49 @@ namespace Restaurant.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("Kitchens");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.LeaveType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DaysPerYear")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LeaveTypes");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.MenuItem", b =>
@@ -1586,6 +4297,57 @@ namespace Restaurant.DAL.Migrations
                     b.ToTable("PaymentInvoiceSupplier");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.PaymentMethod", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AccountPayId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("AmountPaided")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("BillMasterId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("RowNumber")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountPayId");
+
+                    b.HasIndex("BillMasterId");
+
+                    b.ToTable("PaymentMethods");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.PaymentRefund", b =>
                 {
                     b.Property<int>("Id")
@@ -1637,6 +4399,116 @@ namespace Restaurant.DAL.Migrations
                     b.HasIndex("SupplierPaymentId");
 
                     b.ToTable("PaymentRefunds");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Payroll", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("AbsenceDeductions")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("AdvanceDeductions")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Allowances")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("BasicSalary")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("CarryOverAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("EarlyLeaveDeductions")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("FixedDeductions")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("FromDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("IncentiveBonus")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPaid")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("LateDeductions")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("NetSalary")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("OvertimeBonus")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("PaidDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProratedDays")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ToDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("Payrolls");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.PrinterSetting", b =>
@@ -1771,35 +4643,6 @@ namespace Restaurant.DAL.Migrations
                     b.ToTable("Salaries");
                 });
 
-            modelBuilder.Entity("Restaurant.DAL.Models.SalaryType", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ArName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("EnName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ArName")
-                        .IsUnique();
-
-                    b.HasIndex("EnName")
-                        .IsUnique();
-
-                    b.ToTable("SalaryTypes");
-                });
-
             modelBuilder.Entity("Restaurant.DAL.Models.Scrounge", b =>
                 {
                     b.Property<int>("Id")
@@ -1837,6 +4680,56 @@ namespace Restaurant.DAL.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Scrounges");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.SellType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsLastPrice")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("PlusPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("Show")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SellTypes");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.ShiftCloseReport", b =>
@@ -1877,6 +4770,57 @@ namespace Restaurant.DAL.Migrations
                     b.ToTable("ShiftCloseReports");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.Specialization", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
+
+                    b.ToTable("Specializations");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.Store", b =>
                 {
                     b.Property<int>("Id")
@@ -1894,27 +4838,98 @@ namespace Restaurant.DAL.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("ArName_Abbr")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("CountryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("int");
+
                     b.Property<string>("EnName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("PhoneNumber")
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
+                    b.Property<string>("EnName_Abbr")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("StorekeeperId")
+                    b.Property<int?>("GovId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PhoneNumber1")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PhoneNumber2")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber3")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Printer")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TownId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Village")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ArName")
                         .IsUnique();
 
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("CountryId");
+
+                    b.HasIndex("EmployeeId");
+
                     b.HasIndex("EnName")
                         .IsUnique();
 
-                    b.HasIndex("StorekeeperId");
+                    b.HasIndex("GovId");
+
+                    b.HasIndex("ParentId");
+
+                    b.HasIndex("TownId");
 
                     b.ToTable("Stores");
                 });
@@ -1978,6 +4993,59 @@ namespace Restaurant.DAL.Migrations
                     b.HasIndex("StoreProductId");
 
                     b.ToTable("StoreConvertProducts");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.StoreItemUnit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UnitId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("StoreId");
+
+                    b.HasIndex("UnitId");
+
+                    b.ToTable("StoreItemUnits");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.StoreProduct", b =>
@@ -2060,39 +5128,115 @@ namespace Restaurant.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Address")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("ArName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<int>("BillPayType")
+                        .HasColumnType("int");
 
-                    b.Property<decimal>("Balance")
+                    b.Property<string>("BuildingNo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CompanyBranchId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CostCenterId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CountryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CreditDurationInDays")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("CreditLimit")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("EnName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DetailedAddress")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GovId")
+                        .HasColumnType("int");
 
                     b.Property<decimal?>("LastBalance")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("PhoneNumber")
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
+                    b.Property<string>("PhoneNumber1")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PhoneNumber2")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PostalCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RegistrationNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Remark")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StreetName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("TownId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VatNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Website")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ArName")
-                        .IsUnique();
+                    b.HasIndex("AccountId")
+                        .IsUnique()
+                        .HasFilter("[AccountId] IS NOT NULL");
 
-                    b.HasIndex("EnName")
-                        .IsUnique();
+                    b.HasIndex("CompanyBranchId");
+
+                    b.HasIndex("CostCenterId");
+
+                    b.HasIndex("CountryId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("GovId");
+
+                    b.HasIndex("TownId");
 
                     b.ToTable("Suppliers");
                 });
@@ -2132,6 +5276,149 @@ namespace Restaurant.DAL.Migrations
                     b.ToTable("Tables");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.Technician", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SpecializationId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SpecializationId");
+
+                    b.ToTable("Technicians");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Town", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("GovernorateId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GovernorateId");
+
+                    b.ToTable("Towns");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Unit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Units");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.UnitPrice", b =>
                 {
                     b.Property<int>("Id")
@@ -2159,6 +5446,55 @@ namespace Restaurant.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("UnitPrices");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Village", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TownId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TownId");
+
+                    b.ToTable("Villages");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -2214,51 +5550,306 @@ namespace Restaurant.DAL.Migrations
 
             modelBuilder.Entity("Restaurant.DAL.Models.Account", b =>
                 {
+                    b.HasOne("Restaurant.DAL.Models.Currency", "Currency")
+                        .WithMany("Accounts")
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany("Accounts")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Account", "FinalAccount")
+                        .WithMany()
+                        .HasForeignKey("FinalAccountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Restaurant.DAL.Models.Account", "ParentAccount")
                         .WithMany("ChildAccounts")
                         .HasForeignKey("ParentAccountId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.Navigation("Currency");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("FinalAccount");
+
                     b.Navigation("ParentAccount");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.AccountDetails", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Account", "Account")
+                        .WithOne("AccountDetails")
+                        .HasForeignKey("Restaurant.DAL.Models.AccountDetails", "AccountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.ApplicationUser", b =>
                 {
-                    b.HasOne("Restaurant.DAL.Models.Branche", null)
-                        .WithMany("ApplicationUsers")
-                        .HasForeignKey("BrancheId");
-
-                    b.HasOne("Restaurant.DAL.Models.City", "City")
+                    b.HasOne("Restaurant.DAL.Models.Town", "Town")
                         .WithMany()
-                        .HasForeignKey("CityId")
+                        .HasForeignKey("TownId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Restaurant.DAL.Models.SalaryType", null)
-                        .WithMany("Users")
-                        .HasForeignKey("SalaryTypeId");
-
-                    b.Navigation("City");
+                    b.Navigation("Town");
                 });
 
-            modelBuilder.Entity("Restaurant.DAL.Models.City", b =>
+            modelBuilder.Entity("Restaurant.DAL.Models.AttendanceInOut", b =>
                 {
-                    b.HasOne("Restaurant.DAL.Models.Governorate", "Governorate")
-                        .WithMany("Cities")
-                        .HasForeignKey("GovernorateId")
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany("AttendanceRecords")
+                        .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Governorate");
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.BillDetail", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.BillMaster", "BillMaster")
+                        .WithMany("BillDetails")
+                        .HasForeignKey("BillMasterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Item", "Item")
+                        .WithMany("BillDetails")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Store", "Store")
+                        .WithMany("BillDetails")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Unit", "Unit")
+                        .WithMany("BillDetails")
+                        .HasForeignKey("UnitId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("BillMaster");
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Store");
+
+                    b.Navigation("Unit");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.BillMaster", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Account", "AccountDiscount")
+                        .WithMany()
+                        .HasForeignKey("AccountDiscountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Account", "AccountExtra")
+                        .WithMany()
+                        .HasForeignKey("AccountExtraId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Account", "AccountPay")
+                        .WithMany()
+                        .HasForeignKey("AccountPayId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.BillSetting", "BillSetting")
+                        .WithMany()
+                        .HasForeignKey("BillSettingId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.CompanyBranch", "CompanyBranch")
+                        .WithMany()
+                        .HasForeignKey("CompanyBranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.CostCenter", "CostCenter")
+                        .WithMany()
+                        .HasForeignKey("CostCenterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Currency", "Currency")
+                        .WithMany()
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Account", "CustomerOrSupplierAccount")
+                        .WithMany()
+                        .HasForeignKey("CustomerOrSupplierAccountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.SellType", "SellType")
+                        .WithMany()
+                        .HasForeignKey("SellTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Store", "ToStore")
+                        .WithMany()
+                        .HasForeignKey("ToStoreId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AccountDiscount");
+
+                    b.Navigation("AccountExtra");
+
+                    b.Navigation("AccountPay");
+
+                    b.Navigation("BillSetting");
+
+                    b.Navigation("CompanyBranch");
+
+                    b.Navigation("CostCenter");
+
+                    b.Navigation("Currency");
+
+                    b.Navigation("CustomerOrSupplierAccount");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("SellType");
+
+                    b.Navigation("Store");
+
+                    b.Navigation("ToStore");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Company", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Currency", "Currency")
+                        .WithMany("Companies")
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Currency");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.CompanyBranch", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Currency", "Currency")
+                        .WithMany("CompanyBranches")
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Company");
+
+                    b.Navigation("Currency");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.CostCenter", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.CostCenter", "Parent")
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Parent");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Customer", b =>
                 {
-                    b.HasOne("Restaurant.DAL.Models.City", "City")
+                    b.HasOne("Restaurant.DAL.Models.Account", "Account")
                         .WithMany()
-                        .HasForeignKey("CityId")
+                        .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("City");
+                    b.HasOne("Restaurant.DAL.Models.Classification", "Classification")
+                        .WithMany("Customers")
+                        .HasForeignKey("ClassificationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.CompanyBranch", "CompanyBranch")
+                        .WithMany()
+                        .HasForeignKey("CompanyBranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.CostCenter", "CostCenter")
+                        .WithMany()
+                        .HasForeignKey("CostCenterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Country", "Country")
+                        .WithMany()
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.CustomerTier", "CustomerTier")
+                        .WithMany()
+                        .HasForeignKey("CustomerTierId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Governorate", "Gov")
+                        .WithMany()
+                        .HasForeignKey("GovId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Country", "Nationality")
+                        .WithMany()
+                        .HasForeignKey("NationalityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.SellType", "SellType")
+                        .WithMany()
+                        .HasForeignKey("SellTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Specialization", "Specialization")
+                        .WithMany()
+                        .HasForeignKey("SpecializationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Town", "Town")
+                        .WithMany()
+                        .HasForeignKey("TownId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Classification");
+
+                    b.Navigation("CompanyBranch");
+
+                    b.Navigation("CostCenter");
+
+                    b.Navigation("Country");
+
+                    b.Navigation("CustomerTier");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Gov");
+
+                    b.Navigation("Nationality");
+
+                    b.Navigation("SellType");
+
+                    b.Navigation("Specialization");
+
+                    b.Navigation("Town");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Deposit", b =>
@@ -2272,37 +5863,301 @@ namespace Restaurant.DAL.Migrations
 
             modelBuilder.Entity("Restaurant.DAL.Models.Employee", b =>
                 {
-                    b.HasOne("Restaurant.DAL.Models.Branche", "Branche")
-                        .WithMany("Employees")
-                        .HasForeignKey("BrancheId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Restaurant.DAL.Models.City", "City")
+                    b.HasOne("Restaurant.DAL.Models.Account", "Account")
                         .WithMany()
-                        .HasForeignKey("CityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.CompanyBranch", "Branch")
+                        .WithMany("Employees")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.ContractType", "ContractType")
+                        .WithMany()
+                        .HasForeignKey("ContractTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Country", "Country")
+                        .WithMany()
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Department", "Department")
+                        .WithMany("Employees")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Governorate", "Gov")
+                        .WithMany()
+                        .HasForeignKey("GovId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.InsuranceCategory", "InsuranceCategory")
+                        .WithMany()
+                        .HasForeignKey("InsuranceCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.InsuranceCompany", "InsuranceCompany")
+                        .WithMany()
+                        .HasForeignKey("InsuranceCompanyId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Restaurant.DAL.Models.Job", "Job")
                         .WithMany("Employees")
                         .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Restaurant.DAL.Models.SalaryType", "SalaryType")
+                    b.HasOne("Restaurant.DAL.Models.JobType", "JobType")
                         .WithMany()
-                        .HasForeignKey("SalaryTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("JobTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Branche");
+                    b.HasOne("Restaurant.DAL.Models.Country", "Nationality")
+                        .WithMany()
+                        .HasForeignKey("NationalityId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("City");
+                    b.HasOne("Restaurant.DAL.Models.Specialization", "Specialization")
+                        .WithMany("Employees")
+                        .HasForeignKey("SpecializationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Town", "Town")
+                        .WithMany()
+                        .HasForeignKey("TownId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("ContractType");
+
+                    b.Navigation("Country");
+
+                    b.Navigation("Department");
+
+                    b.Navigation("Gov");
+
+                    b.Navigation("InsuranceCategory");
+
+                    b.Navigation("InsuranceCompany");
 
                     b.Navigation("Job");
 
-                    b.Navigation("SalaryType");
+                    b.Navigation("JobType");
+
+                    b.Navigation("Nationality");
+
+                    b.Navigation("Specialization");
+
+                    b.Navigation("Town");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeeAllowance", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany("Allowances")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeeDependent", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany("Dependents")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeeDocument", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany("Documents")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeeFixedDeduction", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany("FixedDeductions")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeeLeave", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany("Leaves")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Restaurant.DAL.Models.LeaveType", "LeaveType")
+                        .WithMany()
+                        .HasForeignKey("LeaveTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("LeaveType");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeePhone", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany("Phones")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeeRequest", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Restaurant.DAL.Models.LeaveType", "LeaveType")
+                        .WithMany()
+                        .HasForeignKey("LeaveTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("LeaveType");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EntryDetail", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.CostCenter", "CostCenter")
+                        .WithMany()
+                        .HasForeignKey("CostCenterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.EntryMaster", "EntryMaster")
+                        .WithMany("EntryDetails")
+                        .HasForeignKey("EntryMasterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Account");
+
+                    b.Navigation("CostCenter");
+
+                    b.Navigation("EntryMaster");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EntryMaster", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Account", "AccountBoxOrBank")
+                        .WithMany()
+                        .HasForeignKey("AccountBoxOrBankId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.BillMaster", "Bill")
+                        .WithMany()
+                        .HasForeignKey("BillId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Currency", "Currency")
+                        .WithMany()
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.EmployeeRequest", "EmployeeRequest")
+                        .WithMany("EntryMasters")
+                        .HasForeignKey("EmployeeRequestId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.EntrySetting", "EntrySetting")
+                        .WithMany()
+                        .HasForeignKey("EntrySettingId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.CostCenter", "GlobalCostCenter")
+                        .WithMany()
+                        .HasForeignKey("GlobalCostCenterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Payroll", "Payroll")
+                        .WithMany("EntryMasters")
+                        .HasForeignKey("PayrollId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AccountBoxOrBank");
+
+                    b.Navigation("Bill");
+
+                    b.Navigation("Currency");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("EmployeeRequest");
+
+                    b.Navigation("EntrySetting");
+
+                    b.Navigation("GlobalCostCenter");
+
+                    b.Navigation("Payroll");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EntrySetting", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Currency", "Currency")
+                        .WithMany()
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Currency");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.ExitExpense", b =>
@@ -2333,8 +6188,23 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("Country");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.Group", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Group", "Parent")
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Parent");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.Invoice", b =>
                 {
+                    b.HasOne("Restaurant.DAL.Models.BillMaster", "BillMaster")
+                        .WithMany()
+                        .HasForeignKey("BillMasterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Restaurant.DAL.Models.Customer", "Customer")
                         .WithMany("Invoices")
                         .HasForeignKey("CustomerId")
@@ -2350,6 +6220,8 @@ namespace Restaurant.DAL.Migrations
                         .WithMany("Invoices")
                         .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("BillMaster");
 
                     b.Navigation("Customer");
 
@@ -2383,6 +6255,104 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("UnitPrice");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Item", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Brand", "Brand")
+                        .WithMany()
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Account", "SupplierAccount")
+                        .WithMany()
+                        .HasForeignKey("SupplierAccountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Brand");
+
+                    b.Navigation("Group");
+
+                    b.Navigation("SupplierAccount");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.ItemBarcode", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Item", "Item")
+                        .WithMany("ItemBarcodes")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Item");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.ItemCostingError", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Item", "Item")
+                        .WithMany("CostingErrors")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Item");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.ItemDiscountWithQuantity", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Item", "Item")
+                        .WithMany("ItemDiscountWithQuantities")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Item");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.ItemLocation", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Item", "Item")
+                        .WithMany("ItemLocations")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Store", "Store")
+                        .WithMany("ItemLocations")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.ItemUnit", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Item", "Item")
+                        .WithMany("ItemUnits")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Unit", "Unit")
+                        .WithMany("ItemUnits")
+                        .HasForeignKey("UnitId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Unit");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Job", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.JobType", "JobType")
+                        .WithMany()
+                        .HasForeignKey("JobTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("JobType");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.JournalEntry", b =>
@@ -2613,6 +6583,23 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("Supplier");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.PaymentMethod", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountPayId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.BillMaster", "BillMaster")
+                        .WithMany("PaymentMethods")
+                        .HasForeignKey("BillMasterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Account");
+
+                    b.Navigation("BillMaster");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.PaymentRefund", b =>
                 {
                     b.HasOne("Restaurant.DAL.Models.ApplicationUser", "ApprovedByUser")
@@ -2642,6 +6629,17 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("RequestedByUser");
 
                     b.Navigation("SupplierPayment");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Payroll", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Product", b =>
@@ -2697,13 +6695,59 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.Specialization", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Specialization", "Parent")
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Parent");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.Store", b =>
                 {
-                    b.HasOne("Restaurant.DAL.Models.Employee", "Storekeeper")
+                    b.HasOne("Restaurant.DAL.Models.CompanyBranch", "Branch")
                         .WithMany()
-                        .HasForeignKey("StorekeeperId");
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Storekeeper");
+                    b.HasOne("Restaurant.DAL.Models.Country", "Country")
+                        .WithMany()
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Governorate", "Gov")
+                        .WithMany()
+                        .HasForeignKey("GovId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Store", "Parent")
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Town", "Town")
+                        .WithMany()
+                        .HasForeignKey("TownId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Country");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Gov");
+
+                    b.Navigation("Parent");
+
+                    b.Navigation("Town");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.StoreConvert", b =>
@@ -2744,6 +6788,30 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("StoreProduct");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.StoreItemUnit", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Item", "Item")
+                        .WithMany("StoreItems")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Store", "Store")
+                        .WithMany("StoreItems")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Unit", "Unit")
+                        .WithMany("StoreItems")
+                        .HasForeignKey("UnitId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Store");
+
+                    b.Navigation("Unit");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.StoreProduct", b =>
                 {
                     b.HasOne("Restaurant.DAL.Models.Product", "Product")
@@ -2782,23 +6850,128 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("Store");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.Supplier", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.CompanyBranch", "CompanyBranch")
+                        .WithMany()
+                        .HasForeignKey("CompanyBranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.CostCenter", "CostCenter")
+                        .WithMany()
+                        .HasForeignKey("CostCenterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Country", "Country")
+                        .WithMany()
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Governorate", "Gov")
+                        .WithMany()
+                        .HasForeignKey("GovId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Town", "Town")
+                        .WithMany()
+                        .HasForeignKey("TownId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Account");
+
+                    b.Navigation("CompanyBranch");
+
+                    b.Navigation("CostCenter");
+
+                    b.Navigation("Country");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Gov");
+
+                    b.Navigation("Town");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Technician", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Specialization", "Specialization")
+                        .WithMany("Technicians")
+                        .HasForeignKey("SpecializationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Specialization");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Town", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Governorate", "Governorate")
+                        .WithMany("Towns")
+                        .HasForeignKey("GovernorateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Governorate");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Village", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Town", "Town")
+                        .WithMany("Villages")
+                        .HasForeignKey("TownId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Town");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.Account", b =>
                 {
+                    b.Navigation("AccountDetails");
+
                     b.Navigation("ChildAccounts");
 
                     b.Navigation("JournalEntryLines");
                 });
 
-            modelBuilder.Entity("Restaurant.DAL.Models.Branche", b =>
+            modelBuilder.Entity("Restaurant.DAL.Models.BillMaster", b =>
                 {
-                    b.Navigation("ApplicationUsers");
+                    b.Navigation("BillDetails");
 
+                    b.Navigation("PaymentMethods");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Classification", b =>
+                {
+                    b.Navigation("Customers");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.CompanyBranch", b =>
+                {
                     b.Navigation("Employees");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Country", b =>
                 {
                     b.Navigation("Governorates");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Currency", b =>
+                {
+                    b.Navigation("Accounts");
+
+                    b.Navigation("Companies");
+
+                    b.Navigation("CompanyBranches");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Customer", b =>
@@ -2808,13 +6981,44 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("PaymentInvoices");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.Department", b =>
+                {
+                    b.Navigation("Employees");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.Employee", b =>
                 {
+                    b.Navigation("Accounts");
+
+                    b.Navigation("Allowances");
+
+                    b.Navigation("AttendanceRecords");
+
+                    b.Navigation("Dependents");
+
+                    b.Navigation("Documents");
+
+                    b.Navigation("FixedDeductions");
+
+                    b.Navigation("Leaves");
+
                     b.Navigation("Orders");
+
+                    b.Navigation("Phones");
 
                     b.Navigation("Salaries");
 
                     b.Navigation("Scrounges");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EmployeeRequest", b =>
+                {
+                    b.Navigation("EntryMasters");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.EntryMaster", b =>
+                {
+                    b.Navigation("EntryDetails");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Expense", b =>
@@ -2824,12 +7028,29 @@ namespace Restaurant.DAL.Migrations
 
             modelBuilder.Entity("Restaurant.DAL.Models.Governorate", b =>
                 {
-                    b.Navigation("Cities");
+                    b.Navigation("Towns");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Invoice", b =>
                 {
                     b.Navigation("InvoiceItems");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Item", b =>
+                {
+                    b.Navigation("BillDetails");
+
+                    b.Navigation("CostingErrors");
+
+                    b.Navigation("ItemBarcodes");
+
+                    b.Navigation("ItemDiscountWithQuantities");
+
+                    b.Navigation("ItemLocations");
+
+                    b.Navigation("ItemUnits");
+
+                    b.Navigation("StoreItems");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Job", b =>
@@ -2876,6 +7097,11 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("Ingredients");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.Payroll", b =>
+                {
+                    b.Navigation("EntryMasters");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.Product", b =>
                 {
                     b.Navigation("InvoiceItems");
@@ -2890,14 +7116,22 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("Products");
                 });
 
-            modelBuilder.Entity("Restaurant.DAL.Models.SalaryType", b =>
+            modelBuilder.Entity("Restaurant.DAL.Models.Specialization", b =>
                 {
-                    b.Navigation("Users");
+                    b.Navigation("Employees");
+
+                    b.Navigation("Technicians");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Store", b =>
                 {
+                    b.Navigation("BillDetails");
+
                     b.Navigation("Invoices");
+
+                    b.Navigation("ItemLocations");
+
+                    b.Navigation("StoreItems");
 
                     b.Navigation("StoreProducts");
                 });
@@ -2917,6 +7151,20 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("Invoices");
 
                     b.Navigation("PaymentInvoices");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Town", b =>
+                {
+                    b.Navigation("Villages");
+                });
+
+            modelBuilder.Entity("Restaurant.DAL.Models.Unit", b =>
+                {
+                    b.Navigation("BillDetails");
+
+                    b.Navigation("ItemUnits");
+
+                    b.Navigation("StoreItems");
                 });
 #pragma warning restore 612, 618
         }

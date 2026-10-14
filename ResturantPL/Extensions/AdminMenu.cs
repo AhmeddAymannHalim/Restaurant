@@ -31,9 +31,15 @@ public static class AdminMenu
             new("Job", "Index", "fa-id-badge", "Jobs"),
             new("Employee", "Index", "fa-users", "Employees"),
             new("EmployeeAccount", "Index", "fa-user-lock", "EmployeeAccounts", true),
-            new("SalaryType", "Index", "fa-money-bill-wave", "SalaryTypes"),
             new("User", "Index", "fa-user-group", "Users", true),
-            new("Role", "Index", "fa-user-shield", "Roles", true)
+            new("Role", "Index", "fa-user-shield", "Roles", true),
+            new("Specialization", "Index", "fa-user-graduate", "Specializations"),
+            new("ContractType", "Index", "fa-file-signature", "ContractTypes"),
+            new("Department", "Index", "fa-building", "Departments"),
+            new("JobType", "Index", "fa-briefcase", "JobTypes"),
+            new("InsuranceCategory", "Index", "fa-shield-heart", "InsuranceCategories"),
+            new("InsuranceCompany", "Index", "fa-building-shield", "InsuranceCompanies"),
+            new("LeaveType", "Index", "fa-umbrella-beach", "LeaveTypes")
         }),
         new("SectionDefinitions", "GroupKitchen", "fa-utensils", new Item[]
         {
@@ -53,7 +59,10 @@ public static class AdminMenu
         new("SectionDefinitions", "GroupPartners", "fa-handshake", new Item[]
         {
             new("Supplier", "Index", "fa-truck", "Suppliers"),
-            new("Customer", "Index", "fa-user-tag", "Customers")
+            new("Customer", "Index", "fa-user-tag", "Customers"),
+            new("SellType", "Index", "fa-tags", "SellTypes"),
+            new("Classification", "Index", "fa-layer-group", "Classifications"),
+            new("CustomerTier", "Index", "fa-medal", "CustomerTiers")
         }),
         new("SectionDefinitions", "GroupFinance", "fa-coins", new Item[]
         {
@@ -61,7 +70,10 @@ public static class AdminMenu
             new("ExitExpense", "Index", "fa-money-bill-transfer", "ExitExpenses"),
             new("Deposit", "Index", "fa-piggy-bank", "Deposits"),
             new("Scrounge", "Index", "fa-hand-holding-dollar", "Scrounges"),
-            new("Salary", "Index", "fa-wallet", "Salaries")
+            new("Salary", "Index", "fa-wallet", "Salaries"),
+            new("CostCenter", "Index", "fa-bullseye", "CostCenters"),
+            new("Company", "Index", "fa-city", "Companies"),
+            new("Currency", "Index", "fa-money-bill", "Currencies")
         }),
         new("SectionDefinitions", "Website", "fa-globe", new Item[]
         {

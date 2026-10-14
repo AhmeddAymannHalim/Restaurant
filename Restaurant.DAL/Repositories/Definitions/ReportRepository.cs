@@ -253,12 +253,12 @@ public class ReportRepository : IReportRepository
             report.PartnerLabel = "DeliveryDriver";
             report.Partners = await _context.Employees
                 .AsNoTracking()
-                .Where(a => a.UserType == "طيار")
+                .Where(a => a.Job.ArName == "طيار")
                 .Select(a => new LookupItem
                 {
-                    Id = a.EmployeeId,
-                    ArName = a.FirstName + " " + a.LastName,
-                    EnName = a.FirstName + " " + a.LastName
+                    Id = a.Id,
+                    ArName = a.ArName,
+                    EnName = a.EnName
                 })
                 .ToListAsync();
         }
@@ -309,8 +309,8 @@ public class ReportRepository : IReportRepository
     {
         var query = _context.Invoices
             .AsNoTracking()
-            .Include(a => a.Supplier)
-            .Include(a => a.Customer)
+            .Include(a => a.Supplier).ThenInclude(a => a.Account)
+            .Include(a => a.Customer).ThenInclude(a => a.Account)
             .Include(a => a.Store)
             .Where(a => a.InvoiceDate >= from && a.InvoiceDate < end);
 
@@ -354,8 +354,8 @@ public class ReportRepository : IReportRepository
                 invoice.InvoiceDate,
                 invoice.InvoiceType,
                 isArabic
-                    ? invoice.Supplier?.ArName ?? invoice.Customer?.ArName
-                    : invoice.Supplier?.EnName ?? invoice.Customer?.EnName,
+                    ? invoice.Supplier?.Account?.ArName ?? invoice.Customer?.Account?.ArName
+                    : invoice.Supplier?.Account?.EnName ?? invoice.Customer?.Account?.EnName,
                 isArabic ? invoice.Store.ArName : invoice.Store.EnName,
                 invoice.TotalPrice,
                 invoice.Paid,
@@ -378,12 +378,13 @@ public class ReportRepository : IReportRepository
         report.PartnerLabel = "Supplier";
         report.Partners = await _context.Suppliers
             .AsNoTracking()
-            .OrderBy(a => a.ArName)
+            .Include(a => a.Account)
+            .OrderBy(a => a.Account.ArName)
             .Select(a => new LookupItem
             {
                 Id = a.Id,
-                ArName = a.ArName,
-                EnName = a.EnName
+                ArName = a.Account.ArName,
+                EnName = a.Account.EnName
             })
             .ToListAsync();
 
@@ -398,6 +399,7 @@ public class ReportRepository : IReportRepository
 
         var supplier = await _context.Suppliers
             .AsNoTracking()
+            .Include(a => a.Account)
             .FirstOrDefaultAsync(a => a.Id == supplierId);
 
         if (supplier is null)
@@ -452,12 +454,13 @@ public class ReportRepository : IReportRepository
         report.PartnerLabel = "Customer";
         report.Partners = await _context.Customers
             .AsNoTracking()
-            .OrderBy(a => a.ArName)
+            .Include(a => a.Account)
+            .OrderBy(a => a.Account.ArName)
             .Select(a => new LookupItem
             {
                 Id = a.Id,
-                ArName = a.ArName,
-                EnName = a.EnName
+                ArName = a.Account.ArName,
+                EnName = a.Account.EnName
             })
             .ToListAsync();
 
@@ -472,6 +475,7 @@ public class ReportRepository : IReportRepository
 
         var customer = await _context.Customers
             .AsNoTracking()
+            .Include(a => a.Account)
             .FirstOrDefaultAsync(a => a.Id == customerId);
 
         if (customer is null)
@@ -521,7 +525,7 @@ public class ReportRepository : IReportRepository
             .ToListAsync();
 
         var all = orders.Concat(payments).Concat(refunds).ToList();
-        var opening = customer.Balance - all.Sum(a => a.Debit - a.Credit);
+        var opening = customer.Account.BalanceValue - all.Sum(a => a.Debit - a.Credit);
         var inPeriod = all
             .Where(a => a.Date < end)
             .OrderBy(a => a.Date)
@@ -567,7 +571,8 @@ public class ReportRepository : IReportRepository
 
         var suppliers = await _context.Suppliers
             .AsNoTracking()
-            .OrderBy(a => a.ArName)
+            .Include(a => a.Account)
+            .OrderBy(a => a.Account.ArName)
             .ToListAsync();
 
         report.Columns = new List<string>
@@ -594,7 +599,7 @@ public class ReportRepository : IReportRepository
 
             report.Rows.Add(new List<object>
             {
-                isArabic ? supplier.ArName : supplier.EnName,
+                isArabic ? supplier.Account.ArName : supplier.Account.EnName,
                 opening,
                 debit,
                 credit,
@@ -674,7 +679,7 @@ public class ReportRepository : IReportRepository
 
         var payments = await _context.PaymentInvoiceSupplier
             .AsNoTracking()
-            .Include(a => a.Supplier)
+            .Include(a => a.Supplier).ThenInclude(a => a.Account)
             .Where(a => a.Date >= from && a.Date < end)
             .OrderByDescending(a => a.Date)
             .ToListAsync();
@@ -694,7 +699,7 @@ public class ReportRepository : IReportRepository
             {
                 payment.ProcessCode,
                 payment.Date,
-                isArabic ? payment.Supplier.ArName : payment.Supplier.EnName,
+                isArabic ? payment.Supplier.Account.ArName : payment.Supplier.Account.EnName,
                 payment.Description,
                 payment.Paid
             });
@@ -713,7 +718,7 @@ public class ReportRepository : IReportRepository
 
         var payments = await _context.PaymentInvoiceCustomer
             .AsNoTracking()
-            .Include(a => a.Customer)
+            .Include(a => a.Customer).ThenInclude(a => a.Account)
             .Where(a => a.Date >= from && a.Date < end)
             .OrderByDescending(a => a.Date)
             .ToListAsync();
@@ -733,7 +738,7 @@ public class ReportRepository : IReportRepository
             {
                 payment.ProcessCode,
                 payment.Date,
-                isArabic ? payment.Customer.ArName : payment.Customer.EnName,
+                isArabic ? payment.Customer.Account.ArName : payment.Customer.Account.EnName,
                 payment.Description,
                 payment.Paid
             });
@@ -843,7 +848,7 @@ public class ReportRepository : IReportRepository
             {
                 salary.SalaryCode,
                 salary.SalaryDate,
-                salary.Employee.FullName,
+                (LanguageHelper.IsArabic() ? salary.Employee.ArName : salary.Employee.EnName),
                 salary.SalaryAmount
             });
         }
@@ -888,7 +893,7 @@ public class ReportRepository : IReportRepository
             report.Rows.Add(new List<object>
             {
                 scrounge.Date,
-                scrounge.Employee.FullName,
+                (LanguageHelper.IsArabic() ? scrounge.Employee.ArName : scrounge.Employee.EnName),
                 scrounge.State,
                 scrounge.Info,
                 scrounge.Amount

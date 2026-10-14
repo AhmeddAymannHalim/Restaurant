@@ -65,7 +65,9 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
 
     public async Task<Employee> GetEmployeeByIdAsync(int employeeId)
     {
-        return await _context.Employees.AsNoTracking().FirstOrDefaultAsync(a => a.EmployeeId == employeeId);
+        return await _context.Employees.AsNoTracking()
+            .Include(a => a.Job)
+            .FirstOrDefaultAsync(a => a.Id == employeeId);
     }
 
     public async Task<List<Employee>> GetEmployeesWithoutAccountAsync()
@@ -74,7 +76,7 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
 
         return await _context.Employees.AsNoTracking()
             .Where(a => !usedCodes.Contains(a.Code))
-            .OrderBy(a => a.FirstName)
+            .OrderBy(a => a.ArName)
             .ToListAsync();
     }
 
@@ -105,14 +107,12 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
             UserName = entity.UserName,
             Email = entity.Email,
             EmailConfirmed = true,
-            FirstName = employee.FirstName,
-            LastName = employee.LastName,
-            CityId = employee.CityId,
-            Street = employee.Street,
-            Age = employee.Age,
-            Image = employee.Image,
+            FirstName = employee.ArName,
+            LastName = string.Empty,
+            TownId = employee.TownId,
+            Street = employee.Address,
             PhoneNumber = employee.PhoneNumber,
-            UserType = employee.UserType,
+            UserType = employee.Job?.ArName,
             Code = employee.Code
         };
 

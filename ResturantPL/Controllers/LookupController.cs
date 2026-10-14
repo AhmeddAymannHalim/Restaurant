@@ -145,5 +145,11 @@ namespace ResturantPL.Controllers
         {
             return Json(await _service.CityLookupAsync(governorateId));
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Villages(int townId)
+        {
+            return Json(await _service.VillageLookupAsync(townId));
+        }
     }
 }

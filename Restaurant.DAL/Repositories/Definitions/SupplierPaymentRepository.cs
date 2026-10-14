@@ -20,15 +20,15 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
 
     public async Task<PaginatedResult<PaymentInvoiceSupplier>> GetPagedPaymentsAsync(PageRequest request)
     {
-        var query = _context.PaymentInvoiceSupplier.AsNoTracking().Include(a => a.Supplier).AsQueryable();
+        var query = _context.PaymentInvoiceSupplier.AsNoTracking().Include(a => a.Supplier).ThenInclude(a => a.Account).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
             query = query.Where(a => a.ProcessCode.ToLower().Contains(search)
                 || a.Description.ToLower().Contains(search)
-                || a.Supplier.ArName.ToLower().Contains(search)
-                || a.Supplier.EnName.ToLower().Contains(search));
+                || a.Supplier.Account.ArName.ToLower().Contains(search)
+                || a.Supplier.Account.EnName.ToLower().Contains(search));
         }
 
         if (request.FromDate.HasValue)
@@ -55,7 +55,7 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
     public async Task<PaymentInvoiceSupplier> GetPaymentByIdAsync(int id)
     {
         return await _context.PaymentInvoiceSupplier.AsNoTracking()
-            .Include(a => a.Supplier)
+            .Include(a => a.Supplier).ThenInclude(a => a.Account)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
@@ -71,10 +71,12 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
 
     public async Task<decimal> GetBalanceAsync(int partnerId)
     {
-        return await _context.Suppliers.AsNoTracking()
+        var account = await _context.Suppliers.AsNoTracking()
             .Where(a => a.Id == partnerId)
-            .Select(a => a.Balance)
+            .Select(a => a.Account)
             .FirstOrDefaultAsync();
+
+        return account?.BalanceValue ?? 0;
     }
 
     public async Task<ResultMessage> UpsertPaymentAsync(PaymentInvoiceSupplier entity)
@@ -83,7 +85,7 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
 
         try
         {
-            var partner = await _context.Suppliers.FindAsync(entity.SupplierId);
+            var partner = await _context.Suppliers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == entity.SupplierId);
             if (partner is null)
             {
                 return new ResultMessage
@@ -113,15 +115,15 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
                     };
                 }
 
-                var before = await _context.Suppliers.FindAsync(payment.SupplierId);
-                before.Balance += payment.Paid;
+                var before = await _context.Suppliers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == payment.SupplierId);
+                before.Account.Adjust(payment.Paid);
 
                 payment.SupplierId = entity.SupplierId;
                 payment.Paid = entity.Paid;
                 payment.Description = entity.Description;
             }
 
-            partner.Balance -= payment.Paid;
+            partner.Account.Adjust(-payment.Paid);
             await _context.SaveChangesAsync();
 
             await _journals.RemoveSourceEntriesAsync(JournalSourceType.SupplierPaymentVoucher, payment.Id);
@@ -180,8 +182,8 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
                 };
             }
 
-            var partner = await _context.Suppliers.FindAsync(payment.SupplierId);
-            partner.Balance += payment.Paid;
+            var partner = await _context.Suppliers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == payment.SupplierId);
+            partner.Account.Adjust(payment.Paid);
 
             await _journals.RemoveSourceEntriesAsync(JournalSourceType.SupplierPaymentVoucher, payment.Id);
 
@@ -320,8 +322,8 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
             }
 
             var payment = await _context.PaymentInvoiceSupplier.FindAsync(refund.SupplierPaymentId.Value);
-            var supplier = await _context.Suppliers.FindAsync(payment.SupplierId);
-            supplier.Balance += refund.Amount;
+            var supplier = await _context.Suppliers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == payment.SupplierId);
+            supplier.Account.Adjust(refund.Amount);
 
             refund.Status = RefundStatus.Approved;
             refund.ApprovedByUserId = approvedByUserId;

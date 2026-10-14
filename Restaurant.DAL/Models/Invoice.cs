@@ -17,8 +17,12 @@ public class Invoice
     public decimal TotalPrice { get; set; }
     public decimal Remaining { get; set; }
 
+    /// <summary>The ERP bill (BillMaster) this invoice is mirrored into.</summary>
+    public int? BillMasterId { get; set; }
+
     public virtual Supplier Supplier { get; set; }
     public virtual Customer Customer { get; set; }
     public virtual Store Store { get; set; }
+    public virtual BillMaster BillMaster { get; set; }
     public virtual ICollection<InvoiceItem> InvoiceItems { get; set; }
 }

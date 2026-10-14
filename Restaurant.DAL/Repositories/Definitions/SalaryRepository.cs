@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
 using Shared.Enums;
+using Shared.Helpers;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
 
@@ -27,8 +28,8 @@ public class SalaryRepository : ISalaryRepository
         {
             var search = request.SearchString.Trim().ToLower();
             query = query.Where(a => a.SalaryCode.ToLower().Contains(search)
-                || a.Employee.FirstName.ToLower().Contains(search)
-                || a.Employee.LastName.ToLower().Contains(search));
+                || a.Employee.ArName.ToLower().Contains(search)
+                || a.Employee.EnName.ToLower().Contains(search));
         }
 
         var total = await query.CountAsync();
@@ -63,8 +64,7 @@ public class SalaryRepository : ISalaryRepository
     {
         var employee = await _context.Employees
             .AsNoTracking()
-            .Include(a => a.SalaryType)
-            .FirstOrDefaultAsync(a => a.EmployeeId == employeeId);
+            .FirstOrDefaultAsync(a => a.Id == employeeId);
         if (employee is null)
         {
             return null;
@@ -79,8 +79,8 @@ public class SalaryRepository : ISalaryRepository
             Incentives = await scrounges.Where(a => a.State == MoneyState.Incentive).SumAsync(a => (decimal?)a.Amount) ?? 0,
             Discounts = await scrounges.Where(a => a.State == MoneyState.Discount).SumAsync(a => (decimal?)a.Amount) ?? 0,
             Depts = await scrounges.Where(a => a.State == MoneyState.Dept).SumAsync(a => (decimal?)a.Amount) ?? 0,
-            MainSalary = employee.Salary,
-            SalaryType = employee.SalaryType.ArName
+            MainSalary = employee.BasicSalary ?? 0,
+            SalaryType = employee.SalaryType?.ArName()
         };
         model.TotalSalary = model.MainSalary + model.Incentives - model.Discounts - model.Depts;
 

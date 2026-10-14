@@ -207,7 +207,7 @@ public class AccountRepository : IAccountRepository
     public async Task<ApplicationUser> GetByIdAsync(string userId)
     {
         return await _context.Users
-            .Include(a => a.City).ThenInclude(a => a.Governorate)
+            .Include(a => a.Town).ThenInclude(a => a.Governorate)
             .FirstOrDefaultAsync(a => a.Id == userId);
     }
 
@@ -226,7 +226,7 @@ public class AccountRepository : IAccountRepository
         user.FirstName = model.FirstName;
         user.LastName = model.LastName;
         user.PhoneNumber = model.PhoneNumber;
-        user.CityId = model.CityId;
+        user.TownId = model.TownId;
         user.Street = model.Street;
 
         var result = await _userManager.UpdateAsync(user);

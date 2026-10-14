@@ -20,15 +20,15 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
 
     public async Task<PaginatedResult<PaymentInvoiceCustomer>> GetPagedPaymentsAsync(PageRequest request)
     {
-        var query = _context.PaymentInvoiceCustomer.AsNoTracking().Include(a => a.Customer).AsQueryable();
+        var query = _context.PaymentInvoiceCustomer.AsNoTracking().Include(a => a.Customer).ThenInclude(a => a.Account).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
             query = query.Where(a => a.ProcessCode.ToLower().Contains(search)
                 || a.Description.ToLower().Contains(search)
-                || a.Customer.ArName.ToLower().Contains(search)
-                || a.Customer.EnName.ToLower().Contains(search));
+                || a.Customer.Account.ArName.ToLower().Contains(search)
+                || a.Customer.Account.EnName.ToLower().Contains(search));
         }
 
         if (request.FromDate.HasValue)
@@ -55,7 +55,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
     public async Task<PaymentInvoiceCustomer> GetPaymentByIdAsync(int id)
     {
         return await _context.PaymentInvoiceCustomer.AsNoTracking()
-            .Include(a => a.Customer)
+            .Include(a => a.Customer).ThenInclude(a => a.Account)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
@@ -71,10 +71,12 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
 
     public async Task<decimal> GetBalanceAsync(int partnerId)
     {
-        return await _context.Customers.AsNoTracking()
+        var account = await _context.Customers.AsNoTracking()
             .Where(a => a.Id == partnerId)
-            .Select(a => a.Balance)
+            .Select(a => a.Account)
             .FirstOrDefaultAsync();
+
+        return account?.BalanceValue ?? 0;
     }
 
     public async Task<ResultMessage> UpsertPaymentAsync(PaymentInvoiceCustomer entity)
@@ -83,7 +85,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
 
         try
         {
-            var partner = await _context.Customers.FindAsync(entity.CustomerId);
+            var partner = await _context.Customers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == entity.CustomerId);
             if (partner is null)
             {
                 return new ResultMessage
@@ -113,15 +115,15 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
                     };
                 }
 
-                var before = await _context.Customers.FindAsync(payment.CustomerId);
-                before.Balance += payment.Paid;
+                var before = await _context.Customers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == payment.CustomerId);
+                before.Account.Adjust(payment.Paid);
 
                 payment.CustomerId = entity.CustomerId;
                 payment.Paid = entity.Paid;
                 payment.Description = entity.Description;
             }
 
-            partner.Balance -= payment.Paid;
+            partner.Account.Adjust(-payment.Paid);
             await _context.SaveChangesAsync();
 
             await _journals.RemoveSourceEntriesAsync(JournalSourceType.CustomerPaymentVoucher, payment.Id);
@@ -180,8 +182,8 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
                 };
             }
 
-            var partner = await _context.Customers.FindAsync(payment.CustomerId);
-            partner.Balance += payment.Paid;
+            var partner = await _context.Customers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == payment.CustomerId);
+            partner.Account.Adjust(payment.Paid);
 
             await _journals.RemoveSourceEntriesAsync(JournalSourceType.CustomerPaymentVoucher, payment.Id);
 
@@ -320,8 +322,8 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
             }
 
             var payment = await _context.PaymentInvoiceCustomer.FindAsync(refund.OriginalPaymentId.Value);
-            var customer = await _context.Customers.FindAsync(payment.CustomerId);
-            customer.Balance += refund.Amount;
+            var customer = await _context.Customers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == payment.CustomerId);
+            customer.Account.Adjust(refund.Amount);
 
             refund.Status = RefundStatus.Approved;
             refund.ApprovedByUserId = approvedByUserId;

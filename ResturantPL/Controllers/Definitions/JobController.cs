@@ -1,3 +1,5 @@
+using Restaurant.DAL.Models;
+using Restaurant.BLL.Services.IServices.Commons;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -16,12 +18,14 @@ namespace ResturantPL.Controllers.Definitions
     public class JobController : Controller
     {
         private readonly IJobService _service;
+        private readonly ILookupService _lookup;
         private readonly IToastrService _toastr;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public JobController(IJobService service, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
+        public JobController(IJobService service, ILookupService lookup, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
+            _lookup = lookup;
             _toastr = toastr;
             _localizer = localizer;
         }
@@ -130,7 +134,7 @@ namespace ResturantPL.Controllers.Definitions
 
         private async Task PopulateData(JobViewModel model)
         {
-            await Task.CompletedTask;
+            model.JobTypes = await _lookup.NamedLookupAsync<JobType>();
         }
     }
 }

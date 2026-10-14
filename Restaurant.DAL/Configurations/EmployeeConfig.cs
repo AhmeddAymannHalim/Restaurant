@@ -8,28 +8,67 @@ public class EmployeeConfig : IEntityTypeConfiguration<Employee>
 {
     public void Configure(EntityTypeBuilder<Employee> builder)
     {
+        builder.HasIndex(a => a.Code).IsUnique();
+
         builder.Property(a => a.Code).IsRequired().HasMaxLength(20);
-        builder.Property(a => a.FirstName).IsRequired().HasMaxLength(50);
-        builder.Property(a => a.LastName).IsRequired().HasMaxLength(50);
-        builder.Property(a => a.PhoneNumber).IsRequired().HasMaxLength(11);
-        builder.Property(a => a.Street).IsRequired().HasMaxLength(100);
-        builder.Property(a => a.NationalID).IsRequired().HasMaxLength(14);
-        builder.Property(a => a.UserType).HasMaxLength(100);
+        builder.Property(a => a.ArName).IsRequired().HasMaxLength(100);
+        builder.Property(a => a.EnName).IsRequired().HasMaxLength(100);
+        builder.Property(a => a.PhoneNumber).HasMaxLength(20);
+        builder.Property(a => a.Address).HasMaxLength(250);
+        builder.Property(a => a.IDNumber).HasMaxLength(20);
         builder.Property(a => a.Salary).HasPrecision(18, 2);
 
+        // Every Account row that belongs to an employee (EmployeeId), and the employee's own main Account (AccountId).
         builder
-            .HasOne(a => a.SalaryType)
-            .WithMany()
-            .HasForeignKey(a => a.SalaryTypeId)
+            .HasMany(a => a.Accounts)
+            .WithOne(a => a.Employee)
+            .HasForeignKey(a => a.EmployeeId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder
-            .HasOne(a => a.City)
+            .HasOne(a => a.Account)
             .WithMany()
-            .HasForeignKey(a => a.CityId)
+            .HasForeignKey(a => a.AccountId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.Ignore(a => a.FullName);
-        builder.Ignore(a => a.HasAccount);
+        builder
+            .HasOne(a => a.Branch)
+            .WithMany(a => a.Employees)
+            .HasForeignKey(a => a.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(a => a.Job)
+            .WithMany(a => a.Employees)
+            .HasForeignKey(a => a.JobId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(a => a.Nationality)
+            .WithMany()
+            .HasForeignKey(a => a.NationalityId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(a => a.Country)
+            .WithMany()
+            .HasForeignKey(a => a.CountryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(a => a.Gov)
+            .WithMany()
+            .HasForeignKey(a => a.GovId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(a => a.Town)
+            .WithMany()
+            .HasForeignKey(a => a.TownId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Ignore(a => a.HasLoginAccount);
+        builder.Ignore(a => a.PhoneNumbers);
+        builder.Ignore(a => a.ExistingDocumentUrls);
     }
 }

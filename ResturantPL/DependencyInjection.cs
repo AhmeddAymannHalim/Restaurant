@@ -9,6 +9,8 @@ using Restaurant.BLL.Validations.Branch;
 using Restaurant.BLL.Services.Commons;
 using Restaurant.BLL.Services.IServices.Commons;
 using Restaurant.DAL.IRepositories.Commons;
+using Restaurant.DAL.IRepositories.Definitions;
+using Restaurant.DAL.Repositories.Definitions;
 using Restaurant.DAL.Repositories.Commons;
 using Restaurant.DAL.UnitOfWork;
 using ResturantPL.Extensions;
@@ -103,7 +105,6 @@ public static class DependencyInjection
         services.AddScoped<ITableService, TableService>();
         services.AddScoped<IUnitPriceService, UnitPriceService>();
         services.AddScoped<IProductCategoryService, ProductCategoryService>();
-        services.AddScoped<ISalaryTypeService, SalaryTypeService>();
         services.AddScoped<IMenuSectionService, MenuSectionService>();
         services.AddScoped<IMenuItemService, MenuItemService>();
         services.AddScoped<IProductService, ProductService>();
@@ -140,6 +141,19 @@ public static class DependencyInjection
         services.AddScoped<IScroungeService, ScroungeService>();
         services.AddScoped<ISalaryService, SalaryService>();
         services.AddScoped<IKitchenService, KitchenService>();
+        services.AddScoped<ICurrencyService, CurrencyService>();
+        services.AddScoped<ICompanyService, CompanyService>();
+        services.AddScoped<ILeaveTypeService, LeaveTypeService>();
+        services.AddScoped<IInsuranceCompanyService, InsuranceCompanyService>();
+        services.AddScoped<IInsuranceCategoryService, InsuranceCategoryService>();
+        services.AddScoped<IJobTypeService, JobTypeService>();
+        services.AddScoped<IDepartmentService, DepartmentService>();
+        services.AddScoped<IContractTypeService, ContractTypeService>();
+        services.AddScoped<ISpecializationService, SpecializationService>();
+        services.AddScoped<ICustomerTierService, CustomerTierService>();
+        services.AddScoped<IClassificationService, ClassificationService>();
+        services.AddScoped<ICostCenterService, CostCenterService>();
+        services.AddScoped<ISellTypeService, SellTypeService>();
         services.AddScoped<IDeliveryZoneService, DeliveryZoneService>();
         services.AddScoped<IExpenseService, ExpenseService>();
 

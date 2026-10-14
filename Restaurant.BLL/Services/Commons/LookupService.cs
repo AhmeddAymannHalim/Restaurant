@@ -141,4 +141,14 @@ public class LookupService : ILookupService
     {
         return await _unitOfWork.Lookups.CityLookupAsync(governorateId);
     }
+
+    public async Task<IEnumerable<LookupItem>> NamedLookupAsync<T>() where T : class
+    {
+        return await _unitOfWork.Lookups.NamedLookupAsync<T>();
+    }
+
+    public async Task<IEnumerable<LookupItem>> VillageLookupAsync(int townId)
+    {
+        return await _unitOfWork.Lookups.VillageLookupAsync(townId);
+    }
 }

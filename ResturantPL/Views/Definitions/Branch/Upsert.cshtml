@@ -53,6 +53,29 @@
                 <span asp-validation-for="Mobile2" class="text-danger"></span>
             </div>
 
+            <div class="form-group" data-fk-selects>
+                                <label asp-for="CompanyId" class="control-label">@L["Bra.CompanyId"]</label>
+                                <select asp-for="CompanyId" class="form-control">
+                                    <option value="">@L["Select"]</option>
+                                    @foreach (var item in Model.Companies)
+                                    {
+                                        <option value="@item.Id" selected="@(Model.CompanyId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="CompanyId" class="text-danger"></span>
+                            </div>
+            <div class="form-group">
+                                <label asp-for="CurrencyId" class="control-label">@L["Bra.CurrencyId"]</label>
+                                <select asp-for="CurrencyId" class="form-control">
+                                    <option value="">@L["Select"]</option>
+                                    @foreach (var item in Model.Currencies)
+                                    {
+                                        <option value="@item.Id" selected="@(Model.CurrencyId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="CurrencyId" class="text-danger"></span>
+                            </div>
+
             <div class="ad-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
                 <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>

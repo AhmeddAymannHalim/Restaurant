@@ -24,10 +24,22 @@ namespace Restaurant.DAL.UnitOfWork
             Jobs = new JobRepository(_context);
             UnitPrices = new UnitPriceRepository(_context);
             ProductCategories = new ProductCategoryRepository(_context);
-            SalaryTypes = new SalaryTypeRepository(_context);
             MenuSections = new MenuSectionRepository(_context);
             Products = new ProductRepository(_context);
             Kitchens = new KitchenRepository(_context);
+            Currencies = new CurrencyRepository(_context);
+            Companies = new CompanyRepository(_context);
+            LeaveTypes = new LeaveTypeRepository(_context);
+            InsuranceCompanies = new InsuranceCompanyRepository(_context);
+            InsuranceCategories = new InsuranceCategoryRepository(_context);
+            JobTypes = new JobTypeRepository(_context);
+            Departments = new DepartmentRepository(_context);
+            ContractTypes = new ContractTypeRepository(_context);
+            Specializations = new SpecializationRepository(_context);
+            CustomerTiers = new CustomerTierRepository(_context);
+            Classifications = new ClassificationRepository(_context);
+            CostCenters = new CostCenterRepository(_context);
+            SellTypes = new SellTypeRepository(_context);
             DeliveryZones = new DeliveryZoneRepository(_context);
             Expenses = new ExpenseRepository(_context);
             Tables = new TableRepository(_context);
@@ -60,7 +72,6 @@ namespace Restaurant.DAL.UnitOfWork
         public ITableRepository Tables { get; set; }
         public IUnitPriceRepository UnitPrices { get; set; }
         public IProductCategoryRepository ProductCategories { get; set; }
-        public ISalaryTypeRepository SalaryTypes { get; set; }
         public IMenuSectionRepository MenuSections { get; set; }
         public IMenuItemRepository MenuItems { get; set; }
         public IProductRepository Products { get; set; }
@@ -77,6 +88,19 @@ namespace Restaurant.DAL.UnitOfWork
         public ICustomerRepository Customers { get; set; }
 
         public IKitchenRepository Kitchens { get; set; }
+        public ICurrencyRepository Currencies { get; set; }
+        public ICompanyRepository Companies { get; set; }
+        public ILeaveTypeRepository LeaveTypes { get; set; }
+        public IInsuranceCompanyRepository InsuranceCompanies { get; set; }
+        public IInsuranceCategoryRepository InsuranceCategories { get; set; }
+        public IJobTypeRepository JobTypes { get; set; }
+        public IDepartmentRepository Departments { get; set; }
+        public IContractTypeRepository ContractTypes { get; set; }
+        public ISpecializationRepository Specializations { get; set; }
+        public ICustomerTierRepository CustomerTiers { get; set; }
+        public IClassificationRepository Classifications { get; set; }
+        public ICostCenterRepository CostCenters { get; set; }
+        public ISellTypeRepository SellTypes { get; set; }
         public IDeliveryZoneRepository DeliveryZones { get; set; }
         public IExpenseRepository Expenses { get; set; }
 

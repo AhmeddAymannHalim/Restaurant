@@ -13,6 +13,7 @@
         <form asp-action="Upsert" method="post" class="ad-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="AccountId" />
             <div class="form-group">
                 <label asp-for="ArName" class="control-label">@L["ArabicName"]</label>
                 <input asp-for="ArName" class="form-control" />
@@ -39,6 +40,147 @@
                 <span asp-validation-for="Balance" class="text-danger"></span>
             </div>
 
+            <div data-location-cascade
+                 data-countries-url="@Url.Action("Countries", "Lookup")"
+                 data-governorates-url="@Url.Action("Governorates", "Lookup")"
+                 data-cities-url="@Url.Action("Cities", "Lookup")"
+                 data-arabic="@(LanguageHelper.IsArabic() ? "1" : "0")"
+                 data-placeholder="@L["Select"]"
+                 data-selected-country="@Model.CountryId"
+                 data-selected-governorate="@Model.GovernorateId"
+                 data-selected-city="@Model.TownId">
+                <div class="form-group">
+                    <label class="control-label">@L["Country"]</label>
+                    <select class="form-select" data-cascade-level="country"></select>
+                </div>
+                <div class="form-group">
+                    <label class="control-label">@L["Governorate"]</label>
+                    <select class="form-select" data-cascade-level="governorate" disabled></select>
+                </div>
+                <div class="form-group">
+                    <label asp-for="TownId" class="control-label">@L["City"]</label>
+                    <select asp-for="TownId" class="form-select" data-cascade-level="city" disabled></select>
+                    <span asp-validation-for="TownId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <details class="ad-section ad-full" open>
+                <summary>@L["Sup.Section.Contact"]</summary>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="Email" class="control-label">@L["Sup.Email"]</label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="PhoneNumber2" class="control-label">@L["Sup.PhoneNumber2"]</label>
+                    <input asp-for="PhoneNumber2" class="form-control" />
+                    <span asp-validation-for="PhoneNumber2" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Website" class="control-label">@L["Sup.Website"]</label>
+                    <input asp-for="Website" class="form-control" />
+                    <span asp-validation-for="Website" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="StreetName" class="control-label">@L["Sup.StreetName"]</label>
+                    <input asp-for="StreetName" class="form-control" />
+                    <span asp-validation-for="StreetName" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="BuildingNo" class="control-label">@L["Sup.BuildingNo"]</label>
+                    <input asp-for="BuildingNo" class="form-control" />
+                    <span asp-validation-for="BuildingNo" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="PostalCode" class="control-label">@L["Sup.PostalCode"]</label>
+                    <input asp-for="PostalCode" class="form-control" />
+                    <span asp-validation-for="PostalCode" class="text-danger"></span>
+                </div>
+                </div>
+            </details>
+
+            <details class="ad-section ad-full">
+                <summary>@L["Sup.Section.Tax"]</summary>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="VatNumber" class="control-label">@L["Sup.VatNumber"]</label>
+                    <input asp-for="VatNumber" class="form-control" />
+                    <span asp-validation-for="VatNumber" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="RegistrationNumber" class="control-label">@L["Sup.RegistrationNumber"]</label>
+                    <input asp-for="RegistrationNumber" class="form-control" />
+                    <span asp-validation-for="RegistrationNumber" class="text-danger"></span>
+                </div>
+                </div>
+            </details>
+
+            <details class="ad-section ad-full" open>
+                <summary>@L["Sup.Section.Credit"]</summary>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="BillPayType" class="control-label">@L["Sup.BillPayType"]</label>
+                    <select asp-for="BillPayType" asp-items="Html.GetLocalizedEnumSelectList<PayType>(L)" class="form-control"></select>
+                    <span asp-validation-for="BillPayType" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CreditLimit" class="control-label">@L["Sup.CreditLimit"]</label>
+                    <input asp-for="CreditLimit" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="CreditLimit" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CreditDurationInDays" class="control-label">@L["Sup.CreditDurationInDays"]</label>
+                    <input asp-for="CreditDurationInDays" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="CreditDurationInDays" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CompanyBranchId" class="control-label">@L["Sup.CompanyBranchId"]</label>
+                    <select asp-for="CompanyBranchId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.Branches.Where(item => true))
+                        {
+                            <option value="@item.Id" selected="@(Model.CompanyBranchId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CompanyBranchId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="EmployeeId" class="control-label">@L["Sup.EmployeeId"]</label>
+                    <select asp-for="EmployeeId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.Employees.Where(item => true))
+                        {
+                            <option value="@item.Id" selected="@(Model.EmployeeId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Remark" class="control-label">@L["Sup.Remark"]</label>
+                    <input asp-for="Remark" class="form-control" />
+                    <span asp-validation-for="Remark" class="text-danger"></span>
+                </div>
+                </div>
+            </details>
+
+            <details class="ad-section ad-full" open data-fk-selects>
+                <summary>@L["Sup.Section.Org"]</summary>
+                <div class="ad-section-grid">
+                <div class="form-group">
+                    <label asp-for="CostCenterId" class="control-label">@L["Sup.CostCenterId"]</label>
+                    <select asp-for="CostCenterId" class="form-control">
+                        <option value="">@L["Select"]</option>
+                        @foreach (var item in Model.CostCenters)
+                        {
+                            <option value="@item.Id" selected="@(Model.CostCenterId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CostCenterId" class="text-danger"></span>
+                </div>
+                </div>
+            </details>
+
             <div class="ad-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
                 <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
@@ -52,5 +194,7 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    
+    <script src="~/js/location-cascade.js" asp-append-version="true"></script>
+<partial name="_ValidationScriptsPartial" />
 }

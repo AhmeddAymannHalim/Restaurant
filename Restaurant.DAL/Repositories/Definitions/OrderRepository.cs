@@ -1,3 +1,4 @@
+using PaymentMethod = Shared.Enums.PaymentMethod;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Definitions;
@@ -233,7 +234,7 @@ public class OrderRepository : IOrderRepository
             Customer customer = null;
             if (order.OnAccount)
             {
-                customer = order.CustomerId.HasValue ? await _context.Customers.FindAsync(order.CustomerId.Value) : null;
+                customer = order.CustomerId.HasValue ? await _context.Customers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == order.CustomerId.Value) : null;
                 if (customer is null)
                 {
                     return Fail("CustomerRequired");
@@ -297,7 +298,7 @@ public class OrderRepository : IOrderRepository
                     }
 
                     if (!order.EmployeeId.HasValue
-                        || !await _context.Employees.AnyAsync(a => a.EmployeeId == order.EmployeeId))
+                        || !await _context.Employees.AnyAsync(a => a.Id == order.EmployeeId))
                     {
                         return Fail("DeliveryDriverRequired");
                     }
@@ -449,7 +450,7 @@ public class OrderRepository : IOrderRepository
 
             if (customer is not null)
             {
-                customer.Balance += entity.TotalPrice;
+                customer.Account.Adjust(entity.TotalPrice);
             }
 
             if (table is not null)
@@ -673,10 +674,10 @@ public class OrderRepository : IOrderRepository
 
             if (order.OnAccount && order.CustomerId.HasValue)
             {
-                var customer = await _context.Customers.FindAsync(order.CustomerId.Value);
+                var customer = await _context.Customers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == order.CustomerId.Value);
                 if (customer is not null)
                 {
-                    customer.Balance -= order.TotalPrice;
+                    customer.Account.Adjust(-order.TotalPrice);
                 }
             }
 

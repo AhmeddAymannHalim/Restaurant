@@ -1,3 +1,5 @@
+using Restaurant.DAL.Models;
+using Restaurant.BLL.Services.IServices.Commons;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -16,12 +18,14 @@ namespace ResturantPL.Controllers.Definitions
     public class BranchController : Controller
     {
         private readonly IBranchService _service;
+        private readonly ILookupService _lookup;
         private readonly IToastrService _toastr;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public BranchController(IBranchService service, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
+        public BranchController(IBranchService service, ILookupService lookup, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
+            _lookup = lookup;
             _toastr = toastr;
             _localizer = localizer;
         }
@@ -130,7 +134,8 @@ namespace ResturantPL.Controllers.Definitions
 
         private async Task PopulateData(BranchViewModel model)
         {
-            await Task.CompletedTask;
+            model.Companies = await _lookup.NamedLookupAsync<Company>();
+            model.Currencies = await _lookup.NamedLookupAsync<Currency>();
         }
     }
 }

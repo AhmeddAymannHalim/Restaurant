@@ -16,9 +16,9 @@ public class BranchRepository : IBranchRepository
         _context = context;
     }
 
-    public async Task<PaginatedResult<Branche>> GetPagedBranchesAsync(PageRequest request)
+    public async Task<PaginatedResult<CompanyBranch>> GetPagedBranchesAsync(PageRequest request)
     {
-        var query = _context.Branches.AsNoTracking().AsQueryable();
+        var query = _context.CompanyBranches.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
@@ -35,17 +35,17 @@ public class BranchRepository : IBranchRepository
             .Take(request.PageSize)
             .ToListAsync();
 
-        return PaginatedResult<Branche>.Create(data, total, request);
+        return PaginatedResult<CompanyBranch>.Create(data, total, request);
     }
 
-    public async Task<Branche> GetBranchByIdAsync(int id)
+    public async Task<CompanyBranch> GetBranchByIdAsync(int id)
     {
-        return await _context.Branches.FindAsync(id);
+        return await _context.CompanyBranches.FindAsync(id);
     }
 
     public async Task<string> NewBranchCodeAsync()
     {
-        var codes = await _context.Branches.AsNoTracking().Select(a => a.Code).ToListAsync();
+        var codes = await _context.CompanyBranches.AsNoTracking().Select(a => a.Code).ToListAsync();
 
         var nextCode = codes
             .Where(code => int.TryParse(code, out _))
@@ -56,19 +56,19 @@ public class BranchRepository : IBranchRepository
         return nextCode.ToString();
     }
 
-    public async Task<ResultMessage> UpsertBranchAsync(Branche entity)
+    public async Task<ResultMessage> UpsertBranchAsync(CompanyBranch entity)
     {
         try
         {
             if (entity.Id == 0)
             {
                 entity.Code = await NewBranchCodeAsync();
-                await _context.Branches.AddAsync(entity);
+                await _context.CompanyBranches.AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
             else
             {
-                var existing = await _context.Branches.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
+                var existing = await _context.CompanyBranches.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
                     return new ResultMessage
@@ -79,7 +79,11 @@ public class BranchRepository : IBranchRepository
                 }
 
                 entity.Code = existing.Code;
-                _context.Branches.Update(entity);
+                entity.State = existing.State;
+                entity.CreatedAt = existing.CreatedAt;
+                entity.CreatedById = existing.CreatedById;
+                entity.UpdatedAt = DateTime.Now;
+                _context.CompanyBranches.Update(entity);
                 await _context.SaveChangesAsync();
             }
 
@@ -99,13 +103,13 @@ public class BranchRepository : IBranchRepository
     {
         try
         {
-            var entity = await _context.Branches.FindAsync(id);
+            var entity = await _context.CompanyBranches.FindAsync(id);
             if (entity is null)
             {
                 return new ResultMessage { Success = true };
             }
 
-            if (await _context.Employees.AnyAsync(a => a.BrancheId == id))
+            if (await _context.Employees.AnyAsync(a => a.BranchId == id))
             {
                 return new ResultMessage
                 {
@@ -113,7 +117,7 @@ public class BranchRepository : IBranchRepository
                     Message = "BranchHasEmployees"
                 };
             }
-            _context.Branches.Remove(entity);
+            _context.CompanyBranches.Remove(entity);
             await _context.SaveChangesAsync();
 
             return new ResultMessage { Success = true };

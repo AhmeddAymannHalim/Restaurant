@@ -26,8 +26,8 @@ public class ScroungeRepository : IScroungeRepository
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.Employee.FirstName.ToLower().Contains(search)
-                || a.Employee.LastName.ToLower().Contains(search)
+            query = query.Where(a => a.Employee.ArName.ToLower().Contains(search)
+                || a.Employee.EnName.ToLower().Contains(search)
                 || a.Info.ToLower().Contains(search));
         }
 

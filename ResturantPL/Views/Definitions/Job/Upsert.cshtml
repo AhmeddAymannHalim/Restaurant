@@ -28,6 +28,18 @@
                 <span asp-validation-for="EnName" class="text-danger"></span>
             </div>
 
+            <div class="form-group" data-fk-selects>
+                                <label asp-for="JobTypeId" class="control-label">@L["Job.JobTypeId"]</label>
+                                <select asp-for="JobTypeId" class="form-control">
+                                    <option value="">@L["Select"]</option>
+                                    @foreach (var item in Model.JobTypes)
+                                    {
+                                        <option value="@item.Id" selected="@(Model.JobTypeId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="JobTypeId" class="text-danger"></span>
+                            </div>
+
             <div class="ad-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
                 <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>

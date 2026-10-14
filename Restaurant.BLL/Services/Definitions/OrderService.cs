@@ -1,3 +1,4 @@
+using PaymentMethod = Shared.Enums.PaymentMethod;
 using AutoMapper;
 using Restaurant.BLL.Services.IServices.Definitions;
 using Restaurant.DAL.Models;

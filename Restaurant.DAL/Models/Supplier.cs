@@ -1,22 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Shared.Enums;
 
-namespace Restaurant.DAL.Models
+namespace Restaurant.DAL.Models;
+
+public class Supplier : BaseEntity
 {
-    public class Supplier
-    {
-        public int Id { get; set; }
-        public string ArName { get; set; }
-        public string EnName { get; set; }
-        public string Address { get; set; }
-        public string PhoneNumber { get; set; }
-        public decimal Balance { get; set; }
-        public decimal? LastBalance { get; set; }
+    public string DetailedAddress { get; set; }
+    public string Remark { get; set; }
+    public string Email { get; set; }
+    public string PhoneNumber1 { get; set; }
+    public string PhoneNumber2 { get; set; }
+    public string Website { get; set; }
+    public string PostalCode { get; set; }
+    public string VatNumber { get; set; }
+    public string RegistrationNumber { get; set; }
+    public string BuildingNo { get; set; }
+    public string StreetName { get; set; }
+    public decimal? CreditLimit { get; set; }
+    public int? CreditDurationInDays { get; set; }
+    public PayType BillPayType { get; set; } = PayType.Cash;
 
-        public virtual ICollection<Invoice> Invoices { get; set; }
-        public virtual ICollection<PaymentInvoiceSupplier> PaymentInvoices { get; set; }
-    }
+    public int? AccountId { get; set; }
+    public int? CompanyBranchId { get; set; }
+    public int? CostCenterId { get; set; }
+    public int? EmployeeId { get; set; }
+    public int? CountryId { get; set; }
+    public int? GovId { get; set; }
+    public int? TownId { get; set; }
+
+    public virtual Account Account { get; set; }
+    public virtual CompanyBranch CompanyBranch { get; set; }
+    public virtual CostCenter CostCenter { get; set; }
+    public virtual Employee Employee { get; set; }
+    public virtual Country Country { get; set; }
+    public virtual Governorate Gov { get; set; }
+    public virtual Town Town { get; set; }
+
+    #region Restaurant
+
+    public decimal? LastBalance { get; set; }
+
+    public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+    public virtual ICollection<PaymentInvoiceSupplier> PaymentInvoices { get; set; } = new List<PaymentInvoiceSupplier>();
+
+    #endregion
 }

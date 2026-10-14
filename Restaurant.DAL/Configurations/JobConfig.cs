@@ -14,6 +14,11 @@ public class JobConfig : IEntityTypeConfiguration<Job>
         builder.Property(a => a.Code).IsRequired().HasMaxLength(20);
         builder.Property(a => a.ArName).IsRequired().HasMaxLength(100);
         builder.Property(a => a.EnName).IsRequired().HasMaxLength(100);
-        builder.HasMany(a => a.Employees).WithOne(e => e.Job).HasForeignKey(e => e.JobId).OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(a => a.JobType)
+            .WithMany()
+            .HasForeignKey(a => a.JobTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

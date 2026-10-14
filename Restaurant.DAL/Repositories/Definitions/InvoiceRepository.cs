@@ -1,3 +1,4 @@
+using Restaurant.DAL.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Commons;
 using Restaurant.DAL.IRepositories.Definitions;
@@ -21,8 +22,8 @@ public class InvoiceRepository : IInvoiceRepository
     public async Task<PaginatedResult<Invoice>> GetPagedInvoicesAsync(PageRequest request)
     {
         var query = _context.Invoices.AsNoTracking()
-            .Include(a => a.Supplier)
-            .Include(a => a.Customer)
+            .Include(a => a.Supplier).ThenInclude(a => a.Account)
+            .Include(a => a.Customer).ThenInclude(a => a.Account)
             .Include(a => a.Store)
             .AsQueryable();
 
@@ -30,10 +31,10 @@ public class InvoiceRepository : IInvoiceRepository
         {
             var search = request.SearchString.Trim().ToLower();
             query = query.Where(a => a.InvoiceCode.ToLower().Contains(search)
-                || (a.Supplier != null && (a.Supplier.ArName.ToLower().Contains(search)
-                    || a.Supplier.EnName.ToLower().Contains(search)))
-                || (a.Customer != null && (a.Customer.ArName.ToLower().Contains(search)
-                    || a.Customer.EnName.ToLower().Contains(search))));
+                || (a.Supplier != null && (a.Supplier.Account.ArName.ToLower().Contains(search)
+                    || a.Supplier.Account.EnName.ToLower().Contains(search)))
+                || (a.Customer != null && (a.Customer.Account.ArName.ToLower().Contains(search)
+                    || a.Customer.Account.EnName.ToLower().Contains(search))));
         }
 
         if (Enum.TryParse<InvoiceType>(request.Type, out var type))
@@ -66,8 +67,8 @@ public class InvoiceRepository : IInvoiceRepository
     {
         return await _context.Invoices
             .AsNoTracking()
-            .Include(a => a.Supplier)
-            .Include(a => a.Customer)
+            .Include(a => a.Supplier).ThenInclude(a => a.Account)
+            .Include(a => a.Customer).ThenInclude(a => a.Account)
             .Include(a => a.Store)
             .Include(a => a.InvoiceItems).ThenInclude(a => a.Product)
             .Include(a => a.InvoiceItems).ThenInclude(a => a.UnitPrice)
@@ -86,18 +87,22 @@ public class InvoiceRepository : IInvoiceRepository
 
     public async Task<decimal> GetSupplierBalanceAsync(int supplierId)
     {
-        return await _context.Suppliers.AsNoTracking()
+        var account = await _context.Suppliers.AsNoTracking()
             .Where(a => a.Id == supplierId)
-            .Select(a => a.Balance)
+            .Select(a => a.Account)
             .FirstOrDefaultAsync();
+
+        return account?.BalanceValue ?? 0;
     }
 
     public async Task<decimal> GetCustomerBalanceAsync(int customerId)
     {
-        return await _context.Customers.AsNoTracking()
+        var account = await _context.Customers.AsNoTracking()
             .Where(a => a.Id == customerId)
-            .Select(a => a.Balance)
+            .Select(a => a.Account)
             .FirstOrDefaultAsync();
+
+        return account?.BalanceValue ?? 0;
     }
 
     public async Task<ResultMessage> UpsertInvoiceAsync(Invoice entity)
@@ -186,11 +191,12 @@ public class InvoiceRepository : IInvoiceRepository
             await _context.SaveChangesAsync();
 
             await _journals.RemoveSourceEntriesAsync(JournalSourceType.Invoice, invoice.Id);
+            var journalLines = BuildJournalLines(invoice).ToList();
             var posting = await _journals.PostSourceEntryAsync(JournalSourceType.Invoice,
                 invoice.Id,
                 invoice.InvoiceDate,
                 $"{invoice.InvoiceType} {invoice.InvoiceCode}",
-                BuildJournalLines(invoice),
+                journalLines,
                 saveChanges: false);
             if (!posting.Success)
             {
@@ -198,6 +204,7 @@ public class InvoiceRepository : IInvoiceRepository
             }
 
             await _context.SaveChangesAsync();
+            await ErpBillMirror.SyncAsync(_context, invoice, journalLines);
             await transaction.CommitAsync();
 
             return new ResultMessage
@@ -251,6 +258,7 @@ public class InvoiceRepository : IInvoiceRepository
             }
 
             await _journals.RemoveSourceEntriesAsync(JournalSourceType.Invoice, invoice.Id);
+            await ErpBillMirror.RemoveAsync(_context, invoice);
 
             _context.Invoices.Remove(invoice);
             await _context.SaveChangesAsync();
@@ -361,19 +369,19 @@ public class InvoiceRepository : IInvoiceRepository
     {
         if (IsSupplierInvoice(invoice.InvoiceType))
         {
-            var supplier = await _context.Suppliers.FindAsync(invoice.SupplierId);
+            var supplier = await _context.Suppliers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == invoice.SupplierId);
             if (supplier is not null)
             {
-                supplier.Balance += sign * invoice.Remaining;
+                supplier.Account.Adjust(sign * invoice.Remaining);
             }
 
             return;
         }
 
-        var customer = await _context.Customers.FindAsync(invoice.CustomerId);
+        var customer = await _context.Customers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == invoice.CustomerId);
         if (customer is not null)
         {
-            customer.Balance += sign * invoice.Remaining;
+            customer.Account.Adjust(sign * invoice.Remaining);
         }
     }
 

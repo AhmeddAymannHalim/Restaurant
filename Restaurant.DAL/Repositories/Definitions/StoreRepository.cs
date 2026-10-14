@@ -1,3 +1,4 @@
+using Restaurant.DAL.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -18,7 +19,7 @@ public class StoreRepository : IStoreRepository
 
     public async Task<PaginatedResult<Store>> GetPagedStoresAsync(PageRequest request)
     {
-        var query = _context.Stores.AsNoTracking().Include(a => a.Storekeeper).AsQueryable();
+        var query = _context.Stores.AsNoTracking().Include(a => a.Employee).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
@@ -38,15 +39,32 @@ public class StoreRepository : IStoreRepository
 
     public async Task<Store> GetStoreByIdAsync(int id)
     {
-        return await _context.Stores.FindAsync(id);
+        return await _context.Stores
+            .Include(a => a.Town).ThenInclude(a => a.Governorate)
+            .FirstOrDefaultAsync(a => a.Id == id);
+    }
+
+    private async Task<string> NewStoreCodeAsync()
+    {
+        var codes = await _context.Stores.AsNoTracking().Select(a => a.Code).ToListAsync();
+
+        return (codes.Where(code => int.TryParse(code, out _)).Select(int.Parse).DefaultIfEmpty(0).Max() + 1).ToString();
     }
 
     public async Task<ResultMessage> UpsertStoreAsync(Store entity)
     {
         try
         {
+            (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
+
             if (entity.Id == 0)
             {
+                if (string.IsNullOrWhiteSpace(entity.Code))
+                {
+                    entity.Code = await NewStoreCodeAsync();
+                }
+
+                entity.CreatedAt = DateTime.Now;
                 entity.StoreProducts = await _context.Products.AsNoTracking()
                     .Select(a => new StoreProduct { ProductId = a.Id })
                     .ToListAsync();
@@ -54,7 +72,8 @@ public class StoreRepository : IStoreRepository
             }
             else
             {
-                if (!await _context.Stores.AnyAsync(a => a.Id == entity.Id))
+                var existing = await _context.Stores.FirstOrDefaultAsync(a => a.Id == entity.Id);
+                if (existing is null)
                 {
                     return new ResultMessage
                     {
@@ -63,7 +82,12 @@ public class StoreRepository : IStoreRepository
                     };
                 }
 
-                _context.Stores.Update(entity);
+                entity.Code = string.IsNullOrWhiteSpace(entity.Code) ? existing.Code : entity.Code;
+                entity.State = existing.State;
+                entity.CreatedAt = existing.CreatedAt;
+                entity.CreatedById = existing.CreatedById;
+                entity.UpdatedAt = DateTime.Now;
+                _context.Entry(existing).CurrentValues.SetValues(entity);
             }
 
             await _context.SaveChangesAsync();
