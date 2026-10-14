@@ -1,3 +1,4 @@
+using Restaurant.DAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -64,6 +65,7 @@ namespace ResturantPL.Controllers.Definitions
                 else
                 {
                     model.Code = await _service.NewEmployeeCodeAsync();
+                    model.IsActive = true;
                 }
 
                 await PopulateData(model);
@@ -94,7 +96,7 @@ namespace ResturantPL.Controllers.Definitions
                 if (result.Success)
                 {
                     _toastr.Success(_localizer[isNew ? "SavedSuccessfully" : "UpdatedSuccessfully"].Value);
-                    return RedirectToAction(nameof(Index), new { searchString = model.FirstName });
+                    return RedirectToAction(nameof(Index), new { searchString = model.ArName });
                 }
 
                 await PopulateData(model);
@@ -136,9 +138,16 @@ namespace ResturantPL.Controllers.Definitions
 
         private async Task PopulateData(EmployeeViewModel model)
         {
+            model.Departments = await _lookup.NamedLookupAsync<Department>();
+            model.ContractTypes = await _lookup.NamedLookupAsync<ContractType>();
+            model.Specializations = await _lookup.NamedLookupAsync<Specialization>();
+            model.JobTypes = await _lookup.NamedLookupAsync<JobType>();
+            model.InsuranceCategories = await _lookup.NamedLookupAsync<InsuranceCategory>();
+            model.InsuranceCompanies = await _lookup.NamedLookupAsync<InsuranceCompany>();
             model.Branches = await _lookup.BranchLookupAsync();
             model.Jobs = await _lookup.JobLookupAsync();
             model.SalaryTypes = await _lookup.SalaryTypeLookupAsync();
+            model.Nationalities = await _lookup.CountryLookupAsync();
         }
     }
 }

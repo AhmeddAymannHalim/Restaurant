@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
+using Shared.Enums;
 using Shared.Helpers;
 using Shared.ViewModels.Commons;
-using Shared.ViewModels.Definitions;
 
 namespace Restaurant.DAL.Repositories.Definitions;
 
@@ -24,15 +25,15 @@ public class EmployeeRepository : IEmployeeRepository
     {
         var query = _context.Employees.AsNoTracking()
             .Include(a => a.Job)
-            .Include(a => a.Branche)
-            .Include(a => a.SalaryType)
+            .Include(a => a.Branch)
+            .Include(a => a.Town)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.FirstName.ToLower().Contains(search)
-                                  || a.LastName.ToLower().Contains(search)
+            query = query.Where(a => a.ArName.ToLower().Contains(search)
+                                  || a.EnName.ToLower().Contains(search)
                                   || a.Code.ToLower().Contains(search)
                                   || a.PhoneNumber.Contains(search)
                                   || a.Job.ArName.ToLower().Contains(search)
@@ -41,13 +42,13 @@ public class EmployeeRepository : IEmployeeRepository
 
         var total = await query.CountAsync();
         var data = await query
-            .OrderBy(a => a.EmployeeId)
+            .OrderBy(a => a.Id)
             .Skip(request.Offset)
             .Take(request.PageSize)
             .ToListAsync();
 
         var codes = data.Select(a => a.Code).ToList();
-        var withAccount = await _context.Users
+        var withLogin = await _context.Users
             .AsNoTracking()
             .Where(a => codes.Contains(a.Code))
             .Select(a => a.Code)
@@ -55,7 +56,7 @@ public class EmployeeRepository : IEmployeeRepository
 
         foreach (var employee in data)
         {
-            employee.HasAccount = withAccount.Contains(employee.Code);
+            employee.HasLoginAccount = withLogin.Contains(employee.Code);
         }
 
         return PaginatedResult<Employee>.Create(data, total, request);
@@ -64,8 +65,10 @@ public class EmployeeRepository : IEmployeeRepository
     public async Task<Employee> GetEmployeeByIdAsync(int id)
     {
         return await _context.Employees
-            .Include(a => a.City).ThenInclude(a => a.Governorate)
-            .FirstOrDefaultAsync(a => a.EmployeeId == id);
+            .Include(a => a.Town)
+            .ThenInclude(a => a.Governorate)
+            .Include(a => a.Phones)
+            .FirstOrDefaultAsync(a => a.Id == id);
     }
 
     public async Task<string> NewEmployeeCodeAsync()
@@ -81,6 +84,7 @@ public class EmployeeRepository : IEmployeeRepository
         return nextCode.ToString();
     }
 
+    /// <summary>A new employee always gets its Account row (mandatory object creation); the rest of the ERP data stays empty.</summary>
     public async Task<ResultMessage> UpsertEmployeeAsync(Employee entity, IFormFile imageFile)
     {
         try
@@ -95,16 +99,23 @@ public class EmployeeRepository : IEmployeeRepository
                 };
             }
 
-            entity.UserType = job.ArName;
-
-            if (entity.EmployeeId == 0)
+            if (entity.Id == 0)
             {
                 entity.Code = await NewEmployeeCodeAsync();
+                entity.CreatedAt = DateTime.Now;
+                entity.Phones = BuildPhones(entity);
 
                 if (imageFile != null)
                 {
                     entity.Image = DocumentSetting.UploadFile(imageFile, ImagesFolder);
                 }
+
+                entity.Account = await AccountProvisioner.CreateAsync(
+                    _context,
+                    entity.ArName,
+                    entity.EnName,
+                    AccountType.Employee,
+                    AccountCodes.EmployeesPayable);
 
                 await _context.Employees.AddAsync(entity);
                 await _context.SaveChangesAsync();
@@ -112,7 +123,10 @@ public class EmployeeRepository : IEmployeeRepository
                 return new ResultMessage { Success = true };
             }
 
-            var existing = await _context.Employees.AsNoTracking().FirstOrDefaultAsync(a => a.EmployeeId == entity.EmployeeId);
+            var existing = await _context.Employees
+                .Include(a => a.Account)
+                .Include(a => a.Phones)
+                .FirstOrDefaultAsync(a => a.Id == entity.Id);
             if (existing is null)
             {
                 return new ResultMessage
@@ -122,22 +136,53 @@ public class EmployeeRepository : IEmployeeRepository
                 };
             }
 
+            var oldImage = existing.Image;
+
             entity.Code = existing.Code;
             entity.Image = existing.Image;
+            entity.AccountId = existing.AccountId;
+            entity.UserId = existing.UserId;
+            entity.State = existing.State;
+            entity.CreatedAt = existing.CreatedAt;
+            entity.CreatedById = existing.CreatedById;
+            entity.UpdatedAt = DateTime.Now;
 
             if (imageFile != null)
             {
-                if (!string.IsNullOrEmpty(existing.Image))
-                {
-                    DocumentSetting.DeleteFile(existing.Image);
-                }
-
                 entity.Image = DocumentSetting.UploadFile(imageFile, ImagesFolder);
             }
 
-            _context.Employees.Update(entity);
+            if (existing.Account is null)
+            {
+                entity.Account = await AccountProvisioner.CreateAsync(
+                    _context,
+                    entity.ArName,
+                    entity.EnName,
+                    AccountType.Employee,
+                    AccountCodes.EmployeesPayable);
+            }
+            else
+            {
+                existing.Account.ArName = entity.ArName;
+                existing.Account.EnName = entity.EnName;
+            }
+
+            var phones = BuildPhones(entity);
+            entity.Phones = null;
+            _context.Entry(existing).CurrentValues.SetValues(entity);
+            SyncPhones(existing, phones);
+            if (existing.Account is null && entity.Account is not null)
+            {
+                existing.Account = entity.Account;
+            }
+
             await SyncLoginAccountAsync(entity, job.ArName);
             await _context.SaveChangesAsync();
+
+            if (imageFile != null && !string.IsNullOrEmpty(oldImage))
+            {
+                DocumentSetting.DeleteFile(oldImage);
+            }
 
             return new ResultMessage { Success = true };
         }
@@ -151,6 +196,38 @@ public class EmployeeRepository : IEmployeeRepository
         }
     }
 
+    // The main mobile plus the extra ones typed with the "+ Add" button, without blanks or repeats.
+    private static List<EmployeePhone> BuildPhones(Employee entity)
+    {
+        var numbers = new List<string>();
+        if (!string.IsNullOrWhiteSpace(entity.PhoneNumber))
+        {
+            numbers.Add(entity.PhoneNumber.Trim());
+        }
+
+        numbers.AddRange((entity.Phones ?? new List<EmployeePhone>())
+            .Select(a => a.PhoneNumber?.Trim())
+            .Where(a => !string.IsNullOrWhiteSpace(a)));
+
+        return numbers.Distinct().Select(a => new EmployeePhone { PhoneNumber = a, CreatedAt = DateTime.Now }).ToList();
+    }
+
+    private void SyncPhones(Employee existing, List<EmployeePhone> desired)
+    {
+        var wanted = desired.Select(a => a.PhoneNumber).ToHashSet();
+
+        foreach (var phone in existing.Phones.Where(a => !wanted.Contains(a.PhoneNumber)).ToList())
+        {
+            _context.EmployeePhones.Remove(phone);
+        }
+
+        var kept = existing.Phones.Select(a => a.PhoneNumber).ToHashSet();
+        foreach (var phone in desired.Where(a => !kept.Contains(a.PhoneNumber)))
+        {
+            existing.Phones.Add(phone);
+        }
+    }
+
     private async Task SyncLoginAccountAsync(Employee employee, string roleName)
     {
         var user = await _context.Users.FirstOrDefaultAsync(a => a.Code == employee.Code);
@@ -161,11 +238,10 @@ public class EmployeeRepository : IEmployeeRepository
 
         var oldRoleName = user.UserType;
 
-        user.FirstName = employee.FirstName;
-        user.LastName = employee.LastName;
-        user.CityId = employee.CityId;
-        user.Street = employee.Street;
-        user.Age = employee.Age;
+        user.FirstName = employee.ArName;
+        user.LastName = string.Empty;
+        user.TownId = employee.TownId;
+        user.Street = employee.Address;
         user.PhoneNumber = employee.PhoneNumber;
         user.UserType = roleName;
 
@@ -210,13 +286,22 @@ public class EmployeeRepository : IEmployeeRepository
     {
         try
         {
-            var employee = await _context.Employees.FindAsync(id);
+            var employee = await _context.Employees
+                .Include(a => a.Account)
+                .Include(a => a.Phones)
+                .FirstOrDefaultAsync(a => a.Id == id);
             if (employee is null)
             {
                 return new ResultMessage { Success = true };
             }
 
+            _context.EmployeePhones.RemoveRange(employee.Phones);
             _context.Employees.Remove(employee);
+            if (employee.Account is not null)
+            {
+                _context.Accounts.Remove(employee.Account);
+            }
+
             await _context.SaveChangesAsync();
 
             if (!string.IsNullOrEmpty(employee.Image))

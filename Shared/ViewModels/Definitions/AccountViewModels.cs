@@ -43,11 +43,11 @@ public class ProfileViewModel
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string PhoneNumber { get; set; }
-    public int? CityId { get; set; }
+    public int? TownId { get; set; }
     public string Street { get; set; }
 
-    public string CityArName { get; set; }
-    public string CityEnName { get; set; }
+    public string TownArName { get; set; }
+    public string TownEnName { get; set; }
 
     public int? CountryId { get; set; }
     public int? GovernorateId { get; set; }

@@ -66,7 +66,7 @@ namespace ResturantPL.Controllers
                 var profile = await _account.GetProfileAsync(UserId);
                 var profileName = profile is null ? null : $"{profile.FirstName} {profile.LastName}".Trim();
                 var isArabic = LanguageHelper.IsArabic();
-                var profileCityName = profile is null ? null : (isArabic ? profile.CityArName : profile.CityEnName);
+                var profileCityName = profile is null ? null : (isArabic ? profile.TownArName : profile.TownEnName);
                 var profileAddress = profile is null ? null : string.Join(", ",
                     new[] { profile.Street, profileCityName }.Where(a => !string.IsNullOrWhiteSpace(a)));
 

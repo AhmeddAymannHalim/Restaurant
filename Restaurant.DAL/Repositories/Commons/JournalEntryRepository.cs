@@ -1,3 +1,4 @@
+using Restaurant.DAL.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Commons;
 using Restaurant.DAL.Models;
@@ -39,11 +40,12 @@ public class JournalEntryRepository : IJournalEntryRepository
             await _context.Accounts.AddAsync(new Account
             {
                 Code = definition.Code,
-                NameAr = definition.NameAr,
-                NameEn = definition.NameEn,
+                ArName = definition.NameAr,
+                EnName = definition.NameEn,
                 AccountType = definition.AccountType,
-                Nature = definition.Nature,
-                IsActive = true
+                BalanceType = definition.BalanceType,
+                AccDate = DateTime.Today,
+                AccCheckDate = DateTime.Today
             });
         }
 
@@ -101,6 +103,7 @@ public class JournalEntryRepository : IJournalEntryRepository
 
         entry.Lines = lines;
         await _context.JournalEntries.AddAsync(entry);
+        await ErpEntryMirror.AddAsync(_context, entry);
 
         if (saveChanges)
         {
@@ -175,6 +178,8 @@ public class JournalEntryRepository : IJournalEntryRepository
 
     public async Task RemoveSourceEntriesAsync(JournalSourceType sourceType, int sourceId)
     {
+        await ErpEntryMirror.RemoveAsync(_context, sourceType, sourceId);
+
         var entries = await _context.JournalEntries
             .Include(a => a.Lines)
             .Where(a => a.SourceType == sourceType && a.SourceId == sourceId)
@@ -204,13 +209,13 @@ public class JournalEntryRepository : IJournalEntryRepository
         }
 
         return await query
-            .GroupBy(a => new { a.AccountId, a.Account.Code, a.Account.NameAr, a.Account.NameEn, a.Account.AccountType })
+            .GroupBy(a => new { a.AccountId, a.Account.Code, a.Account.ArName, a.Account.EnName, a.Account.AccountType })
             .Select(a => new TrialBalanceLine
             {
                 AccountId = a.Key.AccountId,
                 Code = a.Key.Code,
-                NameAr = a.Key.NameAr,
-                NameEn = a.Key.NameEn,
+                NameAr = a.Key.ArName,
+                NameEn = a.Key.EnName,
                 AccountType = a.Key.AccountType,
                 TotalDebit = a.Sum(b => b.Debit),
                 TotalCredit = a.Sum(b => b.Credit)

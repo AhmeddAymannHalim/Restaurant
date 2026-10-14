@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Commons;
 using Restaurant.DAL.Models;
+using Shared.Enums;
 using Shared.Helpers;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
@@ -9,7 +10,7 @@ namespace Restaurant.DAL.Repositories.Commons;
 
 public class LookupRepository : ILookupRepository
 {
-    private static readonly string[] StorekeeperTitles = { "Store Keeper", "امين مخزن", "امين مخازن", "أمين مخازن", "أمين مخزن" };
+    private static readonly string[] StorekeeperTitles = { "Store Keeper", "Storekeeper", "امين مخزن", "امين مخازن", "أمين مخازن", "أمين مخزن" };
 
     private readonly ApplicationDbContext _context;
 
@@ -20,7 +21,7 @@ public class LookupRepository : ILookupRepository
 
     public async Task<IEnumerable<LookupItem>> BranchLookupAsync()
     {
-        return await ToListAsync(_context.Branches.Select(a => new LookupItem
+        return await ToListAsync(_context.CompanyBranches.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
@@ -32,15 +33,27 @@ public class LookupRepository : ILookupRepository
     {
         return await ToListAsync(_context.Jobs.Select(a => new LookupItem
         {
-            Id = a.JobId,
+            Id = a.Id,
             ArName = a.ArName,
             EnName = a.EnName
         }));
     }
 
-    public async Task<IEnumerable<LookupItem>> SalaryTypeLookupAsync()
+    public Task<IEnumerable<LookupItem>> SalaryTypeLookupAsync()
     {
-        return await ToListAsync(_context.SalaryTypes.Select(a => new LookupItem
+        var items = Enum.GetValues<SalaryType>().Select(a => new LookupItem
+        {
+            Id = (int)a,
+            ArName = a.ArName(),
+            EnName = a.EnName()
+        });
+
+        return Task.FromResult(items);
+    }
+
+    public async Task<IEnumerable<LookupItem>> EmployeeLookupAsync()
+    {
+        return await ToListAsync(_context.Employees.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
@@ -48,37 +61,27 @@ public class LookupRepository : ILookupRepository
         }));
     }
 
-    public async Task<IEnumerable<LookupItem>> EmployeeLookupAsync()
-    {
-        return await ToListAsync(_context.Employees.Select(a => new LookupItem
-        {
-            Id = a.EmployeeId,
-            ArName = a.FirstName + " " + a.LastName,
-            EnName = a.FirstName + " " + a.LastName
-        }));
-    }
-
     public async Task<IEnumerable<LookupItem>> DeliveryDriverLookupAsync()
     {
         return await ToListAsync(_context.Employees
-            .Where(a => a.UserType == "طيار")
+            .Where(a => a.Job.ArName == "طيار")
             .Select(a => new LookupItem
             {
-                Id = a.EmployeeId,
-                ArName = a.FirstName + " " + a.LastName,
-                EnName = a.FirstName + " " + a.LastName
+                Id = a.Id,
+                ArName = a.ArName,
+                EnName = a.EnName
             }));
     }
 
     public async Task<IEnumerable<LookupItem>> StorekeeperLookupAsync()
     {
         return await ToListAsync(_context.Employees
-            .Where(a => StorekeeperTitles.Contains(a.UserType))
+            .Where(a => StorekeeperTitles.Contains(a.Job.ArName) || StorekeeperTitles.Contains(a.Job.EnName))
             .Select(a => new LookupItem
             {
-                Id = a.EmployeeId,
-                ArName = a.FirstName + " " + a.LastName,
-                EnName = a.FirstName + " " + a.LastName
+                Id = a.Id,
+                ArName = a.ArName,
+                EnName = a.EnName
             }));
     }
 
@@ -179,8 +182,8 @@ public class LookupRepository : ILookupRepository
         return await ToListAsync(_context.Suppliers.Select(a => new LookupItem
         {
             Id = a.Id,
-            ArName = a.ArName,
-            EnName = a.EnName
+            ArName = a.Account.ArName,
+            EnName = a.Account.EnName
         }));
     }
 
@@ -189,8 +192,8 @@ public class LookupRepository : ILookupRepository
         return await ToListAsync(_context.Customers.Select(a => new LookupItem
         {
             Id = a.Id,
-            ArName = a.ArName,
-            EnName = a.EnName
+            ArName = a.Account.ArName,
+            EnName = a.Account.EnName
         }));
     }
 
@@ -283,8 +286,33 @@ public class LookupRepository : ILookupRepository
 
     public async Task<IEnumerable<LookupItem>> CityLookupAsync(int governorateId)
     {
-        return await ToListAsync(_context.Cities
+        return await ToListAsync(_context.Towns
             .Where(a => a.GovernorateId == governorateId)
+            .Select(a => new LookupItem
+            {
+                Id = a.Id,
+                ArName = a.ArName,
+                EnName = a.EnName
+            }));
+    }
+
+    /// <summary>Id + Arabic/English name of every row of any table that has those columns.</summary>
+    public async Task<IEnumerable<LookupItem>> NamedLookupAsync<T>() where T : class
+    {
+        return await ToListAsync(_context.Set<T>().AsNoTracking()
+            .OrderBy(a => EF.Property<string>(a, "ArName"))
+            .Select(a => new LookupItem
+            {
+                Id = EF.Property<int>(a, "Id"),
+                ArName = EF.Property<string>(a, "ArName"),
+                EnName = EF.Property<string>(a, "EnName")
+            }));
+    }
+
+    public async Task<IEnumerable<LookupItem>> VillageLookupAsync(int townId)
+    {
+        return await ToListAsync(_context.Villages
+            .Where(a => a.TownId == townId)
             .Select(a => new LookupItem
             {
                 Id = a.Id,

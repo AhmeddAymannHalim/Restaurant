@@ -30,4 +30,6 @@ public interface ILookupService
     Task<IEnumerable<LookupItem>> CountryLookupAsync();
     Task<IEnumerable<LookupItem>> GovernorateLookupAsync(int countryId);
     Task<IEnumerable<LookupItem>> CityLookupAsync(int governorateId);
+    Task<IEnumerable<LookupItem>> NamedLookupAsync<T>() where T : class;
+    Task<IEnumerable<LookupItem>> VillageLookupAsync(int townId);
 }

@@ -9,9 +9,9 @@ public class ApplicationUserConfig : IEntityTypeConfiguration<ApplicationUser>
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
         builder
-            .HasOne(a => a.City)
+            .HasOne(a => a.Town)
             .WithMany()
-            .HasForeignKey(a => a.CityId)
+            .HasForeignKey(a => a.TownId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
 using Shared.Enums;
@@ -18,12 +19,16 @@ public class CustomerRepository : ICustomerRepository
 
     public async Task<PaginatedResult<Customer>> GetPagedCustomersAsync(PageRequest request)
     {
-        var query = _context.Customers.AsNoTracking().AsQueryable();
+        var query = _context.Customers.AsNoTracking()
+            .Include(a => a.Account)
+            .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search));
+            query = query.Where(a => a.Account.ArName.ToLower().Contains(search)
+                                  || a.Account.EnName.ToLower().Contains(search)
+                                  || a.Account.Code.ToLower().Contains(search));
         }
 
         var total = await query.CountAsync();
@@ -39,31 +44,51 @@ public class CustomerRepository : ICustomerRepository
     public async Task<Customer> GetCustomerByIdAsync(int id)
     {
         return await _context.Customers
-            .Include(a => a.City).ThenInclude(a => a.Governorate)
+            .Include(a => a.Account)
+            .Include(a => a.Town).ThenInclude(a => a.Governorate)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
     public async Task<decimal?> GetCustomerBalanceAsync(int id)
     {
-        return await _context.Customers
+        var account = await _context.Customers
             .AsNoTracking()
             .Where(a => a.Id == id)
-            .Select(a => (decimal?)a.Balance)
+            .Select(a => a.Account)
             .FirstOrDefaultAsync();
+
+        return account?.BalanceValue;
     }
 
+    /// <summary>
+    /// The incoming entity carries the ArName/EnName of the form on a transient <see cref="Customer.Account"/>;
+    /// a new customer always gets its real Account row created here.
+    /// </summary>
     public async Task<ResultMessage> UpsertCustomerAsync(Customer entity)
     {
         try
         {
+            var form = entity.Account;
+            entity.Account = null;
+
             if (entity.Id == 0)
             {
+                entity.Account = await AccountProvisioner.CreateAsync(
+                    _context,
+                    form.ArName,
+                    form.EnName,
+                    AccountType.Customer,
+                    AccountCodes.AccountsReceivable,
+                    form.DebitBalance);
+                entity.CreatedAt = DateTime.Now;
+
                 await _context.Customers.AddAsync(entity);
-                await _context.SaveChangesAsync();
             }
             else
             {
-                var existing = await _context.Customers.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
+                var existing = await _context.Customers
+                    .Include(a => a.Account)
+                    .FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
                     return new ResultMessage
@@ -73,9 +98,19 @@ public class CustomerRepository : ICustomerRepository
                     };
                 }
 
-                _context.Customers.Update(entity);
-                await _context.SaveChangesAsync();
+                entity.AccountId = existing.AccountId;
+                entity.State = existing.State;
+                entity.CreatedAt = existing.CreatedAt;
+                entity.CreatedById = existing.CreatedById;
+                entity.UpdatedAt = DateTime.Now;
+
+                existing.Account.ArName = form.ArName;
+                existing.Account.EnName = form.EnName;
+                existing.Account.Adjust(form.DebitBalance - existing.Account.BalanceValue);
+                _context.Entry(existing).CurrentValues.SetValues(entity);
             }
+
+            await _context.SaveChangesAsync();
 
             return new ResultMessage { Success = true };
         }
@@ -93,13 +128,20 @@ public class CustomerRepository : ICustomerRepository
     {
         try
         {
-            var entity = await _context.Customers.FindAsync(id);
+            var entity = await _context.Customers
+                .Include(a => a.Account)
+                .FirstOrDefaultAsync(a => a.Id == id);
             if (entity is null)
             {
                 return new ResultMessage { Success = true };
             }
 
             _context.Customers.Remove(entity);
+            if (entity.Account is not null)
+            {
+                _context.Accounts.Remove(entity.Account);
+            }
+
             await _context.SaveChangesAsync();
 
             return new ResultMessage { Success = true };

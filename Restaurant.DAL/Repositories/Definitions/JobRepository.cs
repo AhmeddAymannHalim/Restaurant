@@ -30,7 +30,7 @@ public class JobRepository : IJobRepository
 
         var total = await query.CountAsync();
         var data = await query
-            .OrderBy(a => a.JobId)
+            .OrderBy(a => a.Id)
             .Skip(request.Offset)
             .Take(request.PageSize)
             .ToListAsync();
@@ -60,7 +60,7 @@ public class JobRepository : IJobRepository
     {
         try
         {
-            if (entity.JobId == 0)
+            if (entity.Id == 0)
             {
                 entity.Code = await NewJobCodeAsync();
                 await _context.Jobs.AddAsync(entity);
@@ -68,7 +68,7 @@ public class JobRepository : IJobRepository
             }
             else
             {
-                var existing = await _context.Jobs.AsNoTracking().FirstOrDefaultAsync(a => a.JobId == entity.JobId);
+                var existing = await _context.Jobs.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
                     return new ResultMessage
@@ -79,6 +79,10 @@ public class JobRepository : IJobRepository
                 }
 
                 entity.Code = existing.Code;
+                entity.State = existing.State;
+                entity.CreatedAt = existing.CreatedAt;
+                entity.CreatedById = existing.CreatedById;
+                entity.UpdatedAt = DateTime.Now;
                 _context.Jobs.Update(entity);
                 await _context.SaveChangesAsync();
             }
@@ -105,7 +109,7 @@ public class JobRepository : IJobRepository
                 return new ResultMessage { Success = true };
             }
 
-            if (await _context.Employees.AnyAsync(a => a.JobId == id))
+            if (await _context.Employees.AnyAsync(a => a.Id == id))
             {
                 return new ResultMessage
                 {

@@ -129,12 +129,12 @@ public class AccountService : IAccountService
             FirstName = user.FirstName,
             LastName = user.LastName,
             PhoneNumber = user.PhoneNumber,
-            CityId = user.CityId,
+            TownId = user.TownId,
             Street = user.Street,
-            CityArName = user.City?.ArName,
-            CityEnName = user.City?.EnName,
-            GovernorateId = user.City?.GovernorateId,
-            CountryId = user.City?.Governorate?.CountryId
+            TownArName = user.Town?.ArName,
+            TownEnName = user.Town?.EnName,
+            GovernorateId = user.Town?.GovernorateId,
+            CountryId = user.Town?.Governorate?.CountryId
         };
     }
 

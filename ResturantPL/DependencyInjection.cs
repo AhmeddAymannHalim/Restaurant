@@ -9,6 +9,8 @@ using Restaurant.BLL.Validations.Branch;
 using Restaurant.BLL.Services.Commons;
 using Restaurant.BLL.Services.IServices.Commons;
 using Restaurant.DAL.IRepositories.Commons;
+using Restaurant.DAL.IRepositories.Definitions;
+using Restaurant.DAL.Repositories.Definitions;
 using Restaurant.DAL.Repositories.Commons;
 using Restaurant.DAL.UnitOfWork;
 using ResturantPL.Extensions;
@@ -103,7 +105,6 @@ public static class DependencyInjection
         services.AddScoped<ITableService, TableService>();
         services.AddScoped<IUnitPriceService, UnitPriceService>();
         services.AddScoped<IProductCategoryService, ProductCategoryService>();
-        services.AddScoped<ISalaryTypeService, SalaryTypeService>();
         services.AddScoped<IMenuSectionService, MenuSectionService>();
         services.AddScoped<IMenuItemService, MenuItemService>();
         services.AddScoped<IProductService, ProductService>();
@@ -139,6 +140,8 @@ public static class DependencyInjection
         services.AddScoped<IExitExpenseService, ExitExpenseService>();
         services.AddScoped<IScroungeService, ScroungeService>();
         services.AddScoped<ISalaryService, SalaryService>();
+        services.AddScoped(typeof(ILookupCrudRepository<>), typeof(LookupCrudRepository<>));
+        services.AddScoped(typeof(ILookupCrudService<>), typeof(LookupCrudService<>));
         services.AddScoped<IKitchenService, KitchenService>();
         services.AddScoped<IDeliveryZoneService, DeliveryZoneService>();
         services.AddScoped<IExpenseService, ExpenseService>();

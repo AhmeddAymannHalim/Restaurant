@@ -50,10 +50,10 @@ public class EmployeeAccountService : IEmployeeAccountService
 
         return new EmployeeAccountViewModel
         {
-            EmployeeId = employee.EmployeeId,
+            EmployeeId = employee.Id,
             Code = employee.Code,
-            FirstName = employee.FirstName,
-            LastName = employee.LastName
+            FirstName = employee.ArName,
+            LastName = employee.EnName
         };
     }
 
@@ -63,9 +63,9 @@ public class EmployeeAccountService : IEmployeeAccountService
 
         return employees.Select(a => new LookupItem
         {
-            Id = a.EmployeeId,
-            ArName = a.FullName,
-            EnName = a.FullName
+            Id = a.Id,
+            ArName = a.ArName,
+            EnName = a.EnName
         });
     }
 

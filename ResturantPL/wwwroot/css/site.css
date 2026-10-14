@@ -981,6 +981,22 @@ body.side-shut .dash-side:not(:hover) .side-chevron { opacity: 0; }
 .ad-form .ad-full,
 .ad-form > .text-danger { grid-column: 1 / -1; }
 
+/* Bootstrap paints its helper classes for a light page (dark grey, !important), which disappears on the dark
+   admin surface. Re-colour them once here so every hint/help text in every view stays readable. */
+body.dash .text-muted,
+body.dash .text-secondary,
+body.dash .form-text {
+    color: var(--muted) !important;
+}
+
+body.dash .ad-form small.text-muted,
+body.dash .ad-form .form-text {
+    display: block;
+    margin-top: .35rem;
+    font-size: .8rem;
+    line-height: 1.5;
+}
+
 .ad-form-actions {
     grid-column: 1 / -1;
     display: flex;
@@ -1751,3 +1767,36 @@ a.shift-tile:hover .shift-tile-icon {
 }
 
 .online-actions .online-accept { grid-column: 1 / -1; padding-block: .65rem; font-weight: 700; }
+
+/* Collapsible sections of long forms (employee) */
+body.dash .ad-section {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0 1rem;
+    background: rgba(255, 255, 255, .02);
+}
+
+body.dash .ad-section > summary {
+    cursor: pointer;
+    padding: .75rem 0;
+    font-weight: 700;
+    color: var(--cyan-soft);
+}
+
+body.dash .ad-section[open] > summary {
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 1rem;
+}
+
+body.dash .ad-section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem 1.25rem;
+    padding-bottom: 1rem;
+}
+
+body.dash .ad-check label { display: flex; align-items: center; gap: .5rem; cursor: pointer; }
+body.dash .ad-days { display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
+body.dash .ad-days label { display: inline-flex; align-items: center; gap: .35rem; font-weight: 400; }
+body.dash .ad-phones { padding: 0; border: 0; }
+body.dash .ad-phones legend { float: none; font-size: .85rem; font-weight: 600; color: var(--muted); }

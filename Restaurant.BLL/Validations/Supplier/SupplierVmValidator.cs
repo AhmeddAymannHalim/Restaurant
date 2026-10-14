@@ -6,21 +6,28 @@ using Shared.ViewModels.Definitions;
 
 namespace Restaurant.BLL.Validations.Supplier;
 
+/// <summary>Code and names of a supplier live on its Account, so those checks run against the Account table.</summary>
 public class SupplierVmValidator : AbstractValidator<SupplierViewModel>
 {
     public SupplierVmValidator(
         IStringLocalizer<SharedResource> localizer,
+        IValidatorService<Restaurant.DAL.Models.Account> accountValidator,
         IValidatorService<Restaurant.DAL.Models.Supplier> validator)
     {
         var required = localizer["Val.RequiredField"].Value;
         string MaxLength(int length) => string.Format(localizer["Val.MaxLength"].Value, length);
+
+        RuleFor(x => x.Code)
+            .Must((model, code) => !accountValidator.IsCodeExist(model.AccountId ?? 0, code))
+            .When(x => !string.IsNullOrWhiteSpace(x.Code))
+            .WithMessage(localizer["Val.CodeAlreadyExist"].Value);
 
         RuleFor(x => x.ArName)
             .NotEmpty()
             .WithMessage(required)
             .MaximumLength(100)
             .WithMessage(MaxLength(100))
-            .Must((model, arName) => !validator.IsArNameExist(model.Id, arName))
+            .Must((model, arName) => !accountValidator.IsArNameExist(model.AccountId ?? 0, arName))
             .WithMessage(localizer["Val.NameAlreadyExist"].Value);
 
         RuleFor(x => x.EnName)
@@ -28,7 +35,7 @@ public class SupplierVmValidator : AbstractValidator<SupplierViewModel>
             .WithMessage(required)
             .MaximumLength(100)
             .WithMessage(MaxLength(100))
-            .Must((model, enName) => !validator.IsEnNameExist(model.Id, enName))
+            .Must((model, enName) => !accountValidator.IsEnNameExist(model.AccountId ?? 0, enName))
             .WithMessage(localizer["Val.NameAlreadyExist"].Value);
 
         RuleFor(x => x.Address)
@@ -40,9 +47,57 @@ public class SupplierVmValidator : AbstractValidator<SupplierViewModel>
             .WithMessage(MaxLength(11));
 
         RuleFor(x => x.PhoneNumber)
-            .Must((model, number) => !validator.IsPhoneNumberExist(model.Id, number))
+            .Must((model, number) => !validator.IsValueExist(model.Id, "PhoneNumber1", number))
             .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber))
             .WithMessage(localizer["PhoneAlreadyExists"].Value);
 
+        RuleFor(x => x.Email)
+            .EmailAddress()
+            .When(x => !string.IsNullOrWhiteSpace(x.Email))
+            .WithMessage(localizer["Val.InvalidEmail"].Value)
+            .MaximumLength(100)
+            .WithMessage(MaxLength(100));
+
+        RuleFor(x => x.PhoneNumber2)
+            .MaximumLength(20)
+            .WithMessage(MaxLength(20));
+
+        RuleFor(x => x.Website)
+            .MaximumLength(200)
+            .WithMessage(MaxLength(200));
+
+        RuleFor(x => x.StreetName)
+            .MaximumLength(150)
+            .WithMessage(MaxLength(150));
+
+        RuleFor(x => x.BuildingNo)
+            .MaximumLength(30)
+            .WithMessage(MaxLength(30));
+
+        RuleFor(x => x.PostalCode)
+            .MaximumLength(20)
+            .WithMessage(MaxLength(20));
+
+        RuleFor(x => x.VatNumber)
+            .MaximumLength(50)
+            .WithMessage(MaxLength(50));
+
+        RuleFor(x => x.RegistrationNumber)
+            .MaximumLength(50)
+            .WithMessage(MaxLength(50));
+
+        RuleFor(x => x.Remark)
+            .MaximumLength(500)
+            .WithMessage(MaxLength(500));
+
+        RuleFor(x => x.CreditLimit)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.CreditLimit.HasValue)
+            .WithMessage(required);
+
+        RuleFor(x => x.CreditDurationInDays)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.CreditDurationInDays.HasValue)
+            .WithMessage(required);
     }
 }

@@ -24,7 +24,6 @@ namespace Restaurant.DAL.UnitOfWork
             Jobs = new JobRepository(_context);
             UnitPrices = new UnitPriceRepository(_context);
             ProductCategories = new ProductCategoryRepository(_context);
-            SalaryTypes = new SalaryTypeRepository(_context);
             MenuSections = new MenuSectionRepository(_context);
             Products = new ProductRepository(_context);
             Kitchens = new KitchenRepository(_context);
@@ -60,7 +59,6 @@ namespace Restaurant.DAL.UnitOfWork
         public ITableRepository Tables { get; set; }
         public IUnitPriceRepository UnitPrices { get; set; }
         public IProductCategoryRepository ProductCategories { get; set; }
-        public ISalaryTypeRepository SalaryTypes { get; set; }
         public IMenuSectionRepository MenuSections { get; set; }
         public IMenuItemRepository MenuItems { get; set; }
         public IProductRepository Products { get; set; }

@@ -14,7 +14,6 @@ namespace Restaurant.DAL.UnitOfWork
         public ITableRepository Tables { get; set; }
         public IUnitPriceRepository UnitPrices { get; set; }
         public IProductCategoryRepository ProductCategories { get; set; }
-        public ISalaryTypeRepository SalaryTypes { get; set; }
         public IMenuSectionRepository MenuSections { get; set; }
         public IMenuItemRepository MenuItems { get; set; }
         public IProductRepository Products { get; set; }

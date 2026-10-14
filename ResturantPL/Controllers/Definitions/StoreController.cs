@@ -134,6 +134,8 @@ namespace ResturantPL.Controllers.Definitions
         private async Task PopulateData(StoreViewModel model)
         {
             model.Storekeepers = await _lookup.StorekeeperLookupAsync();
+            model.Stores = await _lookup.StoreLookupAsync();
+            model.Branches = await _lookup.BranchLookupAsync();
         }
     }
 }

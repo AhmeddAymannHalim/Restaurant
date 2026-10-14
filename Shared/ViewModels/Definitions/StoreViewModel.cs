@@ -1,3 +1,4 @@
+using Shared.Enums;
 using Shared.ViewModels.Commons;
 namespace Shared.ViewModels.Definitions;
 
@@ -11,4 +12,22 @@ public class StoreViewModel
     public int? StorekeeperId { get; set; }
     public string StorekeeperName { get; set; }
     public IEnumerable<LookupItem> Storekeepers { get; set; } = new List<LookupItem>();
+
+    // ---- the rest of the table columns
+    public string Code { get; set; }
+    public string ArName_Abbr { get; set; }
+    public string EnName_Abbr { get; set; }
+    public string PhoneNumber2 { get; set; }
+    public string PhoneNumber3 { get; set; }
+    public string Printer { get; set; }
+    public int? ParentId { get; set; }
+    public int? BranchId { get; set; }
+    public string Village { get; set; }
+    public string Note { get; set; }
+    public int? TownId { get; set; }
+    public int? CountryId { get; set; }
+    public int? GovernorateId { get; set; }
+
+    public IEnumerable<LookupItem> Stores { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> Branches { get; set; } = new List<LookupItem>();
 }

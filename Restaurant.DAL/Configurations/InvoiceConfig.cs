@@ -25,6 +25,12 @@ public class InvoiceConfig : IEntityTypeConfiguration<Invoice>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder
+            .HasOne(a => a.BillMaster)
+            .WithMany()
+            .HasForeignKey(a => a.BillMasterId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
             .HasOne(a => a.Store)
             .WithMany(a => a.Invoices)
             .HasForeignKey(a => a.StoreId)

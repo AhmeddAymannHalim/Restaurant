@@ -1,3 +1,4 @@
+using Shared.Enums;
 using Shared.ViewModels.Commons;
 using AutoMapper;
 using Restaurant.DAL.Models;
@@ -11,17 +12,17 @@ public class AutoMapper : Profile
     {
         #region Definitions
 
-        CreateMap<Branche, BranchViewModel>();
-        CreateMap<BranchViewModel, Branche>()
+        CreateMap<CompanyBranch, BranchViewModel>();
+        CreateMap<BranchViewModel, CompanyBranch>()
             .ForMember(dest => dest.Code, opt => opt.Ignore())
-            .ForMember(dest => dest.Employees, opt => opt.Ignore())
-            .ForMember(dest => dest.ApplicationUsers, opt => opt.Ignore());
+            .ForMember(dest => dest.Company, opt => opt.Ignore())
+            .ForMember(dest => dest.Currency, opt => opt.Ignore())
+            .ForMember(dest => dest.Employees, opt => opt.Ignore());
 
-        CreateMap<Job, JobViewModel>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.JobId));
+        CreateMap<Job, JobViewModel>();
         CreateMap<JobViewModel, Job>()
-            .ForMember(dest => dest.JobId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Code, opt => opt.Ignore())
+            .ForMember(dest => dest.JobType, opt => opt.Ignore())
             .ForMember(dest => dest.Employees, opt => opt.Ignore());
 
         CreateMap<Restaurant.DAL.Models.Table, TableViewModel>();
@@ -30,10 +31,6 @@ public class AutoMapper : Profile
 
         CreateMap<UnitPrice, UnitPriceViewModel>().ReverseMap();
         CreateMap<ProductCategory, ProductCategoryViewModel>().ReverseMap();
-
-        CreateMap<SalaryType, SalaryTypeViewModel>();
-        CreateMap<SalaryTypeViewModel, SalaryType>()
-            .ForMember(dest => dest.Users, opt => opt.Ignore());
 
         CreateMap<MenuSection, MenuSectionViewModel>()
             .ForMember(dest => dest.KitchenId, opt => opt.MapFrom(src => src.KitchenId))
@@ -63,11 +60,28 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.StoreProducts, opt => opt.Ignore());
 
         CreateMap<Store, StoreViewModel>()
+            .ForMember(dest => dest.GovernorateId, opt => opt.MapFrom(src => src.GovId ?? src.Town.GovernorateId))
+            .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.CountryId ?? src.Town.Governorate.CountryId))
+            .ForMember(dest => dest.Stores, opt => opt.Ignore())
+            .ForMember(dest => dest.Branches, opt => opt.Ignore())
+            .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber1))
+            .ForMember(dest => dest.StorekeeperId, opt => opt.MapFrom(src => src.EmployeeId))
             .ForMember(dest => dest.StorekeeperName,
-                opt => opt.MapFrom(src => src.Storekeeper.FirstName + " " + src.Storekeeper.LastName))
+                opt => opt.MapFrom(src => LanguageHelper.IsArabic() ? src.Employee.ArName : src.Employee.EnName))
             .ForMember(dest => dest.Storekeepers, opt => opt.Ignore());
         CreateMap<StoreViewModel, Store>()
-            .ForMember(dest => dest.Storekeeper, opt => opt.Ignore())
+            .ForMember(dest => dest.GovId, opt => opt.MapFrom(src => src.GovernorateId))
+            .ForMember(dest => dest.PhoneNumber1, opt => opt.MapFrom(src => src.PhoneNumber))
+            .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.StorekeeperId))
+            .ForMember(dest => dest.Employee, opt => opt.Ignore())
+            .ForMember(dest => dest.Parent, opt => opt.Ignore())
+            .ForMember(dest => dest.Branch, opt => opt.Ignore())
+            .ForMember(dest => dest.Country, opt => opt.Ignore())
+            .ForMember(dest => dest.Gov, opt => opt.Ignore())
+            .ForMember(dest => dest.Town, opt => opt.Ignore())
+            .ForMember(dest => dest.StoreItems, opt => opt.Ignore())
+            .ForMember(dest => dest.ItemLocations, opt => opt.Ignore())
+            .ForMember(dest => dest.BillDetails, opt => opt.Ignore())
             .ForMember(dest => dest.Invoices, opt => opt.Ignore())
             .ForMember(dest => dest.StoreProducts, opt => opt.Ignore());
 
@@ -104,10 +118,10 @@ public class AutoMapper : Profile
 
         CreateMap<Invoice, InvoiceViewModel>()
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.InvoiceItems))
-            .ForMember(dest => dest.SupplierArName, opt => opt.MapFrom(src => src.Supplier.ArName))
-            .ForMember(dest => dest.SupplierEnName, opt => opt.MapFrom(src => src.Supplier.EnName))
-            .ForMember(dest => dest.CustomerArName, opt => opt.MapFrom(src => src.Customer.ArName))
-            .ForMember(dest => dest.CustomerEnName, opt => opt.MapFrom(src => src.Customer.EnName))
+            .ForMember(dest => dest.SupplierArName, opt => opt.MapFrom(src => src.Supplier.Account.ArName))
+            .ForMember(dest => dest.SupplierEnName, opt => opt.MapFrom(src => src.Supplier.Account.EnName))
+            .ForMember(dest => dest.CustomerArName, opt => opt.MapFrom(src => src.Customer.Account.ArName))
+            .ForMember(dest => dest.CustomerEnName, opt => opt.MapFrom(src => src.Customer.Account.EnName))
             .ForMember(dest => dest.StoreArName, opt => opt.MapFrom(src => src.Store.ArName))
             .ForMember(dest => dest.StoreEnName, opt => opt.MapFrom(src => src.Store.EnName))
             .ForMember(dest => dest.Suppliers, opt => opt.Ignore())
@@ -139,8 +153,8 @@ public class AutoMapper : Profile
 
         CreateMap<PaymentInvoiceSupplier, PaymentViewModel>()
             .ForMember(dest => dest.PartnerId, opt => opt.MapFrom(src => src.SupplierId))
-            .ForMember(dest => dest.PartnerArName, opt => opt.MapFrom(src => src.Supplier.ArName))
-            .ForMember(dest => dest.PartnerEnName, opt => opt.MapFrom(src => src.Supplier.EnName))
+            .ForMember(dest => dest.PartnerArName, opt => opt.MapFrom(src => src.Supplier.Account.ArName))
+            .ForMember(dest => dest.PartnerEnName, opt => opt.MapFrom(src => src.Supplier.Account.EnName))
             .ForMember(dest => dest.Partners, opt => opt.Ignore());
         CreateMap<PaymentViewModel, PaymentInvoiceSupplier>()
             .ForMember(dest => dest.SupplierId, opt => opt.MapFrom(src => src.PartnerId))
@@ -148,8 +162,8 @@ public class AutoMapper : Profile
 
         CreateMap<PaymentInvoiceCustomer, PaymentViewModel>()
             .ForMember(dest => dest.PartnerId, opt => opt.MapFrom(src => src.CustomerId))
-            .ForMember(dest => dest.PartnerArName, opt => opt.MapFrom(src => src.Customer.ArName))
-            .ForMember(dest => dest.PartnerEnName, opt => opt.MapFrom(src => src.Customer.EnName))
+            .ForMember(dest => dest.PartnerArName, opt => opt.MapFrom(src => src.Customer.Account.ArName))
+            .ForMember(dest => dest.PartnerEnName, opt => opt.MapFrom(src => src.Customer.Account.EnName))
             .ForMember(dest => dest.Partners, opt => opt.Ignore());
         CreateMap<PaymentViewModel, PaymentInvoiceCustomer>()
             .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.PartnerId))
@@ -199,7 +213,7 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.ReceiverName, opt => opt.MapFrom(src => src.Receiver.FullName))
             .ForMember(dest => dest.TableArName, opt => opt.MapFrom(src => src.Table.ArName))
             .ForMember(dest => dest.TableEnName, opt => opt.MapFrom(src => src.Table.EnName))
-            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee.FirstName + " " + src.Employee.LastName))
+            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => (LanguageHelper.IsArabic() ? src.Employee.ArName : src.Employee.EnName)))
             .ForMember(dest => dest.ItemsCount, opt => opt.MapFrom(src => src.OrderMenuItems.Count))
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderMenuItems))
             .ForMember(dest => dest.OnlineOrderId, opt => opt.Ignore())
@@ -255,19 +269,77 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.SectionArName, opt => opt.MapFrom(src => src.MenuSection.ArName))
             .ForMember(dest => dest.SectionEnName, opt => opt.MapFrom(src => src.MenuSection.EnName));
 
-        CreateMap<Supplier, SupplierViewModel>();
+        CreateMap<Supplier, SupplierViewModel>()
+            .ForMember(dest => dest.GovernorateId, opt => opt.MapFrom(src => src.GovId))
+            .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.CountryId ?? src.Town.Governorate.CountryId))
+            .ForMember(dest => dest.Branches, opt => opt.Ignore())
+            .ForMember(dest => dest.Employees, opt => opt.Ignore())
+            .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Account.Code))
+            .ForMember(dest => dest.ArName, opt => opt.MapFrom(src => src.Account.ArName))
+            .ForMember(dest => dest.EnName, opt => opt.MapFrom(src => src.Account.EnName))
+            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.DetailedAddress))
+            .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber1))
+            .ForMember(dest => dest.Balance, opt => opt.MapFrom(src => src.Account.BalanceValue));
         CreateMap<SupplierViewModel, Supplier>()
+            .ForMember(dest => dest.GovId, opt => opt.MapFrom(src => src.GovernorateId))
+            .ForMember(dest => dest.DetailedAddress, opt => opt.MapFrom(src => src.Address))
+            .ForMember(dest => dest.PhoneNumber1, opt => opt.MapFrom(src => src.PhoneNumber))
+            .ForMember(dest => dest.AccountId, opt => opt.Ignore())
+            // Carries the form's names and opening balance to the repository, which creates/updates the real Account.
+            .ForMember(dest => dest.Account, opt => opt.MapFrom(src => new Account
+            {
+                ArName = src.ArName,
+                EnName = src.EnName,
+                CreditBalance = src.Balance
+            }))
             .ForMember(dest => dest.LastBalance, opt => opt.Ignore())
+            .ForMember(dest => dest.CompanyBranch, opt => opt.Ignore())
+            .ForMember(dest => dest.CostCenter, opt => opt.Ignore())
+            .ForMember(dest => dest.Employee, opt => opt.Ignore())
+            .ForMember(dest => dest.Country, opt => opt.Ignore())
+            .ForMember(dest => dest.Gov, opt => opt.Ignore())
+            .ForMember(dest => dest.Town, opt => opt.Ignore())
             .ForMember(dest => dest.Invoices, opt => opt.Ignore())
             .ForMember(dest => dest.PaymentInvoices, opt => opt.Ignore());
 
         CreateMap<Customer, CustomerViewModel>()
-            .ForMember(dest => dest.CityArName, opt => opt.MapFrom(src => src.City.ArName))
-            .ForMember(dest => dest.CityEnName, opt => opt.MapFrom(src => src.City.EnName))
-            .ForMember(dest => dest.GovernorateId, opt => opt.MapFrom(src => src.City.GovernorateId))
-            .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.City.Governorate.CountryId));
+            .ForMember(dest => dest.Nationalities, opt => opt.Ignore())
+            .ForMember(dest => dest.Branches, opt => opt.Ignore())
+            .ForMember(dest => dest.Employees, opt => opt.Ignore())
+            .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Account.Code))
+            .ForMember(dest => dest.ArName, opt => opt.MapFrom(src => src.Account.ArName))
+            .ForMember(dest => dest.EnName, opt => opt.MapFrom(src => src.Account.EnName))
+            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.DetailedAddress))
+            .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber1))
+            .ForMember(dest => dest.Balance, opt => opt.MapFrom(src => src.Account.BalanceValue))
+            .ForMember(dest => dest.TownArName, opt => opt.MapFrom(src => src.Town.ArName))
+            .ForMember(dest => dest.TownEnName, opt => opt.MapFrom(src => src.Town.EnName))
+            .ForMember(dest => dest.GovernorateId, opt => opt.MapFrom(src => src.Town.GovernorateId))
+            .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.Town.Governorate.CountryId));
         CreateMap<CustomerViewModel, Customer>()
-            .ForMember(dest => dest.City, opt => opt.Ignore())
+            .ForMember(dest => dest.DetailedAddress, opt => opt.MapFrom(src => src.Address))
+            .ForMember(dest => dest.PhoneNumber1, opt => opt.MapFrom(src => src.PhoneNumber))
+            .ForMember(dest => dest.GovId, opt => opt.MapFrom(src => src.GovernorateId))
+            .ForMember(dest => dest.AccountId, opt => opt.Ignore())
+            // Carries the form's names to the repository, which creates/updates the real Account.
+            .ForMember(dest => dest.Account, opt => opt.MapFrom(src => new Account
+            {
+                ArName = src.ArName,
+                EnName = src.EnName,
+                DebitBalance = src.Balance
+            }))
+            .ForMember(dest => dest.CompanyBranch, opt => opt.Ignore())
+            .ForMember(dest => dest.SellType, opt => opt.Ignore())
+            .ForMember(dest => dest.CostCenter, opt => opt.Ignore())
+            .ForMember(dest => dest.Employee, opt => opt.Ignore())
+            .ForMember(dest => dest.Nationality, opt => opt.Ignore())
+            .ForMember(dest => dest.Country, opt => opt.Ignore())
+            .ForMember(dest => dest.Gov, opt => opt.Ignore())
+            .ForMember(dest => dest.Town, opt => opt.Ignore())
+            .ForMember(dest => dest.Classification, opt => opt.Ignore())
+            .ForMember(dest => dest.Specialization, opt => opt.Ignore())
+            .ForMember(dest => dest.CustomerTier, opt => opt.Ignore())
+            .ForMember(dest => dest.Invoices, opt => opt.Ignore())
             .ForMember(dest => dest.PaymentInvoices, opt => opt.Ignore());
 
         CreateMap<DeliveryZone, DeliveryZoneViewModel>().ReverseMap();
@@ -280,33 +352,48 @@ public class AutoMapper : Profile
         CreateMap<ExpenseViewModel, Expense>()
             .ForMember(dest => dest.Expenses, opt => opt.Ignore());
 
+        CreateMap<EmployeePhone, EmployeePhoneViewModel>();
+
         CreateMap<Employee, EmployeeViewModel>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.EmployeeId))
+            .ForMember(dest => dest.Phones, opt => opt.MapFrom(src => src.Phones.Where(a => a.PhoneNumber != src.PhoneNumber).OrderBy(a => a.Id)))
+            .ForMember(dest => dest.WeeklyOffDaysSelected, opt => opt.MapFrom(src => Enum.GetValues<WeeklyOffDays>()
+                .Where(a => a != WeeklyOffDays.None && src.WeeklyOffDaysOverride.HasFlag(a))
+                .ToList()))
+            .ForMember(dest => dest.Nationalities, opt => opt.Ignore())
+            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+            .ForMember(dest => dest.Salary, opt => opt.MapFrom(src => src.BasicSalary ?? 0))
             .ForMember(dest => dest.ImageFile, opt => opt.Ignore())
             .ForMember(dest => dest.JobArName, opt => opt.MapFrom(src => src.Job.ArName))
             .ForMember(dest => dest.JobEnName, opt => opt.MapFrom(src => src.Job.EnName))
-            .ForMember(dest => dest.BranchArName, opt => opt.MapFrom(src => src.Branche.ArName))
-            .ForMember(dest => dest.BranchEnName, opt => opt.MapFrom(src => src.Branche.EnName))
-            .ForMember(dest => dest.SalaryTypeArName, opt => opt.MapFrom(src => src.SalaryType.ArName))
-            .ForMember(dest => dest.SalaryTypeEnName, opt => opt.MapFrom(src => src.SalaryType.EnName))
-            .ForMember(dest => dest.CityArName, opt => opt.MapFrom(src => src.City.ArName))
-            .ForMember(dest => dest.CityEnName, opt => opt.MapFrom(src => src.City.EnName))
-            .ForMember(dest => dest.GovernorateId, opt => opt.MapFrom(src => src.City.GovernorateId))
-            .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.City.Governorate.CountryId))
+            .ForMember(dest => dest.BranchId, opt => opt.MapFrom(src => src.BranchId ?? 0))
+            .ForMember(dest => dest.JobId, opt => opt.MapFrom(src => src.JobId ?? 0))
+            .ForMember(dest => dest.TownId, opt => opt.MapFrom(src => src.TownId ?? 0))
+            .ForMember(dest => dest.BranchArName, opt => opt.MapFrom(src => src.Branch.ArName))
+            .ForMember(dest => dest.BranchEnName, opt => opt.MapFrom(src => src.Branch.EnName))
+            .ForMember(dest => dest.TownArName, opt => opt.MapFrom(src => src.Town.ArName))
+            .ForMember(dest => dest.TownEnName, opt => opt.MapFrom(src => src.Town.EnName))
+            .ForMember(dest => dest.GovernorateId, opt => opt.MapFrom(src => src.Town.GovernorateId))
+            .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.Town.Governorate.CountryId))
             .ForMember(dest => dest.Branches, opt => opt.Ignore())
             .ForMember(dest => dest.Jobs, opt => opt.Ignore())
             .ForMember(dest => dest.SalaryTypes, opt => opt.Ignore());
         CreateMap<EmployeeViewModel, Employee>()
-            .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Phones, opt => opt.MapFrom(src => src.Phones
+                .Where(a => !string.IsNullOrWhiteSpace(a.PhoneNumber))
+                .Select(a => new EmployeePhone { PhoneNumber = a.PhoneNumber.Trim() })))
+            .ForMember(dest => dest.WeeklyOffDaysOverride, opt => opt.MapFrom(src => src.WeeklyOffDaysSelected
+                .Aggregate(WeeklyOffDays.None, (current, day) => current | day)))
             .ForMember(dest => dest.Code, opt => opt.Ignore())
-            .ForMember(dest => dest.UserType, opt => opt.Ignore())
             .ForMember(dest => dest.Image, opt => opt.Ignore())
-            .ForMember(dest => dest.HasAccount, opt => opt.Ignore())
-            .ForMember(dest => dest.Branche, opt => opt.Ignore())
-            .ForMember(dest => dest.SalaryType, opt => opt.Ignore())
+            .ForMember(dest => dest.GovId, opt => opt.MapFrom(src => src.GovernorateId))
+            .ForMember(dest => dest.BasicSalary, opt => opt.MapFrom(src => (decimal?)src.Salary))
+            .ForMember(dest => dest.Salary, opt => opt.MapFrom(src => (double?)src.Salary))
+            .ForMember(dest => dest.HasLoginAccount, opt => opt.Ignore())
+            .ForMember(dest => dest.Branch, opt => opt.Ignore())
             .ForMember(dest => dest.Job, opt => opt.Ignore())
-            .ForMember(dest => dest.City, opt => opt.Ignore())
+            .ForMember(dest => dest.Town, opt => opt.Ignore())
             .ForMember(dest => dest.Salaries, opt => opt.Ignore())
+            .ForMember(dest => dest.Scrounges, opt => opt.Ignore())
             .ForMember(dest => dest.Orders, opt => opt.Ignore());
 
         CreateMap<Deposit, DepositViewModel>()
@@ -330,7 +417,7 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Expense, opt => opt.Ignore());
 
         CreateMap<Scrounge, ScroungeViewModel>()
-            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee.FirstName + " " + src.Employee.LastName))
+            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => (LanguageHelper.IsArabic() ? src.Employee.ArName : src.Employee.EnName)))
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName))
             .ForMember(dest => dest.Employees, opt => opt.Ignore());
         CreateMap<ScroungeViewModel, Scrounge>()
@@ -340,7 +427,7 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Employee, opt => opt.Ignore());
 
         CreateMap<Salary, SalaryViewModel>()
-            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee.FirstName + " " + src.Employee.LastName))
+            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => (LanguageHelper.IsArabic() ? src.Employee.ArName : src.Employee.EnName)))
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName))
             .ForMember(dest => dest.Employees, opt => opt.Ignore());
         CreateMap<SalaryViewModel, Salary>()

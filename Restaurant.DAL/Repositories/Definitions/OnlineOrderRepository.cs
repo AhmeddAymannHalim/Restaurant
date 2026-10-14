@@ -1,3 +1,4 @@
+using Restaurant.DAL.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -157,31 +158,38 @@ public class OnlineOrderRepository : IOnlineOrderRepository
         var mobile = order.PhoneNumber.Trim();
 
         var existing = await _context.Customers
-            .FirstOrDefaultAsync(a => a.PhoneNumber == mobile);
+            .FirstOrDefaultAsync(a => a.PhoneNumber1 == mobile);
         if (existing is not null)
         {
-            if (string.IsNullOrWhiteSpace(existing.Address) && !string.IsNullOrWhiteSpace(order.Address))
+            if (string.IsNullOrWhiteSpace(existing.DetailedAddress) && !string.IsNullOrWhiteSpace(order.Address))
             {
-                existing.Address = order.Address;
+                existing.DetailedAddress = order.Address;
             }
 
             return;
         }
 
-        // ArName/EnName are unique, so two different people called the same name get their number appended.
-        var taken = await _context.Customers.AnyAsync(a => a.ArName == name || a.EnName == name);
+        // Names are unique across accounts, so two different people called the same name get their number appended.
+        var taken = await _context.Accounts.AnyAsync(a => a.ArName == name || a.EnName == name);
         var unique = taken ? $"{name} - {mobile}" : name;
         if (unique.Length > 100)
         {
             unique = unique[..100];
         }
 
+        var account = await AccountProvisioner.CreateAsync(
+            _context,
+            unique,
+            unique,
+            AccountType.Customer,
+            AccountCodes.AccountsReceivable);
+
         await _context.Customers.AddAsync(new Customer
         {
-            ArName = unique,
-            EnName = unique,
-            PhoneNumber = mobile,
-            Address = order.TableId.HasValue ? null : order.Address
+            Account = account,
+            PhoneNumber1 = mobile,
+            DetailedAddress = order.TableId.HasValue ? null : order.Address,
+            CreatedAt = DateTime.Now
         });
     }
 

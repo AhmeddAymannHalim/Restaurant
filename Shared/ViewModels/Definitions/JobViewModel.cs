@@ -1,3 +1,4 @@
+using Shared.ViewModels.Commons;
 namespace Shared.ViewModels.Definitions;
 
 public class JobViewModel
@@ -6,4 +7,6 @@ public class JobViewModel
     public string Code { get; set; }
     public string ArName { get; set; }
     public string EnName { get; set; }
+    public int? JobTypeId { get; set; }
+    public IEnumerable<LookupItem> JobTypes { get; set; } = new List<LookupItem>();
 }
