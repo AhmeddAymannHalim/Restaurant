@@ -17,6 +17,10 @@ public class JournalEntryRepository : IJournalEntryRepository
         [JournalSourceType.Deposit] = (EntryType.CashReceipt, "قبض نقدي", "Cash receipt"),
         [JournalSourceType.Salary] = (EntryType.AdvancesAndEmployeeSalaries, "مرتبات", "Salaries"),
         [JournalSourceType.Scrounge] = (EntryType.AdvancesAndEmployeeSalaries, "سلف وحوافز", "Advances and incentives"),
+        [JournalSourceType.CustomerOpeningBalance] = (EntryType.CustomerOpeningBalance, "رصيد افتتاحى للعملاء", "Opening Balance of Customers"),
+        [JournalSourceType.SupplierOpeningBalance] = (EntryType.SupplierOpeningBalance, "رصيد افتتاحى للموردين", "Opening Balance for Suppliers"),
+        [JournalSourceType.CustomerRefund] = (EntryType.CashPayment, "سند صرف نقدي", "Cash Pay Entry"),
+        [JournalSourceType.SupplierRefund] = (EntryType.CashReceipt, "سند قبض نقدي", "Cash Receipt Entry"),
         [JournalSourceType.Manual] = (EntryType.Journal, "قيد يومي", "Journal")
     };
 
@@ -79,6 +83,35 @@ public class JournalEntryRepository : IJournalEntryRepository
         await _context.SaveChangesAsync();
     }
 
+    // like the ERP opening-balance voucher: the partner account against the voucher's main account (capital)
+    public async Task<ResultMessage> PostOpeningBalanceAsync(Account account, decimal delta)
+    {
+        if (delta == 0)
+        {
+            return new ResultMessage { Success = true };
+        }
+
+        var isCustomer = account.AccountType == AccountType.Customer;
+        var sourceType = isCustomer ? JournalSourceType.CustomerOpeningBalance : JournalSourceType.SupplierOpeningBalance;
+        var entryType = isCustomer ? EntryType.CustomerOpeningBalance : EntryType.SupplierOpeningBalance;
+        var mainAccountId = await _context.EntrySettings.AsNoTracking()
+            .Where(a => a.EntryType == entryType)
+            .Select(a => a.AccountId)
+            .FirstOrDefaultAsync();
+        var amount = Math.Abs(delta);
+        var accountIsDebit = (delta >= 0) == (account.BalanceType == AccountBalanceType.Debit);
+        var mainLine = mainAccountId.HasValue
+            ? new JournalLineRequest(null, accountIsDebit ? 0 : amount, accountIsDebit ? amount : 0, null, mainAccountId)
+            : new JournalLineRequest(AccountCodes.Equity, accountIsDebit ? 0 : amount, accountIsDebit ? amount : 0);
+
+        return await PostSourceEntryAsync(sourceType, account.Id, DateTime.Today, "Opening balance " + account.Code,
+            new[]
+            {
+                new JournalLineRequest(null, accountIsDebit ? amount : 0, accountIsDebit ? 0 : amount, null, account.Id),
+                mainLine
+            });
+    }
+
     public async Task<ResultMessage> PostSourceEntryAsync(JournalSourceType sourceType,
         int sourceId,
         DateTime date,
@@ -109,7 +142,7 @@ public class JournalEntryRepository : IJournalEntryRepository
             return new ResultMessage { Success = true };
         }
 
-        var codes = requested.Select(a => a.AccountCode).Distinct().ToList();
+        var codes = requested.Where(a => a.AccountId is null).Select(a => a.AccountCode).Distinct().ToList();
         var accounts = await _context.Accounts
             .Where(a => codes.Contains(a.Code))
             .Select(a => new { a.Id, a.Code })
@@ -130,7 +163,7 @@ public class JournalEntryRepository : IJournalEntryRepository
         }
 
         var accountIds = accounts.ToDictionary(a => a.Code, a => a.Id);
-        var setting = await ErpBillSupport.GetEntrySettingAsync(_context, type.Type, type.ArName, type.EnName);
+        var setting = await BillSupport.GetEntrySettingAsync(_context, type.Type, type.ArName, type.EnName);
         var cashId = await _context.Accounts.AsNoTracking()
             .Where(a => a.Code == AccountCodes.Cash)
             .Select(a => (int?)a.Id)
@@ -152,7 +185,7 @@ public class JournalEntryRepository : IJournalEntryRepository
             EntryDetails = requested.Select((line, index) => new EntryDetail
             {
                 EntryRowCode = (short)(index + 1),
-                AccountId = accountIds[line.AccountCode],
+                AccountId = line.AccountId ?? accountIds[line.AccountCode],
                 Debit = Math.Round(line.Debit, 2),
                 Credit = Math.Round(line.Credit, 2),
                 EntryDetailsRemarks = line.Description,

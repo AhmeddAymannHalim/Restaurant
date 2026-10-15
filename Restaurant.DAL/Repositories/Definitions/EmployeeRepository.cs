@@ -59,12 +59,47 @@ public class EmployeeRepository : IEmployeeRepository
             employee.HasLoginAccount = withLogin.Contains(employee.Code);
         }
 
+        await LoadImagesAsync(data);
+
         return PaginatedResult<Employee>.Create(data, total, request);
+    }
+
+    private async Task LoadImagesAsync(IList<Employee> employees)
+    {
+        var ids = employees.Select(a => a.Id).ToList();
+        var images = await _context.EmployeeImages.AsNoTracking()
+            .Where(a => ids.Contains(a.EmployeeId))
+            .ToDictionaryAsync(a => a.EmployeeId, a => a.Url);
+
+        foreach (var employee in employees)
+        {
+            employee.Image = images.GetValueOrDefault(employee.Id);
+        }
+    }
+
+    private async Task SaveImageAsync(int employeeId, string url)
+    {
+        var row = await _context.EmployeeImages.FirstOrDefaultAsync(a => a.EmployeeId == employeeId);
+        if (string.IsNullOrEmpty(url))
+        {
+            return;
+        }
+
+        if (row is null)
+        {
+            await _context.EmployeeImages.AddAsync(new EmployeeImage { EmployeeId = employeeId, Url = url });
+        }
+        else
+        {
+            row.Url = url;
+        }
+
+        await _context.SaveChangesAsync();
     }
 
     public async Task<Employee> GetEmployeeByIdAsync(int id)
     {
-        return await _context.Employees
+        var employee = await _context.Employees
             .Include(a => a.Town)
             .ThenInclude(a => a.Governorate)
             .Include(a => a.Phones)
@@ -74,6 +109,12 @@ public class EmployeeRepository : IEmployeeRepository
             .Include(a => a.Leaves)
             .Include(a => a.Documents)
             .FirstOrDefaultAsync(a => a.Id == id);
+        if (employee is not null)
+        {
+            await LoadImagesAsync(new List<Employee> { employee });
+        }
+
+        return employee;
     }
 
     public async Task<string> NewEmployeeCodeAsync()
@@ -126,6 +167,7 @@ public class EmployeeRepository : IEmployeeRepository
 
                 await _context.Employees.AddAsync(entity);
                 await _context.SaveChangesAsync();
+                await SaveImageAsync(entity.Id, entity.Image);
 
                 return new ResultMessage { Success = true };
             }
@@ -148,10 +190,10 @@ public class EmployeeRepository : IEmployeeRepository
                 };
             }
 
-            var oldImage = existing.Image;
+            var oldImage = await _context.EmployeeImages.AsNoTracking().Where(a => a.EmployeeId == existing.Id).Select(a => a.Url).FirstOrDefaultAsync();
 
             entity.Code = existing.Code;
-            entity.Image = existing.Image;
+            entity.Image = oldImage;
             entity.AccountId = existing.AccountId;
             entity.UserId = existing.UserId;
             entity.State = existing.State;
@@ -191,6 +233,7 @@ public class EmployeeRepository : IEmployeeRepository
 
             await SyncLoginAccountAsync(entity, job.ArName);
             await _context.SaveChangesAsync();
+            await SaveImageAsync(existing.Id, entity.Image);
 
             if (imageFile != null && !string.IsNullOrEmpty(oldImage))
             {
@@ -312,6 +355,7 @@ public class EmployeeRepository : IEmployeeRepository
                 return new ResultMessage { Success = true };
             }
 
+            var image = await _context.EmployeeImages.AsNoTracking().Where(a => a.EmployeeId == employee.Id).Select(a => a.Url).FirstOrDefaultAsync();
             _context.EmployeePhones.RemoveRange(employee.Phones);
             EmployeeChildren.Remove(_context, employee);
             _context.Employees.Remove(employee);
@@ -322,9 +366,9 @@ public class EmployeeRepository : IEmployeeRepository
 
             await _context.SaveChangesAsync();
 
-            if (!string.IsNullOrEmpty(employee.Image))
+            if (!string.IsNullOrEmpty(image))
             {
-                DocumentSetting.DeleteFile(employee.Image);
+                DocumentSetting.DeleteFile(image);
             }
 
             return new ResultMessage { Success = true };

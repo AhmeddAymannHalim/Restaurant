@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
+using Restaurant.DAL.Repositories.Commons;
 using Shared.Enums;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
@@ -76,6 +77,8 @@ public class CustomerRepository : ICustomerRepository
             entity.PhoneNumber2 = phones.ElementAtOrDefault(0);
             (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
             string replacedImage = null;
+            Account openingAccount = null;
+            decimal openingDelta = 0;
 
             if (entity.Id == 0)
             {
@@ -86,6 +89,8 @@ public class CustomerRepository : ICustomerRepository
                     AccountType.Customer,
                     AccountCodes.AccountsReceivable,
                     form.DebitBalance);
+                openingAccount = entity.Account;
+                openingDelta = form.DebitBalance;
                 entity.CreatedAt = DateTime.Now;
                 entity.ImageUrl = imageFile is null ? null : DocumentSetting.UploadFile(imageFile, ImagesFolder);
 
@@ -117,12 +122,15 @@ public class CustomerRepository : ICustomerRepository
 
                 existing.Account.ArName = form.ArName;
                 existing.Account.EnName = form.EnName;
-                existing.Account.Adjust(form.DebitBalance - existing.Account.BalanceValue);
+                openingAccount = existing.Account;
+                openingDelta = form.DebitBalance - existing.Account.BalanceValue;
+                existing.Account.Adjust(openingDelta);
                 _context.Entry(existing).CurrentValues.SetValues(entity);
                 PhoneRows.Sync(_context, existing.Phones, phones);
             }
 
             await _context.SaveChangesAsync();
+            await new JournalEntryRepository(_context).PostOpeningBalanceAsync(openingAccount, openingDelta);
 
             if (imageFile is not null && !string.IsNullOrEmpty(replacedImage))
             {

@@ -9,23 +9,23 @@ namespace Restaurant.DAL.IRepositories.Definitions;
 public interface IOrderRepository
 {
     Task<ShiftDashboardViewModel> GetShiftDashboardAsync(string userId);
-    Task<PaginatedResult<PosBill>> GetPagedOrdersAsync(PageRequest request, string userId);
-    Task<PosBill> GetOrderByIdAsync(int id);
+    Task<PaginatedResult<Order>> GetPagedOrdersAsync(PageRequest request, string userId);
+    Task<Order> GetOrderByIdAsync(int id);
     Task<string> GetNextCodeAsync();
-    Task<IEnumerable<MenuItem>> GetPosMenuAsync();
+    Task<IEnumerable<MenuItem>> GetCashierMenuAsync();
     Task<ApplicationSetting> GetSettingsAsync();
     Task<IEnumerable<Table>> GetPendingTablesAsync(int exceptTableId);
 
-    Task<ResultMessage> CreateOrderAsync(PosBill order, int? onlineOrderId, string userId);
+    Task<ResultMessage> CreateOrderAsync(Order order, int? onlineOrderId, string userId);
     Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method);
     Task<ResultMessage> MoveItemAsync(int orderMenuItemId, int targetTableId);
     Task<ResultMessage> MergeOrderAsync(int id, int targetTableId);
     Task<ResultMessage> DeleteOrderAsync(int id);
-    Task<IEnumerable<PosBill>> GetIncompleteCashOrdersAsync(string userId);
+    Task<IEnumerable<Order>> GetIncompleteCashOrdersAsync(string userId);
     Task<ResultMessage> FinishShiftAsync(string userId, decimal countedCash);
     Task<bool> VerifyShiftPasswordAsync(string password);
 
-    Task<IEnumerable<PosBill>> GetKitchenOrdersAsync();
+    Task<IEnumerable<Order>> GetKitchenOrdersAsync();
     Task<ResultMessage> CompleteOrderAsync(int id);
 
     Task<IEnumerable<OnlineOrder>> GetPendingOnlineOrdersAsync();

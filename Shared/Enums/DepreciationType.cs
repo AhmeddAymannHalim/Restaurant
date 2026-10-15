@@ -2,7 +2,7 @@ namespace Shared.Enums;
 
 public enum DepreciationType
 {
-    None = 0,
-    StraightLine = 1,
-    DecliningBalance = 2
+    FixedInstallment = 0,
+    DecliningInstallment = 1,
+    OperatingHours = 2
 }

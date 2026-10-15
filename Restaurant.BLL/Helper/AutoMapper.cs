@@ -13,12 +13,20 @@ public class AutoMapper : Profile
     {
         #region Definitions
 
-        CreateMap<CompanyBranch, BranchViewModel>();
+        CreateMap<CompanyBranch, BranchViewModel>()
+            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.ArAddress))
+            .ForMember(dest => dest.Phone1, opt => opt.MapFrom(src => src.PhoneNumber1))
+            .ForMember(dest => dest.Phone2, opt => opt.MapFrom(src => src.PhoneNumber2))
+            .ForMember(dest => dest.Mobile1, opt => opt.MapFrom(src => src.PhoneNumber3));
         CreateMap<BranchViewModel, CompanyBranch>()
             .ForMember(dest => dest.Code, opt => opt.Ignore())
             .ForMember(dest => dest.Company, opt => opt.Ignore())
             .ForMember(dest => dest.Currency, opt => opt.Ignore())
-            .ForMember(dest => dest.Employees, opt => opt.Ignore());
+            .ForMember(dest => dest.ArAddress, opt => opt.MapFrom(src => src.Address))
+            .ForMember(dest => dest.EnAddress, opt => opt.MapFrom(src => src.Address))
+            .ForMember(dest => dest.PhoneNumber1, opt => opt.MapFrom(src => src.Phone1))
+            .ForMember(dest => dest.PhoneNumber2, opt => opt.MapFrom(src => src.Phone2))
+            .ForMember(dest => dest.PhoneNumber3, opt => opt.MapFrom(src => src.Mobile1));
 
         CreateMap<Job, JobViewModel>();
         CreateMap<JobViewModel, Job>()
@@ -167,11 +175,11 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Product, opt => opt.Ignore())
             .ForMember(dest => dest.StoreConvert, opt => opt.Ignore());
 
-        CreateMap<PosBill, IncompleteCashOrderViewModel>()
+        CreateMap<Order, IncompleteCashOrderViewModel>()
             .ForMember(dest => dest.TableArName, opt => opt.MapFrom(src => src.Table.ArName))
             .ForMember(dest => dest.TableEnName, opt => opt.MapFrom(src => src.Table.EnName));
 
-        CreateMap<PosBill, OrderViewModel>()
+        CreateMap<Order, OrderViewModel>()
             .ForMember(dest => dest.SellerName, opt => opt.MapFrom(src => src.Seller.FullName))
             .ForMember(dest => dest.ReceiverName, opt => opt.MapFrom(src => src.Receiver.FullName))
             .ForMember(dest => dest.TableArName, opt => opt.MapFrom(src => src.Table.ArName))
@@ -189,7 +197,7 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.DeliveryZoneArName, opt => opt.MapFrom(src => src.DeliveryZone.ArName))
             .ForMember(dest => dest.DeliveryZoneEnName, opt => opt.MapFrom(src => src.DeliveryZone.EnName))
             .ForMember(dest => dest.Menu, opt => opt.Ignore());
-        CreateMap<PosBillLine, OrderItemViewModel>()
+        CreateMap<OrderMenuItem, OrderItemViewModel>()
             .ForMember(dest => dest.MenuItemArName, opt => opt.MapFrom(src => src.MenuItem.ArName))
             .ForMember(dest => dest.MenuItemEnName, opt => opt.MapFrom(src => src.MenuItem.EnName));
         CreateMap<OnlineOrderMenuItem, OrderItemViewModel>()
@@ -199,7 +207,7 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.DeliveryZoneArName, opt => opt.MapFrom(src => src.DeliveryZone.ArName))
             .ForMember(dest => dest.DeliveryZoneEnName, opt => opt.MapFrom(src => src.DeliveryZone.EnName))
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OnlineOrderMenuItems));
-        CreateMap<MenuItem, PosMenuItemViewModel>()
+        CreateMap<MenuItem, CashierMenuItemViewModel>()
             .ForMember(dest => dest.ArIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.ArName))))
             .ForMember(dest => dest.EnIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.EnName))))
             .ForMember(dest => dest.SectionId, opt => opt.MapFrom(src => src.MenuSectionId))

@@ -87,7 +87,7 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
                 BuyValue = a.AccountDetails.BuyValue,
                 BuyDate = a.AccountDetails.BuyDate,
                 Location = a.AccountDetails.Location,
-                DepreciationType = a.AccountDetails == null ? DepreciationType.None : a.AccountDetails.DepreciationType,
+                DepreciationType = a.AccountDetails == null ? DepreciationType.FixedInstallment : a.AccountDetails.DepreciationType,
                 ProductAge = a.AccountDetails.ProductAge,
                 Kind = a.AccountDetails != null ? AccountKind.Asset
                     : OwnedTypes.Contains(a.AccountType) ? AccountKind.Owned
@@ -127,7 +127,7 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
                 BuyDate = a.AccountDetails.BuyDate,
                 StartUsingDate = a.AccountDetails.StartUsingDate,
                 ProductAge = a.AccountDetails.ProductAge,
-                DepreciationType = a.AccountDetails == null ? DepreciationType.None : a.AccountDetails.DepreciationType,
+                DepreciationType = a.AccountDetails == null ? DepreciationType.FixedInstallment : a.AccountDetails.DepreciationType,
                 ScrapValue = a.AccountDetails.ScrapValue,
                 DepreciationAccountId = a.AccountDetails.DepreciationAccountId,
                 DepreciationExpensesAccountId = a.AccountDetails.DepreciationExpensesAccountId,
@@ -402,7 +402,7 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
         details.BuyDate = source?.BuyDate;
         details.StartUsingDate = source?.StartUsingDate;
         details.ProductAge = source?.ProductAge;
-        details.DepreciationType = source?.DepreciationType ?? DepreciationType.None;
+        details.DepreciationType = source?.DepreciationType ?? DepreciationType.FixedInstallment;
         details.ScrapValue = source?.ScrapValue;
         details.DepreciationAccountId = source?.DepreciationAccountId;
         details.DepreciationExpensesAccountId = source?.DepreciationExpensesAccountId;

@@ -14,11 +14,11 @@ namespace ResturantPL.Controllers.Definitions
     [Authorize(Policy = "Staff")]
     public class EntryController : Controller
     {
-        private readonly IErpEntryService _service;
+        private readonly IEntryService _service;
         private readonly IToastrService _toastr;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public EntryController(IErpEntryService service, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
+        public EntryController(IEntryService service, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
             _toastr = toastr;
@@ -63,11 +63,11 @@ namespace ResturantPL.Controllers.Definitions
         {
             try
             {
-                var model = new ErpEntryViewModel
+                var model = new EntryViewModel
                 {
                     EntryDate = DateTime.Now,
                     EntryType = EntryType.Journal,
-                    Lines = new List<ErpEntryLineViewModel> { new(), new() }
+                    Lines = new List<EntryLineViewModel> { new(), new() }
                 };
                 model.Accounts = await _service.GetPostingAccountOptionsAsync();
 
@@ -80,7 +80,7 @@ namespace ResturantPL.Controllers.Definitions
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Upsert(ErpEntryViewModel model)
+        public async Task<IActionResult> Upsert(EntryViewModel model)
         {
             try
             {

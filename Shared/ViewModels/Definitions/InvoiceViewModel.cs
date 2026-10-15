@@ -15,6 +15,9 @@ public class InvoiceViewModel
     public int StoreId { get; set; }
     public decimal Discount { get; set; }
     public decimal Paid { get; set; }
+    public bool AutoPost { get; set; } = true;
+    public bool AutoStock { get; set; } = true;
+    public List<PostingDefaultViewModel> PostingDefaults { get; set; } = new();
 
     public List<InvoiceItemViewModel> Items { get; set; } = new();
 
@@ -36,6 +39,13 @@ public class InvoiceViewModel
     public IEnumerable<LookupItem> Stores { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Units { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Categories { get; set; } = new List<LookupItem>();
+}
+
+public class PostingDefaultViewModel
+{
+    public InvoiceType Type { get; set; }
+    public bool AutoPost { get; set; }
+    public bool AutoStock { get; set; }
 }
 
 public class InvoiceItemViewModel

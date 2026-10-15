@@ -109,6 +109,14 @@ public class ProductRepository : IProductRepository
                 row.Quantity = stock.Quantity;
             }
 
+            // a store taken off the list no longer holds this product
+            var kept = stocks.Select(a => a.StoreId).ToHashSet();
+            foreach (var emptied in current.Where(a => a.Key.ProductId == entity.Id && !kept.Contains(a.Key.StoreId) && a.Value != 0))
+            {
+                var row = await StoreStock.RowAsync(_context, emptied.Key.StoreId, entity.Id);
+                row.Quantity = 0;
+            }
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -134,7 +142,7 @@ public class ProductRepository : IProductRepository
                 return new ResultMessage { Success = true };
             }
 
-            var itemCode = ErpBillSupport.ItemCodePrefix + id;
+            var itemCode = BillSupport.ItemCodePrefix + id;
             if (await StoreStock.Rows(_context).AnyAsync(a => a.Item.Code == itemCode && a.Quantity > 0))
             {
                 return new ResultMessage

@@ -50,9 +50,5 @@ public class BranchVmValidator : AbstractValidator<BranchViewModel>
         RuleFor(x => x.Mobile1)
             .MaximumLength(11)
             .WithMessage(MaxLength(11));
-
-        RuleFor(x => x.Mobile2)
-            .MaximumLength(11)
-            .WithMessage(MaxLength(11));
     }
 }

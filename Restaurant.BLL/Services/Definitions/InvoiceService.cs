@@ -20,6 +20,11 @@ public class InvoiceService : IInvoiceService
         return await _unitOfWork.Invoices.GetInvoiceByIdAsync(id);
     }
 
+    public async Task<List<PostingDefaultViewModel>> GetPostingDefaultsAsync()
+    {
+        return await _unitOfWork.Invoices.GetPostingDefaultsAsync();
+    }
+
     public async Task<string> GetNextCodeAsync(InvoiceType type)
     {
         return await _unitOfWork.Invoices.GetNextCodeAsync(type);

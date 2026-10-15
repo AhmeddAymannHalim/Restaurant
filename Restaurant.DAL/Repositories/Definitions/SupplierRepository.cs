@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
+using Restaurant.DAL.Repositories.Commons;
 using Shared.Enums;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
@@ -61,6 +62,8 @@ public class SupplierRepository : ISupplierRepository
             entity.Phones = new List<SupplierPhone>();
             entity.PhoneNumber2 = phones.ElementAtOrDefault(0);
             (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
+            Account openingAccount = null;
+            decimal openingDelta = 0;
 
             if (entity.Id == 0)
             {
@@ -73,6 +76,8 @@ public class SupplierRepository : ISupplierRepository
                     form.CreditBalance);
 
                 entity.Account = account;
+                openingAccount = account;
+                openingDelta = form.CreditBalance;
                 entity.LastBalance = form.CreditBalance;
                 entity.CreatedAt = DateTime.Now;
 
@@ -103,12 +108,15 @@ public class SupplierRepository : ISupplierRepository
 
                 existing.Account.ArName = form.ArName;
                 existing.Account.EnName = form.EnName;
-                existing.Account.Adjust(form.CreditBalance - existing.Account.BalanceValue);
+                openingAccount = existing.Account;
+                openingDelta = form.CreditBalance - existing.Account.BalanceValue;
+                existing.Account.Adjust(openingDelta);
                 _context.Entry(existing).CurrentValues.SetValues(entity);
                 PhoneRows.Sync(_context, existing.Phones, phones);
             }
 
             await _context.SaveChangesAsync();
+            await new JournalEntryRepository(_context).PostOpeningBalanceAsync(openingAccount, openingDelta);
 
             return new ResultMessage { Success = true };
         }

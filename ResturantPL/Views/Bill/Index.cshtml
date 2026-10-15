@@ -1,6 +1,6 @@
-@model PaginatedResult<ErpBillListItemViewModel>
+@model PaginatedResult<BillListItemViewModel>
 @{
-    ViewBag.Title = L["Erp.Bills"].Value;
+    ViewBag.Title = L["Bill.Bills"].Value;
     var isArabic = LanguageHelper.IsArabic();
     var pending = Model.Data.Count(a => a.CanPost);
 }
@@ -8,9 +8,9 @@
 <div class="ad-card">
     <div class="ad-card-head">
         <span class="ad-icon"><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i></span>
-        <h1>@L["Erp.Bills"]</h1>
+        <h1>@L["Bill.Bills"]</h1>
         <a asp-action="Upsert" class="btn-ad btn-ad-primary"><i class="fas fa-plus" aria-hidden="true"></i> @L["NewInvoice"]</a>
-        <button type="button" id="postPending" class="btn-ad btn-ad-primary"><i class="fas fa-check-double" aria-hidden="true"></i> @L["Erp.PostPending"]</button>
+        <button type="button" id="postPending" class="btn-ad btn-ad-post"><i class="fas fa-check-double" aria-hidden="true"></i> @L["Bill.PostPending"]</button>
     </div>
     <div class="ad-card-body">
         <form asp-action="Index" method="get" class="ad-filters">
@@ -18,9 +18,9 @@
                 <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
                 <input id="Bill-search" type="search" class="form-control" name="searchString" value="@Model.SearchString" placeholder="@L["SearchHere"]" />
             </div>
-            <select name="type" class="form-select w-auto" aria-label="@L["Erp.BillType"]">
-                <option value="">@L["Erp.AllBills"]</option>
-                <option value="POS" selected="@(Model.Type == "POS")">@L["Erp.Cashier"]</option>
+            <select name="type" class="form-select w-auto" aria-label="@L["Bill.BillType"]">
+                <option value="">@L["Bill.AllBills"]</option>
+                <option value="ORD" selected="@(Model.Type == "ORD")">@L["Bill.Cashier"]</option>
                 <option value="SAL" selected="@(Model.Type == "SAL")">@L["Sales"]</option>
                 <option value="SRET" selected="@(Model.Type == "SRET")">@L["SalesReturn"]</option>
                 <option value="PUR" selected="@(Model.Type == "PUR")">@L["Purchases"]</option>
@@ -40,12 +40,12 @@
                         <th>#</th>
                         <th>@L["InvoiceCode"]</th>
                         <th>@L["InvoiceDate"]</th>
-                        <th>@L["Erp.BillType"]</th>
+                        <th>@L["Bill.BillType"]</th>
                         <th>@L["Partner"]</th>
                         <th>@L["NetTotal"]</th>
                         <th>@L["Paid"]</th>
                         <th>@L["Remaining"]</th>
-                        <th>@L["Erp.Entry"]</th>
+                        <th>@L["Bill.Entry"]</th>
                         <th data-export-ignore="true"></th>
                     </tr>
                 </thead>
@@ -64,9 +64,9 @@
                                 <td class="num">@item.Total.ToString("N2")</td>
                                 <td class="num">@item.Paid.ToString("N2")</td>
                                 <td class="num">@item.Remaining.ToString("N2")</td>
-                                <td>@(item.IsEntryPosted ? L["Erp.Posted"] : L["Erp.NotPosted"])</td>
+                                <td>@(item.IsEntryPosted ? L["Bill.Posted"] : L["Bill.NotPosted"])</td>
                                 <td class="ad-row-actions">
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Erp.Details"]" aria-label="@L["Erp.Details"]"><i class="fas fa-eye" aria-hidden="true"></i></a>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Bill.Details"]" aria-label="@L["Bill.Details"]"><i class="fas fa-eye" aria-hidden="true"></i></a>
                                     @if (item.IsEditable)
                                     {
                                         <a asp-action="Upsert" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Edit"]" aria-label="@L["Edit"]"><i class="fas fa-pen" aria-hidden="true"></i></a>
@@ -75,7 +75,7 @@
                                     }
                                     @if (item.CanPost)
                                     {
-                                        <button type="button" data-post="@item.Id" class="btn-ad btn-ad-primary btn-icon" title="@L["Erp.Post"]" aria-label="@L["Erp.Post"]"><i class="fas fa-check" aria-hidden="true"></i></button>
+                                        <button type="button" data-post="@item.Id" class="btn-ad btn-ad-post btn-sm-label" title="@L["Bill.Post"]" aria-label="@L["Bill.Post"]"><i class="fas fa-check" aria-hidden="true"></i> @L["Bill.Post"]</button>
                                     }
                                 </td>
                             </tr>
@@ -104,7 +104,7 @@
             function send(url, data) {
                 $.post(url, data).done(function (result) {
                     if (result && result.success) {
-                        toastr.success(@Html.Raw(Json.Serialize(L["Erp.PostedDone"].Value)));
+                        toastr.success(@Html.Raw(Json.Serialize(L["Bill.PostedDone"].Value)));
                         location.reload();
                     } else {
                         toastr.error((result && result.errorMessage) || @Html.Raw(Json.Serialize(L["SomethingWentError"].Value)));

@@ -47,6 +47,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<SupplierPhone> SupplierPhones { get; set; }
     public DbSet<StorePhone> StorePhones { get; set; }
     public DbSet<EmployeeDocument> EmployeeDocuments { get; set; }
+    public DbSet<EmployeeImage> EmployeeImages { get; set; }
     public DbSet<EmployeeDependent> EmployeeDependents { get; set; }
     public DbSet<EmployeeLeave> EmployeeLeaves { get; set; }
     public DbSet<LeaveType> LeaveTypes { get; set; }
@@ -91,6 +92,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<CostCenter> CostCenters { get; set; }
     public DbSet<Classification> Classifications { get; set; }
     public DbSet<CustomerTier> CustomerTiers { get; set; }
+    public DbSet<CustomerTierDiscount> CustomerTierDiscounts { get; set; }
+    public DbSet<AccountSetting> AccountSettings { get; set; }
+    public DbSet<Tax> Taxes { get; set; }
 
     public DbSet<BillSetting> BillSettings { get; set; }
     public DbSet<BillMaster> BillMasters { get; set; }
@@ -112,9 +116,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<EntryDetail> EntryDetails { get; set; }
     public DbSet<EntrySetting> EntrySettings { get; set; }
 
-    public DbSet<PosBill> PosBills { get; set; }
-    public DbSet<PosBillLine> PosBillLines { get; set; }
-    public DbSet<PosBillIngredient> PosBillIngredients { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderMenuItem> OrderMenuItems { get; set; }
+    public DbSet<OrderIngredient> OrderIngredients { get; set; }
     public DbSet<OnlineOrder> OnlineOrders { get; set; }
     public DbSet<OnlineOrderMenuItem> OnlineOrderMenuItems { get; set; }
     public DbSet<ShiftCloseReport> ShiftCloseReports { get; set; }

@@ -135,7 +135,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
                 new[]
                 {
                     new JournalLineRequest(AccountCodes.Cash, payment.Paid, 0),
-                    new JournalLineRequest(AccountCodes.AccountsReceivable, 0, payment.Paid)
+                    new JournalLineRequest(null, 0, payment.Paid, null, partner.Account.Id)
                 },
                 saveChanges: false);
             if (!posting.Success)
@@ -329,6 +329,21 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
             refund.Status = RefundStatus.Approved;
             refund.ApprovedByUserId = approvedByUserId;
             refund.ApprovedAt = DateTime.Now;
+
+            var posting = await _journals.PostSourceEntryAsync(JournalSourceType.CustomerRefund,
+                refund.Id,
+                refund.ApprovedAt.Value,
+                $"Customer refund {payment.ProcessCode}",
+                new[]
+                {
+                    new JournalLineRequest(null, refund.Amount, 0, null, customer.Account.Id),
+                    new JournalLineRequest(AccountCodes.Cash, 0, refund.Amount)
+                },
+                saveChanges: false);
+            if (!posting.Success)
+            {
+                return posting;
+            }
 
             await _context.SaveChangesAsync();
 

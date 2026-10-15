@@ -22,15 +22,15 @@ public static class StoreStock
 
     public static async Task<StoreItemUnit> RowAsync(ApplicationDbContext context, int storeId, int productId)
     {
-        var itemId = await ErpBillSupport.GetItemIdAsync(context, productId);
+        var itemId = await BillSupport.GetItemIdAsync(context, productId);
         var unitId = await BaseUnitIdAsync(context);
 
-        return await ErpBillSupport.GetStockRowAsync(context, storeId, itemId, unitId);
+        return await BillSupport.GetStockRowAsync(context, storeId, itemId, unitId);
     }
 
     public static async Task<StoreItemUnit> FindAsync(ApplicationDbContext context, int storeId, int productId)
     {
-        var code = ErpBillSupport.ItemCodePrefix + productId;
+        var code = BillSupport.ItemCodePrefix + productId;
 
         return await context.StoreItemUnits.FirstOrDefaultAsync(a => a.StoreId == storeId
             && a.Item.Code == code
@@ -54,8 +54,8 @@ public static class StoreStock
 
         var id = row.Id;
         var affected = await context.StoreItemUnits
-            .Where(a => a.Id == id && (allowNegative || a.Quantity + delta >= 0))
-            .ExecuteUpdateAsync(a => a.SetProperty(b => b.Quantity, b => b.Quantity + delta));
+            .Where(a => a.Id == id && (allowNegative || (a.Quantity ?? 0) + delta >= 0))
+            .ExecuteUpdateAsync(a => a.SetProperty(b => b.Quantity, b => (b.Quantity ?? 0) + delta));
         if (affected > 0)
         {
             await context.Entry(row).ReloadAsync();
@@ -66,7 +66,7 @@ public static class StoreStock
 
     public static IQueryable<StoreItemUnit> Rows(ApplicationDbContext context)
     {
-        return context.StoreItemUnits.Where(a => a.Item.Code.StartsWith(ErpBillSupport.ItemCodePrefix) && a.Unit.Code == BaseUnitCode);
+        return context.StoreItemUnits.Where(a => a.Item.Code.StartsWith(BillSupport.ItemCodePrefix) && a.Unit.Code == BaseUnitCode);
     }
 
     public static async Task<Dictionary<(int StoreId, int ProductId), decimal>> QuantitiesAsync(ApplicationDbContext context, int? storeId = null)
@@ -78,6 +78,6 @@ public static class StoreStock
 
         return rows
             .Where(a => a.StoreId.HasValue)
-            .ToDictionary(a => (a.StoreId.Value, ErpBillSupport.ProductIdOf(a.Code)), a => a.Quantity);
+            .ToDictionary(a => (a.StoreId.Value, BillSupport.ProductIdOf(a.Code)), a => a.Quantity ?? 0);
     }
 }

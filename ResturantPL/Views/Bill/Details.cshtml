@@ -1,16 +1,16 @@
-@model ErpBillViewModel
+@model BillViewModel
 @{
-    ViewBag.Title = L["Erp.Bill"].Value + " " + Model.Code;
+    ViewBag.Title = L["Bill.Bill"].Value + " " + Model.Code;
     var isArabic = LanguageHelper.IsArabic();
 }
 
 <div class="ad-card">
     <div class="ad-card-head">
         <span class="ad-icon"><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i></span>
-        <h1>@L["Erp.Bill"] #@Model.Code</h1>
+        <h1>@L["Bill.Bill"] #@Model.Code</h1>
         @if (Model.CanPost)
         {
-            <button type="button" id="postBill" class="btn-ad btn-ad-primary"><i class="fas fa-check" aria-hidden="true"></i> @L["Erp.Post"]</button>
+            <button type="button" id="postBill" class="btn-ad btn-ad-post"><i class="fas fa-check" aria-hidden="true"></i> @L["Bill.Post"]</button>
         }
         @if (Model.IsEditable)
         {
@@ -21,13 +21,14 @@
     </div>
     <div class="ad-card-body">
         <div class="ad-form">
-            <div class="form-group"><label>@L["Erp.BillType"]</label><div class="form-control">@(isArabic ? Model.SettingArName : Model.SettingEnName)</div></div>
+            <div class="form-group"><label>@L["Bill.BillType"]</label><div class="form-control">@(isArabic ? Model.SettingArName : Model.SettingEnName)</div></div>
             <div class="form-group"><label>@L["InvoiceDate"]</label><div class="form-control">@Model.Date.ToString("yyyy-MM-dd HH:mm")</div></div>
             <div class="form-group"><label>@L["Partner"]</label><div class="form-control">@(isArabic ? Model.PartnerArName : Model.PartnerEnName)</div></div>
-            <div class="form-group"><label>@L["Erp.Entry"]</label><div class="form-control">@(Model.IsEntryPosted ? L["Erp.Posted"] : L["Erp.NotPosted"])</div></div>
+            <div class="form-group"><label>@L["Bill.Entry"]</label><div class="form-control">@(Model.IsEntryPosted ? L["Bill.Posted"] : L["Bill.NotPosted"])</div></div>
+            <div class="form-group"><label>@L["Bill.Storage"]</label><div class="form-control">@(Model.IsStorageEffected ? L["Bill.StorageDone"] : L["Bill.StorageNone"])</div></div>
         </div>
 
-        <h2 class="ad-section-title">@L["Erp.Items"]</h2>
+        <h2 class="ad-section-title">@L["Bill.Items"]</h2>
         <div class="ad-table-wrap">
             <table class="ad-table">
                 <thead>
@@ -35,9 +36,9 @@
                         <th>#</th>
                         <th>@L["Code"]</th>
                         <th>@L["Name"]</th>
-                        <th>@L["Erp.Quantity"]</th>
-                        <th>@L["Erp.UnitPrice"]</th>
-                        <th>@L["Erp.LineTotal"]</th>
+                        <th>@L["Bill.Quantity"]</th>
+                        <th>@L["Bill.UnitPrice"]</th>
+                        <th>@L["Bill.LineTotal"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -57,39 +58,39 @@
         </div>
 
         <div class="ad-form">
-            <div class="form-group"><label>@L["Erp.ItemsTotal"]</label><div class="form-control">@Model.ItemsTotal.ToString("N2")</div></div>
-            <div class="form-group"><label>@L["Erp.Discount"]</label><div class="form-control">@Model.Discount.ToString("N2")</div></div>
-            <div class="form-group"><label>@L["Erp.Extras"]</label><div class="form-control">@Model.Extras.ToString("N2")</div></div>
+            <div class="form-group"><label>@L["Bill.ItemsTotal"]</label><div class="form-control">@Model.ItemsTotal.ToString("N2")</div></div>
+            <div class="form-group"><label>@L["Bill.Discount"]</label><div class="form-control">@Model.Discount.ToString("N2")</div></div>
+            <div class="form-group"><label>@L["Bill.Extras"]</label><div class="form-control">@Model.Extras.ToString("N2")</div></div>
             <div class="form-group"><label>@L["NetTotal"]</label><div class="form-control"><b>@Model.Total.ToString("N2")</b></div></div>
             <div class="form-group"><label>@L["Paid"]</label><div class="form-control">@Model.Paid.ToString("N2")</div></div>
             <div class="form-group"><label>@L["Remaining"]</label><div class="form-control">@Model.Remaining.ToString("N2")</div></div>
             @if (Model.Cost.HasValue)
             {
-                <div class="form-group"><label>@L["Erp.Cost"]</label><div class="form-control">@Model.Cost.Value.ToString("N2")</div></div>
-                <div class="form-group"><label>@L["Erp.Profit"]</label><div class="form-control">@((Model.Profit ?? 0).ToString("N2"))</div></div>
+                <div class="form-group"><label>@L["Bill.Cost"]</label><div class="form-control">@Model.Cost.Value.ToString("N2")</div></div>
+                <div class="form-group"><label>@L["Bill.Profit"]</label><div class="form-control">@((Model.Profit ?? 0).ToString("N2"))</div></div>
             }
         </div>
 
-        <h2 class="ad-section-title">@L["Erp.Entries"]</h2>
+        <h2 class="ad-section-title">@L["Bill.Entries"]</h2>
         @if (!Model.Entries.Any())
         {
-            <p class="ad-empty">@L["Erp.NoEntry"]</p>
+            <p class="ad-empty">@L["Bill.NoEntry"]</p>
         }
         @foreach (var entry in Model.Entries)
         {
             <p>
-                <a asp-controller="Entry" asp-action="Details" asp-route-id="@entry.Id">@L["Erp.Entry"] #@entry.Code</a>
+                <a asp-controller="Entry" asp-action="Details" asp-route-id="@entry.Id">@L["Bill.Entry"] #@entry.Code</a>
                 - @(isArabic ? entry.SettingArName : entry.SettingEnName)
-                - @(entry.IsPosted ? L["Erp.Posted"] : L["Erp.NotPosted"])
+                - @(entry.IsPosted ? L["Bill.Posted"] : L["Bill.NotPosted"])
             </p>
             <div class="ad-table-wrap">
                 <table class="ad-table">
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>@L["Erp.Account"]</th>
-                            <th>@L["Erp.Debit"]</th>
-                            <th>@L["Erp.Credit"]</th>
+                            <th>@L["Bill.Account"]</th>
+                            <th>@L["Bill.Debit"]</th>
+                            <th>@L["Bill.Credit"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -115,7 +116,7 @@
             $('#postBill').on('click', function () {
                 $.post('/Bill/Post', { id: @Model.Id }).done(function (result) {
                     if (result && result.success) {
-                        toastr.success(@Html.Raw(Json.Serialize(L["Erp.PostedDone"].Value)));
+                        toastr.success(@Html.Raw(Json.Serialize(L["Bill.PostedDone"].Value)));
                         location.reload();
                     } else {
                         toastr.error((result && result.errorMessage) || @Html.Raw(Json.Serialize(L["SomethingWentError"].Value)));

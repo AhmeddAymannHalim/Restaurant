@@ -12,4 +12,8 @@ public interface IInvoiceRepository
     Task<decimal> GetCustomerBalanceAsync(int customerId);
     Task<ResultMessage> UpsertInvoiceAsync(InvoiceViewModel model);
     Task<ResultMessage> DeleteInvoiceAsync(int id);
+    Task<bool> IsInvoiceAsync(int id);
+    Task<List<PostingDefaultViewModel>> GetPostingDefaultsAsync();
+    Task<List<int>> GetUnpostedInvoiceIdsAsync();
+    Task<ResultMessage> PostInvoiceAsync(int id);
 }

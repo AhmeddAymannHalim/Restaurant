@@ -8,10 +8,8 @@ public static class SalaryTypeExtensions
     {
         return type switch
         {
-            SalaryType.Monthly => "شهري",
-            SalaryType.Weekly => "اسبوعي",
-            SalaryType.Daily => "يومي",
-            SalaryType.Hourly => "بالساعة",
+            SalaryType.Cash => "كاش",
+            SalaryType.Visa => "فيزا",
             _ => type.ToString()
         };
     }

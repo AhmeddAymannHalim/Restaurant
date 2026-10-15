@@ -1,6 +1,6 @@
-@model ErpEntryViewModel
+@model EntryViewModel
 @{
-    ViewBag.Title = L["Erp.NewEntry"].Value;
+    ViewBag.Title = L["Bill.NewEntry"].Value;
     var isArabic = LanguageHelper.IsArabic();
 }
 
@@ -13,11 +13,11 @@
         <form asp-action="Upsert" method="post" class="ad-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="EntryType" class="control-label">@L["Erp.EntryType"]</label>
+                <label asp-for="EntryType" class="control-label">@L["Bill.EntryType"]</label>
                 <select asp-for="EntryType" class="form-control">
-                    <option value="@((int)EntryType.Journal)" selected="@(Model.EntryType == EntryType.Journal)">@L["Erp.EntryJournal"]</option>
-                    <option value="@((int)EntryType.CashReceipt)" selected="@(Model.EntryType == EntryType.CashReceipt)">@L["Erp.EntryCashReceipt"]</option>
-                    <option value="@((int)EntryType.CashPayment)" selected="@(Model.EntryType == EntryType.CashPayment)">@L["Erp.EntryCashPayment"]</option>
+                    <option value="@((int)EntryType.Journal)" selected="@(Model.EntryType == EntryType.Journal)">@L["Bill.EntryJournal"]</option>
+                    <option value="@((int)EntryType.CashReceipt)" selected="@(Model.EntryType == EntryType.CashReceipt)">@L["Bill.EntryCashReceipt"]</option>
+                    <option value="@((int)EntryType.CashPayment)" selected="@(Model.EntryType == EntryType.CashPayment)">@L["Bill.EntryCashPayment"]</option>
                 </select>
             </div>
             <div class="form-group">
@@ -26,20 +26,20 @@
                 <span asp-validation-for="EntryDate" class="text-danger"></span>
             </div>
             <div class="form-group ad-full">
-                <label asp-for="Remarks" class="control-label">@L["Erp.Remarks"]</label>
+                <label asp-for="Remarks" class="control-label">@L["Bill.Remarks"]</label>
                 <input asp-for="Remarks" class="form-control" />
                 <span asp-validation-for="Remarks" class="text-danger"></span>
             </div>
 
             <div class="ad-section ad-full" data-row-list data-prefix="Lines">
-                <h2 class="ad-section-title">@L["Erp.EntryLines"]</h2>
+                <h2 class="ad-section-title">@L["Bill.EntryLines"]</h2>
                 <div asp-validation-for="Lines" class="text-danger"></div>
                 <div class="ad-rows" data-rows>
                     @for (var i = 0; i < Model.Lines.Count; i++)
                     {
                         <div class="ad-row-item" data-row>
                             <div class="form-group">
-                                <label class="control-label">@L["Erp.Account"]</label>
+                                <label class="control-label">@L["Bill.Account"]</label>
                                 <select name="Lines[@i].AccountId" class="form-control">
                                     <option value="">@L["Select"]</option>
                                     @foreach (var item in Model.Accounts)
@@ -48,18 +48,18 @@
                                     }
                                 </select>
                             </div>
-                            <div class="form-group"><label class="control-label">@L["Erp.Debit"]</label><input type="number" step="0.01" min="0" name="Lines[@i].Debit" value="@(Model.Lines[i].Debit is null or 0 ? "" : Model.Lines[i].Debit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))" class="form-control line-debit" /></div>
-                            <div class="form-group"><label class="control-label">@L["Erp.Credit"]</label><input type="number" step="0.01" min="0" name="Lines[@i].Credit" value="@(Model.Lines[i].Credit is null or 0 ? "" : Model.Lines[i].Credit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))" class="form-control line-credit" /></div>
-                            <div class="form-group"><label class="control-label">@L["Erp.Remarks"]</label><input type="text" name="Lines[@i].Remarks" value="@Model.Lines[i].Remarks" class="form-control" maxlength="250" /></div>
+                            <div class="form-group"><label class="control-label">@L["Bill.Debit"]</label><input type="number" step="0.01" min="0" name="Lines[@i].Debit" value="@(Model.Lines[i].Debit is null or 0 ? "" : Model.Lines[i].Debit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))" class="form-control line-debit" /></div>
+                            <div class="form-group"><label class="control-label">@L["Bill.Credit"]</label><input type="number" step="0.01" min="0" name="Lines[@i].Credit" value="@(Model.Lines[i].Credit is null or 0 ? "" : Model.Lines[i].Credit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))" class="form-control line-credit" /></div>
+                            <div class="form-group"><label class="control-label">@L["Bill.Remarks"]</label><input type="text" name="Lines[@i].Remarks" value="@Model.Lines[i].Remarks" class="form-control" maxlength="250" /></div>
                             <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
                         </div>
                     }
                 </div>
-                <button type="button" class="btn-ad btn-ad-ghost mb-3" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["Erp.AddLine"]</button>
+                <button type="button" class="btn-ad btn-ad-ghost mb-3" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["Bill.AddLine"]</button>
                 <template data-row-template>
                     <div class="ad-row-item" data-row>
                         <div class="form-group">
-                            <label class="control-label">@L["Erp.Account"]</label>
+                            <label class="control-label">@L["Bill.Account"]</label>
                             <select name="Lines[__i__].AccountId" class="form-control">
                                 <option value="">@L["Select"]</option>
                                 @foreach (var item in Model.Accounts)
@@ -68,15 +68,15 @@
                                 }
                             </select>
                         </div>
-                        <div class="form-group"><label class="control-label">@L["Erp.Debit"]</label><input type="number" step="0.01" min="0" name="Lines[__i__].Debit" class="form-control line-debit" /></div>
-                        <div class="form-group"><label class="control-label">@L["Erp.Credit"]</label><input type="number" step="0.01" min="0" name="Lines[__i__].Credit" class="form-control line-credit" /></div>
-                        <div class="form-group"><label class="control-label">@L["Erp.Remarks"]</label><input type="text" name="Lines[__i__].Remarks" class="form-control" maxlength="250" /></div>
+                        <div class="form-group"><label class="control-label">@L["Bill.Debit"]</label><input type="number" step="0.01" min="0" name="Lines[__i__].Debit" class="form-control line-debit" /></div>
+                        <div class="form-group"><label class="control-label">@L["Bill.Credit"]</label><input type="number" step="0.01" min="0" name="Lines[__i__].Credit" class="form-control line-credit" /></div>
+                        <div class="form-group"><label class="control-label">@L["Bill.Remarks"]</label><input type="text" name="Lines[__i__].Remarks" class="form-control" maxlength="250" /></div>
                         <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
                     </div>
                 </template>
                 <p class="ad-meta">
-                    @L["Erp.Debit"]: <b id="sumDebit">0.00</b>
-                    &nbsp;|&nbsp; @L["Erp.Credit"]: <b id="sumCredit">0.00</b>
+                    @L["Bill.Debit"]: <b id="sumDebit">0.00</b>
+                    &nbsp;|&nbsp; @L["Bill.Credit"]: <b id="sumCredit">0.00</b>
                     &nbsp;|&nbsp; <b id="sumState"></b>
                 </p>
             </div>
@@ -93,8 +93,8 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         $(function () {
-            var balanced = @Html.Raw(Json.Serialize(L["Erp.Balanced"].Value));
-            var unbalanced = @Html.Raw(Json.Serialize(L["Erp.Unbalanced"].Value));
+            var balanced = @Html.Raw(Json.Serialize(L["Bill.Balanced"].Value));
+            var unbalanced = @Html.Raw(Json.Serialize(L["Bill.Unbalanced"].Value));
 
             function sum(selector) {
                 var total = 0;

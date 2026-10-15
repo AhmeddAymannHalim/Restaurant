@@ -14,15 +14,15 @@ public class CompanyBranchConfig : IEntityTypeConfiguration<CompanyBranch>
         builder.Property(a => a.Code).IsRequired().HasMaxLength(20);
         builder.Property(a => a.ArName).IsRequired().HasMaxLength(150);
         builder.Property(a => a.EnName).IsRequired().HasMaxLength(150);
-        builder.Property(a => a.Address).HasMaxLength(250);
-        builder.Property(a => a.Phone1).HasMaxLength(11);
-        builder.Property(a => a.Phone2).HasMaxLength(11);
-        builder.Property(a => a.Mobile1).HasMaxLength(11);
-        builder.Property(a => a.Mobile2).HasMaxLength(11);
+        builder.Property(a => a.ArAddress).HasMaxLength(250);
+        builder.Property(a => a.EnAddress).HasMaxLength(250);
+        builder.Property(a => a.PhoneNumber1).HasMaxLength(20);
+        builder.Property(a => a.PhoneNumber2).HasMaxLength(20);
+        builder.Property(a => a.PhoneNumber3).HasMaxLength(20);
 
         builder
             .HasOne(a => a.Company)
-            .WithMany()
+            .WithMany(a => a.CompanyBranches)
             .HasForeignKey(a => a.CompanyId)
             .OnDelete(DeleteBehavior.Restrict);
 

@@ -1840,3 +1840,69 @@ body.dash .ad-date:focus-within .ad-date-text { border-color: var(--cyan-soft); 
 
 body.dash .ad-phone-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: .5rem .75rem; margin-bottom: .5rem; }
 body.dash .ad-phone .input-group { flex-wrap: nowrap; }
+
+/* Product form: one row per store - pick the store, then type its quantity */
+body.dash .ad-stocks { padding: 0; border: 0; }
+body.dash .ad-stocks legend { float: none; font-size: .85rem; font-weight: 600; color: var(--muted); }
+body.dash .ad-stock-grid { display: grid; gap: .6rem; margin-bottom: .6rem; max-width: 640px; }
+body.dash .ad-stock { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto; gap: .6rem; align-items: center; }
+body.dash .ad-stock .ad-stock-error { grid-column: 1 / -1; font-size: .8rem; }
+@media (max-width: 575px) {
+    body.dash .ad-stock { grid-template-columns: 1fr auto; }
+    body.dash .ad-stock select { grid-column: 1 / -1; }
+}
+
+/* Post (ترحيل) buttons: their own green so they cannot be mistaken for save (blue), edit (ghost) or delete (red) */
+.btn-ad-post {
+    border-color: transparent;
+    background: linear-gradient(135deg, #19d08a, #0ea56b);
+    color: #032418;
+    box-shadow: 0 8px 20px -10px rgba(25, 208, 138, .95);
+}
+
+.btn-ad-post:hover { color: #032418; filter: brightness(1.08); box-shadow: 0 12px 24px -10px rgba(25, 208, 138, 1); }
+.btn-sm-label { padding: .3rem .75rem; font-size: .85rem; }
+
+/* On/off switch that sits in a form grid cell with the same height as the inputs next to it */
+body.dash .ad-switch {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    min-height: 2.6rem;
+    padding: .35rem .85rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .04);
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+}
+
+body.dash .ad-switch input { position: absolute; opacity: 0; pointer-events: none; }
+
+body.dash .ad-switch-track {
+    position: relative;
+    flex: 0 0 auto;
+    width: 42px;
+    height: 24px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .16);
+    transition: background-color .2s;
+}
+
+body.dash .ad-switch-track::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    inset-inline-start: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    transition: inset-inline-start .2s;
+}
+
+body.dash .ad-switch input:checked + .ad-switch-track { background: #19d08a; }
+body.dash .ad-switch input:checked + .ad-switch-track::after { inset-inline-start: 21px; }
+body.dash .ad-switch input:focus-visible + .ad-switch-track { outline: 2px solid var(--saffron); outline-offset: 2px; }
+body.dash .ad-switch input:checked ~ .ad-switch-text { color: #7ff0c4; }

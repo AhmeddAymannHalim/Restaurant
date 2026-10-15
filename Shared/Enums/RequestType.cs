@@ -2,7 +2,9 @@ namespace Shared.Enums;
 
 public enum RequestType
 {
-    Leave = 1,
-    Advance = 2,
-    Permission = 3
+    OrderLeave = 1,
+    OrderAbsent = 2,
+    OrderLate = 3,
+    OrderBorrowMoney = 4,
+    OrderEarlyLeave = 5
 }

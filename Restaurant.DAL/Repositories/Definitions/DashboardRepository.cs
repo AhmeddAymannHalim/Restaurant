@@ -29,7 +29,7 @@ public class DashboardRepository : IDashboardRepository
             })
             .FirstOrDefaultAsync();
 
-        var shift = await _context.PosBills
+        var shift = await _context.Orders
             .AsNoTracking()
             .Where(a => !a.FinishShift)
             .Select(a => new
@@ -49,13 +49,13 @@ public class DashboardRepository : IDashboardRepository
             UserImage = user?.Image,
             ShiftOrders = shift.Count,
             ShiftSales = shift.Where(a => a.Cash).Sum(a => a.TotalPrice),
-            InKitchen = await _context.PosBills.AsNoTracking().CountAsync(a => !a.Complete),
+            InKitchen = await _context.Orders.AsNoTracking().CountAsync(a => !a.Complete),
             WaitingOnline = await _context.OnlineOrders.AsNoTracking().CountAsync(a => a.IsPending),
             AwaitingPayment = unpaid.Count,
             AwaitingPaymentAmount = unpaid.Sum(a => a.TotalPrice)
         };
 
-        var inKitchenByType = await _context.PosBills
+        var inKitchenByType = await _context.Orders
             .AsNoTracking()
             .Where(a => !a.Complete)
             .GroupBy(a => a.Type)
@@ -100,7 +100,7 @@ public class DashboardRepository : IDashboardRepository
             })
             .ToListAsync();
 
-        model.Kitchen = await _context.PosBills
+        model.Kitchen = await _context.Orders
             .AsNoTracking()
             .Where(a => !a.Complete)
             .OrderBy(a => a.Bill.Date)
@@ -122,7 +122,7 @@ public class DashboardRepository : IDashboardRepository
             })
             .ToListAsync();
 
-        model.Unpaid = await _context.PosBills
+        model.Unpaid = await _context.Orders
             .AsNoTracking()
             .Where(a => !a.Cash && !a.FinishShift)
             .OrderBy(a => a.Bill.Date)

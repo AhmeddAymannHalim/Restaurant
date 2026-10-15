@@ -2,8 +2,7 @@ namespace Shared.Enums;
 
 public enum Religion
 {
-    Muslim,
-    Christian,
-    Jewish,
-    Other
+    Muslim = 1,
+    Christian = 2,
+    Other = 3
 }

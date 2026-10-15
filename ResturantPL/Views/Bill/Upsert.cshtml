@@ -180,6 +180,22 @@
                 <label class="control-label">@L["Remaining"]</label>
                 <input id="remaining" class="form-control" readonly />
             </div>
+            <div class="form-group">
+                <label class="control-label" for="AutoPost">@L["Bill.Entry"]</label>
+                <label class="ad-switch" for="AutoPost">
+                    <input asp-for="AutoPost" type="checkbox" />
+                    <span class="ad-switch-track" aria-hidden="true"></span>
+                    <span class="ad-switch-text">@L["Bill.AutoPost"]</span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="control-label" for="AutoStock">@L["Bill.Storage"]</label>
+                <label class="ad-switch" for="AutoStock">
+                    <input asp-for="AutoStock" type="checkbox" />
+                    <span class="ad-switch-track" aria-hidden="true"></span>
+                    <span class="ad-switch-text">@L["Bill.AutoStock"]</span>
+                </label>
+            </div>
 
             <div class="ad-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
@@ -272,6 +288,16 @@
             }
 
             $('#InvoiceType').on('change', togglePartner);
+
+            var postingDefaults = @Html.Raw(Json.Serialize(Model.PostingDefaults.ToDictionary(a => a.Type.ToString(), a => new { autoPost = a.AutoPost, autoStock = a.AutoStock })));
+            var isNewInvoice = @(Model.Id == 0 ? "true" : "false");
+            $('#InvoiceType').on('change', function () {
+                var d = isNewInvoice ? postingDefaults[$(this).val()] : null;
+                if (d) {
+                    $('#AutoPost').prop('checked', d.autoPost);
+                    $('#AutoStock').prop('checked', d.autoStock);
+                }
+            });
 
             $('#SupplierId').on('change', function () {
                 var id = $(this).val();

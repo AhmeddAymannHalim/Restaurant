@@ -89,7 +89,6 @@
 
             <section class="menu-step">
                 <h2><b>2</b> @L["MenuStepRecipe"]</h2>
-                <p class="menu-help">@L["RecipeHelp"]</p>
 
                 <div class="row">
                     <div class="form-group col-md-3">
@@ -183,7 +182,6 @@
                         <label asp-for="Price" class="control-label">@L["Price"]</label>
                         <input id="price" asp-for="Price" class="form-control" type="number" step="0.01" min="0" />
                         <span asp-validation-for="Price" class="text-danger"></span>
-                        <small class="menu-help d-block">@L["PriceAutoHint"]</small>
                         <button type="button" id="suggestPrice" class="btn-ad btn-ad-ghost">@L["SuggestPrice"]</button>
                     </div>
                     <div class="profit-figures">

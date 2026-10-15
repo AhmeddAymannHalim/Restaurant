@@ -49,9 +49,9 @@ namespace Restaurant.DAL.UnitOfWork
             Invoices = new InvoiceRepository(_context, Journals);
             StockMovements = new StockMovementRepository(_context);
             Orders = new OrderRepository(_context);
-            ErpBills = new ErpBillRepository(_context);
+            Bills = new BillRepository(_context);
             AccountDefinitions = new AccountDefinitionRepository(_context);
-            ErpEntries = new ErpEntryRepository(_context);
+            Entries = new EntryRepository(_context);
             OnlineOrders = new OnlineOrderRepository(_context);
             Reports = new ReportRepository(_context);
             StoreConverts = new StoreConvertRepository(_context);
@@ -83,9 +83,9 @@ namespace Restaurant.DAL.UnitOfWork
         public IInvoiceRepository Invoices { get; set; }
         public IStockMovementRepository StockMovements { get; set; }
         public IOrderRepository Orders { get; set; }
-        public IErpBillRepository ErpBills { get; set; }
+        public IBillRepository Bills { get; set; }
         public IAccountDefinitionRepository AccountDefinitions { get; set; }
-        public IErpEntryRepository ErpEntries { get; set; }
+        public IEntryRepository Entries { get; set; }
         public IOnlineOrderRepository OnlineOrders { get; set; }
         public IReportRepository Reports { get; set; }
         public IStoreConvertRepository StoreConverts { get; set; }

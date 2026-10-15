@@ -49,7 +49,7 @@ public class OrderViewModel
     public IEnumerable<LookupItem> Tables { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> DeliveryDrivers { get; set; } = new List<LookupItem>();
     public IEnumerable<DeliveryZoneViewModel> DeliveryZones { get; set; } = new List<DeliveryZoneViewModel>();
-    public List<PosMenuItemViewModel> Menu { get; set; } = new();
+    public List<CashierMenuItemViewModel> Menu { get; set; } = new();
 }
 
 public class OrderItemViewModel
@@ -63,7 +63,7 @@ public class OrderItemViewModel
     public decimal Price { get; set; }
 }
 
-public class PosMenuItemViewModel
+public class CashierMenuItemViewModel
 {
     public int Id { get; set; }
     public string ArName { get; set; }

@@ -175,6 +175,7 @@ public class Employee : BaseEntity
     [NotMapped]
     public bool HasLoginAccount { get; set; }
 
+    [NotMapped]
     public string Image { get; set; }
 
     public virtual ICollection<Salary> Salaries { get; set; } = new List<Salary>();

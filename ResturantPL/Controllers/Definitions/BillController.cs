@@ -17,13 +17,13 @@ namespace ResturantPL.Controllers.Definitions
     [Authorize(Policy = "Staff")]
     public class BillController : Controller
     {
-        private readonly IErpBillService _service;
+        private readonly IBillService _service;
         private readonly IInvoiceService _invoices;
         private readonly ILookupService _lookup;
         private readonly IToastrService _toastr;
         private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public BillController(IErpBillService service, IInvoiceService invoices, ILookupService lookup, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
+        public BillController(IBillService service, IInvoiceService invoices, ILookupService lookup, IToastrService toastr, IStringLocalizer<SharedResource> localizer)
         {
             _service = service;
             _invoices = invoices;
@@ -83,6 +83,10 @@ namespace ResturantPL.Controllers.Definitions
                 else
                 {
                     model.InvoiceCode = await _invoices.GetNextCodeAsync(model.InvoiceType);
+                    model.PostingDefaults = await _invoices.GetPostingDefaultsAsync();
+                    var defaults = model.PostingDefaults.FirstOrDefault(a => a.Type == model.InvoiceType);
+                    model.AutoPost = defaults?.AutoPost ?? true;
+                    model.AutoStock = defaults?.AutoStock ?? true;
                 }
 
                 await PopulateData(model);
@@ -232,6 +236,11 @@ namespace ResturantPL.Controllers.Definitions
 
         private async Task PopulateData(InvoiceViewModel model)
         {
+            if (model.PostingDefaults.Count == 0)
+            {
+                model.PostingDefaults = await _invoices.GetPostingDefaultsAsync();
+            }
+
             model.Suppliers = await _lookup.SupplierLookupAsync();
             model.Customers = await _lookup.CustomerLookupAsync();
             model.Stores = await _lookup.StoreLookupAsync();

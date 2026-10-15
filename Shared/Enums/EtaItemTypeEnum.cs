@@ -1,7 +1,7 @@
 namespace Shared.Enums;
 
-public enum EtaItemTypeEnum
+public enum EtaItemTypeEnum : byte
 {
-    GS1 = 1,
-    EGS = 2
+    EGS = 0,
+    GS1 = 1
 }

@@ -18,6 +18,7 @@ public class ProductViewModel
     public List<ProductStockViewModel> Stocks { get; set; } = new();
 
     public IEnumerable<LookupItem> Categories { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> Stores { get; set; } = new List<LookupItem>();
 }
 
 public class ProductStockViewModel

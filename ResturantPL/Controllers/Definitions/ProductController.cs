@@ -64,6 +64,7 @@ namespace ResturantPL.Controllers.Definitions
                 }
 
                 await PopulateData(model);
+                model.Stocks = model.Stocks.Where(a => a.Quantity > 0).ToList();
 
                 return View(model);
             }
@@ -135,14 +136,7 @@ namespace ResturantPL.Controllers.Definitions
         {
             model.Categories = await _lookup.ProductCategoryLookupAsync();
 
-            var stores = await _lookup.StoreLookupAsync();
-            model.Stocks = stores.Select(store => new ProductStockViewModel
-            {
-                StoreId = store.Id,
-                StoreArName = store.ArName,
-                StoreEnName = store.EnName,
-                Quantity = model.Stocks.Where(a => a.StoreId == store.Id).Select(a => a.Quantity).FirstOrDefault()
-            }).ToList();
+            model.Stores = await _lookup.StoreLookupAsync();
         }
     }
 }

@@ -32,7 +32,7 @@ public class EmployeeConfig : IEntityTypeConfiguration<Employee>
 
         builder
             .HasOne(a => a.Branch)
-            .WithMany(a => a.Employees)
+            .WithMany()
             .HasForeignKey(a => a.BranchId)
             .OnDelete(DeleteBehavior.Restrict);
 
@@ -67,6 +67,7 @@ public class EmployeeConfig : IEntityTypeConfiguration<Employee>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Ignore(a => a.HasLoginAccount);
+        builder.Ignore(a => a.Image);
         builder.Ignore(a => a.PhoneNumbers);
         builder.Ignore(a => a.ExistingDocumentUrls);
     }

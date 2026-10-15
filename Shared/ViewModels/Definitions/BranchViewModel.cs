@@ -11,7 +11,6 @@ public class BranchViewModel
     public string Phone1 { get; set; }
     public string Phone2 { get; set; }
     public string Mobile1 { get; set; }
-    public string Mobile2 { get; set; }
     public int? CompanyId { get; set; }
     public IEnumerable<LookupItem> Companies { get; set; } = new List<LookupItem>();
     public int? CurrencyId { get; set; }

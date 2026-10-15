@@ -30,7 +30,7 @@ public class AccountDefinitionViewModel
     public DateTime? BuyDate { get; set; }
     public DateTime? StartUsingDate { get; set; }
     public int? ProductAge { get; set; }
-    public DepreciationType DepreciationType { get; set; } = DepreciationType.None;
+    public DepreciationType DepreciationType { get; set; } = DepreciationType.FixedInstallment;
     public decimal? ScrapValue { get; set; }
     public int? DepreciationAccountId { get; set; }
     public int? DepreciationExpensesAccountId { get; set; }

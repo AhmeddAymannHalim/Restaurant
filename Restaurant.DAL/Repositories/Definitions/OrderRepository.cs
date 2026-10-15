@@ -21,7 +21,7 @@ public class OrderRepository : IOrderRepository
 
     public async Task<ShiftDashboardViewModel> GetShiftDashboardAsync(string userId)
     {
-        var open = await _context.PosBills.AsNoTracking()
+        var open = await _context.Orders.AsNoTracking()
             .Where(a => !a.FinishShift)
             .Select(a => new
             {
@@ -103,9 +103,9 @@ public class OrderRepository : IOrderRepository
         };
     }
 
-    public async Task<PaginatedResult<PosBill>> GetPagedOrdersAsync(PageRequest request, string userId)
+    public async Task<PaginatedResult<Order>> GetPagedOrdersAsync(PageRequest request, string userId)
     {
-        var query = _context.PosBills.AsNoTracking()
+        var query = _context.Orders.AsNoTracking()
             .Include(a => a.Bill)
             .Include(a => a.Seller)
             .Include(a => a.Receiver)
@@ -150,12 +150,12 @@ public class OrderRepository : IOrderRepository
             .Take(request.PageSize)
             .ToListAsync();
 
-        return PaginatedResult<PosBill>.Create(data, total, request);
+        return PaginatedResult<Order>.Create(data, total, request);
     }
 
-    public async Task<PosBill> GetOrderByIdAsync(int id)
+    public async Task<Order> GetOrderByIdAsync(int id)
     {
-        return await _context.PosBills.AsNoTracking()
+        return await _context.Orders.AsNoTracking()
             .Include(a => a.Bill)
             .Include(a => a.Seller)
             .Include(a => a.Receiver)
@@ -169,18 +169,12 @@ public class OrderRepository : IOrderRepository
 
     public async Task<string> GetNextCodeAsync()
     {
-        var recent = await _context.PosBills.AsNoTracking()
-            .OrderByDescending(a => a.Id)
-            .Select(a => a.OrderCode)
-            .Take(50)
-            .ToListAsync();
+        var setting = await OrderLedger.GetSettingAsync(_context);
 
-        var last = recent.Where(a => int.TryParse(a, out _)).Select(int.Parse).DefaultIfEmpty(0).Max();
-
-        return (last + 1).ToString();
+        return await BillSupport.NextBillCodeAsync(_context, setting.Id);
     }
 
-    public async Task<IEnumerable<MenuItem>> GetPosMenuAsync()
+    public async Task<IEnumerable<MenuItem>> GetCashierMenuAsync()
     {
         return await _context.MenuItems.AsNoTracking()
             .Include(a => a.MenuSection)
@@ -204,7 +198,7 @@ public class OrderRepository : IOrderRepository
             .ToListAsync();
     }
 
-    public async Task<ResultMessage> CreateOrderAsync(PosBill order, int? onlineOrderId, string userId)
+    public async Task<ResultMessage> CreateOrderAsync(Order order, int? onlineOrderId, string userId)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -251,7 +245,7 @@ public class OrderRepository : IOrderRepository
             }
 
             Table table = null;
-            PosBill mergeInto = null;
+            Order mergeInto = null;
             var cash = order.Cash || order.OnAccount;
             switch (order.Type)
             {
@@ -313,13 +307,13 @@ public class OrderRepository : IOrderRepository
                     break;
             }
 
-            var posSetting = await PosBillLedger.GetSettingAsync(_context);
-            var itemIds = await PosBillLedger.GetItemIdsAsync(_context, menu);
+            var posSetting = await OrderLedger.GetSettingAsync(_context);
+            var itemIds = await OrderLedger.GetItemIdsAsync(_context, menu);
 
             var lines = wanted.Select((w, index) =>
             {
                 var dish = menu.First(a => a.Id == w.MenuItemId);
-                return new PosBillLine
+                return new OrderMenuItem
                 {
                     MenuItemId = dish.Id,
                     BillDetail = new BillDetail
@@ -347,7 +341,7 @@ public class OrderRepository : IOrderRepository
                     var used = line.Quantity * component.Quantity;
                     needs[key] = needs.GetValueOrDefault(key) + used;
 
-                    line.Ingredients.Add(new PosBillIngredient
+                    line.Ingredients.Add(new OrderIngredient
                     {
                         StoreId = dish.StoreId,
                         ProductId = component.ProductId,
@@ -456,13 +450,13 @@ public class OrderRepository : IOrderRepository
                 CustomerOrSupplierAccountId = customer?.AccountId,
                 EmployeeId = order.EmployeeId,
                 StoreId = lines.Select(a => a.BillDetail.StoreId).FirstOrDefault(),
-                IsStorageEffected = false,
+                IsStorageEffected = true,
                 CreatedAt = now,
                 BillDetails = lines.Select(a => a.BillDetail).ToList()
             };
             bill.BillDailyNo = await _context.BillMasters.CountAsync(a => a.BillSettingId == posSetting.Id && a.Date.Date == now.Date) + 1;
 
-            var entity = new PosBill
+            var entity = new Order
             {
                 Bill = bill,
                 OrderCode = code,
@@ -519,13 +513,12 @@ public class OrderRepository : IOrderRepository
             }
             await _context.StoreProductMovements.AddRangeAsync(movements);
 
-            await _context.PosBills.AddAsync(entity);
+            await _context.Orders.AddAsync(entity);
             await _context.SaveChangesAsync();
 
             if (entity.Cash)
             {
-                await PosBillLedger.PostEntryAsync(_context, entity);
-                await _context.SaveChangesAsync();
+                await PostEntryIfAutomaticAsync(entity);
             }
 
             await transaction.CommitAsync();
@@ -540,7 +533,7 @@ public class OrderRepository : IOrderRepository
         {
             return Fail("ConcurrentUpdate");
         }
-        catch (DbUpdateException ex) when (ex.InnerException != null && ex.InnerException.Message.Contains("IX_PosBills_OrderCode"))
+        catch (DbUpdateException ex) when (ex.InnerException != null && ex.InnerException.Message.Contains("IX_Orders_OrderCode"))
         {
             return Fail("ConcurrentUpdate");
         }
@@ -578,8 +571,7 @@ public class OrderRepository : IOrderRepository
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
             await _context.SaveChangesAsync();
-            await PosBillLedger.PostEntryAsync(_context, order);
-            await _context.SaveChangesAsync();
+            await PostEntryIfAutomaticAsync(order);
             await transaction.CommitAsync();
 
             return new ResultMessage
@@ -598,13 +590,13 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
-            var line = await _context.PosBillLines.Include(a => a.BillDetail).FirstOrDefaultAsync(a => a.Id == orderMenuItemId);
+            var line = await _context.OrderMenuItems.Include(a => a.BillDetail).FirstOrDefaultAsync(a => a.Id == orderMenuItemId);
             if (line is null)
             {
                 return Fail("RecordNotFound");
             }
 
-            var from = await LoadUnpaidHallOrderAsync(line.PosBillId);
+            var from = await LoadUnpaidHallOrderAsync(line.OrderId);
             var to = await BillsWithLines()
                 .FirstOrDefaultAsync(a => a.TableId == targetTableId && !a.Cash && a.Type == OrderType.Hall);
             if (from is null || to is null || from.Id == to.Id)
@@ -618,7 +610,7 @@ public class OrderRepository : IOrderRepository
             line.BillDetail.BillMasterId = to.Id;
             _context.ChangeTracker.DetectChanges();
 
-            if (!from.Lines.Any(a => a.PosBillId == from.Id))
+            if (!from.Lines.Any(a => a.OrderId == from.Id))
             {
                 await FreeTableAsync(from);
                 await RemoveBillAsync(from);
@@ -682,7 +674,7 @@ public class OrderRepository : IOrderRepository
 
         try
         {
-            var order = await _context.PosBills
+            var order = await _context.Orders
                 .Include(a => a.Bill).ThenInclude(a => a.BillDetails)
                 .Include(a => a.Lines).ThenInclude(a => a.BillDetail)
                 .Include(a => a.Lines).ThenInclude(a => a.Ingredients)
@@ -753,9 +745,9 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task<IEnumerable<PosBill>> GetIncompleteCashOrdersAsync(string userId)
+    public async Task<IEnumerable<Order>> GetIncompleteCashOrdersAsync(string userId)
     {
-        return await _context.PosBills.AsNoTracking()
+        return await _context.Orders.AsNoTracking()
             .Include(a => a.Bill)
             .Include(a => a.Table)
             .Where(a => a.Cash && !a.FinishShift && a.ReceiverId == userId && !a.Complete)
@@ -772,10 +764,10 @@ public class OrderRepository : IOrderRepository
                 return Fail("CountedCashInvalid");
             }
 
-            var hadIncompleteOrders = await _context.PosBills.AnyAsync(a => a.Cash && !a.FinishShift && a.ReceiverId == userId && !a.Complete);
+            var hadIncompleteOrders = await _context.Orders.AnyAsync(a => a.Cash && !a.FinishShift && a.ReceiverId == userId && !a.Complete);
             var expectedCash = (await GetShiftDashboardAsync(userId)).MoneyInDrawer;
 
-            var orders = await _context.PosBills.Where(a => a.Cash && !a.FinishShift && a.ReceiverId == userId).ToListAsync();
+            var orders = await _context.Orders.Where(a => a.Cash && !a.FinishShift && a.ReceiverId == userId).ToListAsync();
             foreach (var order in orders)
             {
                 order.FinishShift = true;
@@ -800,9 +792,9 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task<IEnumerable<PosBill>> GetKitchenOrdersAsync()
+    public async Task<IEnumerable<Order>> GetKitchenOrdersAsync()
     {
-        return await _context.PosBills.AsNoTracking()
+        return await _context.Orders.AsNoTracking()
             .Include(a => a.Bill)
             .Include(a => a.Table)
             .Include(a => a.Lines).ThenInclude(a => a.BillDetail)
@@ -816,7 +808,7 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
-            var order = await _context.PosBills.FirstOrDefaultAsync(a => a.Id == id);
+            var order = await _context.Orders.FirstOrDefaultAsync(a => a.Id == id);
             if (order is null)
             {
                 return Fail("RecordNotFound");
@@ -915,7 +907,21 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    private static void Recalculate(PosBill order, ApplicationSetting settings)
+    // like the ERP: the sales bill setting says if the entry is written when the bill is collected;
+    // otherwise the bill waits for the Post button
+    private async Task PostEntryIfAutomaticAsync(Order order)
+    {
+        var setting = await OrderLedger.GetSettingAsync(_context);
+        if (setting.EntryGenerate == EntryGenerate.AutomaticEntryCreated)
+        {
+            await OrderLedger.PostEntryAsync(_context, order);
+            order.Bill.IsEntryPosted = true;
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    private static void Recalculate(Order order, ApplicationSetting settings)
     {
         var bill = order.Bill;
         var subTotal = order.Lines.Sum(a => a.Price);
@@ -938,34 +944,34 @@ public class OrderRepository : IOrderRepository
         bill.BillCost = Math.Abs(cost) > limit ? null : cost;
         bill.BillProfit = Math.Abs(total - cost) > limit ? null : total - cost;
         bill.PayType = order.OnAccount ? PayType.Later : PayType.Cash;
-        bill.IsEntryPosted = order.Cash;
+        bill.IsEntryPosted = false;
         bill.AmountPaided = order.Cash && !order.OnAccount ? total : 0;
         bill.CasherRemainingAmount = total - bill.AmountPaided;
         bill.UpdatedAt = DateTime.Now;
     }
 
-    private IQueryable<PosBill> BillsWithLines()
+    private IQueryable<Order> BillsWithLines()
     {
-        return _context.PosBills
+        return _context.Orders
             .Include(a => a.Bill).ThenInclude(a => a.BillDetails)
             .Include(a => a.Lines).ThenInclude(a => a.BillDetail);
     }
 
-    private async Task<PosBill> LoadUnpaidHallOrderAsync(int id)
+    private async Task<Order> LoadUnpaidHallOrderAsync(int id)
     {
         return await BillsWithLines()
             .FirstOrDefaultAsync(a => a.Id == id && !a.Cash && a.Type == OrderType.Hall);
     }
 
-    private async Task RemoveBillAsync(PosBill order)
+    private async Task RemoveBillAsync(Order order)
     {
-        await PosBillLedger.RemoveEntryAsync(_context, order.Id);
+        await OrderLedger.RemoveEntryAsync(_context, order.Id);
 
-        var own = order.Lines.Where(a => a.PosBillId == order.Id).ToList();
+        var own = order.Lines.Where(a => a.OrderId == order.Id).ToList();
         var details = own.Select(a => a.BillDetail).Where(a => a is not null).ToList();
-        _context.PosBillIngredients.RemoveRange(own.SelectMany(a => a.Ingredients));
-        _context.PosBillLines.RemoveRange(own);
-        _context.PosBills.Remove(order);
+        _context.OrderIngredients.RemoveRange(own.SelectMany(a => a.Ingredients));
+        _context.OrderMenuItems.RemoveRange(own);
+        _context.Orders.Remove(order);
         _context.BillDetails.RemoveRange(details);
         if (order.Bill is not null)
         {
@@ -973,7 +979,7 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    private async Task FreeTableAsync(PosBill order)
+    private async Task FreeTableAsync(Order order)
     {
         if (order.Type == OrderType.Hall && order.TableId.HasValue)
         {

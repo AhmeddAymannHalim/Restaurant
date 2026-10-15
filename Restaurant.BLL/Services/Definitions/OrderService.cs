@@ -50,7 +50,7 @@ public class OrderService : IOrderService
             TaxPercent = settings.OrderTax,
             DefaultService = settings.OrderService,
             Service = settings.OrderService,
-            Menu = _mapper.Map<List<PosMenuItemViewModel>>(await _unitOfWork.Orders.GetPosMenuAsync())
+            Menu = _mapper.Map<List<CashierMenuItemViewModel>>(await _unitOfWork.Orders.GetCashierMenuAsync())
         };
     }
 
@@ -85,7 +85,7 @@ public class OrderService : IOrderService
 
     public async Task<ResultMessage> CreateOrderAsync(OrderViewModel model, string userId)
     {
-        var order = new PosBill
+        var order = new Order
         {
             Type = model.Type,
             Cash = model.Cash,
@@ -99,7 +99,7 @@ public class OrderService : IOrderService
             PhoneNumber = model.PhoneNumber,
             DeliveryZoneId = model.DeliveryZoneId,
             Bill = new BillMaster { BillDiscountValue = model.Discount },
-            Lines = model.Items.Select(a => new PosBillLine
+            Lines = model.Items.Select(a => new OrderMenuItem
             {
                 MenuItemId = a.MenuItemId,
                 BillDetail = new BillDetail { Quantity = a.Quantity }

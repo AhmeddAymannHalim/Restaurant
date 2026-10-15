@@ -36,9 +36,19 @@ public class ProductVmValidator : AbstractValidator<ProductViewModel>
             .WithMessage(required);
 
         RuleForEach(x => x.Stocks)
-            .ChildRules(stock => stock.RuleFor(a => a.Quantity)
-                .GreaterThanOrEqualTo(0)
-                .WithMessage(localizer["Val.NotNegative"].Value));
+            .ChildRules(stock =>
+            {
+                stock.RuleFor(a => a.StoreId)
+                    .GreaterThan(0)
+                    .WithMessage(required);
+                stock.RuleFor(a => a.Quantity)
+                    .GreaterThanOrEqualTo(0)
+                    .WithMessage(localizer["Val.NotNegative"].Value);
+            });
+
+        RuleFor(x => x.Stocks)
+            .Must(stocks => stocks.Select(a => a.StoreId).Distinct().Count() == stocks.Count)
+            .WithMessage(localizer["Val.StoreRepeated"].Value);
 
         RuleFor(x => x.Cost)
             .GreaterThanOrEqualTo(0)

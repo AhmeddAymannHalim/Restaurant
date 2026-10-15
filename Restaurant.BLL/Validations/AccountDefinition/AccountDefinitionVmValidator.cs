@@ -84,7 +84,7 @@ public class AccountDefinitionVmValidator : AbstractValidator<AccountDefinitionV
 
             RuleFor(x => x.ProductAge)
                 .Must(age => age.HasValue && age.Value > 0)
-                .When(x => x.DepreciationType != DepreciationType.None)
+                .When(x => x.BuyValue.HasValue && x.BuyValue.Value > 0)
                 .WithMessage(localizer["Asset.AgeRequired"].Value);
 
             RuleFor(x => x.StartUsingDate)

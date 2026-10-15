@@ -2,7 +2,9 @@ namespace Shared.Enums;
 
 public enum AttendanceMethod
 {
-    Manual = 1,
-    Fingerprint = 2,
-    Mobile = 3
+    None = 0,
+    Fingerprint = 1,
+    Location = 2,
+    AppLogin = 3,
+    NonComplianceWithSchedule = 4
 }

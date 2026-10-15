@@ -9,5 +9,9 @@ public enum JournalSourceType
     ExitExpense,
     Deposit,
     Salary,
-    Scrounge
+    Scrounge,
+    CustomerOpeningBalance,
+    SupplierOpeningBalance,
+    CustomerRefund,
+    SupplierRefund
 }
