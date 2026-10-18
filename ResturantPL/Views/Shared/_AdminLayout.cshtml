@@ -204,6 +204,7 @@
                 document.title = doc.title;
                 parseValidation(current);
                 runToasts(doc);
+                document.dispatchEvent(new CustomEvent("app:content-loaded"));
 
                 if (push) {
                     history.pushState({ ajax: true }, "", response.url);

@@ -17,5 +17,11 @@ public class EmployeeFixedDeductionConfig : IEntityTypeConfiguration<EmployeeFix
             .WithMany(a => a.FixedDeductions)
             .HasForeignKey(a => a.EmployeeId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(a => a.DeductionType)
+            .WithMany()
+            .HasForeignKey(a => a.DeductionTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

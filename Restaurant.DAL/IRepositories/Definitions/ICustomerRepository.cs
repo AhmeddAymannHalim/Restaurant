@@ -11,5 +11,6 @@ public interface ICustomerRepository
     Task<Customer> GetCustomerByIdAsync(int id);
     Task<ResultMessage> UpsertCustomerAsync(Customer entity, IFormFile imageFile);
     Task<ResultMessage> DeleteCustomerAsync(int id);
+    Task<int> CountInvoicesAsync(int id);
     Task<decimal?> GetCustomerBalanceAsync(int id);
 }

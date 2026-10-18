@@ -145,6 +145,8 @@ namespace ResturantPL.Controllers.Definitions
                 return NotFound();
             }
 
+            expenses.SalaryType = _localizer["Enum.SalaryPaymentMethod." + expenses.SalaryType].Value;
+
             return Json(expenses);
         }
 

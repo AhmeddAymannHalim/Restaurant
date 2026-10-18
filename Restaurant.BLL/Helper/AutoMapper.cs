@@ -239,7 +239,9 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.EnName, opt => opt.MapFrom(src => src.Account.EnName))
             .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.DetailedAddress))
             .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber1))
-            .ForMember(dest => dest.Balance, opt => opt.MapFrom(src => src.Account.BalanceValue));
+            .ForMember(dest => dest.Balance, opt => opt.MapFrom(src => src.Account.BalanceValue))
+            .ForMember(dest => dest.Debit, opt => opt.MapFrom(src => src.Account.DebitBalance > src.Account.CreditBalance ? src.Account.DebitBalance - src.Account.CreditBalance : 0))
+            .ForMember(dest => dest.Credit, opt => opt.MapFrom(src => src.Account.CreditBalance > src.Account.DebitBalance ? src.Account.CreditBalance - src.Account.DebitBalance : 0));
         CreateMap<SupplierViewModel, Supplier>()
             .ForMember(dest => dest.GovId, opt => opt.MapFrom(src => src.GovernorateId))
             .ForMember(dest => dest.DetailedAddress, opt => opt.MapFrom(src => src.Address))
@@ -249,7 +251,8 @@ public class AutoMapper : Profile
             {
                 ArName = src.ArName,
                 EnName = src.EnName,
-                CreditBalance = src.Balance
+                CreditBalance = src.Credit,
+                DebitBalance = src.Debit
             }))
             .ForMember(dest => dest.LastBalance, opt => opt.Ignore())
             .ForMember(dest => dest.CompanyBranch, opt => opt.Ignore())
@@ -271,6 +274,8 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.DetailedAddress))
             .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber1))
             .ForMember(dest => dest.Balance, opt => opt.MapFrom(src => src.Account.BalanceValue))
+            .ForMember(dest => dest.Debit, opt => opt.MapFrom(src => src.Account.DebitBalance > src.Account.CreditBalance ? src.Account.DebitBalance - src.Account.CreditBalance : 0))
+            .ForMember(dest => dest.Credit, opt => opt.MapFrom(src => src.Account.CreditBalance > src.Account.DebitBalance ? src.Account.CreditBalance - src.Account.DebitBalance : 0))
             .ForMember(dest => dest.TownArName, opt => opt.MapFrom(src => src.Town.ArName))
             .ForMember(dest => dest.TownEnName, opt => opt.MapFrom(src => src.Town.EnName))
             .ForMember(dest => dest.GovernorateId, opt => opt.MapFrom(src => src.Town.GovernorateId))
@@ -284,7 +289,8 @@ public class AutoMapper : Profile
             {
                 ArName = src.ArName,
                 EnName = src.EnName,
-                DebitBalance = src.Balance
+                DebitBalance = src.Debit,
+                CreditBalance = src.Credit
             }))
             .ForMember(dest => dest.CompanyBranch, opt => opt.Ignore())
             .ForMember(dest => dest.SellType, opt => opt.Ignore())
@@ -340,6 +346,10 @@ public class AutoMapper : Profile
 
         CreateMap<InsuranceCompany, InsuranceCompanyViewModel>();
         CreateMap<InsuranceCompanyViewModel, InsuranceCompany>();
+        CreateMap<AllowanceType, AllowanceTypeViewModel>();
+        CreateMap<AllowanceTypeViewModel, AllowanceType>();
+        CreateMap<DeductionType, DeductionTypeViewModel>();
+        CreateMap<DeductionTypeViewModel, DeductionType>();
 
         CreateMap<LeaveType, LeaveTypeViewModel>();
         CreateMap<LeaveTypeViewModel, LeaveType>();
@@ -389,12 +399,14 @@ public class AutoMapper : Profile
         CreateMap<EmployeeAllowance, EmployeeAllowanceViewModel>();
         CreateMap<EmployeeAllowanceViewModel, EmployeeAllowance>()
             .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount ?? 0))
+            .ForMember(dest => dest.AllowanceType, opt => opt.Ignore())
             .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
             .ForMember(dest => dest.Employee, opt => opt.Ignore());
 
         CreateMap<EmployeeFixedDeduction, EmployeeFixedDeductionViewModel>();
         CreateMap<EmployeeFixedDeductionViewModel, EmployeeFixedDeduction>()
             .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount ?? 0))
+            .ForMember(dest => dest.DeductionType, opt => opt.Ignore())
             .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
             .ForMember(dest => dest.Employee, opt => opt.Ignore());
 
@@ -420,7 +432,6 @@ public class AutoMapper : Profile
                 .ToList()))
             .ForMember(dest => dest.Nationalities, opt => opt.Ignore())
             .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
-            .ForMember(dest => dest.Salary, opt => opt.MapFrom(src => src.BasicSalary ?? 0))
             .ForMember(dest => dest.ImageFile, opt => opt.Ignore())
             .ForMember(dest => dest.JobArName, opt => opt.MapFrom(src => src.Job.ArName))
             .ForMember(dest => dest.JobEnName, opt => opt.MapFrom(src => src.Job.EnName))
@@ -434,8 +445,7 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.GovernorateId, opt => opt.MapFrom(src => src.Town.GovernorateId))
             .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.Town.Governorate.CountryId))
             .ForMember(dest => dest.Branches, opt => opt.Ignore())
-            .ForMember(dest => dest.Jobs, opt => opt.Ignore())
-            .ForMember(dest => dest.SalaryTypes, opt => opt.Ignore());
+            .ForMember(dest => dest.Jobs, opt => opt.Ignore());
         CreateMap<EmployeeViewModel, Employee>()
             .ForMember(dest => dest.Phones, opt => opt.MapFrom(src => src.Phones
                 .Where(a => !string.IsNullOrWhiteSpace(a.PhoneNumber))
@@ -445,8 +455,6 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Code, opt => opt.Ignore())
             .ForMember(dest => dest.Image, opt => opt.Ignore())
             .ForMember(dest => dest.GovId, opt => opt.MapFrom(src => src.GovernorateId))
-            .ForMember(dest => dest.BasicSalary, opt => opt.MapFrom(src => (decimal?)src.Salary))
-            .ForMember(dest => dest.Salary, opt => opt.MapFrom(src => (double?)src.Salary))
             .ForMember(dest => dest.HasLoginAccount, opt => opt.Ignore())
             .ForMember(dest => dest.Branch, opt => opt.Ignore())
             .ForMember(dest => dest.Job, opt => opt.Ignore())

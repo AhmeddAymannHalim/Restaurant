@@ -24,9 +24,24 @@ public class LookupService : ILookupService
         return await _unitOfWork.Lookups.JobLookupAsync();
     }
 
-    public async Task<IEnumerable<LookupItem>> SalaryTypeLookupAsync()
+    public async Task<IEnumerable<DeductionTypeViewModel>> DeductionTypeLookupAsync()
     {
-        return await _unitOfWork.Lookups.SalaryTypeLookupAsync();
+        return await _unitOfWork.Lookups.DeductionTypeLookupAsync();
+    }
+
+    public async Task<IEnumerable<AllowanceTypeViewModel>> AllowanceTypeLookupAsync()
+    {
+        return await _unitOfWork.Lookups.AllowanceTypeLookupAsync();
+    }
+
+    public async Task<IEnumerable<LeaveTypeViewModel>> LeaveTypeLookupAsync()
+    {
+        return await _unitOfWork.Lookups.LeaveTypeLookupAsync();
+    }
+
+    public async Task<IEnumerable<InsuranceCategoryViewModel>> InsuranceCategoryLookupAsync()
+    {
+        return await _unitOfWork.Lookups.InsuranceCategoryLookupAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> EmployeeLookupAsync()

@@ -42,6 +42,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Technician> Technicians { get; set; }
     public DbSet<InsuranceCategory> InsuranceCategories { get; set; }
     public DbSet<InsuranceCompany> InsuranceCompanies { get; set; }
+    public DbSet<AllowanceType> AllowanceTypes { get; set; }
+    public DbSet<DeductionType> DeductionTypes { get; set; }
     public DbSet<EmployeePhone> EmployeePhones { get; set; }
     public DbSet<CustomerPhone> CustomerPhones { get; set; }
     public DbSet<SupplierPhone> SupplierPhones { get; set; }

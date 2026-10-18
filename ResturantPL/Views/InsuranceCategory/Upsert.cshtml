@@ -23,6 +23,26 @@
                 <input asp-for="EnName" class="form-control" />
                 <span asp-validation-for="EnName" class="text-danger"></span>
             </div>
+            <div class="form-group">
+                <label asp-for="BasicWage" class="control-label">@L["InsuranceCategory.BasicWage"]</label>
+                <input asp-for="BasicWage" type="number" step="0.01" min="0" class="form-control" />
+                <span asp-validation-for="BasicWage" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AllowancesAmount" class="control-label">@L["InsuranceCategory.AllowancesAmount"]</label>
+                <input asp-for="AllowancesAmount" type="number" step="0.01" min="0" class="form-control" />
+                <span asp-validation-for="AllowancesAmount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EmployeePercent" class="control-label">@L["InsuranceCategory.EmployeePercent"]</label>
+                <input asp-for="EmployeePercent" type="number" step="0.01" min="0" class="form-control" />
+                <span asp-validation-for="EmployeePercent" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CompanyPercent" class="control-label">@L["InsuranceCategory.CompanyPercent"]</label>
+                <input asp-for="CompanyPercent" type="number" step="0.01" min="0" class="form-control" />
+                <span asp-validation-for="CompanyPercent" class="text-danger"></span>
+            </div>
 
             <div class="ad-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>

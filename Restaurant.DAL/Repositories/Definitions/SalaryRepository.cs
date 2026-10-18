@@ -83,7 +83,7 @@ public class SalaryRepository : ISalaryRepository
             Discounts = await scrounges.Where(a => a.State == MoneyState.Discount).SumAsync(a => (decimal?)a.Amount) ?? 0,
             Depts = await scrounges.Where(a => a.State == MoneyState.Dept).SumAsync(a => (decimal?)a.Amount) ?? 0,
             MainSalary = employee.BasicSalary ?? 0,
-            SalaryType = employee.SalaryType?.ArName()
+            SalaryType = employee.PaymentMethod.ToString()
         };
         model.TotalSalary = model.MainSalary + model.Incentives - model.Discounts - model.Depts;
 

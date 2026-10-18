@@ -29,7 +29,8 @@
             <th>@L["Name"]</th>
             <th>@L["Address"]</th>
             <th>@L["Phone"]</th>
-            <th>@L["Balance"]</th>
+            <th>@L["Debit"]</th>
+            <th>@L["Credit"]</th>
             <th></th>
         </tr>
     </thead>
@@ -44,7 +45,8 @@
                     <td>@(isArabic ? item.ArName : item.EnName)</td>
                     <td>@item.Address</td>
                     <td>@item.PhoneNumber</td>
-                    <td>@item.Balance</td>
+                    <td class="num">@(item.Debit == 0 ? "-" : item.Debit.ToString("N2"))</td>
+                    <td class="num">@(item.Credit == 0 ? "-" : item.Credit.ToString("N2"))</td>
                     <td class="ad-row-actions">
                         <a asp-action="Upsert" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Edit"]" aria-label="@L["Edit"]"><i class="fas fa-pen" aria-hidden="true"></i></a>
                         <button type="button" onclick="Delete('/Supplier/Delete/@item.Id')" class="btn-ad btn-ad-danger btn-icon" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button>
@@ -56,7 +58,7 @@
         else
         {
             <tr>
-                <td colspan="6" class="ad-empty">@L["NoData"]</td>
+                <td colspan="7" class="ad-empty">@L["NoData"]</td>
             </tr>
         }
     </tbody>

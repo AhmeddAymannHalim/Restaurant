@@ -37,6 +37,8 @@ namespace Restaurant.DAL.UnitOfWork
         public ICompanyRepository Companies { get; set; }
         public ILeaveTypeRepository LeaveTypes { get; set; }
         public IInsuranceCompanyRepository InsuranceCompanies { get; set; }
+        public IAllowanceTypeRepository AllowanceTypes { get; set; }
+        public IDeductionTypeRepository DeductionTypes { get; set; }
         public IInsuranceCategoryRepository InsuranceCategories { get; set; }
         public IJobTypeRepository JobTypes { get; set; }
         public IDepartmentRepository Departments { get; set; }

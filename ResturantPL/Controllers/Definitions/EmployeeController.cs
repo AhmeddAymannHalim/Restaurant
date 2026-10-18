@@ -142,13 +142,14 @@ namespace ResturantPL.Controllers.Definitions
             model.ContractTypes = await _lookup.NamedLookupAsync<ContractType>();
             model.Specializations = await _lookup.NamedLookupAsync<Specialization>();
             model.JobTypes = await _lookup.NamedLookupAsync<JobType>();
-            model.InsuranceCategories = await _lookup.NamedLookupAsync<InsuranceCategory>();
+            model.InsuranceCategories = await _lookup.InsuranceCategoryLookupAsync();
             model.InsuranceCompanies = await _lookup.NamedLookupAsync<InsuranceCompany>();
             model.Branches = await _lookup.BranchLookupAsync();
             model.Jobs = await _lookup.JobLookupAsync();
-            model.SalaryTypes = await _lookup.SalaryTypeLookupAsync();
             model.Nationalities = await _lookup.CountryLookupAsync();
-            model.LeaveTypes = await _lookup.NamedLookupAsync<LeaveType>();
+            model.LeaveTypes = await _lookup.LeaveTypeLookupAsync();
+            model.AllowanceTypes = await _lookup.AllowanceTypeLookupAsync();
+            model.DeductionTypes = await _lookup.DeductionTypeLookupAsync();
         }
     }
 }

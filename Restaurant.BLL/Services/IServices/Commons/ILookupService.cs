@@ -7,7 +7,10 @@ public interface ILookupService
 {
     Task<IEnumerable<LookupItem>> BranchLookupAsync();
     Task<IEnumerable<LookupItem>> JobLookupAsync();
-    Task<IEnumerable<LookupItem>> SalaryTypeLookupAsync();
+    Task<IEnumerable<LeaveTypeViewModel>> LeaveTypeLookupAsync();
+    Task<IEnumerable<AllowanceTypeViewModel>> AllowanceTypeLookupAsync();
+    Task<IEnumerable<DeductionTypeViewModel>> DeductionTypeLookupAsync();
+    Task<IEnumerable<InsuranceCategoryViewModel>> InsuranceCategoryLookupAsync();
     Task<IEnumerable<LookupItem>> EmployeeLookupAsync();
     Task<IEnumerable<LookupItem>> StorekeeperLookupAsync();
     Task<IEnumerable<LookupItem>> FreeTableLookupAsync();

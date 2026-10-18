@@ -145,9 +145,13 @@ public class EmployeeRepository : IEmployeeRepository
             }
 
             (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
+            CalculatePay(entity);
+            CalculateInsurance(entity);
+            CalculateLeaveDays(entity);
 
             if (entity.Id == 0)
             {
+                await ApplyTypeValuesAsync(entity, null);
                 entity.Code = await NewEmployeeCodeAsync();
                 entity.CreatedAt = DateTime.Now;
                 entity.Phones = BuildPhones(entity);
@@ -221,6 +225,8 @@ public class EmployeeRepository : IEmployeeRepository
                 existing.Account.EnName = entity.EnName;
             }
 
+            await ApplyTypeValuesAsync(entity, existing);
+
             var phones = BuildPhones(entity);
             entity.Phones = null;
             _context.Entry(existing).CurrentValues.SetValues(entity);
@@ -249,6 +255,104 @@ public class EmployeeRepository : IEmployeeRepository
                 Success = false,
                 Message = ErrorLog.Message(ex)
             };
+        }
+    }
+
+    /* Allowance and deduction rows are never typed by hand: the chosen type decides the names and the amount.
+       A saved row keeps its stored values while its type is unchanged, so editing a type later
+       does not silently change what an employee already gets. */
+    private async Task ApplyTypeValuesAsync(Employee entity, Employee existing)
+    {
+        var allowanceTypes = await _context.AllowanceTypes.AsNoTracking().ToDictionaryAsync(a => a.Id);
+        var deductionTypes = await _context.DeductionTypes.AsNoTracking().ToDictionaryAsync(a => a.Id);
+
+        foreach (var row in entity.Allowances ?? new List<EmployeeAllowance>())
+        {
+            var old = row.Id == 0 ? null : existing?.Allowances.FirstOrDefault(a => a.Id == row.Id);
+
+            if (old != null && old.AllowanceTypeId == row.AllowanceTypeId)
+            {
+                row.ArName = old.ArName;
+                row.EnName = old.EnName;
+                row.Amount = old.Amount;
+            }
+            else if (row.AllowanceTypeId.HasValue && allowanceTypes.TryGetValue(row.AllowanceTypeId.Value, out var type))
+            {
+                row.ArName = type.ArName;
+                row.EnName = type.EnName;
+                row.Amount = type.Amount ?? 0;
+            }
+            else
+            {
+                row.AllowanceTypeId = old?.AllowanceTypeId;
+                row.ArName = old?.ArName;
+                row.EnName = old?.EnName;
+                row.Amount = old?.Amount ?? 0;
+            }
+        }
+
+        foreach (var row in entity.FixedDeductions ?? new List<EmployeeFixedDeduction>())
+        {
+            var old = row.Id == 0 ? null : existing?.FixedDeductions.FirstOrDefault(a => a.Id == row.Id);
+
+            if (old != null && old.DeductionTypeId == row.DeductionTypeId)
+            {
+                row.ArName = old.ArName;
+                row.EnName = old.EnName;
+                row.Amount = old.Amount;
+            }
+            else if (row.DeductionTypeId.HasValue && deductionTypes.TryGetValue(row.DeductionTypeId.Value, out var type))
+            {
+                row.ArName = type.ArName;
+                row.EnName = type.EnName;
+                row.Amount = type.Amount ?? 0;
+            }
+            else
+            {
+                row.DeductionTypeId = old?.DeductionTypeId;
+                row.ArName = old?.ArName;
+                row.EnName = old?.EnName;
+                row.Amount = old?.Amount ?? 0;
+            }
+        }
+    }
+
+    private static void CalculatePay(Employee employee)
+    {
+        var weeksPerMonth = 52m / 12m;
+        var workDays = employee.WorkDays ?? 0;
+        var dailyHours = employee.DailyHours ?? 0;
+        var salary = employee.BasicSalary ?? 0;
+
+        employee.WeeklyHours = Math.Round(workDays * dailyHours, 2);
+        employee.MonthlyHours = Math.Round(employee.WeeklyHours.Value * weeksPerMonth, 2);
+
+        var monthlyDays = workDays * weeksPerMonth;
+        employee.DailyRate = monthlyDays > 0 ? Math.Round(salary / monthlyDays, 2) : null;
+        employee.HourlyRate = employee.DailyRate.HasValue && dailyHours > 0 ? Math.Round(employee.DailyRate.Value / dailyHours, 2) : null;
+        employee.MinuteRate = employee.HourlyRate.HasValue ? Math.Round(employee.HourlyRate.Value / 60m, 4) : null;
+    }
+
+    private static void CalculateInsurance(Employee employee)
+    {
+        var wage = (employee.InsuranceBasicSalary ?? 0) + (employee.InsuranceAllowancesAmount ?? 0);
+
+        employee.EmployeeInsuranceAmount = employee.EmployeeInsurancePercent.HasValue
+            ? Math.Round(wage * employee.EmployeeInsurancePercent.Value / 100m, 2)
+            : null;
+        employee.CompanyInsuranceAmount = employee.CompanyInsurancePercent.HasValue
+            ? Math.Round(wage * employee.CompanyInsurancePercent.Value / 100m, 2)
+            : null;
+    }
+
+    private static void CalculateLeaveDays(Employee employee)
+    {
+        foreach (var leave in employee.Leaves ?? new List<EmployeeLeave>())
+        {
+            if (leave.FromDate != default && leave.ToDate >= leave.FromDate)
+            {
+                leave.Days = (leave.ToDate.Date - leave.FromDate.Date).Days + 1;
+            }
         }
     }
 

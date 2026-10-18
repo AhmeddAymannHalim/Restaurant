@@ -17,5 +17,11 @@ public class EmployeeAllowanceConfig : IEntityTypeConfiguration<EmployeeAllowanc
             .WithMany(a => a.Allowances)
             .HasForeignKey(a => a.EmployeeId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(a => a.AllowanceType)
+            .WithMany()
+            .HasForeignKey(a => a.AllowanceTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

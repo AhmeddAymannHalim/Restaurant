@@ -26,6 +26,7 @@
                 <option value="PUR" selected="@(Model.Type == "PUR")">@L["Purchases"]</option>
                 <option value="PRET" selected="@(Model.Type == "PRET")">@L["Returns"]</option>
             </select>
+            <label class="ad-check"><input type="checkbox" name="unpaidOnly" value="true" checked="@Model.UnpaidOnly" /> @L["UnpaidInvoices"]</label>
             <input type="date" name="fromDate" class="form-control w-auto" value="@Model.FromDate?.ToString("yyyy-MM-dd")" aria-label="@L["From"]" title="@L["From"]" />
             <input type="date" name="toDate" class="form-control w-auto" value="@Model.ToDate?.ToString("yyyy-MM-dd")" aria-label="@L["To"]" title="@L["To"]" />
             <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-magnifying-glass" aria-hidden="true"></i> @L["Search"]</button>

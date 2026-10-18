@@ -46,6 +46,7 @@ public static class EmployeeChildren
 
         SyncRows(context, existing.Allowances, incoming.Allowances, a => !IsBlank(a), (source, target) =>
         {
+            target.AllowanceTypeId = source.AllowanceTypeId;
             target.ArName = source.ArName;
             target.EnName = source.EnName;
             target.Amount = source.Amount;
@@ -53,6 +54,7 @@ public static class EmployeeChildren
 
         SyncRows(context, existing.FixedDeductions, incoming.FixedDeductions, a => !IsBlank(a), (source, target) =>
         {
+            target.DeductionTypeId = source.DeductionTypeId;
             target.ArName = source.ArName;
             target.EnName = source.EnName;
             target.Amount = source.Amount;

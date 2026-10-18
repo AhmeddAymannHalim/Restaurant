@@ -11,8 +11,6 @@ public class Employee : BaseEntity
     public string Address { get; set; }
     public string PhoneNumber { get; set; }
     public string IDNumber { get; set; }
-    public double? Salary { get; set; }
-    public SalaryType? SalaryType { get; set; }
     public string Religion { get; set; }
     public int? NationalityId { get; set; }
     public int? CountryId { get; set; }
@@ -91,8 +89,6 @@ public class Employee : BaseEntity
     public virtual CompanyBranch Branch { get; set; }
     public virtual Department Department { get; set; }
 
-    public string Administration { get; set; }
-
     public DateTime? HireDate { get; set; }
     public DateTime? ContractDate { get; set; }
     public DateTime? ContractEndDate { get; set; }
@@ -119,8 +115,6 @@ public class Employee : BaseEntity
     public string InsuranceCardNumber { get; set; }
     public DateTime? IssueDate { get; set; }
     public DateTime? ExpiryDate { get; set; }
-    public decimal? InsuranceAmount { get; set; }
-    public decimal? InsurancePercent { get; set; }
     public string Notes { get; set; }
 
     public bool OverrideDelayRule { get; set; }
