@@ -191,13 +191,27 @@ public class BillRepository : IBillRepository
             }
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
-            await OrderLedger.PostEntryAsync(_context, pos);
-            pos.Bill.IsEntryPosted = true;
-            pos.Bill.UpdatedAt = DateTime.Now;
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
+            try
+            {
+                if (await _context.EntryMasters.AnyAsync(a => a.BillId == id))
+                {
+                    await transaction.RollbackAsync();
+                    return Fail("BillAlreadyPosted");
+                }
 
-            return new ResultMessage { Success = true };
+                await OrderLedger.PostEntryAsync(_context, pos);
+                pos.Bill.IsEntryPosted = true;
+                pos.Bill.UpdatedAt = DateTime.Now;
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return new ResultMessage { Success = true };
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
         catch (Exception ex)
         {

@@ -171,13 +171,27 @@ namespace ResturantPL.Controllers.Definitions
         [HttpGet]
         public async Task<IActionResult> SupplierBalance(int supplierId)
         {
-            return Json(await _invoices.GetSupplierBalanceAsync(supplierId));
+            try
+            {
+                return Json(await _invoices.GetSupplierBalanceAsync(supplierId));
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, errorMessage = _localizer["SomethingWentError"].Value });
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> CustomerBalance(int customerId)
         {
-            return Json(await _invoices.GetCustomerBalanceAsync(customerId));
+            try
+            {
+                return Json(await _invoices.GetCustomerBalanceAsync(customerId));
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, errorMessage = _localizer["SomethingWentError"].Value });
+            }
         }
 
         [HttpPost]

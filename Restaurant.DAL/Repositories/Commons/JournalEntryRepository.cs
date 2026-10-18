@@ -137,6 +137,9 @@ public class JournalEntryRepository : IJournalEntryRepository
             return Fail("JournalNotBalanced");
         }
 
+        // Invoice entries are persisted by InvoiceRepository.AddEntryAsync (different shape: linked to BillId),
+        // so for Invoice we only validate the lines here (balance check above) and intentionally return
+        // without saving an EntryMaster — do not "fix" this into saving, it would duplicate the invoice's entry.
         if (sourceType == JournalSourceType.Invoice || !EntryTypes.TryGetValue(sourceType, out var type))
         {
             return new ResultMessage { Success = true };
