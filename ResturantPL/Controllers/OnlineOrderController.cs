@@ -35,16 +35,9 @@ namespace ResturantPL.Controllers
 
         private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        public async Task<IActionResult> Menu()
+        public IActionResult Menu()
         {
-            try
-            {
-                return View(await _service.GetMenuAsync());
-            }
-            catch (Exception ex)
-            {
-                return ErrorHandler.ErrorView(ex);
-            }
+            return RedirectToAction("Index", "Home", null, "menu");
         }
 
         public IActionResult Basket()
