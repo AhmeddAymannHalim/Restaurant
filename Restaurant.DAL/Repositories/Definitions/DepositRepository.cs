@@ -101,8 +101,8 @@ public class DepositRepository : IDepositRepository
                 $"Deposit {entity.ProcessCode}",
                 new[]
                 {
-                    new JournalLineRequest(AccountCodes.Cash, entity.Amount, 0),
-                    new JournalLineRequest(AccountCodes.Deposits, 0, entity.Amount)
+                    new JournalLineRequest(AccountCodeRepository.Cash, entity.Amount, 0),
+                    new JournalLineRequest(AccountCodeRepository.Deposits, 0, entity.Amount)
                 });
             if (!posting.Success)
             {

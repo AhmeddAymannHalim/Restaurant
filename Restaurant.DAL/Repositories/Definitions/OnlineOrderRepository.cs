@@ -11,16 +11,19 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class OnlineOrderRepository : IOnlineOrderRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IAccountProvisionRepository _accountProvision;
 
     public OnlineOrderRepository(ApplicationDbContext context)
     {
         _context = context;
+        _accountProvision = new AccountProvisionRepository(context);
     }
 
     public async Task<IEnumerable<MenuItem>> GetMenuAsync()
     {
         return await _context.MenuItems.AsNoTracking()
             .Include(a => a.MenuSection)
+            .Include(a => a.Components).ThenInclude(a => a.Product)
             .Where(a => a.ShowOnWebsite)
             .OrderBy(a => a.MenuSection.ArName)
             .ThenBy(a => a.ArName)
@@ -155,12 +158,10 @@ public class OnlineOrderRepository : IOnlineOrderRepository
                     uniqueName = uniqueName[..100];
                 }
 
-                var newCustomerAccount = await AccountProvisioner.CreateAsync(
-                    _context,
-                    uniqueName,
+                var newCustomerAccount = await _accountProvision.CreateAsync(uniqueName,
                     uniqueName,
                     AccountType.Customer,
-                    AccountCodes.AccountsReceivable);
+                    AccountCodeRepository.AccountsReceivable);
 
                 await _context.Customers.AddAsync(new Customer
                 {

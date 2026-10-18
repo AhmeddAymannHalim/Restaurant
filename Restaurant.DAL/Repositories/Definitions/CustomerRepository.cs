@@ -16,10 +16,16 @@ public class CustomerRepository : ICustomerRepository
     private const string ImagesFolder = "Customer Images";
 
     private readonly ApplicationDbContext _context;
+    private readonly IAccountProvisionRepository _accountProvision;
+    private readonly IPhoneRepository _phones;
+    private readonly ILocationRepository _location;
 
     public CustomerRepository(ApplicationDbContext context)
     {
         _context = context;
+        _accountProvision = new AccountProvisionRepository(context);
+        _phones = new PhoneRepository(context);
+        _location = new LocationRepository(context);
     }
 
     public async Task<PaginatedResult<Customer>> GetPagedCustomersAsync(PageRequest request)
@@ -87,29 +93,29 @@ public class CustomerRepository : ICustomerRepository
             }
 
             entity.Account = null;
-            var phones = PhoneRows.Clean(entity.PhoneNumber1, entity.Phones);
+            var phones = _phones.CleanNumbers(entity.PhoneNumber1, entity.Phones);
             entity.Phones = new List<CustomerPhone>();
             entity.PhoneNumber2 = phones.ElementAtOrDefault(0);
-            (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
+            var location = await _location.ResolveAsync(entity.TownId);
+            entity.GovId = location.GovId;
+            entity.CountryId = location.CountryId;
             string replacedImage = null;
             Account openingAccount = null;
             decimal openingDelta = 0;
 
             if (entity.Id == 0)
             {
-                entity.Account = await AccountProvisioner.CreateAsync(
-                    _context,
-                    form.ArName,
+                entity.Account = await _accountProvision.CreateAsync(form.ArName,
                     form.EnName,
                     AccountType.Customer,
-                    AccountCodes.AccountsReceivable,
+                    AccountCodeRepository.AccountsReceivable,
                     form.DebitBalance - form.CreditBalance);
                 openingAccount = entity.Account;
                 openingDelta = form.DebitBalance - form.CreditBalance;
                 entity.CreatedAt = DateTime.Now;
                 entity.ImageUrl = imageFile is null ? null : DocumentSetting.UploadFile(imageFile, ImagesFolder);
 
-                PhoneRows.Sync(_context, entity.Phones, phones);
+                _phones.SyncCustomerPhones(entity.Phones, phones);
                 await _context.Customers.AddAsync(entity);
             }
             else
@@ -141,7 +147,7 @@ public class CustomerRepository : ICustomerRepository
                 openingDelta = (form.DebitBalance - form.CreditBalance) - (existing.Account.DebitBalance - existing.Account.CreditBalance);
                 existing.Account.Adjust(openingDelta);
                 _context.Entry(existing).CurrentValues.SetValues(entity);
-                PhoneRows.Sync(_context, existing.Phones, phones);
+                _phones.SyncCustomerPhones(existing.Phones, phones);
             }
 
             await _context.SaveChangesAsync();

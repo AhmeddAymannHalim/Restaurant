@@ -1,0 +1,26 @@
+<div class="dd" id="dishDetail" data-currency="@L["Currency"]" hidden>
+    <div class="dd-scrim" data-dd-close></div>
+    <article class="dd-panel" role="dialog" aria-modal="true" aria-label="@L["Details"]">
+        <button type="button" class="dd-close" data-dd-close aria-label="@L["Close"]"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        <div class="dd-image" data-dd-image></div>
+        <div class="dd-body">
+            <h2 class="dd-name" data-dd-name></h2>
+            <p class="dd-price" data-dd-price></p>
+            <p class="dd-text" data-dd-text></p>
+
+            <div class="dd-block" data-dd-made hidden>
+                <h3>@L["MadeOf"]</h3>
+                <ul class="dd-made" data-dd-made-list></ul>
+            </div>
+
+            <div class="dd-block" data-dd-sizes-box hidden>
+                <h3>@L["Size"]</h3>
+                <div class="dd-sizes" data-dd-sizes></div>
+            </div>
+
+            <button type="button" class="ff-btn dd-add" data-dd-add data-cart-add="">
+                <i class="bi bi-bag-plus" aria-hidden="true"></i> @L["AddToBasket"]
+            </button>
+        </div>
+    </article>
+</div>

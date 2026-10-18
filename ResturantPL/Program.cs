@@ -148,6 +148,7 @@ services.AddScoped<IGalleryService, GalleryService>();
 services.AddScoped<IBranchService, BranchService>();
 services.AddScoped<IJobService, JobService>();
 services.AddScoped<ITableService, TableService>();
+services.AddScoped<ITableReservationService, TableReservationService>();
 services.AddScoped<IUnitPriceService, UnitPriceService>();
 services.AddScoped<IProductCategoryService, ProductCategoryService>();
 services.AddScoped<IMenuSectionService, MenuSectionService>();
@@ -239,7 +240,8 @@ using (var scope = app.Services.CreateScope())
             scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
             scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>(),
             configuration.GetValue("Database:SeedDefaultUsers", true),
-            configuration["Database:DefaultPassword"] ?? (app.Environment.IsDevelopment() ? "@Qwe12" : null));
+            configuration["Database:DefaultPassword"] ?? (app.Environment.IsDevelopment() ? "@Qwe12" : null),
+            configuration.GetValue("Database:SeedOpeningStock", app.Environment.IsDevelopment()));
     }
 }
 

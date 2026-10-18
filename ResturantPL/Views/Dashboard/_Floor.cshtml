@@ -1,0 +1,75 @@
+@model DashboardViewModel
+
+<section class="floor">
+    <div class="floor-main">
+        <header class="floor-head">
+            <h2><i class="fas fa-chair" aria-hidden="true"></i> @L["Dash.Floor"]</h2>
+            <ul class="floor-legend">
+                <li class="is-Free"><i aria-hidden="true"></i>@L["Dash.Free"] <b data-count="Free"></b></li>
+                <li class="is-Reserved"><i aria-hidden="true"></i>@L["Dash.Reserved"] <b data-count="Reserved"></b></li>
+                <li class="is-Occupied"><i aria-hidden="true"></i>@L["Dash.Occupied"] <b data-count="Occupied"></b></li>
+            </ul>
+        </header>
+
+        <div class="floor-grid">
+            @foreach (var table in Model.Tables)
+            {
+                <article class="floor-table is-@table.State">
+                    <header>
+                        <strong><span class="lang-ar">@table.ArName</span><span class="lang-en">@table.EnName</span></strong>
+                        <span title="@L["Reservation.Seats"]"><i class="fas fa-user" aria-hidden="true"></i> @table.Seats</span>
+                    </header>
+
+                    <div class="when-Free">
+                        <p class="floor-who">@L["Dash.Free"]</p>
+                        <a class="btn-ad btn-ad-ghost" asp-controller="Order" asp-action="Upsert" asp-route-tableId="@table.Id"><i class="fas fa-plus" aria-hidden="true"></i> @L["NewOrder"]</a>
+                    </div>
+
+                    <div class="when-Reserved">
+                        <p class="floor-who"><i class="fas fa-calendar-check" aria-hidden="true"></i> @table.CustomerName</p>
+                        <p class="floor-when"><b dir="ltr">@table.ReservedAt?.ToString("HH:mm")</b> <span>@table.Guests @L["Reservation.Guests"]</span></p>
+                        <p><a href="tel:@table.PhoneNumber" dir="ltr">@table.PhoneNumber</a></p>
+                        <span class="res-chip res-@table.BookingStatus" data-status="@table.BookingStatus"></span>
+                        <button type="button" class="btn-ad btn-ad-primary res-arrive" data-id="@table.ReservationId"><i class="fas fa-door-open" aria-hidden="true"></i> @L["Dash.GuestsArrived"]</button>
+                    </div>
+
+                    <div class="when-Occupied">
+                        <p class="floor-who"><i class="fas fa-utensils" aria-hidden="true"></i> @L["Dash.Occupied"]</p>
+                        <a class="btn-ad btn-ad-ghost" asp-controller="Order" asp-action="Details" asp-route-id="@table.OrderId"><i class="fas fa-eye" aria-hidden="true"></i> @L["Dash.OpenOrder"]</a>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+
+    <aside class="floor-side">
+        <h2><i class="fas fa-calendar-check" aria-hidden="true"></i> @L["Dash.Reservations"] <b>@Model.Reservations.Count</b></h2>
+
+        @foreach (var booking in Model.Reservations)
+        {
+            <article class="ops-card res-card res-@booking.Status">
+                <header>
+                    <strong>@booking.CustomerName</strong>
+                    <span class="ops-age" dir="ltr">@booking.ReservationDate.ToString("dd/MM HH:mm")</span>
+                </header>
+                <p class="ops-where">
+                    <i class="fas fa-chair" aria-hidden="true"></i>
+                    <span class="lang-ar">@booking.TableArName</span><span class="lang-en">@booking.TableEnName</span>
+                    - @booking.GuestCount @L["Reservation.Guests"]
+                </p>
+                <p class="res-contact"><a href="tel:@booking.PhoneNumber" dir="ltr"><i class="fas fa-phone" aria-hidden="true"></i> @booking.PhoneNumber</a></p>
+                <p class="res-note-line">@booking.Notes</p>
+                <footer>
+                    <span class="res-chip res-@booking.Status" data-status="@booking.Status"></span>
+                    <span>
+                        <button type="button" class="btn-ad btn-ad-primary btn-icon res-confirm only-pending" data-id="@booking.Id" title="@L["Reservation.Confirm"]" aria-label="@L["Reservation.Confirm"]"><i class="fas fa-check" aria-hidden="true"></i></button>
+                        <button type="button" class="btn-ad btn-ad-danger btn-icon res-reject only-pending" data-id="@booking.Id" title="@L["Reservation.Reject"]" aria-label="@L["Reservation.Reject"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                        <button type="button" class="btn-ad btn-ad-ghost res-arrive" data-id="@booking.Id"><i class="fas fa-door-open" aria-hidden="true"></i> @L["Dash.GuestsArrived"]</button>
+                    </span>
+                </footer>
+            </article>
+        }
+
+        <p class="ad-empty floor-empty">@L["Dash.NoReservations"]</p>
+    </aside>
+</section>

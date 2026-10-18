@@ -11,6 +11,7 @@ public interface IOrderService
     Task<OrderViewModel> GetOrderByIdAsync(int id);
     Task<OrderViewModel> GetNewOrderAsync();
     Task<OrderViewModel> GetNewOrderFromOnlineAsync(int onlineOrderId);
+    Task<OrderViewModel> GetNewOrderFromReservationAsync(int tableId, int? reservationId);
     Task<IEnumerable<LookupItem>> GetPendingTablesAsync(int exceptTableId);
 
     Task<ResultMessage> CreateOrderAsync(OrderViewModel model, string userId);

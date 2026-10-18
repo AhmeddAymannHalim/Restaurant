@@ -1,3 +1,5 @@
+using Restaurant.DAL.Repositories.Definitions;
+using Restaurant.DAL.IRepositories.Definitions;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Commons;
@@ -9,26 +11,46 @@ namespace Restaurant.DAL.Repositories.Commons;
 
 public class JournalEntryRepository : IJournalEntryRepository
 {
-    private static readonly Dictionary<JournalSourceType, (EntryType Type, string ArName, string EnName)> EntryTypes = new()
-    {
-        [JournalSourceType.CustomerPaymentVoucher] = (EntryType.CustomerPayment, "دفعات عملاء", "Customer payment"),
-        [JournalSourceType.SupplierPaymentVoucher] = (EntryType.SupplierPayment, "دفعات موردين", "Supplier payment"),
-        [JournalSourceType.ExitExpense] = (EntryType.Expenses, "مصروفات", "Expenses"),
-        [JournalSourceType.Deposit] = (EntryType.CashReceipt, "قبض نقدي", "Cash receipt"),
-        [JournalSourceType.Salary] = (EntryType.AdvancesAndEmployeeSalaries, "مرتبات", "Salaries"),
-        [JournalSourceType.Scrounge] = (EntryType.AdvancesAndEmployeeSalaries, "سلف وحوافز", "Advances and incentives"),
-        [JournalSourceType.CustomerOpeningBalance] = (EntryType.CustomerOpeningBalance, "رصيد افتتاحى للعملاء", "Opening Balance of Customers"),
-        [JournalSourceType.SupplierOpeningBalance] = (EntryType.SupplierOpeningBalance, "رصيد افتتاحى للموردين", "Opening Balance for Suppliers"),
-        [JournalSourceType.CustomerRefund] = (EntryType.CashPayment, "سند صرف نقدي", "Cash Pay Entry"),
-        [JournalSourceType.SupplierRefund] = (EntryType.CashReceipt, "سند قبض نقدي", "Cash Receipt Entry"),
-        [JournalSourceType.Manual] = (EntryType.Journal, "قيد يومي", "Journal")
-    };
-
     private readonly ApplicationDbContext _context;
+    private readonly IAccountCodeRepository _accountCodes;
+    private readonly IBillSupportRepository _billSupport;
 
     public JournalEntryRepository(ApplicationDbContext context)
     {
         _context = context;
+        _accountCodes = new AccountCodeRepository();
+        _billSupport = new BillSupportRepository(context);
+    }
+
+    private JournalEntryTypeInfo GetEntryTypeInfo(JournalSourceType sourceType)
+    {
+        switch (sourceType)
+        {
+            case JournalSourceType.CustomerPaymentVoucher:
+                return new JournalEntryTypeInfo { Type = EntryType.CustomerPayment, ArName = "دفعات عملاء", EnName = "Customer payment" };
+            case JournalSourceType.SupplierPaymentVoucher:
+                return new JournalEntryTypeInfo { Type = EntryType.SupplierPayment, ArName = "دفعات موردين", EnName = "Supplier payment" };
+            case JournalSourceType.ExitExpense:
+                return new JournalEntryTypeInfo { Type = EntryType.Expenses, ArName = "مصروفات", EnName = "Expenses" };
+            case JournalSourceType.Deposit:
+                return new JournalEntryTypeInfo { Type = EntryType.CashReceipt, ArName = "قبض نقدي", EnName = "Cash receipt" };
+            case JournalSourceType.Salary:
+                return new JournalEntryTypeInfo { Type = EntryType.AdvancesAndEmployeeSalaries, ArName = "مرتبات", EnName = "Salaries" };
+            case JournalSourceType.Scrounge:
+                return new JournalEntryTypeInfo { Type = EntryType.AdvancesAndEmployeeSalaries, ArName = "سلف وحوافز", EnName = "Advances and incentives" };
+            case JournalSourceType.CustomerOpeningBalance:
+                return new JournalEntryTypeInfo { Type = EntryType.CustomerOpeningBalance, ArName = "رصيد افتتاحى للعملاء", EnName = "Opening Balance of Customers" };
+            case JournalSourceType.SupplierOpeningBalance:
+                return new JournalEntryTypeInfo { Type = EntryType.SupplierOpeningBalance, ArName = "رصيد افتتاحى للموردين", EnName = "Opening Balance for Suppliers" };
+            case JournalSourceType.CustomerRefund:
+                return new JournalEntryTypeInfo { Type = EntryType.CashPayment, ArName = "سند صرف نقدي", EnName = "Cash Pay Entry" };
+            case JournalSourceType.SupplierRefund:
+                return new JournalEntryTypeInfo { Type = EntryType.CashReceipt, ArName = "سند قبض نقدي", EnName = "Cash Receipt Entry" };
+            case JournalSourceType.Manual:
+                return new JournalEntryTypeInfo { Type = EntryType.Journal, ArName = "قيد يومي", EnName = "Journal" };
+            default:
+                return null;
+        }
     }
 
     public async Task<string> GetNextEntryNumberAsync()
@@ -48,7 +70,7 @@ public class JournalEntryRepository : IJournalEntryRepository
     {
         var existing = await _context.Accounts.Select(a => a.Code).ToListAsync();
 
-        foreach (var definition in AccountCodes.Default)
+        foreach (var definition in _accountCodes.GetDefaultAccounts())
         {
             if (existing.Contains(definition.Code))
             {
@@ -70,11 +92,16 @@ public class JournalEntryRepository : IJournalEntryRepository
         await _context.SaveChangesAsync();
 
         var accounts = await _context.Accounts.ToListAsync();
-        foreach (var definition in AccountCodes.Default.Where(a => a.ParentCode is not null))
+        foreach (var definition in _accountCodes.GetDefaultAccounts())
         {
+            if (definition.ParentCode == null)
+            {
+                continue;
+            }
+
             var account = accounts.FirstOrDefault(a => a.Code == definition.Code);
             var parent = accounts.FirstOrDefault(a => a.Code == definition.ParentCode);
-            if (account is not null && parent is not null && account.ParentAccountId != parent.Id)
+            if (account != null && parent != null && account.ParentAccountId != parent.Id)
             {
                 account.ParentAccountId = parent.Id;
             }
@@ -102,7 +129,7 @@ public class JournalEntryRepository : IJournalEntryRepository
         var accountIsDebit = (delta >= 0) == (account.BalanceType == AccountBalanceType.Debit);
         var mainLine = mainAccountId.HasValue
             ? new JournalLineRequest(null, accountIsDebit ? 0 : amount, accountIsDebit ? amount : 0, null, mainAccountId)
-            : new JournalLineRequest(AccountCodes.Equity, accountIsDebit ? 0 : amount, accountIsDebit ? amount : 0);
+            : new JournalLineRequest(AccountCodeRepository.Equity, accountIsDebit ? 0 : amount, accountIsDebit ? amount : 0);
 
         return await PostSourceEntryAsync(sourceType, account.Id, DateTime.Today, "Opening balance " + account.Code,
             new[]
@@ -137,10 +164,8 @@ public class JournalEntryRepository : IJournalEntryRepository
             return new ResultMessage { Success = false, Message = "JournalNotBalanced" };
         }
 
-        // Invoice entries are persisted by InvoiceRepository.AddEntryAsync (different shape: linked to BillId),
-        // so for Invoice we only validate the lines here (balance check above) and intentionally return
-        // without saving an EntryMaster — do not "fix" this into saving, it would duplicate the invoice's entry.
-        if (sourceType == JournalSourceType.Invoice || !EntryTypes.TryGetValue(sourceType, out var type))
+        var type = GetEntryTypeInfo(sourceType);
+        if (sourceType == JournalSourceType.Invoice || type == null)
         {
             return new ResultMessage { Success = true };
         }
@@ -165,9 +190,9 @@ public class JournalEntryRepository : IJournalEntryRepository
 
         var accountsByCode = accounts.ToDictionary(a => a.Code, a => a);
         var accountIds = accounts.ToDictionary(a => a.Code, a => a.Id);
-        var setting = await BillSupport.GetEntrySettingAsync(_context, type.Type, type.ArName, type.EnName);
+        var setting = await _billSupport.GetEntrySettingAsync(type.Type, type.ArName, type.EnName);
         var cashId = await _context.Accounts.AsNoTracking()
-            .Where(a => a.Code == AccountCodes.Cash)
+            .Where(a => a.Code == AccountCodeRepository.Cash)
             .Select(a => (int?)a.Id)
             .FirstOrDefaultAsync();
         var number = await GetNextEntryNumberAsync();
@@ -181,7 +206,7 @@ public class JournalEntryRepository : IJournalEntryRepository
             IsPosted = true,
             EntryRemarks = description,
             CollectEntryCode = $"{sourceType}:{sourceId}",
-            AccountBoxOrBankId = cashId.HasValue && requested.Any(a => a.AccountCode == AccountCodes.Cash) ? cashId : null,
+            AccountBoxOrBankId = cashId.HasValue && requested.Any(a => a.AccountCode == AccountCodeRepository.Cash) ? cashId : null,
             EntrySetting = setting,
             CreatedAt = DateTime.Now,
             EntryDetails = requested.Select((line, index) => new EntryDetail

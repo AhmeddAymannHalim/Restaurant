@@ -11,10 +11,12 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class StoreConvertRepository : IStoreConvertRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IStockRepository _stock;
 
     public StoreConvertRepository(ApplicationDbContext context)
     {
         _context = context;
+        _stock = new StockRepository(context);
     }
 
     public async Task<PaginatedResult<StoreConvert>> GetPagedConvertsAsync(PageRequest request)
@@ -101,7 +103,7 @@ public class StoreConvertRepository : IStoreConvertRepository
             var movements = new List<StoreProductMovement>();
             foreach (var item in wanted)
             {
-                if (!await StoreStock.AdjustAsync(_context, convert.FromStoreId, item.ProductId, -item.Quantity, createIfMissing: false))
+                if (!await _stock.AdjustAsync(convert.FromStoreId, item.ProductId, -item.Quantity, createIfMissing: false))
                 {
                     return new ResultMessage
                     {
@@ -110,7 +112,7 @@ public class StoreConvertRepository : IStoreConvertRepository
                     };
                 }
 
-                await StoreStock.AdjustAsync(_context, convert.ToStoreId, item.ProductId, item.Quantity);
+                await _stock.AdjustAsync(convert.ToStoreId, item.ProductId, item.Quantity);
                 lines.Add(new StoreConvertProduct
                 {
                     ProductId = item.ProductId,
@@ -191,7 +193,7 @@ public class StoreConvertRepository : IStoreConvertRepository
 
             foreach (var line in convert.StoreConvertProducts)
             {
-                if (!await StoreStock.AdjustAsync(_context, convert.ToStoreId, line.ProductId, -line.Quantity, createIfMissing: false))
+                if (!await _stock.AdjustAsync(convert.ToStoreId, line.ProductId, -line.Quantity, createIfMissing: false))
                 {
                     return new ResultMessage
                     {
@@ -200,7 +202,7 @@ public class StoreConvertRepository : IStoreConvertRepository
                     };
                 }
 
-                await StoreStock.AdjustAsync(_context, convert.FromStoreId, line.ProductId, line.Quantity);
+                await _stock.AdjustAsync(convert.FromStoreId, line.ProductId, line.Quantity);
 
                 await _context.StoreProductMovements.AddAsync(new StoreProductMovement
                 {

@@ -68,7 +68,7 @@ namespace ResturantPL.Controllers.Definitions
             }
         }
 
-        public async Task<IActionResult> Upsert(int? onlineOrderId)
+        public async Task<IActionResult> Upsert(int? onlineOrderId, int? tableId, int? reservationId)
         {
             try
             {
@@ -77,9 +77,20 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction("Login", "Shift");
                 }
 
-                var model = onlineOrderId.HasValue
-                    ? await _service.GetNewOrderFromOnlineAsync(onlineOrderId.Value)
-                    : await _service.GetNewOrderAsync();
+                OrderViewModel model;
+                if (onlineOrderId.HasValue)
+                {
+                    model = await _service.GetNewOrderFromOnlineAsync(onlineOrderId.Value);
+                }
+                else if (tableId.HasValue)
+                {
+                    model = await _service.GetNewOrderFromReservationAsync(tableId.Value, reservationId);
+                }
+                else
+                {
+                    model = await _service.GetNewOrderAsync();
+                }
+
                 if (model == null)
                 {
                     _toastr.Error(_localizer["RecordNotFound"].Value);

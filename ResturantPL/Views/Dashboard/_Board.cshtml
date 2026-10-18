@@ -68,7 +68,15 @@
         <strong>@Model.AwaitingPaymentAmount.ToString("N2")</strong>
         <small>@Model.AwaitingPayment @L["Orders"]</small>
     </a>
+    <a class="shift-tile" id="waitingTile" data-waiting="@Model.WaitingReservations" asp-controller="TableReservation" asp-action="Index" asp-route-status="Pending">
+        <i class="fas fa-calendar-check shift-tile-icon" aria-hidden="true"></i>
+        <span>@L["Dash.WaitingReservations"]</span>
+        <strong>@Model.WaitingReservations</strong>
+        <small>@L["Reservations"]</small>
+    </a>
 </div>
+
+<partial name="_Floor" model="Model" />
 
 <div class="ops-grid">
     <section class="ops-col">

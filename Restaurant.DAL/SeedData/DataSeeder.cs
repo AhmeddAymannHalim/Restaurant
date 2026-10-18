@@ -2,6 +2,7 @@ using Restaurant.DAL.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.Models;
+using Restaurant.DAL.Repositories.Definitions;
 
 namespace Restaurant.DAL.SeedData
 {
@@ -12,7 +13,8 @@ namespace Restaurant.DAL.SeedData
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             bool seedDefaultUsers = true,
-            string defaultPassword = null)
+            string defaultPassword = null,
+            bool seedOpeningStock = false)
         {
             await SeedJobs(context);
             await SeedLocations(context);
@@ -24,6 +26,52 @@ namespace Restaurant.DAL.SeedData
             await SeedPrinterSettings(context);
             await SeedAdminRoleAndUsers(userManager, roleManager, seedDefaultUsers, defaultPassword);
             await BackfillBillMasterInitialPaidAmount(context);
+            if (seedOpeningStock)
+            {
+                await SeedOpeningStock(context);
+            }
+        }
+
+        private static async Task SeedOpeningStock(ApplicationDbContext context)
+        {
+            const decimal target = 60;
+            const decimal lowMark = 10;
+
+            var stock = new StockRepository(context);
+
+            var pairs = await context.MenuItemComponents
+                .AsNoTracking()
+                .Select(a => new { a.MenuItem.StoreId, a.ProductId })
+                .Distinct()
+                .ToListAsync();
+
+            foreach (var pair in pairs)
+            {
+                var row = await stock.FindAsync(pair.StoreId, pair.ProductId);
+                var current = row?.Quantity ?? 0;
+                if (current >= lowMark)
+                {
+                    continue;
+                }
+
+                var delta = target - current;
+                if (!await stock.AdjustAsync(pair.StoreId, pair.ProductId, delta))
+                {
+                    continue;
+                }
+
+                await context.StoreProductMovements.AddAsync(new StoreProductMovement
+                {
+                    StoreId = pair.StoreId,
+                    ProductId = pair.ProductId,
+                    QuantityDelta = delta,
+                    MovementDate = DateTime.Now,
+                    Source = Shared.Enums.StockMovementSource.OpeningBalance,
+                    ReferenceCode = "OPENING"
+                });
+            }
+
+            await context.SaveChangesAsync();
         }
 
         private static async Task BackfillBillMasterInitialPaidAmount(ApplicationDbContext context)
@@ -496,7 +544,7 @@ namespace Restaurant.DAL.SeedData
                 {
                     new ApplicationSetting
                     {
-                        Password = ShiftPassword.Hash(defaultPassword ?? Guid.NewGuid().ToString("N")),
+                        Password = new ShiftPasswordRepository().Hash(defaultPassword ?? Guid.NewGuid().ToString("N")),
                         OrderTax = 5,
                         OrderDiscount = 1,
                         OrderService = 10,

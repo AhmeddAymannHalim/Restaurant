@@ -1,0 +1,36 @@
+@model TableReservationViewModel
+@{
+    ViewData["Title"] = L["Reservation.DoneTitle"].Value;
+}
+
+<div class="ws">
+    <section class="ws-page">
+        <div class="ws-wrap">
+            <header class="ws-page-head">
+                <h1>@L["Reservation.Title"]</h1>
+            </header>
+
+            <div class="rv-done" role="status">
+                <span class="rv-done-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+                <h2>@L["Reservation.DoneTitle"]</h2>
+                <p>@L["Reservation.DoneText"]</p>
+
+                <dl class="ws-facts rv-done-facts">
+                    <dt>@L["Reservation.Name"]</dt>
+                    <dd>@Model.CustomerName</dd>
+                    <dt>@L["Reservation.Table"]</dt>
+                    <dd><span class="lang-ar">@Model.TableArName</span><span class="lang-en">@Model.TableEnName</span></dd>
+                    <dt>@L["Reservation.When2"]</dt>
+                    <dd dir="ltr">@Model.ReservationDate.ToString("yyyy-MM-dd HH:mm")</dd>
+                    <dt>@L["Reservation.Guests"]</dt>
+                    <dd>@Model.GuestCount</dd>
+                </dl>
+
+                <div class="ws-actions">
+                    <a class="ff-btn" asp-controller="OnlineOrder" asp-action="Menu">@L["ViewMenu"]</a>
+                    <a class="ff-btn rv-btn-line" asp-action="Book">@L["Reservation.Another"]</a>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

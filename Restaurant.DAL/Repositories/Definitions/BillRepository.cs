@@ -12,20 +12,24 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class BillRepository : IBillRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IOrderLedgerRepository _orderLedger;
+    private readonly IBillSupportRepository _billSupport;
 
     public BillRepository(ApplicationDbContext context)
     {
         _context = context;
+        _orderLedger = new OrderLedgerRepository(context);
+        _billSupport = new BillSupportRepository(context);
     }
 
     public async Task<PaginatedResult<BillListItemViewModel>> GetPagedBillsAsync(PageRequest request)
     {
-        var invoiceTypes = BillSupport.InvoiceBillTypes;
+        var invoiceTypes = _billSupport.GetInvoiceBillTypes();
         var query = _context.BillMasters.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.Type))
         {
-            query = query.OfKind(_context, request.Type);
+            query = _billSupport.OfKind(query, request.Type);
         }
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
@@ -153,7 +157,7 @@ public class BillRepository : IBillRepository
 
     public async Task<BillViewModel> GetBillByIdAsync(int id)
     {
-        var invoiceTypes = BillSupport.InvoiceBillTypes;
+        var invoiceTypes = _billSupport.GetInvoiceBillTypes();
         var rawBill = await _context.BillMasters.AsNoTracking()
             .Where(a => a.Id == id)
             .Select(a => new
@@ -340,7 +344,7 @@ public class BillRepository : IBillRepository
                     return new ResultMessage { Success = false, Message = "BillAlreadyPosted" };
                 }
 
-                await OrderLedger.PostEntryAsync(_context, pos);
+                await _orderLedger.PostEntryAsync(pos);
                 pos.Bill.IsEntryPosted = true;
                 pos.Bill.UpdatedAt = DateTime.Now;
                 await _context.SaveChangesAsync();

@@ -13,10 +13,18 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class OrderRepository : IOrderRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IShiftPasswordRepository _shiftPassword;
+    private readonly IOrderLedgerRepository _orderLedger;
+    private readonly IStockRepository _stock;
+    private readonly IBillSupportRepository _billSupport;
 
     public OrderRepository(ApplicationDbContext context)
     {
         _context = context;
+        _shiftPassword = new ShiftPasswordRepository();
+        _orderLedger = new OrderLedgerRepository(context);
+        _stock = new StockRepository(context);
+        _billSupport = new BillSupportRepository(context);
     }
 
     public async Task<ShiftDashboardViewModel> GetShiftDashboardAsync(string userId)
@@ -180,19 +188,89 @@ public class OrderRepository : IOrderRepository
 
     public async Task<string> GetNextCodeAsync()
     {
-        var setting = await OrderLedger.GetSettingAsync(_context);
+        var setting = await _orderLedger.GetSettingAsync();
 
-        return await BillSupport.NextBillCodeAsync(_context, setting.Id);
+        return await _billSupport.NextBillCodeAsync(setting.Id);
     }
 
     public async Task<IEnumerable<MenuItem>> GetCashierMenuAsync()
     {
-        return await _context.MenuItems.AsNoTracking()
+        var menu = await _context.MenuItems.AsNoTracking()
             .Include(a => a.MenuSection)
             .Include(a => a.Components).ThenInclude(a => a.Product)
             .OrderBy(a => a.MenuSection.ArName)
             .ThenBy(a => a.ArName)
             .ToListAsync();
+
+        var portions = await GetAvailablePortionsAsync();
+        foreach (var dish in menu)
+        {
+            if (portions.ContainsKey(dish.Id))
+            {
+                dish.AvailablePortions = portions[dish.Id];
+            }
+
+            if (dish.AvailablePortions <= 0)
+            {
+                dish.IsAvailable = false;
+            }
+        }
+
+        return menu;
+    }
+
+    public async Task<Dictionary<int, int>> GetAvailablePortionsAsync()
+    {
+        var stock = await _stock.QuantitiesAsync();
+        var menuItems = await _context.MenuItems
+            .AsNoTracking()
+            .Include(a => a.Components)
+            .Where(a => a.Components.Any())
+            .ToListAsync();
+
+        var portionsByMenuItem = new Dictionary<int, int>();
+        foreach (var menuItem in menuItems)
+        {
+            portionsByMenuItem[menuItem.Id] = CountPortions(menuItem, stock);
+        }
+
+        return portionsByMenuItem;
+    }
+
+    private void AddNeed(List<StockQuantity> needs, int storeId, int productId, decimal quantity)
+    {
+        foreach (var need in needs)
+        {
+            if (need.StoreId == storeId && need.ProductId == productId)
+            {
+                need.Quantity += quantity;
+                return;
+            }
+        }
+
+        needs.Add(new StockQuantity { StoreId = storeId, ProductId = productId, Quantity = quantity });
+    }
+
+    private int CountPortions(MenuItem menuItem, List<StockQuantity> stock)
+    {
+        var portions = int.MaxValue;
+
+        foreach (var component in menuItem.Components)
+        {
+            if (component.Quantity <= 0)
+            {
+                continue;
+            }
+
+            var inStock = _stock.FindQuantity(stock, menuItem.StoreId, component.ProductId);
+            var possible = (int)Math.Floor(inStock / component.Quantity);
+            if (possible < portions)
+            {
+                portions = possible;
+            }
+        }
+
+        return portions;
     }
 
     public async Task<ApplicationSetting> GetSettingsAsync()
@@ -320,8 +398,8 @@ public class OrderRepository : IOrderRepository
                     break;
             }
 
-            var posSetting = await OrderLedger.GetSettingAsync(_context);
-            var itemIds = await OrderLedger.GetItemIdsAsync(_context, menu);
+            var posSetting = await _orderLedger.GetSettingAsync();
+            var itemIds = await _orderLedger.GetItemIdsAsync(menu);
 
             var lines = wanted.Select((w, index) =>
             {
@@ -344,15 +422,14 @@ public class OrderRepository : IOrderRepository
                 };
             }).ToList();
 
-            var needs = new Dictionary<(int StoreId, int ProductId), decimal>();
+            var needs = new List<StockQuantity>();
             foreach (var line in lines)
             {
                 var dish = menu.First(a => a.Id == line.MenuItemId);
                 foreach (var component in dish.Components)
                 {
-                    var key = (dish.StoreId, component.ProductId);
                     var used = line.Quantity * component.Quantity;
-                    needs[key] = needs.GetValueOrDefault(key) + used;
+                    AddNeed(needs, dish.StoreId, component.ProductId, used);
 
                     line.Ingredients.Add(new OrderIngredient
                     {
@@ -366,16 +443,16 @@ public class OrderRepository : IOrderRepository
             var movements = new List<StoreProductMovement>();
             foreach (var need in needs)
             {
-                if (!await StoreStock.AdjustAsync(_context, need.Key.StoreId, need.Key.ProductId, -need.Value, createIfMissing: false))
+                if (!await _stock.AdjustAsync(need.StoreId, need.ProductId, -need.Quantity, createIfMissing: false))
                 {
                     return new ResultMessage { Success = false, Message = "InsufficientStock" };
                 }
 
                 movements.Add(new StoreProductMovement
                 {
-                    StoreId = need.Key.StoreId,
-                    ProductId = need.Key.ProductId,
-                    QuantityDelta = -need.Value,
+                    StoreId = need.StoreId,
+                    ProductId = need.ProductId,
+                    QuantityDelta = -need.Quantity,
                     Source = StockMovementSource.Order
                 });
             }
@@ -597,10 +674,10 @@ public class OrderRepository : IOrderRepository
 
             if (entity.Cash)
             {
-                var postSetting = await OrderLedger.GetSettingAsync(_context);
+                var postSetting = await _orderLedger.GetSettingAsync();
             if (postSetting.EntryGenerate == EntryGenerate.AutomaticEntryCreated)
             {
-                await OrderLedger.PostEntryAsync(_context, entity);
+                await _orderLedger.PostEntryAsync(entity);
                 entity.Bill.IsEntryPosted = true;
             }
 
@@ -699,10 +776,10 @@ public class OrderRepository : IOrderRepository
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
             await _context.SaveChangesAsync();
-            var postSetting = await OrderLedger.GetSettingAsync(_context);
+            var postSetting = await _orderLedger.GetSettingAsync();
             if (postSetting.EntryGenerate == EntryGenerate.AutomaticEntryCreated)
             {
-                await OrderLedger.PostEntryAsync(_context, order);
+                await _orderLedger.PostEntryAsync(order);
                 order.Bill.IsEntryPosted = true;
             }
 
@@ -760,7 +837,7 @@ public class OrderRepository : IOrderRepository
                     freedTable.IsPending = false;
                 }
             }
-                await OrderLedger.RemoveEntryAsync(_context, from.Id);
+                await _orderLedger.RemoveEntryAsync(from.Id);
 
             var ownLines = from.Lines.Where(a => a.OrderId == from.Id).ToList();
             var ownDetails = ownLines.Select(a => a.BillDetail).Where(a => a is not null).ToList();
@@ -926,7 +1003,7 @@ public class OrderRepository : IOrderRepository
                     freedTable.IsPending = false;
                 }
             }
-            await OrderLedger.RemoveEntryAsync(_context, from.Id);
+            await _orderLedger.RemoveEntryAsync(from.Id);
 
             var ownLines = from.Lines.Where(a => a.OrderId == from.Id).ToList();
             var ownDetails = ownLines.Select(a => a.BillDetail).Where(a => a is not null).ToList();
@@ -990,7 +1067,7 @@ public class OrderRepository : IOrderRepository
 
                 foreach (var ingredient in ingredients)
                 {
-                    var adjusted = await StoreStock.AdjustAsync(_context, ingredient.StoreId, ingredient.ProductId, ingredient.Quantity, allowNegative: true, createIfMissing: false);
+                    var adjusted = await _stock.AdjustAsync(ingredient.StoreId, ingredient.ProductId, ingredient.Quantity, allowNegative: true, createIfMissing: false);
                     if (adjusted)
                     {
                         await _context.StoreProductMovements.AddAsync(new StoreProductMovement
@@ -1022,7 +1099,7 @@ public class OrderRepository : IOrderRepository
                     freedTable.IsPending = false;
                 }
             }
-            await OrderLedger.RemoveEntryAsync(_context, order.Id);
+            await _orderLedger.RemoveEntryAsync(order.Id);
 
             var ownLines = order.Lines.Where(a => a.OrderId == order.Id).ToList();
             var ownDetails = ownLines.Select(a => a.BillDetail).Where(a => a is not null).ToList();
@@ -1132,14 +1209,14 @@ public class OrderRepository : IOrderRepository
     public async Task<bool> VerifyShiftPasswordAsync(string password)
     {
         var setting = await _context.ApplicationSettings.OrderByDescending(a => a.Id).FirstOrDefaultAsync();
-        if (setting is null || !ShiftPassword.Verify(setting.Password, password, out var needsRehash))
+        if (setting is null || !_shiftPassword.Verify(setting.Password, password, out var needsRehash))
         {
             return false;
         }
 
         if (needsRehash)
         {
-            setting.Password = ShiftPassword.Hash(password);
+            setting.Password = _shiftPassword.Hash(password);
             await _context.SaveChangesAsync();
         }
 

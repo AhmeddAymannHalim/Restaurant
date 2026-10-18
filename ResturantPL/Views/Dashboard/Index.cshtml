@@ -14,7 +14,10 @@
     </div>
 </div>
 
+<partial name="_ReservationTexts" />
+
 @section Scripts {
+    <script src="~/js/reservation-actions.js" asp-append-version="true"></script>
     <script>
         $(function () {
             var board = $('#board');
@@ -25,6 +28,11 @@
 
             function setLive(state) {
                 live.attr('data-state', state).find('b').text(state === 'off' ? offlineText : liveText);
+            }
+
+            function markWaitingTile() {
+                var tile = $('#waitingTile');
+                tile.toggleClass('shift-tile-warn', Number(tile.data('waiting')) > 0);
             }
 
             function refresh() {
@@ -43,6 +51,9 @@
                     })
                     .then(function (html) {
                         board.html(html);
+                        fillReservationStatuses();
+                        countFloorTables();
+                        markWaitingTile();
                         setLive('on');
                     })
                     .catch(function () {
@@ -68,6 +79,7 @@
 
             document.addEventListener('visibilitychange', refresh);
 
+            markWaitingTile();
             setLive('on');
 
             setInterval(refresh, 20000);

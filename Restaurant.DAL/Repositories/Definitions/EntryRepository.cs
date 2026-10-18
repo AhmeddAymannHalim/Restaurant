@@ -13,10 +13,12 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class EntryRepository : IEntryRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IBillSupportRepository _billSupport;
 
     public EntryRepository(ApplicationDbContext context)
     {
         _context = context;
+        _billSupport = new BillSupportRepository(context);
     }
 
     public async Task<PaginatedResult<EntryViewModel>> GetPagedEntriesAsync(PageRequest request)
@@ -202,7 +204,7 @@ public class EntryRepository : IEntryRepository
                     break;
             }
 
-            var setting = await BillSupport.GetEntrySettingAsync(_context, type, arName, enName);
+            var setting = await _billSupport.GetEntrySettingAsync(type, arName, enName);
             var number = await new JournalEntryRepository(_context).GetNextEntryNumberAsync();
             var total = roundedTotalDebit;
 

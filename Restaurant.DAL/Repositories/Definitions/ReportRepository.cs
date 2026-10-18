@@ -11,10 +11,12 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class ReportRepository : IReportRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IBillSupportRepository _billSupport;
 
     public ReportRepository(ApplicationDbContext context)
     {
         _context = context;
+        _billSupport = new BillSupportRepository(context);
     }
 
     public async Task<ReportViewModel> BuildAsync(ReportRequest request)
@@ -263,14 +265,14 @@ public class ReportRepository : IReportRepository
 
             case "Invoices":
             {
-                var billTypes = Helpers.BillSupport.InvoiceBillTypes;
+                var billTypes = _billSupport.GetInvoiceBillTypes();
                 var query = _context.BillMasters
                     .AsNoTracking()
                     .Where(a => billTypes.Contains(a.BillSetting.BillType) && !_context.Orders.Any(p => p.Id == a.Id) && a.Date >= from && a.Date < end);
 
                 if (Enum.TryParse<InvoiceType>(request.Type, out var invoiceType))
                 {
-                    var billType = Helpers.BillSupport.Types[invoiceType].BillType;
+                    var billType = _billSupport.GetInvoiceType(invoiceType).BillType;
                     query = query.Where(a => a.BillSetting.BillType == billType);
                 }
 
@@ -318,7 +320,7 @@ public class ReportRepository : IReportRepository
                     {
                         invoice.Code,
                         invoice.Date,
-                        Helpers.BillSupport.TypeOf(invoice.BillType),
+                        _billSupport.TypeOf(invoice.BillType),
                         invoice.Partner,
                         invoice.Store,
                         invoice.Total,

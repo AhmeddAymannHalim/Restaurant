@@ -65,6 +65,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<MenuItem> MenuItems { get; set; }
     public DbSet<MenuItemComponent> MenuItemComponents { get; set; }
     public DbSet<Table> Tables { get; set; }
+    public DbSet<TableReservation> TableReservations { get; set; }
 
     public DbSet<Store> Stores { get; set; }
     public DbSet<Product> Products { get; set; }

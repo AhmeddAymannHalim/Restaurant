@@ -86,8 +86,8 @@ public class ExitExpenseRepository : IExitExpenseRepository
                 $"Expense {entity.Id}",
                 new[]
                 {
-                    new JournalLineRequest(AccountCodes.OperatingExpenses, entity.Price, 0),
-                    new JournalLineRequest(AccountCodes.Cash, 0, entity.Price)
+                    new JournalLineRequest(AccountCodeRepository.OperatingExpenses, entity.Price, 0),
+                    new JournalLineRequest(AccountCodeRepository.Cash, 0, entity.Price)
                 });
             if (!posting.Success)
             {

@@ -12,6 +12,7 @@ namespace Restaurant.DAL.UnitOfWork
         public IBranchRepository Branches { get; set; }
         public IJobRepository Jobs { get; set; }
         public ITableRepository Tables { get; set; }
+        public ITableReservationRepository TableReservations { get; set; }
         public IUnitPriceRepository UnitPrices { get; set; }
         public IProductCategoryRepository ProductCategories { get; set; }
         public IMenuSectionRepository MenuSections { get; set; }

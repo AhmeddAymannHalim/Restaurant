@@ -82,8 +82,8 @@ public class ScroungeRepository : IScroungeRepository
 
             await _journals.RemoveSourceEntriesAsync(JournalSourceType.Scrounge, entity.Id);
 
-            var debitCode = entity.State == MoneyState.Incentive ? AccountCodes.Salaries
-                : entity.State == MoneyState.Dept ? AccountCodes.EmployeesPayable
+            var debitCode = entity.State == MoneyState.Incentive ? AccountCodeRepository.Salaries
+                : entity.State == MoneyState.Dept ? AccountCodeRepository.EmployeesPayable
                 : null;
             if (debitCode is not null)
             {
@@ -94,7 +94,7 @@ public class ScroungeRepository : IScroungeRepository
                     new[]
                     {
                         new JournalLineRequest(debitCode, entity.Amount, 0),
-                        new JournalLineRequest(AccountCodes.Cash, 0, entity.Amount)
+                        new JournalLineRequest(AccountCodeRepository.Cash, 0, entity.Amount)
                     });
                 if (!posting.Success)
                 {

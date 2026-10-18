@@ -1,3 +1,5 @@
+using Restaurant.DAL.Repositories.Definitions;
+using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Commons;
@@ -11,13 +13,13 @@ namespace Restaurant.DAL.Repositories.Commons;
 
 public class LookupRepository : ILookupRepository
 {
-    private static readonly string[] StorekeeperTitles = { "Store Keeper", "Storekeeper", "امين مخزن", "امين مخازن", "أمين مخازن", "أمين مخزن" };
-
     private readonly ApplicationDbContext _context;
+    private readonly IStockRepository _stock;
 
     public LookupRepository(ApplicationDbContext context)
     {
         _context = context;
+        _stock = new StockRepository(context);
     }
 
     public async Task<IEnumerable<LookupItem>> BranchLookupAsync()
@@ -123,8 +125,16 @@ public class LookupRepository : ILookupRepository
 
     public async Task<IEnumerable<LookupItem>> StorekeeperLookupAsync()
     {
+        var storekeeperTitles = new List<string>();
+        storekeeperTitles.Add("Store Keeper");
+        storekeeperTitles.Add("Storekeeper");
+        storekeeperTitles.Add("امين مخزن");
+        storekeeperTitles.Add("امين مخازن");
+        storekeeperTitles.Add("أمين مخازن");
+        storekeeperTitles.Add("أمين مخزن");
+
         return await ToListAsync(_context.Employees
-            .Where(a => StorekeeperTitles.Contains(a.Job.ArName) || StorekeeperTitles.Contains(a.Job.EnName))
+            .Where(a => storekeeperTitles.Contains(a.Job.ArName) || storekeeperTitles.Contains(a.Job.EnName))
             .Select(a => new LookupItem
             {
                 Id = a.Id,
@@ -261,7 +271,7 @@ public class LookupRepository : ILookupRepository
         var storeEnName = store?.EnName;
         var isArabic = LanguageHelper.IsArabic();
 
-        var quantities = await StoreStock.QuantitiesAsync(_context, storeId);
+        var quantities = await _stock.QuantitiesAsync(storeId);
         var products = await _context.Products
             .AsNoTracking()
             .Select(a => new StoreProductLookupItem
@@ -280,7 +290,7 @@ public class LookupRepository : ILookupRepository
 
         foreach (var product in products)
         {
-            product.Quantity = quantities.GetValueOrDefault((storeId, product.ProductId));
+            product.Quantity = _stock.FindQuantity(quantities, storeId, product.ProductId);
         }
 
         return products.OrderBy(a => isArabic ? a.ProductArName : a.ProductEnName).ToList();

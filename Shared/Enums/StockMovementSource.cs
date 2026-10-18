@@ -5,5 +5,6 @@ public enum StockMovementSource
     Order,
     OrderCancellation,
     Invoice,
-    StoreConvert
+    StoreConvert,
+    OpeningBalance
 }

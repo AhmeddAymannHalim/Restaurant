@@ -1,0 +1,103 @@
+@model PaginatedResult<TableReservationViewModel>
+@{
+    ViewBag.Title = L["Reservations"].Value;
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-calendar-check" aria-hidden="true"></i></span>
+        <h1>@L["Reservations"]</h1>
+        <a asp-action="Upsert" class="btn-ad btn-ad-primary"><i class="fas fa-plus" aria-hidden="true"></i> @L["Reservation.New"]</a>
+    </div>
+    <div class="ad-card-body">
+        <nav class="ad-tabs" id="statusTabs" aria-label="@L["Reservation.Status"]">
+            <a asp-action="Index">@L["Reservation.All"]</a>
+            <a asp-action="Index" asp-route-status="Pending">@L["Enum.ReservationStatus.Pending"]</a>
+            <a asp-action="Index" asp-route-status="Confirmed">@L["Enum.ReservationStatus.Confirmed"]</a>
+            <a asp-action="Index" asp-route-status="Seated">@L["Enum.ReservationStatus.Seated"]</a>
+            <a asp-action="Index" asp-route-status="Rejected">@L["Enum.ReservationStatus.Rejected"]</a>
+            <a asp-action="Index" asp-route-status="Cancelled">@L["Enum.ReservationStatus.Cancelled"]</a>
+        </nav>
+
+        <form asp-action="Index" method="get" class="ad-filters">
+            <input type="hidden" name="status" id="statusField" />
+            <div class="ad-search">
+                <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="search" class="form-control" name="searchString" value="@Model.SearchString" placeholder="@L["SearchHere"]" />
+            </div>
+            <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-magnifying-glass" aria-hidden="true"></i> @L["Search"]</button>
+            <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
+        </form>
+
+        <partial name="_ExportToolbar" model='"Reservation-table"' />
+
+        <div class="ad-table-wrap">
+            <table id="Reservation-table" class="ad-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>@L["Reservation.Customer"]</th>
+                        <th>@L["Phone"]</th>
+                        <th>@L["Reservation.Table"]</th>
+                        <th>@L["Reservation.When2"]</th>
+                        <th>@L["Reservation.Guests"]</th>
+                        <th>@L["Reservation.Status"]</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Data)
+                    {
+                        <tr class="res-row res-@item.Status">
+                            <td>@item.Id</td>
+                            <td>
+                                @item.CustomerName
+                                <small class="res-note">@item.Notes</small>
+                            </td>
+                            <td><a href="tel:@item.PhoneNumber" dir="ltr">@item.PhoneNumber</a></td>
+                            <td><span class="lang-ar">@item.TableArName</span><span class="lang-en">@item.TableEnName</span></td>
+                            <td dir="ltr">@item.ReservationDate.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@item.GuestCount</td>
+                            <td>
+                                <span class="res-chip res-@item.Status" data-status="@item.Status"></span>
+                                <small class="res-note">@item.RejectionReason</small>
+                            </td>
+                            <td class="ad-row-actions">
+                                <button type="button" class="btn-ad btn-ad-primary btn-icon res-confirm only-pending" data-id="@item.Id" title="@L["Reservation.Confirm"]" aria-label="@L["Reservation.Confirm"]"><i class="fas fa-check" aria-hidden="true"></i></button>
+                                <button type="button" class="btn-ad btn-ad-danger btn-icon res-reject only-pending" data-id="@item.Id" title="@L["Reservation.Reject"]" aria-label="@L["Reservation.Reject"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                                <a asp-action="Upsert" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Edit"]" aria-label="@L["Edit"]"><i class="fas fa-pen" aria-hidden="true"></i></a>
+                                <button type="button" onclick="Delete('/TableReservation/Delete/@item.Id')" class="btn-ad btn-ad-danger btn-icon" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <p class="ad-empty" id="noRows" hidden>@L["NoData"]</p>
+        </div>
+
+        <div class="app-table-pagination">
+            <partial name="_Pagination" model="Model" />
+        </div>
+    </div>
+</div>
+
+<partial name="_ReservationTexts" />
+
+@section Scripts {
+    <script src="~/js/reservation-actions.js" asp-append-version="true"></script>
+    <script>
+        $(function () {
+            var current = new URLSearchParams(location.search).get('status') || '';
+            $('#statusField').val(current);
+
+            $('#statusTabs a').each(function () {
+                var tabStatus = new URLSearchParams(this.search).get('status') || '';
+                $(this).toggleClass('is-active', tabStatus === current);
+            });
+
+            if ($('#Reservation-table tbody tr').length === 0) {
+                $('#noRows').prop('hidden', false);
+            }
+        });
+    </script>
+}

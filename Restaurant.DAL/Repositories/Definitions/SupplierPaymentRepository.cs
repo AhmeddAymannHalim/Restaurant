@@ -12,11 +12,13 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class SupplierPaymentRepository : ISupplierPaymentRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IBillSupportRepository _billSupport;
     private readonly IJournalEntryRepository _journals;
 
     public SupplierPaymentRepository(ApplicationDbContext context, IJournalEntryRepository journals)
     {
         _context = context;
+        _billSupport = new BillSupportRepository(context);
         _journals = journals;
     }
 
@@ -188,10 +190,10 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
 
             if (oldBillMasterId.HasValue && oldBillMasterId != payment.BillMasterId)
             {
-                await BillSupport.RecalculateInvoicePaymentAsync(_context, oldBillMasterId.Value);
+                await _billSupport.RecalculateInvoicePaymentAsync(oldBillMasterId.Value);
             }
 
-            await BillSupport.RecalculateInvoicePaymentAsync(_context, payment.BillMasterId.Value);
+            await _billSupport.RecalculateInvoicePaymentAsync(payment.BillMasterId.Value);
             await _context.SaveChangesAsync();
 
             await _journals.RemoveSourceEntriesAsync(JournalSourceType.SupplierPaymentVoucher, payment.Id);
@@ -202,7 +204,7 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
                 new[]
                 {
                     new JournalLineRequest(null, payment.Paid, 0, null, partner.Account.Id),
-                    new JournalLineRequest(AccountCodes.Cash, 0, payment.Paid)
+                    new JournalLineRequest(AccountCodeRepository.Cash, 0, payment.Paid)
                 },
                 saveChanges: false);
             if (!posting.Success)
@@ -262,7 +264,7 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
 
             if (billMasterId.HasValue)
             {
-                await BillSupport.RecalculateInvoicePaymentAsync(_context, billMasterId.Value);
+                await _billSupport.RecalculateInvoicePaymentAsync(billMasterId.Value);
                 await _context.SaveChangesAsync();
             }
 
@@ -408,7 +410,7 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
                 $"Supplier refund {payment.ProcessCode}",
                 new[]
                 {
-                    new JournalLineRequest(AccountCodes.Cash, refund.Amount, 0),
+                    new JournalLineRequest(AccountCodeRepository.Cash, refund.Amount, 0),
                     new JournalLineRequest(null, 0, refund.Amount, null, supplier.Account.Id)
                 },
                 saveChanges: false);

@@ -42,6 +42,7 @@ public class OrderService : IOrderService
     public async Task<OrderViewModel> GetNewOrderAsync()
     {
         var settings = await _unitOfWork.Orders.GetSettingsAsync();
+        var menu = _mapper.Map<List<CashierMenuItemViewModel>>(await _unitOfWork.Orders.GetCashierMenuAsync());
 
         return new OrderViewModel
         {
@@ -50,8 +51,27 @@ public class OrderService : IOrderService
             TaxPercent = settings.OrderTax,
             DefaultService = settings.OrderService,
             Service = settings.OrderService,
-            Menu = _mapper.Map<List<CashierMenuItemViewModel>>(await _unitOfWork.Orders.GetCashierMenuAsync())
+            Menu = menu
         };
+    }
+
+    public async Task<OrderViewModel> GetNewOrderFromReservationAsync(int tableId, int? reservationId)
+    {
+        var model = await GetNewOrderAsync();
+        model.Type = OrderType.Hall;
+        model.TableId = tableId;
+
+        if (reservationId.HasValue)
+        {
+            var reservation = await _unitOfWork.TableReservations.GetReservationByIdAsync(reservationId.Value);
+            if (reservation != null)
+            {
+                model.CustomerName = reservation.CustomerName;
+                model.PhoneNumber = reservation.PhoneNumber;
+            }
+        }
+
+        return model;
     }
 
     public async Task<OrderViewModel> GetNewOrderFromOnlineAsync(int onlineOrderId)

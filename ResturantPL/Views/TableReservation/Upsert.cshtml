@@ -1,0 +1,93 @@
+@model TableReservationViewModel
+@{
+    ViewBag.Title = L["Reservations"].Value;
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-calendar-check" aria-hidden="true"></i></span>
+        <h1>@L["Reservations"]</h1>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Upsert" method="post" class="ad-form">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="form-group">
+                <label asp-for="CustomerName" class="control-label">@L["Reservation.Name"]</label>
+                <input asp-for="CustomerName" class="form-control" maxlength="100" required />
+            </div>
+            <div class="form-group">
+                <label asp-for="PhoneNumber" class="control-label">@L["Reservation.Phone"]</label>
+                <input asp-for="PhoneNumber" class="form-control" maxlength="20" required />
+            </div>
+            <div class="form-group">
+                <label asp-for="Email" class="control-label">@L["Reservation.Email"]</label>
+                <input asp-for="Email" class="form-control" maxlength="150" />
+            </div>
+            <div class="form-group">
+                <label asp-for="TableId" class="control-label">@L["Reservation.Table"]</label>
+                <select asp-for="TableId" class="form-select" required>
+                    <option value="">@L["Reservation.ChooseTable"]</option>
+                    @foreach (var table in Model.Tables)
+                    {
+                        <option value="@table.Id" data-ar="@table.ArName" data-en="@table.EnName"></option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="ReservationDate" class="control-label">@L["Reservation.When2"]</label>
+                <input type="datetime-local" asp-for="ReservationDate" class="form-control" required />
+            </div>
+            <div class="form-group">
+                <label asp-for="GuestCount" class="control-label">@L["Reservation.Guests"]</label>
+                <input asp-for="GuestCount" type="number" min="1" max="50" step="1" class="form-control" required />
+            </div>
+            <div class="form-group">
+                <label asp-for="Status" class="control-label">@L["Reservation.Status"]</label>
+                <select asp-for="Status" class="form-select">
+                    <option value="Pending">@L["Enum.ReservationStatus.Pending"]</option>
+                    <option value="Confirmed">@L["Enum.ReservationStatus.Confirmed"]</option>
+                    <option value="Seated">@L["Enum.ReservationStatus.Seated"]</option>
+                    <option value="Rejected">@L["Enum.ReservationStatus.Rejected"]</option>
+                    <option value="Cancelled">@L["Enum.ReservationStatus.Cancelled"]</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="RejectionReason" class="control-label">@L["Reservation.RejectReason"]</label>
+                <input asp-for="RejectionReason" class="form-control" maxlength="250" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Notes" class="control-label">@L["Reservation.Notes"]</label>
+                <textarea asp-for="Notes" class="form-control" rows="3" maxlength="500"></textarea>
+            </div>
+
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+                <button type="button" id="deleteButton" class="btn-ad btn-ad-danger push" data-id="@Model.Id"><i class="fas fa-trash" aria-hidden="true"></i> @L["Delete"]</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            // table names: Arabic or English, like the rest of the page
+            var language = document.documentElement.lang === 'ar' ? 'ar' : 'en';
+            $('#TableId option[data-ar]').each(function () {
+                $(this).text($(this).data(language));
+            });
+
+            // a new reservation has nothing to delete
+            var id = $('#deleteButton').data('id');
+            if (!id) {
+                $('#deleteButton').hide();
+            }
+
+            $('#deleteButton').on('click', function () {
+                Delete('/TableReservation/Delete/' + id, '/TableReservation');
+            });
+        });
+    </script>
+}

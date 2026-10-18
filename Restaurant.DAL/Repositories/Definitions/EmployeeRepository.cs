@@ -15,10 +15,16 @@ public class EmployeeRepository : IEmployeeRepository
     private const string ImagesFolder = "Employee Images";
 
     private readonly ApplicationDbContext _context;
+    private readonly IEmployeeChildrenRepository _employeeChildren;
+    private readonly IAccountProvisionRepository _accountProvision;
+    private readonly ILocationRepository _location;
 
     public EmployeeRepository(ApplicationDbContext context)
     {
         _context = context;
+        _employeeChildren = new EmployeeChildrenRepository(context);
+        _accountProvision = new AccountProvisionRepository(context);
+        _location = new LocationRepository(context);
     }
 
     public async Task<PaginatedResult<Employee>> GetPagedEmployeesAsync(PageRequest request)
@@ -123,7 +129,9 @@ public class EmployeeRepository : IEmployeeRepository
                 };
             }
 
-            (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
+            var location = await _location.ResolveAsync(entity.TownId);
+            entity.GovId = location.GovId;
+            entity.CountryId = location.CountryId;
 
             var weeksPerMonth = 52m / 12m;
             var workDays = entity.WorkDays ?? 0;
@@ -209,19 +217,17 @@ public class EmployeeRepository : IEmployeeRepository
 
                 entity.Phones = newNumbers.Distinct().Select(a => new EmployeePhone { PhoneNumber = a, CreatedAt = DateTime.Now }).ToList();
 
-                EmployeeChildren.PrepareNew(entity, documentFiles);
+                _employeeChildren.PrepareNew(entity, documentFiles);
 
                 if (imageFile != null)
                 {
                     entity.Image = DocumentSetting.UploadFile(imageFile, ImagesFolder);
                 }
 
-                entity.Account = await AccountProvisioner.CreateAsync(
-                    _context,
-                    entity.ArName,
-                    entity.EnName,
-                    AccountType.Employee,
-                    AccountCodes.EmployeesPayable);
+                entity.Account = await _accountProvision.CreateAsync(entity.ArName,
+                                                                     entity.EnName,
+                                                                     AccountType.Employee,
+                                                                     AccountCodeRepository.EmployeesPayable);
 
                 await _context.Employees.AddAsync(entity);
                 await _context.SaveChangesAsync();
@@ -280,12 +286,10 @@ public class EmployeeRepository : IEmployeeRepository
 
             if (existing.Account is null)
             {
-                entity.Account = await AccountProvisioner.CreateAsync(
-                    _context,
-                    entity.ArName,
+                entity.Account = await _accountProvision.CreateAsync(entity.ArName,
                     entity.EnName,
                     AccountType.Employee,
-                    AccountCodes.EmployeesPayable);
+                    AccountCodeRepository.EmployeesPayable);
             }
             else
             {
@@ -377,7 +381,7 @@ public class EmployeeRepository : IEmployeeRepository
                 existing.Phones.Add(phone);
             }
 
-            EmployeeChildren.Sync(_context, existing, entity, documentFiles);
+            _employeeChildren.Sync(existing, entity, documentFiles);
             if (existing.Account is null && entity.Account is not null)
             {
                 existing.Account = entity.Account;
@@ -484,7 +488,7 @@ public class EmployeeRepository : IEmployeeRepository
 
             var image = await _context.EmployeeImages.AsNoTracking().Where(a => a.EmployeeId == employee.Id).Select(a => a.Url).FirstOrDefaultAsync();
             _context.EmployeePhones.RemoveRange(employee.Phones);
-            EmployeeChildren.Remove(_context, employee);
+            _employeeChildren.Remove(employee);
             _context.Employees.Remove(employee);
             if (employee.Account is not null)
             {

@@ -12,11 +12,13 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class CustomerPaymentRepository : ICustomerPaymentRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IBillSupportRepository _billSupport;
     private readonly IJournalEntryRepository _journals;
 
     public CustomerPaymentRepository(ApplicationDbContext context, IJournalEntryRepository journals)
     {
         _context = context;
+        _billSupport = new BillSupportRepository(context);
         _journals = journals;
     }
 
@@ -188,10 +190,10 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
 
             if (oldBillMasterId.HasValue && oldBillMasterId != payment.BillMasterId)
             {
-                await BillSupport.RecalculateInvoicePaymentAsync(_context, oldBillMasterId.Value);
+                await _billSupport.RecalculateInvoicePaymentAsync(oldBillMasterId.Value);
             }
 
-            await BillSupport.RecalculateInvoicePaymentAsync(_context, payment.BillMasterId.Value);
+            await _billSupport.RecalculateInvoicePaymentAsync(payment.BillMasterId.Value);
             await _context.SaveChangesAsync();
 
             await _journals.RemoveSourceEntriesAsync(JournalSourceType.CustomerPaymentVoucher, payment.Id);
@@ -201,7 +203,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
                 $"Customer receipt {payment.ProcessCode}",
                 new[]
                 {
-                    new JournalLineRequest(AccountCodes.Cash, payment.Paid, 0),
+                    new JournalLineRequest(AccountCodeRepository.Cash, payment.Paid, 0),
                     new JournalLineRequest(null, 0, payment.Paid, null, partner.Account.Id)
                 },
                 saveChanges: false);
@@ -262,7 +264,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
 
             if (billMasterId.HasValue)
             {
-                await BillSupport.RecalculateInvoicePaymentAsync(_context, billMasterId.Value);
+                await _billSupport.RecalculateInvoicePaymentAsync(billMasterId.Value);
                 await _context.SaveChangesAsync();
             }
 
@@ -409,7 +411,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
                 new[]
                 {
                     new JournalLineRequest(null, refund.Amount, 0, null, customer.Account.Id),
-                    new JournalLineRequest(AccountCodes.Cash, 0, refund.Amount)
+                    new JournalLineRequest(AccountCodeRepository.Cash, 0, refund.Amount)
                 },
                 saveChanges: false);
             if (!posting.Success)

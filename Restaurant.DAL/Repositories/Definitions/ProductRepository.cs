@@ -12,10 +12,12 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class ProductRepository : IProductRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IStockRepository _stock;
 
     public ProductRepository(ApplicationDbContext context)
     {
         _context = context;
+        _stock = new StockRepository(context);
     }
 
     public async Task<PaginatedResult<Product>> GetPagedProductsAsync(PageRequest request)
@@ -38,7 +40,7 @@ public class ProductRepository : IProductRepository
             .ToListAsync();
 
         var pagedStores = await _context.Stores.AsNoTracking().OrderBy(a => a.Id).ToListAsync();
-        var pagedQuantities = await StoreStock.QuantitiesAsync(_context);
+        var pagedQuantities = await _stock.QuantitiesAsync();
 
         foreach (var product in data)
         {
@@ -46,7 +48,7 @@ public class ProductRepository : IProductRepository
             {
                 StoreId = store.Id,
                 Store = store,
-                Quantity = pagedQuantities.GetValueOrDefault((store.Id, product.Id))
+                Quantity = _stock.FindQuantity(pagedQuantities, store.Id, product.Id)
             }).ToList();
         }
 
@@ -61,13 +63,13 @@ public class ProductRepository : IProductRepository
         if (product is not null)
         {
             var stores = await _context.Stores.AsNoTracking().OrderBy(a => a.Id).ToListAsync();
-            var quantities = await StoreStock.QuantitiesAsync(_context);
+            var quantities = await _stock.QuantitiesAsync();
 
             product.Stocks = stores.Select(store => new ProductStock
             {
                 StoreId = store.Id,
                 Store = store,
-                Quantity = quantities.GetValueOrDefault((store.Id, product.Id))
+                Quantity = _stock.FindQuantity(quantities, store.Id, product.Id)
             }).ToList();
         }
 
@@ -100,24 +102,29 @@ public class ProductRepository : IProductRepository
                 await _context.SaveChangesAsync();
             }
 
-            var current = await StoreStock.QuantitiesAsync(_context);
+            var current = await _stock.QuantitiesAsync();
             foreach (var stock in stocks)
             {
-                if (current.GetValueOrDefault((stock.StoreId, entity.Id)) == stock.Quantity)
+                if (_stock.FindQuantity(current, stock.StoreId, entity.Id) == stock.Quantity)
                 {
                     continue;
                 }
 
-                var row = await StoreStock.RowAsync(_context, stock.StoreId, entity.Id);
+                var row = await _stock.RowAsync(stock.StoreId, entity.Id);
                 row.Quantity = stock.Quantity;
             }
 
             // a store taken off the list no longer holds this product
-            var kept = stocks.Select(a => a.StoreId).ToHashSet();
-            foreach (var emptied in current.Where(a => a.Key.ProductId == entity.Id && !kept.Contains(a.Key.StoreId) && a.Value != 0))
+            var keptStoreIds = stocks.Select(a => a.StoreId).ToList();
+            foreach (var old in current)
             {
-                var row = await StoreStock.RowAsync(_context, emptied.Key.StoreId, entity.Id);
-                row.Quantity = 0;
+                var isThisProduct = old.ProductId == entity.Id;
+                var storeWasRemoved = !keptStoreIds.Contains(old.StoreId);
+                if (isThisProduct && storeWasRemoved && old.Quantity != 0)
+                {
+                    var row = await _stock.RowAsync(old.StoreId, entity.Id);
+                    row.Quantity = 0;
+                }
             }
 
             await _context.SaveChangesAsync();
@@ -145,8 +152,8 @@ public class ProductRepository : IProductRepository
                 return new ResultMessage { Success = true };
             }
 
-            var itemCode = BillSupport.ItemCodePrefix + id;
-            if (await StoreStock.Rows(_context).AnyAsync(a => a.Item.Code == itemCode && a.Quantity > 0))
+            var itemCode = BillSupportRepository.ItemCodePrefix + id;
+            if (await _stock.Rows().AnyAsync(a => a.Item.Code == itemCode && a.Quantity > 0))
             {
                 return new ResultMessage
                 {

@@ -12,10 +12,14 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class StoreRepository : IStoreRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IPhoneRepository _phones;
+    private readonly ILocationRepository _location;
 
     public StoreRepository(ApplicationDbContext context)
     {
         _context = context;
+        _phones = new PhoneRepository(context);
+        _location = new LocationRepository(context);
     }
 
     public async Task<PaginatedResult<Store>> GetPagedStoresAsync(PageRequest request)
@@ -50,11 +54,13 @@ public class StoreRepository : IStoreRepository
     {
         try
         {
-            var phones = PhoneRows.Clean(entity.PhoneNumber1, entity.Phones);
+            var phones = _phones.CleanNumbers(entity.PhoneNumber1, entity.Phones);
             entity.Phones = new List<StorePhone>();
             entity.PhoneNumber2 = phones.ElementAtOrDefault(0);
             entity.PhoneNumber3 = phones.ElementAtOrDefault(1);
-            (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
+            var location = await _location.ResolveAsync(entity.TownId);
+            entity.GovId = location.GovId;
+            entity.CountryId = location.CountryId;
 
             if (entity.Id == 0)
             {
@@ -65,7 +71,7 @@ public class StoreRepository : IStoreRepository
                 }
 
                 entity.CreatedAt = DateTime.Now;
-                PhoneRows.Sync(_context, entity.Phones, phones);
+                _phones.SyncStorePhones(entity.Phones, phones);
                 await _context.Stores.AddAsync(entity);
             }
             else
@@ -86,7 +92,7 @@ public class StoreRepository : IStoreRepository
                 entity.CreatedById = existing.CreatedById;
                 entity.UpdatedAt = DateTime.Now;
                 _context.Entry(existing).CurrentValues.SetValues(entity);
-                PhoneRows.Sync(_context, existing.Phones, phones);
+                _phones.SyncStorePhones(existing.Phones, phones);
             }
 
             await _context.SaveChangesAsync();

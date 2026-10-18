@@ -41,6 +41,7 @@
                                 <small class="pos-item-ing">@(isArabic ? item.ArIngredients : item.EnIngredients)</small>
                             }
                             <b>@item.Price.ToString("N2")</b>
+                            <em class="pos-stock" data-left="@item.Available" title="@L["InStock"]"><i class="fas fa-boxes-stacked" aria-hidden="true"></i> <span></span></em>
                         </button>
                     }
                 </div>
@@ -180,6 +181,7 @@
 }
 
 @section Scripts {
+    <script src="~/js/pos-stock.js" asp-append-version="true"></script>
     <script>
 /* POS payment drawer.
    Cash and wallets: confirm the amount. Visa: a card form with a short "processing" step.

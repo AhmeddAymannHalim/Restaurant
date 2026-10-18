@@ -14,10 +14,12 @@ public class SettingRepository : ISettingRepository
     private const string VideosFolder = "Videos";
 
     private readonly ApplicationDbContext _context;
+    private readonly IShiftPasswordRepository _shiftPassword;
 
     public SettingRepository(ApplicationDbContext context)
     {
         _context = context;
+        _shiftPassword = new ShiftPasswordRepository();
     }
 
     public async Task<ApplicationSetting> GetApplicationSettingAsync()
@@ -28,7 +30,7 @@ public class SettingRepository : ISettingRepository
     public async Task<ResultMessage> UpdateApplicationSettingAsync(ApplicationSetting entity)
     {
         var existing = await _context.ApplicationSettings.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
-        entity.Password = string.IsNullOrWhiteSpace(entity.Password) ? existing?.Password : ShiftPassword.Hash(entity.Password);
+        entity.Password = string.IsNullOrWhiteSpace(entity.Password) ? existing?.Password : _shiftPassword.Hash(entity.Password);
 
         _context.ApplicationSettings.Update(entity);
         await _context.SaveChangesAsync();

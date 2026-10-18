@@ -1,4 +1,4 @@
 @{
     var controller = ViewContext.RouteData.Values["controller"] as string;
-    Layout = controller is "Home" or "OnlineOrder" or "Account" ? "_Layout" : "_AdminLayout";
+    Layout = controller is "Home" or "OnlineOrder" or "Account" or "Reservation" ? "_Layout" : "_AdminLayout";
 }

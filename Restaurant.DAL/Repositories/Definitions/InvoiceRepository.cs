@@ -13,11 +13,15 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class InvoiceRepository : IInvoiceRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IStockRepository _stock;
+    private readonly IBillSupportRepository _billSupport;
     private readonly IJournalEntryRepository _journals;
 
     public InvoiceRepository(ApplicationDbContext context, IJournalEntryRepository journals)
     {
         _context = context;
+        _stock = new StockRepository(context);
+        _billSupport = new BillSupportRepository(context);
         _journals = journals;
     }
 
@@ -31,12 +35,12 @@ public class InvoiceRepository : IInvoiceRepository
             .Include(a => a.BillDetails).ThenInclude(a => a.Item)
             .Include(a => a.BillDetails).ThenInclude(a => a.Unit)
             .FirstOrDefaultAsync(a => a.Id == id);
-        if (bill is null || !await BillSupport.IsInvoiceAsync(_context, bill))
+        if (bill is null || !await _billSupport.IsInvoiceAsync(bill))
         {
             return null;
         }
 
-        var type = BillSupport.TypeOf(bill.BillSetting.BillType);
+        var type = _billSupport.TypeOf(bill.BillSetting.BillType);
         var isArabic = LanguageHelper.IsArabic();
         var model = new InvoiceViewModel
         {
@@ -65,9 +69,9 @@ public class InvoiceRepository : IInvoiceRepository
                 .Select(a => new InvoiceItemViewModel
                 {
                     Id = a.Id,
-                    ProductId = BillSupport.ProductIdOf(a.Item?.Code),
+                    ProductId = _billSupport.ProductIdOf(a.Item?.Code),
                     ProductName = isArabic ? a.Item?.ArName : a.Item?.EnName,
-                    UnitPriceId = BillSupport.UnitPriceIdOf(a.Unit?.Code),
+                    UnitPriceId = _billSupport.UnitPriceIdOf(a.Unit?.Code),
                     UnitName = isArabic ? a.Unit?.ArName : a.Unit?.EnName,
                     Quantity = a.Quantity ?? 0,
                     Price = a.UnitPrice ?? 0
@@ -99,13 +103,13 @@ public class InvoiceRepository : IInvoiceRepository
 
     public async Task<string> GetNextCodeAsync(InvoiceType type)
     {
-        var typeInfo = BillSupport.Types[type];
+        var typeInfo = _billSupport.GetInvoiceType(type);
         var billType = typeInfo.BillType;
         var arName = typeInfo.ArName;
         var enName = typeInfo.EnName;
-        var setting = await BillSupport.GetBillSettingAsync(_context, billType, arName, enName);
+        var setting = await _billSupport.GetBillSettingAsync(billType, arName, enName);
 
-        return await BillSupport.NextBillCodeAsync(_context, setting.Id);
+        return await _billSupport.NextBillCodeAsync(setting.Id);
     }
 
     public async Task<decimal> GetSupplierBalanceAsync(int supplierId)
@@ -142,24 +146,24 @@ public class InvoiceRepository : IInvoiceRepository
                 return new ResultMessage { Success = false, Message = "InvoiceNeedsItems" };
             }
 
-            Partner partner;
+            InvoicePartner partner;
             if (!model.HasPartner)
             {
-                partner = new Partner(null, null, null);
+                partner = new InvoicePartner();
             }
             else if (model.IsSupplierInvoice)
             {
                 var supplier = model.SupplierId.HasValue
                     ? await _context.Suppliers.AsNoTracking().FirstOrDefaultAsync(a => a.Id == model.SupplierId.Value)
                     : null;
-                partner = new Partner(supplier?.Id, null, supplier?.AccountId);
+                partner = new InvoicePartner { SupplierId = supplier?.Id, AccountId = supplier?.AccountId };
             }
             else
             {
                 var customer = model.CustomerId.HasValue
                     ? await _context.Customers.AsNoTracking().FirstOrDefaultAsync(a => a.Id == model.CustomerId.Value)
                     : null;
-                partner = new Partner(null, customer?.Id, customer?.AccountId);
+                partner = new InvoicePartner { CustomerId = customer?.Id, AccountId = customer?.AccountId };
             }
 
             var productIds = items.Select(a => a.ProductId).Distinct().ToList();
@@ -177,26 +181,26 @@ public class InvoiceRepository : IInvoiceRepository
                 return new ResultMessage { Success = false, Message = "RecordNotFound" };
             }
 
-            var typeInfo = BillSupport.Types[model.InvoiceType];
+            var typeInfo = _billSupport.GetInvoiceType(model.InvoiceType);
             var billType = typeInfo.BillType;
             var arName = typeInfo.ArName;
             var enName = typeInfo.EnName;
             var entryType = typeInfo.Entry;
 
-            var setting = await BillSupport.GetBillSettingAsync(_context, billType, arName, enName);
-            var entrySetting = await BillSupport.GetEntrySettingAsync(_context, entryType, arName, enName);
+            var setting = await _billSupport.GetBillSettingAsync(billType, arName, enName);
+            var entrySetting = await _billSupport.GetEntrySettingAsync(entryType, arName, enName);
             var itemIds = new Dictionary<int, int>();
             var unitIds = new Dictionary<int, int>();
             foreach (var item in items)
             {
                 if (!itemIds.ContainsKey(item.ProductId))
                 {
-                    itemIds[item.ProductId] = await BillSupport.GetItemIdAsync(_context, item.ProductId);
+                    itemIds[item.ProductId] = await _billSupport.GetItemIdAsync(item.ProductId);
                 }
 
                 if (!unitIds.ContainsKey(item.UnitPriceId))
                 {
-                    unitIds[item.UnitPriceId] = await BillSupport.GetUnitIdAsync(_context, item.UnitPriceId);
+                    unitIds[item.UnitPriceId] = await _billSupport.GetUnitIdAsync(item.UnitPriceId);
                 }
             }
 
@@ -231,24 +235,24 @@ public class InvoiceRepository : IInvoiceRepository
                     return new ResultMessage { Success = false, Message = "RecordNotFound" };
                 }
 
-                if (!await BillSupport.IsInvoiceAsync(_context, bill))
+                if (!await _billSupport.IsInvoiceAsync(bill))
                 {
                     return new ResultMessage { Success = false, Message = "BillNotEditable" };
                 }
 
-                var oldType = BillSupport.TypeOf(bill.BillSetting.BillType);
+                var oldType = _billSupport.TypeOf(bill.BillSetting.BillType);
                 var takeBackSign = -(oldType is InvoiceType.Purchases or InvoiceType.SalesReturn or InvoiceType.Surplus or InvoiceType.OpeningInventory ? 1 : -1);
                 var takeBackStoreId = bill.StoreId ?? 0;
 
                 foreach (var detail in bill.BillDetails.Where(_ => bill.IsStorageEffected))
                 {
-                    var takeBackProductId = BillSupport.ProductIdOf(detail.Item?.Code);
+                    var takeBackProductId = _billSupport.ProductIdOf(detail.Item?.Code);
                     if (takeBackProductId == 0 || detail.ItemId is null || detail.UnitId is null)
                     {
                         continue;
                     }
 
-                    await StoreStock.AdjustAsync(_context, takeBackStoreId, takeBackProductId, takeBackSign * (detail.Quantity ?? 0), allowNegative: true);
+                    await _stock.AdjustAsync(takeBackStoreId, takeBackProductId, takeBackSign * (detail.Quantity ?? 0), allowNegative: true);
                     await _context.StoreProductMovements.AddAsync(new StoreProductMovement
                     {
                         StoreId = takeBackStoreId,
@@ -351,10 +355,10 @@ public class InvoiceRepository : IInvoiceRepository
 
             foreach (var item in items)
             {
-                await BillSupport.EnsureItemUnitAsync(_context, itemIds[item.ProductId], unitIds[item.UnitPriceId]);
+                await _billSupport.EnsureItemUnitAsync(itemIds[item.ProductId], unitIds[item.UnitPriceId]);
                 if (bill.IsStorageEffected)
                 {
-                    await StoreStock.AdjustAsync(_context, applyStoreId, item.ProductId, applySign * item.Quantity, allowNegative: true);
+                    await _stock.AdjustAsync(applyStoreId, item.ProductId, applySign * item.Quantity, allowNegative: true);
                     await _context.StoreProductMovements.AddAsync(new StoreProductMovement
                     {
                         StoreId = applyStoreId,
@@ -398,42 +402,42 @@ public class InvoiceRepository : IInvoiceRepository
                 {
                     InvoiceType.Purchases => new[]
                     {
-                        new JournalLineRequest(AccountCodes.Inventory, total, 0),
-                        new JournalLineRequest(AccountCodes.AccountsPayable, 0, remaining, null, partner.AccountId),
-                        new JournalLineRequest(AccountCodes.Cash, 0, paid)
+                        new JournalLineRequest(AccountCodeRepository.Inventory, total, 0),
+                        new JournalLineRequest(AccountCodeRepository.AccountsPayable, 0, remaining, null, partner.AccountId),
+                        new JournalLineRequest(AccountCodeRepository.Cash, 0, paid)
                     },
                     InvoiceType.Returns => new[]
                     {
-                        new JournalLineRequest(AccountCodes.AccountsPayable, remaining, 0, null, partner.AccountId),
-                        new JournalLineRequest(AccountCodes.Cash, paid, 0),
-                        new JournalLineRequest(AccountCodes.PurchaseReturns, 0, total)
+                        new JournalLineRequest(AccountCodeRepository.AccountsPayable, remaining, 0, null, partner.AccountId),
+                        new JournalLineRequest(AccountCodeRepository.Cash, paid, 0),
+                        new JournalLineRequest(AccountCodeRepository.PurchaseReturns, 0, total)
                     },
                     InvoiceType.Sales => new[]
                     {
-                        new JournalLineRequest(AccountCodes.AccountsReceivable, remaining, 0, null, partner.AccountId),
-                        new JournalLineRequest(AccountCodes.Cash, paid, 0),
-                        new JournalLineRequest(AccountCodes.SalesRevenue, 0, total)
+                        new JournalLineRequest(AccountCodeRepository.AccountsReceivable, remaining, 0, null, partner.AccountId),
+                        new JournalLineRequest(AccountCodeRepository.Cash, paid, 0),
+                        new JournalLineRequest(AccountCodeRepository.SalesRevenue, 0, total)
                     },
                     InvoiceType.SalesReturn => new[]
                     {
-                        new JournalLineRequest(AccountCodes.SalesReturns, total, 0),
-                        new JournalLineRequest(AccountCodes.AccountsReceivable, 0, remaining, null, partner.AccountId),
-                        new JournalLineRequest(AccountCodes.Cash, 0, paid)
+                        new JournalLineRequest(AccountCodeRepository.SalesReturns, total, 0),
+                        new JournalLineRequest(AccountCodeRepository.AccountsReceivable, 0, remaining, null, partner.AccountId),
+                        new JournalLineRequest(AccountCodeRepository.Cash, 0, paid)
                     },
                     InvoiceType.Shortage => new[]
                     {
-                        new JournalLineRequest(AccountCodes.InventoryAdjustment, total, 0),
-                        new JournalLineRequest(AccountCodes.Inventory, 0, total)
+                        new JournalLineRequest(AccountCodeRepository.InventoryAdjustment, total, 0),
+                        new JournalLineRequest(AccountCodeRepository.Inventory, 0, total)
                     },
                     InvoiceType.Surplus => new[]
                     {
-                        new JournalLineRequest(AccountCodes.Inventory, total, 0),
-                        new JournalLineRequest(AccountCodes.InventoryAdjustment, 0, total)
+                        new JournalLineRequest(AccountCodeRepository.Inventory, total, 0),
+                        new JournalLineRequest(AccountCodeRepository.InventoryAdjustment, 0, total)
                     },
                     InvoiceType.OpeningInventory => new[]
                     {
-                        new JournalLineRequest(AccountCodes.Inventory, total, 0),
-                        new JournalLineRequest(AccountCodes.OpeningBalanceEquity, 0, total)
+                        new JournalLineRequest(AccountCodeRepository.Inventory, total, 0),
+                        new JournalLineRequest(AccountCodeRepository.OpeningBalanceEquity, 0, total)
                     },
                     _ => Array.Empty<JournalLineRequest>()
                 };
@@ -442,8 +446,8 @@ public class InvoiceRepository : IInvoiceRepository
                 {
                     journalLinesBase = journalLinesBase.Concat(new[]
                     {
-                        new JournalLineRequest(AccountCodes.Purchases, cost.Value, 0),
-                        new JournalLineRequest(AccountCodes.Inventory, 0, cost.Value)
+                        new JournalLineRequest(AccountCodeRepository.Purchases, cost.Value, 0),
+                        new JournalLineRequest(AccountCodeRepository.Inventory, 0, cost.Value)
                     }).ToArray();
                 }
 
@@ -483,7 +487,7 @@ public class InvoiceRepository : IInvoiceRepository
                         CurrencyRate = 1,
                         IsPosted = true,
                         EntryRemarks = $"{(LanguageHelper.IsArabic() ? entrySetting.ArName : entrySetting.EnName)} {bill.Code}",
-                        AccountBoxOrBankId = paid > 0 && journalAccountIdsByCode.TryGetValue(AccountCodes.Cash, out var cashId) ? cashId : null,
+                        AccountBoxOrBankId = paid > 0 && journalAccountIdsByCode.TryGetValue(AccountCodeRepository.Cash, out var cashId) ? cashId : null,
                         Bill = bill,
                         EntrySetting = entrySetting,
                         CreatedAt = DateTime.Now,
@@ -542,24 +546,24 @@ public class InvoiceRepository : IInvoiceRepository
                 return new ResultMessage { Success = true };
             }
 
-            if (!await BillSupport.IsInvoiceAsync(_context, bill))
+            if (!await _billSupport.IsInvoiceAsync(bill))
             {
                 return new ResultMessage { Success = false, Message = "BillNotEditable" };
             }
 
-            var deleteType = BillSupport.TypeOf(bill.BillSetting.BillType);
+            var deleteType = _billSupport.TypeOf(bill.BillSetting.BillType);
             var deleteSign = -(deleteType is InvoiceType.Purchases or InvoiceType.SalesReturn or InvoiceType.Surplus or InvoiceType.OpeningInventory ? 1 : -1);
             var deleteStoreId = bill.StoreId ?? 0;
 
             foreach (var detail in bill.BillDetails.Where(_ => bill.IsStorageEffected))
             {
-                var deleteProductId = BillSupport.ProductIdOf(detail.Item?.Code);
+                var deleteProductId = _billSupport.ProductIdOf(detail.Item?.Code);
                 if (deleteProductId == 0 || detail.ItemId is null || detail.UnitId is null)
                 {
                     continue;
                 }
 
-                await StoreStock.AdjustAsync(_context, deleteStoreId, deleteProductId, deleteSign * (detail.Quantity ?? 0), allowNegative: true);
+                await _stock.AdjustAsync(deleteStoreId, deleteProductId, deleteSign * (detail.Quantity ?? 0), allowNegative: true);
                 await _context.StoreProductMovements.AddAsync(new StoreProductMovement
                 {
                     StoreId = deleteStoreId,
@@ -621,39 +625,41 @@ public class InvoiceRepository : IInvoiceRepository
         }
     }
 
-    private sealed record Partner(int? SupplierId, int? CustomerId, int? AccountId);
-
     public async Task<bool> IsInvoiceAsync(int id)
     {
-        var billTypes = BillSupport.InvoiceBillTypes;
+        var billTypes = _billSupport.GetInvoiceBillTypes();
 
         return await _context.BillMasters.AnyAsync(a => a.Id == id && billTypes.Contains(a.BillSetting.BillType) && !_context.Orders.Any(p => p.Id == a.Id));
     }
 
     public async Task<List<PostingDefaultViewModel>> GetPostingDefaultsAsync()
     {
+        var invoiceBillTypes = _billSupport.GetInvoiceBillTypes();
         var settings = await _context.BillSettings.AsNoTracking()
-            .Where(a => BillSupport.InvoiceBillTypes.Contains(a.BillType))
+            .Where(a => invoiceBillTypes.Contains(a.BillType))
             .OrderBy(a => a.Id)
             .Select(a => new { a.BillType, a.EntryGenerate, a.StorageEffect })
             .ToListAsync();
 
-        return BillSupport.Types.Select(type =>
+        var defaults = new List<PostingDefaultViewModel>();
+        foreach (var info in _billSupport.GetAllInvoiceTypes())
         {
-            var setting = settings.FirstOrDefault(a => a.BillType == type.Value.BillType);
+            var setting = settings.FirstOrDefault(a => a.BillType == info.BillType);
 
-            return new PostingDefaultViewModel
+            defaults.Add(new PostingDefaultViewModel
             {
-                Type = type.Key,
+                Type = info.Type,
                 AutoPost = setting is null || setting.EntryGenerate == EntryGenerate.AutomaticEntryCreated,
                 AutoStock = setting is null || setting.StorageEffect == StorageEffect.AutoEffected
-            };
-        }).ToList();
+            });
+        }
+
+        return defaults;
     }
 
     public async Task<List<int>> GetUnpostedInvoiceIdsAsync()
     {
-        var billTypes = BillSupport.InvoiceBillTypes;
+        var billTypes = _billSupport.GetInvoiceBillTypes();
 
         return await _context.BillMasters.AsNoTracking()
             .Where(a => (!a.IsEntryPosted || !a.IsStorageEffected) && billTypes.Contains(a.BillSetting.BillType) && !_context.Orders.Any(p => p.Id == a.Id))
@@ -672,7 +678,7 @@ public class InvoiceRepository : IInvoiceRepository
                 .Include(a => a.BillSetting)
                 .Include(a => a.BillDetails).ThenInclude(a => a.Item)
                 .FirstOrDefaultAsync(a => a.Id == id);
-            if (bill is null || !await BillSupport.IsInvoiceAsync(_context, bill))
+            if (bill is null || !await _billSupport.IsInvoiceAsync(bill))
             {
                 return new ResultMessage { Success = false, Message = "RecordNotFound" };
             }
@@ -682,57 +688,57 @@ public class InvoiceRepository : IInvoiceRepository
                 return new ResultMessage { Success = false, Message = "BillAlreadyPosted" };
             }
 
-            var type = BillSupport.TypeOf(bill.BillSetting.BillType);
+            var type = _billSupport.TypeOf(bill.BillSetting.BillType);
             var remaining = bill.CasherRemainingAmount;
 
             if (!bill.IsEntryPosted)
             {
-                var typeInfo = BillSupport.Types[type];
+                var typeInfo = _billSupport.GetInvoiceType(type);
                 var arName = typeInfo.ArName;
                 var enName = typeInfo.EnName;
                 var entryType = typeInfo.Entry;
-                var entrySetting = await BillSupport.GetEntrySettingAsync(_context, entryType, arName, enName);
+                var entrySetting = await _billSupport.GetEntrySettingAsync(entryType, arName, enName);
 
                 var journalLinesBase = type switch
                 {
                     InvoiceType.Purchases => new[]
                     {
-                        new JournalLineRequest(AccountCodes.Inventory, bill.TotalBillAmountAfterDiscountAndExtra, 0),
-                        new JournalLineRequest(AccountCodes.AccountsPayable, 0, remaining, null, bill.CustomerOrSupplierAccountId),
-                        new JournalLineRequest(AccountCodes.Cash, 0, bill.AmountPaided)
+                        new JournalLineRequest(AccountCodeRepository.Inventory, bill.TotalBillAmountAfterDiscountAndExtra, 0),
+                        new JournalLineRequest(AccountCodeRepository.AccountsPayable, 0, remaining, null, bill.CustomerOrSupplierAccountId),
+                        new JournalLineRequest(AccountCodeRepository.Cash, 0, bill.AmountPaided)
                     },
                     InvoiceType.Returns => new[]
                     {
-                        new JournalLineRequest(AccountCodes.AccountsPayable, remaining, 0, null, bill.CustomerOrSupplierAccountId),
-                        new JournalLineRequest(AccountCodes.Cash, bill.AmountPaided, 0),
-                        new JournalLineRequest(AccountCodes.PurchaseReturns, 0, bill.TotalBillAmountAfterDiscountAndExtra)
+                        new JournalLineRequest(AccountCodeRepository.AccountsPayable, remaining, 0, null, bill.CustomerOrSupplierAccountId),
+                        new JournalLineRequest(AccountCodeRepository.Cash, bill.AmountPaided, 0),
+                        new JournalLineRequest(AccountCodeRepository.PurchaseReturns, 0, bill.TotalBillAmountAfterDiscountAndExtra)
                     },
                     InvoiceType.Sales => new[]
                     {
-                        new JournalLineRequest(AccountCodes.AccountsReceivable, remaining, 0, null, bill.CustomerOrSupplierAccountId),
-                        new JournalLineRequest(AccountCodes.Cash, bill.AmountPaided, 0),
-                        new JournalLineRequest(AccountCodes.SalesRevenue, 0, bill.TotalBillAmountAfterDiscountAndExtra)
+                        new JournalLineRequest(AccountCodeRepository.AccountsReceivable, remaining, 0, null, bill.CustomerOrSupplierAccountId),
+                        new JournalLineRequest(AccountCodeRepository.Cash, bill.AmountPaided, 0),
+                        new JournalLineRequest(AccountCodeRepository.SalesRevenue, 0, bill.TotalBillAmountAfterDiscountAndExtra)
                     },
                     InvoiceType.SalesReturn => new[]
                     {
-                        new JournalLineRequest(AccountCodes.SalesReturns, bill.TotalBillAmountAfterDiscountAndExtra, 0),
-                        new JournalLineRequest(AccountCodes.AccountsReceivable, 0, remaining, null, bill.CustomerOrSupplierAccountId),
-                        new JournalLineRequest(AccountCodes.Cash, 0, bill.AmountPaided)
+                        new JournalLineRequest(AccountCodeRepository.SalesReturns, bill.TotalBillAmountAfterDiscountAndExtra, 0),
+                        new JournalLineRequest(AccountCodeRepository.AccountsReceivable, 0, remaining, null, bill.CustomerOrSupplierAccountId),
+                        new JournalLineRequest(AccountCodeRepository.Cash, 0, bill.AmountPaided)
                     },
                     InvoiceType.Shortage => new[]
                     {
-                        new JournalLineRequest(AccountCodes.InventoryAdjustment, bill.TotalBillAmountAfterDiscountAndExtra, 0),
-                        new JournalLineRequest(AccountCodes.Inventory, 0, bill.TotalBillAmountAfterDiscountAndExtra)
+                        new JournalLineRequest(AccountCodeRepository.InventoryAdjustment, bill.TotalBillAmountAfterDiscountAndExtra, 0),
+                        new JournalLineRequest(AccountCodeRepository.Inventory, 0, bill.TotalBillAmountAfterDiscountAndExtra)
                     },
                     InvoiceType.Surplus => new[]
                     {
-                        new JournalLineRequest(AccountCodes.Inventory, bill.TotalBillAmountAfterDiscountAndExtra, 0),
-                        new JournalLineRequest(AccountCodes.InventoryAdjustment, 0, bill.TotalBillAmountAfterDiscountAndExtra)
+                        new JournalLineRequest(AccountCodeRepository.Inventory, bill.TotalBillAmountAfterDiscountAndExtra, 0),
+                        new JournalLineRequest(AccountCodeRepository.InventoryAdjustment, 0, bill.TotalBillAmountAfterDiscountAndExtra)
                     },
                     InvoiceType.OpeningInventory => new[]
                     {
-                        new JournalLineRequest(AccountCodes.Inventory, bill.TotalBillAmountAfterDiscountAndExtra, 0),
-                        new JournalLineRequest(AccountCodes.OpeningBalanceEquity, 0, bill.TotalBillAmountAfterDiscountAndExtra)
+                        new JournalLineRequest(AccountCodeRepository.Inventory, bill.TotalBillAmountAfterDiscountAndExtra, 0),
+                        new JournalLineRequest(AccountCodeRepository.OpeningBalanceEquity, 0, bill.TotalBillAmountAfterDiscountAndExtra)
                     },
                     _ => Array.Empty<JournalLineRequest>()
                 };
@@ -741,8 +747,8 @@ public class InvoiceRepository : IInvoiceRepository
                 {
                     journalLinesBase = journalLinesBase.Concat(new[]
                     {
-                        new JournalLineRequest(AccountCodes.Purchases, bill.BillCost.Value, 0),
-                        new JournalLineRequest(AccountCodes.Inventory, 0, bill.BillCost.Value)
+                        new JournalLineRequest(AccountCodeRepository.Purchases, bill.BillCost.Value, 0),
+                        new JournalLineRequest(AccountCodeRepository.Inventory, 0, bill.BillCost.Value)
                     }).ToArray();
                 }
 
@@ -781,7 +787,7 @@ public class InvoiceRepository : IInvoiceRepository
                         CurrencyRate = 1,
                         IsPosted = true,
                         EntryRemarks = $"{(LanguageHelper.IsArabic() ? entrySetting.ArName : entrySetting.EnName)} {bill.Code}",
-                        AccountBoxOrBankId = bill.AmountPaided > 0 && journalAccountIdsByCode.TryGetValue(AccountCodes.Cash, out var cashId) ? cashId : null,
+                        AccountBoxOrBankId = bill.AmountPaided > 0 && journalAccountIdsByCode.TryGetValue(AccountCodeRepository.Cash, out var cashId) ? cashId : null,
                         Bill = bill,
                         EntrySetting = entrySetting,
                         CreatedAt = DateTime.Now,
@@ -817,13 +823,13 @@ public class InvoiceRepository : IInvoiceRepository
                 var sign = (type is InvoiceType.Purchases or InvoiceType.SalesReturn or InvoiceType.Surplus or InvoiceType.OpeningInventory ? 1 : -1);
                 foreach (var detail in bill.BillDetails)
                 {
-                    var productId = BillSupport.ProductIdOf(detail.Item?.Code);
+                    var productId = _billSupport.ProductIdOf(detail.Item?.Code);
                     if (productId == 0)
                     {
                         continue;
                     }
 
-                    await StoreStock.AdjustAsync(_context, bill.StoreId ?? 0, productId, sign * (detail.Quantity ?? 0), allowNegative: true);
+                    await _stock.AdjustAsync(bill.StoreId ?? 0, productId, sign * (detail.Quantity ?? 0), allowNegative: true);
                     await _context.StoreProductMovements.AddAsync(new StoreProductMovement
                     {
                         StoreId = bill.StoreId ?? 0,

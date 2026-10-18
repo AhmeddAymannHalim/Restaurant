@@ -13,6 +13,7 @@ public interface IOrderRepository
     Task<Order> GetOrderByIdAsync(int id);
     Task<string> GetNextCodeAsync();
     Task<IEnumerable<MenuItem>> GetCashierMenuAsync();
+    Task<Dictionary<int, int>> GetAvailablePortionsAsync();
     Task<ApplicationSetting> GetSettingsAsync();
     Task<IEnumerable<Table>> GetPendingTablesAsync(int exceptTableId);
 

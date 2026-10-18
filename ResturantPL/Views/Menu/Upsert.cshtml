@@ -382,14 +382,15 @@
                     return;
                 }
 
-                swal({
+                Swal.fire({
                     title: alertTitle,
                     text: msgNegative + ' (' + $('#totalCost').val() + ' > ' + number($('#price').val()).toFixed(2) + ')',
                     icon: 'warning',
-                    buttons: [cancelText, saveAnywayText],
-                    dangerMode: true
-                }).then(function (accepted) {
-                    if (accepted) {
+                    showCancelButton: true,
+                    cancelButtonText: cancelText,
+                    confirmButtonText: saveAnywayText
+                }).then(function (answer) {
+                    if (answer.isConfirmed) {
                         confirmed = true;
                         form[0].submit();
                     }

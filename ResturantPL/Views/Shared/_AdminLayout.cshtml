@@ -52,8 +52,6 @@
     </main>
 
     <partial name="_CoreScripts" />
-    <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-    <partial name="_DeleteText" />
     
     
     
@@ -321,54 +319,6 @@
     });
 })();
 
-function Delete(url, redirectUrl) {
-    var t = window.deleteText || {
-        title: "هل انت متأكد", warning: "بمجرد الحذف لن تتمكن من استعادته مجددا", cancel: "الغاء", confirm: "حذف",
-        done: "تم الحذف بنجاح", failed: "فشلت العملية", error: "حدث خطأ أثناء عملية الحذف", aborted: "تم الغاء عملية الحذف"
-    };
-    swal({
-        title: t.title,
-        text: t.warning,
-        icon: "warning",
-        buttons: [t.cancel, t.confirm],
-        dangerMode: true,
-    })
-        .then((willDelete) => {
-            if (willDelete) {
-                $.ajax({
-                    url: url,
-                    type: "POST",
-                    success: function (result) {
-                        if (result.success) {
-                            swal(t.done, {
-                                icon: "success",
-                            });
-
-                            if (redirectUrl) {
-                                window.location.href = redirectUrl;
-                            } else if (window.appAjax) {
-                                window.appAjax.reload();
-                            } else {
-                                location.reload();
-                            }
-                        } else {
-                            swal(t.failed, result.errorMessage || "", "error");
-                        }
-                    },
-                    error: function () {
-                        swal(t.error, "", "error");
-                    }
-                });
-            } else {
-                swal(t.aborted);
-            }
-        });
-}
-
-/* Repeating rows of a form ("+ Add" button), used by the employee form for extra mobiles, dependents,
-   allowances, fixed deductions, leaves and documents. A list is any [data-row-list] that holds
-   [data-rows], a [data-row-template] with __i__ in the field names, a [data-row-add] button and
-   [data-row-remove] buttons inside each [data-row]. It also shows the tab holding the first validation error. */
 (function () {
     "use strict";
 

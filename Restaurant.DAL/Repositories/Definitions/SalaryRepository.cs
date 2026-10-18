@@ -130,8 +130,8 @@ public class SalaryRepository : ISalaryRepository
                 $"Salary {entity.SalaryCode}",
                 new[]
                 {
-                    new JournalLineRequest(AccountCodes.Salaries, entity.SalaryAmount, 0),
-                    new JournalLineRequest(AccountCodes.Cash, 0, entity.SalaryAmount)
+                    new JournalLineRequest(AccountCodeRepository.Salaries, entity.SalaryAmount, 0),
+                    new JournalLineRequest(AccountCodeRepository.Cash, 0, entity.SalaryAmount)
                 });
             if (!posting.Success)
             {

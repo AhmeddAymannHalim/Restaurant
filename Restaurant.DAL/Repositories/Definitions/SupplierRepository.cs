@@ -13,10 +13,16 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class SupplierRepository : ISupplierRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IAccountProvisionRepository _accountProvision;
+    private readonly IPhoneRepository _phones;
+    private readonly ILocationRepository _location;
 
     public SupplierRepository(ApplicationDbContext context)
     {
         _context = context;
+        _accountProvision = new AccountProvisionRepository(context);
+        _phones = new PhoneRepository(context);
+        _location = new LocationRepository(context);
     }
 
     public async Task<PaginatedResult<Supplier>> GetPagedSuppliersAsync(PageRequest request)
@@ -72,21 +78,21 @@ public class SupplierRepository : ISupplierRepository
             }
 
             entity.Account = null;
-            var phones = PhoneRows.Clean(entity.PhoneNumber1, entity.Phones);
+            var phones = _phones.CleanNumbers(entity.PhoneNumber1, entity.Phones);
             entity.Phones = new List<SupplierPhone>();
             entity.PhoneNumber2 = phones.ElementAtOrDefault(0);
-            (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
+            var location = await _location.ResolveAsync(entity.TownId);
+            entity.GovId = location.GovId;
+            entity.CountryId = location.CountryId;
             Account openingAccount = null;
             decimal openingDelta = 0;
 
             if (entity.Id == 0)
             {
-                var account = await AccountProvisioner.CreateAsync(
-                    _context,
-                    form.ArName,
+                var account = await _accountProvision.CreateAsync(form.ArName,
                     form.EnName,
                     AccountType.Supplier,
-                    AccountCodes.AccountsPayable,
+                    AccountCodeRepository.AccountsPayable,
                     form.CreditBalance - form.DebitBalance);
 
                 entity.Account = account;
@@ -95,7 +101,7 @@ public class SupplierRepository : ISupplierRepository
                 entity.LastBalance = openingDelta;
                 entity.CreatedAt = DateTime.Now;
 
-                PhoneRows.Sync(_context, entity.Phones, phones);
+                _phones.SyncSupplierPhones(entity.Phones, phones);
                 await _context.Suppliers.AddAsync(entity);
             }
             else
@@ -126,7 +132,7 @@ public class SupplierRepository : ISupplierRepository
                 openingDelta = (form.CreditBalance - form.DebitBalance) - (existing.Account.CreditBalance - existing.Account.DebitBalance);
                 existing.Account.Adjust(openingDelta);
                 _context.Entry(existing).CurrentValues.SetValues(entity);
-                PhoneRows.Sync(_context, existing.Phones, phones);
+                _phones.SyncSupplierPhones(existing.Phones, phones);
             }
 
             await _context.SaveChangesAsync();

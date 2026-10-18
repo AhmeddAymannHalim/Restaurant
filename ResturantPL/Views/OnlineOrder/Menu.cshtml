@@ -20,6 +20,13 @@
             : (string.IsNullOrWhiteSpace(item.EnDescription) ? item.ArDescription : item.EnDescription);
     }
 
+    string Ingredients(OnlineMenuItemViewModel item)
+    {
+        return isArabic
+            ? (string.IsNullOrWhiteSpace(item.ArIngredients) ? item.EnIngredients : item.ArIngredients)
+            : (string.IsNullOrWhiteSpace(item.EnIngredients) ? item.ArIngredients : item.EnIngredients);
+    }
+
     string SizeName(OnlineMenuItemViewModel item)
     {
         return item.Size.HasValue ? L["Size." + item.Size.Value].Value : L["Size.regular"].Value;
@@ -64,7 +71,16 @@
                     var first = group.First();
                     var sizes = group.ToList();
 
-                    <article class="ws-dish" data-section="@first.SectionArName" style="--i:@(dishIndex++)">
+                    var detail = Json.Serialize(new
+                    {
+                        name = Name(first),
+                        description = Description(first) ?? "",
+                        ingredients = Ingredients(first) ?? "",
+                        image = first.ImageUrl ?? "",
+                        sizes = sizes.Select(x => new { id = x.Id, label = sizes.Count > 1 ? SizeName(x) : "", price = x.Price })
+                    }).ToString();
+
+                    <article class="ws-dish" tabindex="0" data-detail="@detail" data-section="@first.SectionArName" style="--i:@(dishIndex++)">
                         <div class="ws-dish-img">
                             @if (!string.IsNullOrWhiteSpace(first.ImageUrl))
                             {
@@ -79,6 +95,11 @@
                             @if (!string.IsNullOrWhiteSpace(Description(first)))
                             {
                                 <p class="ws-dish-desc">@Description(first)</p>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(Ingredients(first)))
+                            {
+                                <p class="ws-dish-desc ws-dish-made">@L["MadeOf"] @Ingredients(first)</p>
                             }
 
                             @if (sizes.Count > 1)

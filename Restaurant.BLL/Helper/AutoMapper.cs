@@ -35,6 +35,29 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Employees, opt => opt.Ignore());
 
         CreateMap<Restaurant.DAL.Models.Table, TableViewModel>();
+
+        CreateMap<TableReservation, TableReservationViewModel>()
+            .ForMember(dest => dest.TableArName, opt => opt.MapFrom(src => src.Table == null ? null : src.Table.ArName))
+            .ForMember(dest => dest.TableEnName, opt => opt.MapFrom(src => src.Table == null ? null : src.Table.EnName))
+            .ForMember(dest => dest.Tables, opt => opt.Ignore());
+        CreateMap<TableReservationViewModel, TableReservation>()
+            .ForMember(dest => dest.Table, opt => opt.Ignore())
+            .ForMember(dest => dest.Customer, opt => opt.Ignore())
+            .ForMember(dest => dest.CustomerId, opt => opt.Ignore());
+        CreateMap<ReservationCreateViewModel, TableReservation>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.ReservationDate, opt => opt.MapFrom(src => src.ReservationDate ?? default))
+            .ForMember(dest => dest.Status, opt => opt.Ignore())
+            .ForMember(dest => dest.RejectionReason, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.CustomerId, opt => opt.Ignore())
+            .ForMember(dest => dest.Table, opt => opt.Ignore())
+            .ForMember(dest => dest.Customer, opt => opt.Ignore());
+        CreateMap<TableSlot, TableSlotViewModel>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Table.Id))
+            .ForMember(dest => dest.ArName, opt => opt.MapFrom(src => src.Table.ArName))
+            .ForMember(dest => dest.EnName, opt => opt.MapFrom(src => src.Table.EnName))
+            .ForMember(dest => dest.NumOfPersons, opt => opt.MapFrom(src => src.Table.NumOfPersons));
         CreateMap<TableViewModel, Restaurant.DAL.Models.Table>()
             .ForMember(dest => dest.IsPending, opt => opt.Ignore());
 
@@ -216,6 +239,7 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.DeliveryZoneEnName, opt => opt.MapFrom(src => src.DeliveryZone.EnName))
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OnlineOrderMenuItems));
         CreateMap<MenuItem, CashierMenuItemViewModel>()
+            .ForMember(dest => dest.Available, opt => opt.MapFrom(src => src.AvailablePortions))
             .ForMember(dest => dest.ArIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.ArName))))
             .ForMember(dest => dest.EnIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.EnName))))
             .ForMember(dest => dest.SectionId, opt => opt.MapFrom(src => src.MenuSectionId))
@@ -234,6 +258,8 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.OnlineOrder, opt => opt.Ignore())
             .ForMember(dest => dest.MenuItem, opt => opt.Ignore());
         CreateMap<MenuItem, OnlineMenuItemViewModel>()
+            .ForMember(dest => dest.ArIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.ArName))))
+            .ForMember(dest => dest.EnIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.EnName))))
             .ForMember(dest => dest.SectionArName, opt => opt.MapFrom(src => src.MenuSection.ArName))
             .ForMember(dest => dest.SectionEnName, opt => opt.MapFrom(src => src.MenuSection.EnName));
 

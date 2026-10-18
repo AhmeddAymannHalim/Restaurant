@@ -28,6 +28,8 @@ public class OnlineMenuItemViewModel
     public string EnName { get; set; }
     public string ArDescription { get; set; }
     public string EnDescription { get; set; }
+    public string ArIngredients { get; set; }
+    public string EnIngredients { get; set; }
     public string ImageUrl { get; set; }
     public decimal Price { get; set; }
     public Size? Size { get; set; }

@@ -45,6 +45,7 @@ namespace Restaurant.DAL.UnitOfWork
             DeliveryZones = new DeliveryZoneRepository(_context);
             Expenses = new ExpenseRepository(_context);
             Tables = new TableRepository(_context);
+            TableReservations = new TableReservationRepository(_context);
             MenuItems = new MenuItemRepository(_context);
             Stores = new StoreRepository(_context);
             Suppliers = new SupplierRepository(_context);
@@ -75,6 +76,7 @@ namespace Restaurant.DAL.UnitOfWork
         public IBranchRepository Branches { get; set; }
         public IJobRepository Jobs { get; set; }
         public ITableRepository Tables { get; set; }
+        public ITableReservationRepository TableReservations { get; set; }
         public IUnitPriceRepository UnitPrices { get; set; }
         public IProductCategoryRepository ProductCategories { get; set; }
         public IMenuSectionRepository MenuSections { get; set; }

@@ -76,6 +76,9 @@ public class CashierMenuItemViewModel
     public bool IsAvailable { get; set; } = true;
     public string ArIngredients { get; set; }
     public string EnIngredients { get; set; }
+
+    // How many portions the current stock can make. Null when the item has no recipe, so nothing limits it.
+    public int? Available { get; set; }
 }
 
 public class OrderMoveViewModel

@@ -21,6 +21,7 @@
         <nav class="site-menu" id="siteMenu" aria-label="@L["Menu"]">
             <a class="site-link @Current("Home")" asp-controller="Home" asp-action="Index">@L["Home"]</a>
             <a class="site-link @Current("OnlineOrder")" asp-controller="OnlineOrder" asp-action="Menu">@L["Menu"]</a>
+            <a class="site-link @Current("Reservation")" asp-controller="Reservation" asp-action="Book">@L["Reservation.Cta"]</a>
             <a class="site-link" href="/#gallery">@L["Gallery"]</a>
             <a class="site-link" href="/#chefs">@L["Chefs"]</a>
             @if (User.Identity.IsAuthenticated)
@@ -68,9 +69,6 @@
         <div class="site-end">
             <a class="site-lang" asp-controller="SetLanguage" asp-action="SetLanguage" asp-route-culture="@(isArabic ? "en" : "ar")" asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)">
                 <i class="bi bi-translate" aria-hidden="true"></i> @(isArabic ? "English" : "العربية")
-            </a>
-            <a class="site-brand" asp-controller="Home" asp-action="Index" title="@L["Website"]" aria-label="@L["Website"]">
-                <span class="site-logo" aria-hidden="true"><i class="bi bi-egg-fried"></i></span>
             </a>
             <button type="button" class="site-cart" data-cart data-cart-open aria-haspopup="dialog" aria-controls="cartDrawer" data-added="@L["AddedToBasket"]" aria-label="@L["Cart"]" title="@L["Cart"]">
                 <i class="bi bi-bag" aria-hidden="true"></i>

@@ -13,26 +13,32 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
 {
     private const int CodeSuffixLength = 4;
 
-    private static readonly AccountType[] OwnedTypes =
-    {
-        AccountType.Customer,
-        AccountType.Supplier,
-        AccountType.CustomerAndSupplier,
-        AccountType.Employee,
-        AccountType.BoxAndBank
-    };
-
-    private static readonly string[] SystemCodes = AccountCodes.Default.Select(a => a.Code).ToArray();
-
     private readonly ApplicationDbContext _context;
-
+    private readonly IAccountCodeRepository _accountCodes;
     public AccountDefinitionRepository(ApplicationDbContext context)
     {
         _context = context;
+        _accountCodes = new AccountCodeRepository();
+    }
+    private List<AccountType> GetOwnedTypes()
+    {
+        var types = new List<AccountType>();
+        types.Add(AccountType.Customer);
+        types.Add(AccountType.Supplier);
+        types.Add(AccountType.CustomerAndSupplier);
+        types.Add(AccountType.Employee);
+        types.Add(AccountType.BoxAndBank);
+        return types;
+    }
+
+    private bool IsOwnedType(AccountType type)
+    {
+        return GetOwnedTypes().Contains(type);
     }
 
     public async Task<PaginatedResult<AccountDefinitionViewModel>> GetPagedAccountsAsync(PageRequest request, bool assetsOnly)
     {
+        var ownedTypes = GetOwnedTypes();
         var query = _context.Accounts.AsNoTracking().AsQueryable();
 
         if (assetsOnly)
@@ -47,14 +53,14 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
                 AccountKind.Safe => query.Where(a => a.AccountType == AccountType.Box),
                 AccountKind.Asset => query.Where(a => a.AccountDetails != null),
                 AccountKind.Expense => query.Where(a => a.AccountDetails == null
-                    && !OwnedTypes.Contains(a.AccountType)
+                    && !ownedTypes.Contains(a.AccountType)
                     && a.AccountType != AccountType.Bank && a.AccountType != AccountType.Box
-                    && a.Code.StartsWith(AccountCodes.Expenses)),
-                AccountKind.Owned => query.Where(a => OwnedTypes.Contains(a.AccountType)),
+                    && a.Code.StartsWith(AccountCodeRepository.Expenses)),
+                AccountKind.Owned => query.Where(a => ownedTypes.Contains(a.AccountType)),
                 _ => query.Where(a => a.AccountDetails == null
-                    && !OwnedTypes.Contains(a.AccountType)
+                    && !ownedTypes.Contains(a.AccountType)
                     && a.AccountType != AccountType.Bank && a.AccountType != AccountType.Box
-                    && !a.Code.StartsWith(AccountCodes.Expenses))
+                    && !a.Code.StartsWith(AccountCodeRepository.Expenses))
             };
         }
 
@@ -117,8 +123,8 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
                 depreciationType = DepreciationType.FixedInstallment;
             }
 
-            var isOwned = OwnedTypes.Contains(row.AccountType);
-            var isSystem = SystemCodes.Contains(row.Code);
+            var isOwned = IsOwnedType(row.AccountType);
+            var isSystem = _accountCodes.IsSystemCode(row.Code);
 
             AccountKind kind;
             if (row.HasAccountDetails)
@@ -137,7 +143,7 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
             {
                 kind = AccountKind.Safe;
             }
-            else if (row.Code.StartsWith(AccountCodes.Expenses))
+            else if (row.Code.StartsWith(AccountCodeRepository.Expenses))
             {
                 kind = AccountKind.Expense;
             }
@@ -231,8 +237,8 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
             depreciationType = DepreciationType.FixedInstallment;
         }
 
-        var isOwned = OwnedTypes.Contains(row.AccountType);
-        var isSystem = SystemCodes.Contains(row.Code);
+        var isOwned = IsOwnedType(row.AccountType);
+        var isSystem = _accountCodes.IsSystemCode(row.Code);
 
         AccountKind kind;
         if (row.HasAccountDetails)
@@ -251,7 +257,7 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
         {
             kind = AccountKind.Safe;
         }
-        else if (row.Code.StartsWith(AccountCodes.Expenses))
+        else if (row.Code.StartsWith(AccountCodeRepository.Expenses))
         {
             kind = AccountKind.Expense;
         }
@@ -302,10 +308,10 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
         {
             var rootCode = kind switch
             {
-                AccountKind.Asset => AccountCodes.Assets,
-                AccountKind.Expense => AccountCodes.Expenses,
-                AccountKind.Bank or AccountKind.Safe => AccountCodes.Assets,
-                _ => AccountCodes.Assets
+                AccountKind.Asset => AccountCodeRepository.Assets,
+                AccountKind.Expense => AccountCodeRepository.Expenses,
+                AccountKind.Bank or AccountKind.Safe => AccountCodeRepository.Assets,
+                _ => AccountCodeRepository.Assets
             };
 
             parent = await _context.Accounts.FirstOrDefaultAsync(a => a.Code == rootCode);
@@ -332,8 +338,9 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
 
     public async Task<IEnumerable<LookupItem>> GetParentOptionsAsync(int? exceptId)
     {
+        var ownedTypes = GetOwnedTypes();
         var accounts = await _context.Accounts.AsNoTracking()
-            .Where(a => !OwnedTypes.Contains(a.AccountType)
+            .Where(a => !ownedTypes.Contains(a.AccountType)
                 && a.AccountType != AccountType.Bank && a.AccountType != AccountType.Box
                 && a.AccountDetails == null
                 && a.Id != exceptId)
@@ -346,8 +353,9 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
 
     public async Task<IEnumerable<LookupItem>> GetPostingAccountOptionsAsync()
     {
+        var ownedTypes = GetOwnedTypes();
         return await _context.Accounts.AsNoTracking()
-            .Where(a => !OwnedTypes.Contains(a.AccountType) && a.AccountType != AccountType.Collective)
+            .Where(a => !ownedTypes.Contains(a.AccountType) && a.AccountType != AccountType.Collective)
             .OrderBy(a => a.Code)
             .Select(a => new LookupItem { Id = a.Id, ArName = a.Code + " - " + a.ArName, EnName = a.Code + " - " + a.EnName })
             .ToListAsync();
@@ -369,10 +377,10 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
                 {
                     var rootCode = kind switch
                     {
-                        AccountKind.Asset => AccountCodes.Assets,
-                        AccountKind.Expense => AccountCodes.Expenses,
-                        AccountKind.Bank or AccountKind.Safe => AccountCodes.Assets,
-                        _ => AccountCodes.Assets
+                        AccountKind.Asset => AccountCodeRepository.Assets,
+                        AccountKind.Expense => AccountCodeRepository.Expenses,
+                        AccountKind.Bank or AccountKind.Safe => AccountCodeRepository.Assets,
+                        _ => AccountCodeRepository.Assets
                     };
 
                     parent = await _context.Accounts.FirstOrDefaultAsync(a => a.Code == rootCode);
@@ -452,7 +460,7 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
                 return new ResultMessage { Success = false, Message = "RecordNotFound" };
             }
 
-            if (OwnedTypes.Contains(existing.AccountType))
+            if (IsOwnedType(existing.AccountType))
             {
                 return new ResultMessage { Success = false, Message = "AccountOwnedByAnotherScreen" };
             }
@@ -474,10 +482,10 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
                 {
                     var rootCode = kind switch
                     {
-                        AccountKind.Asset => AccountCodes.Assets,
-                        AccountKind.Expense => AccountCodes.Expenses,
-                        AccountKind.Bank or AccountKind.Safe => AccountCodes.Assets,
-                        _ => AccountCodes.Assets
+                        AccountKind.Asset => AccountCodeRepository.Assets,
+                        AccountKind.Expense => AccountCodeRepository.Expenses,
+                        AccountKind.Bank or AccountKind.Safe => AccountCodeRepository.Assets,
+                        _ => AccountCodeRepository.Assets
                     };
 
                     newParent = await _context.Accounts.FirstOrDefaultAsync(a => a.Code == rootCode);
@@ -586,12 +594,12 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
                 return new ResultMessage { Success = true };
             }
 
-            if (SystemCodes.Contains(account.Code))
+            if (_accountCodes.IsSystemCode(account.Code))
             {
                 return new ResultMessage { Success = false, Message = "SystemAccountCannotBeDeleted" };
             }
 
-            if (OwnedTypes.Contains(account.AccountType))
+            if (IsOwnedType(account.AccountType))
             {
                 return new ResultMessage { Success = false, Message = "AccountOwnedByAnotherScreen" };
             }

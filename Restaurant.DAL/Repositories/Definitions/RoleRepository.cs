@@ -7,9 +7,13 @@ namespace Restaurant.DAL.Repositories.Definitions;
 
 public class RoleRepository : IRoleRepository
 {
-    private static readonly string[] SystemRoles = { "Admin", "Manager", "كاشير", "User" };
-
     private readonly RoleManager<IdentityRole> _roleManager;
+
+    // These four roles come with the program and cannot be changed or deleted.
+    private bool IsSystemRole(string name)
+    {
+        return name == "Admin" || name == "Manager" || name == "كاشير" || name == "User";
+    }
 
     public RoleRepository(RoleManager<IdentityRole> roleManager)
     {
@@ -73,7 +77,7 @@ public class RoleRepository : IRoleRepository
                 };
             }
 
-            if (SystemRoles.Contains(existing.Name))
+            if (IsSystemRole(existing.Name))
             {
                 return new ResultMessage
                 {
@@ -101,7 +105,7 @@ public class RoleRepository : IRoleRepository
             };
         }
 
-        if (SystemRoles.Contains(entity.Name))
+        if (IsSystemRole(entity.Name))
         {
             return new ResultMessage
             {
