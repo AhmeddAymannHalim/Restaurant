@@ -53,33 +53,100 @@ public class BillRepository : IBillRepository
         }
 
         var total = await query.CountAsync();
-        var data = await query
+        var rawRows = await query
             .OrderByDescending(a => a.Date)
             .ThenByDescending(a => a.Id)
             .Skip(request.Offset)
             .Take(request.PageSize)
-            .Select(a => new BillListItemViewModel
+            .Select(a => new
             {
-                Id = a.Id,
-                Code = a.Code,
-                Date = a.Date,
-                SettingCode = _context.Orders.Any(p => p.Id == a.Id) ? "ORD" : a.BillSetting.BillType == BillType.Purchases ? "PUR" : a.BillSetting.BillType == BillType.PurchaseReturn ? "PRET" : a.BillSetting.BillType == BillType.Sales ? "SAL" : a.BillSetting.BillType == BillType.SalesReturn ? "SRET" : "OTHER",
+                a.Id,
+                a.Code,
+                a.Date,
+                IsCashier = _context.Orders.Any(p => p.Id == a.Id),
+                BillType = a.BillSetting.BillType,
                 SettingArName = a.BillSetting.ArName,
                 SettingEnName = a.BillSetting.EnName,
-                PartnerArName = a.CustomerOrSupplierAccount.ArName
-                    ?? _context.Orders.Where(p => p.Id == a.Id).Select(p => p.CustomerName).FirstOrDefault(),
-                PartnerEnName = a.CustomerOrSupplierAccount.EnName
-                    ?? _context.Orders.Where(p => p.Id == a.Id).Select(p => p.CustomerName).FirstOrDefault(),
+                PartnerArNameRaw = a.CustomerOrSupplierAccount.ArName,
+                PartnerEnNameRaw = a.CustomerOrSupplierAccount.EnName,
+                FallbackCustomerName = _context.Orders.Where(p => p.Id == a.Id).Select(p => p.CustomerName).FirstOrDefault(),
                 Total = a.TotalBillAmountAfterDiscountAndExtra,
                 Paid = a.AmountPaided,
                 Remaining = a.CasherRemainingAmount,
-                IsEntryPosted = a.IsEntryPosted,
-                IsCashier = _context.Orders.Any(p => p.Id == a.Id),
-                IsEditable = invoiceTypes.Contains(a.BillSetting.BillType) && !_context.Orders.Any(p => p.Id == a.Id),
-                CanPost = (invoiceTypes.Contains(a.BillSetting.BillType) && !_context.Orders.Any(p => p.Id == a.Id) && (!a.IsEntryPosted || !a.IsStorageEffected))
-                    || (!_context.EntryMasters.Any(e => e.BillId == a.Id) && _context.Orders.Any(p => p.Id == a.Id && p.Cash))
+                a.IsEntryPosted,
+                a.IsStorageEffected,
+                HasEntryMaster = _context.EntryMasters.Any(e => e.BillId == a.Id),
+                IsCashAndCollected = _context.Orders.Any(p => p.Id == a.Id && p.Cash)
             })
             .ToListAsync();
+
+        var data = new List<BillListItemViewModel>();
+        foreach (var row in rawRows)
+        {
+            string settingCode;
+            if (row.IsCashier)
+            {
+                settingCode = "ORD";
+            }
+            else if (row.BillType == BillType.Purchases)
+            {
+                settingCode = "PUR";
+            }
+            else if (row.BillType == BillType.PurchaseReturn)
+            {
+                settingCode = "PRET";
+            }
+            else if (row.BillType == BillType.Sales)
+            {
+                settingCode = "SAL";
+            }
+            else if (row.BillType == BillType.SalesReturn)
+            {
+                settingCode = "SRET";
+            }
+            else
+            {
+                settingCode = "OTHER";
+            }
+
+            var partnerArName = row.PartnerArNameRaw;
+            if (partnerArName is null)
+            {
+                partnerArName = row.FallbackCustomerName;
+            }
+
+            var partnerEnName = row.PartnerEnNameRaw;
+            if (partnerEnName is null)
+            {
+                partnerEnName = row.FallbackCustomerName;
+            }
+
+            var isInvoiceType = invoiceTypes.Contains(row.BillType);
+            var isEditable = isInvoiceType && !row.IsCashier;
+
+            var canPostAsInvoice = isInvoiceType && !row.IsCashier && (!row.IsEntryPosted || !row.IsStorageEffected);
+            var canPostAsCashOrder = !row.HasEntryMaster && row.IsCashAndCollected;
+            var canPost = canPostAsInvoice || canPostAsCashOrder;
+
+            data.Add(new BillListItemViewModel
+            {
+                Id = row.Id,
+                Code = row.Code,
+                Date = row.Date,
+                SettingCode = settingCode,
+                SettingArName = row.SettingArName,
+                SettingEnName = row.SettingEnName,
+                PartnerArName = partnerArName,
+                PartnerEnName = partnerEnName,
+                Total = row.Total,
+                Paid = row.Paid,
+                Remaining = row.Remaining,
+                IsEntryPosted = row.IsEntryPosted,
+                IsCashier = row.IsCashier,
+                IsEditable = isEditable,
+                CanPost = canPost
+            });
+        }
 
         return PaginatedResult<BillListItemViewModel>.Create(data, total, request);
     }
@@ -87,34 +154,32 @@ public class BillRepository : IBillRepository
     public async Task<BillViewModel> GetBillByIdAsync(int id)
     {
         var invoiceTypes = BillSupport.InvoiceBillTypes;
-        var bill = await _context.BillMasters.AsNoTracking()
+        var rawBill = await _context.BillMasters.AsNoTracking()
             .Where(a => a.Id == id)
-            .Select(a => new BillViewModel
+            .Select(a => new
             {
-                Id = a.Id,
-                Code = a.Code,
-                Date = a.Date,
-                SettingCode = _context.Orders.Any(p => p.Id == a.Id) ? "ORD" : a.BillSetting.BillType == BillType.Purchases ? "PUR" : a.BillSetting.BillType == BillType.PurchaseReturn ? "PRET" : a.BillSetting.BillType == BillType.Sales ? "SAL" : a.BillSetting.BillType == BillType.SalesReturn ? "SRET" : "OTHER",
+                a.Id,
+                a.Code,
+                a.Date,
+                IsCashier = _context.Orders.Any(p => p.Id == a.Id),
+                BillType = a.BillSetting.BillType,
                 SettingArName = a.BillSetting.ArName,
                 SettingEnName = a.BillSetting.EnName,
-                PartnerArName = a.CustomerOrSupplierAccount.ArName
-                    ?? _context.Orders.Where(p => p.Id == a.Id).Select(p => p.CustomerName).FirstOrDefault(),
-                PartnerEnName = a.CustomerOrSupplierAccount.EnName
-                    ?? _context.Orders.Where(p => p.Id == a.Id).Select(p => p.CustomerName).FirstOrDefault(),
-                ItemsTotal = a.TotalAmountBeforeDiscountOrExtra,
-                Discount = a.TotalDiscountValueOnBillAndItems,
-                Extras = a.TotalExtraValueOnBillAndItems,
+                PartnerArNameRaw = a.CustomerOrSupplierAccount.ArName,
+                PartnerEnNameRaw = a.CustomerOrSupplierAccount.EnName,
+                FallbackCustomerName = _context.Orders.Where(p => p.Id == a.Id).Select(p => p.CustomerName).FirstOrDefault(),
+                a.TotalAmountBeforeDiscountOrExtra,
+                a.TotalDiscountValueOnBillAndItems,
+                a.TotalExtraValueOnBillAndItems,
                 Total = a.TotalBillAmountAfterDiscountAndExtra,
                 Paid = a.AmountPaided,
                 Remaining = a.CasherRemainingAmount,
-                Cost = a.BillCost,
-                Profit = a.BillProfit,
-                IsEntryPosted = a.IsEntryPosted,
-                IsStorageEffected = a.IsStorageEffected,
-                IsCashier = _context.Orders.Any(p => p.Id == a.Id),
-                IsEditable = invoiceTypes.Contains(a.BillSetting.BillType) && !_context.Orders.Any(p => p.Id == a.Id),
-                CanPost = (invoiceTypes.Contains(a.BillSetting.BillType) && !_context.Orders.Any(p => p.Id == a.Id) && (!a.IsEntryPosted || !a.IsStorageEffected))
-                    || (!_context.EntryMasters.Any(e => e.BillId == a.Id) && _context.Orders.Any(p => p.Id == a.Id && p.Cash)),
+                a.BillCost,
+                a.BillProfit,
+                a.IsEntryPosted,
+                a.IsStorageEffected,
+                HasEntryMaster = _context.EntryMasters.Any(e => e.BillId == a.Id),
+                IsCashAndCollected = _context.Orders.Any(p => p.Id == a.Id && p.Cash),
                 Lines = a.BillDetails
                     .OrderBy(d => d.RowNumber)
                     .ThenBy(d => d.Id)
@@ -135,10 +200,81 @@ public class BillRepository : IBillRepository
             })
             .FirstOrDefaultAsync();
 
-        if (bill is null)
+        if (rawBill is null)
         {
             return null;
         }
+
+        string settingCode;
+        if (rawBill.IsCashier)
+        {
+            settingCode = "ORD";
+        }
+        else if (rawBill.BillType == BillType.Purchases)
+        {
+            settingCode = "PUR";
+        }
+        else if (rawBill.BillType == BillType.PurchaseReturn)
+        {
+            settingCode = "PRET";
+        }
+        else if (rawBill.BillType == BillType.Sales)
+        {
+            settingCode = "SAL";
+        }
+        else if (rawBill.BillType == BillType.SalesReturn)
+        {
+            settingCode = "SRET";
+        }
+        else
+        {
+            settingCode = "OTHER";
+        }
+
+        var partnerArName = rawBill.PartnerArNameRaw;
+        if (partnerArName is null)
+        {
+            partnerArName = rawBill.FallbackCustomerName;
+        }
+
+        var partnerEnName = rawBill.PartnerEnNameRaw;
+        if (partnerEnName is null)
+        {
+            partnerEnName = rawBill.FallbackCustomerName;
+        }
+
+        var isInvoiceType = invoiceTypes.Contains(rawBill.BillType);
+        var isEditable = isInvoiceType && !rawBill.IsCashier;
+
+        var canPostAsInvoice = isInvoiceType && !rawBill.IsCashier && (!rawBill.IsEntryPosted || !rawBill.IsStorageEffected);
+        var canPostAsCashOrder = !rawBill.HasEntryMaster && rawBill.IsCashAndCollected;
+        var canPost = canPostAsInvoice || canPostAsCashOrder;
+
+        var bill = new BillViewModel
+        {
+            Id = rawBill.Id,
+            Code = rawBill.Code,
+            Date = rawBill.Date,
+            SettingCode = settingCode,
+            SettingArName = rawBill.SettingArName,
+            SettingEnName = rawBill.SettingEnName,
+            PartnerArName = partnerArName,
+            PartnerEnName = partnerEnName,
+            ItemsTotal = rawBill.TotalAmountBeforeDiscountOrExtra,
+            Discount = rawBill.TotalDiscountValueOnBillAndItems,
+            Extras = rawBill.TotalExtraValueOnBillAndItems,
+            Total = rawBill.Total,
+            Paid = rawBill.Paid,
+            Remaining = rawBill.Remaining,
+            Cost = rawBill.BillCost,
+            Profit = rawBill.BillProfit,
+            IsEntryPosted = rawBill.IsEntryPosted,
+            IsStorageEffected = rawBill.IsStorageEffected,
+            IsCashier = rawBill.IsCashier,
+            IsEditable = isEditable,
+            CanPost = canPost,
+            Lines = rawBill.Lines
+        };
 
         bill.Entries = await _context.EntryMasters.AsNoTracking()
             .Where(a => a.BillId == id)
@@ -182,17 +318,17 @@ public class BillRepository : IBillRepository
             var pos = await _context.Orders.Include(a => a.Bill).FirstOrDefaultAsync(a => a.Id == id);
             if (pos is null)
             {
-                return Fail("RecordNotFound");
+                return new ResultMessage { Success = false, Message = "RecordNotFound" };
             }
 
             if (!pos.Cash)
             {
-                return Fail("BillNotCollected");
+                return new ResultMessage { Success = false, Message = "BillNotCollected" };
             }
 
             if (await _context.EntryMasters.AnyAsync(a => a.BillId == id))
             {
-                return Fail("BillAlreadyPosted");
+                return new ResultMessage { Success = false, Message = "BillAlreadyPosted" };
             }
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -201,7 +337,7 @@ public class BillRepository : IBillRepository
                 if (await _context.EntryMasters.AnyAsync(a => a.BillId == id))
                 {
                     await transaction.RollbackAsync();
-                    return Fail("BillAlreadyPosted");
+                    return new ResultMessage { Success = false, Message = "BillAlreadyPosted" };
                 }
 
                 await OrderLedger.PostEntryAsync(_context, pos);
@@ -220,7 +356,7 @@ public class BillRepository : IBillRepository
         }
         catch (Exception ex)
         {
-            return Fail(ErrorLog.Message(ex));
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
     }
 
@@ -251,16 +387,8 @@ public class BillRepository : IBillRepository
         }
         catch (Exception ex)
         {
-            return Fail(ErrorLog.Message(ex));
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
     }
 
-    private static ResultMessage Fail(string message)
-    {
-        return new ResultMessage
-        {
-            Success = false,
-            Message = message
-        };
-    }
 }

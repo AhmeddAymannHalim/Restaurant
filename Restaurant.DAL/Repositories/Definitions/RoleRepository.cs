@@ -86,7 +86,7 @@ public class RoleRepository : IRoleRepository
             result = await _roleManager.UpdateAsync(existing);
         }
 
-        return ToResultMessage(result);
+        return new ResultMessage { Success = result.Succeeded, Message = result.Succeeded ? null : result.Errors.First().Description };
     }
 
     public async Task<ResultMessage> DeleteRoleAsync(string id)
@@ -110,15 +110,8 @@ public class RoleRepository : IRoleRepository
             };
         }
 
-        return ToResultMessage(await _roleManager.DeleteAsync(entity));
-    }
+        var deleted = await _roleManager.DeleteAsync(entity);
 
-    private static ResultMessage ToResultMessage(IdentityResult result)
-    {
-        return new ResultMessage
-        {
-            Success = result.Succeeded,
-            Message = result.Succeeded ? null : result.Errors.First().Description
-        };
+        return new ResultMessage { Success = deleted.Succeeded, Message = deleted.Succeeded ? null : deleted.Errors.First().Description };
     }
 }

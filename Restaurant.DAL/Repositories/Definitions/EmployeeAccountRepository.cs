@@ -84,54 +84,54 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
     {
         if (string.IsNullOrEmpty(entity.Id))
         {
-            return await CreateAccountAsync(entity, employeeId, password);
-        }
+            var employee = await GetEmployeeByIdAsync(employeeId);
+            if (employee is null)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RecordNotFound"
+                };
+            }
 
-        return await UpdateAccountAsync(entity, password);
-    }
+            var user = new ApplicationUser
+            {
+                UserName = entity.UserName,
+                Email = entity.Email,
+                EmailConfirmed = true,
+                FirstName = employee.ArName,
+                LastName = string.Empty,
+                TownId = employee.TownId,
+                Street = employee.Address,
+                PhoneNumber = employee.PhoneNumber,
+                UserType = employee.Job?.ArName,
+                Code = employee.Code
+            };
 
-    private async Task<ResultMessage> CreateAccountAsync(ApplicationUser entity, int employeeId, string password)
-    {
-        var employee = await GetEmployeeByIdAsync(employeeId);
-        if (employee is null)
-        {
+            if (!await _roleManager.RoleExistsAsync(user.UserType))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(user.UserType));
+            }
+
+            var created = await _userManager.CreateAsync(user, password);
+            if (!created.Succeeded)
+            {
+                return new ResultMessage
+                {
+                    Success = created.Succeeded,
+                    Message = created.Succeeded ? null : created.Errors.First().Description
+                };
+            }
+
+            var addedToRole = await _userManager.AddToRoleAsync(user, user.UserType);
+
             return new ResultMessage
             {
-                Success = false,
-                Message = "RecordNotFound"
+                Success = addedToRole.Succeeded,
+                Message = addedToRole.Succeeded ? null : addedToRole.Errors.First().Description
             };
         }
 
-        var user = new ApplicationUser
-        {
-            UserName = entity.UserName,
-            Email = entity.Email,
-            EmailConfirmed = true,
-            FirstName = employee.ArName,
-            LastName = string.Empty,
-            TownId = employee.TownId,
-            Street = employee.Address,
-            PhoneNumber = employee.PhoneNumber,
-            UserType = employee.Job?.ArName,
-            Code = employee.Code
-        };
-
-        if (!await _roleManager.RoleExistsAsync(user.UserType))
-        {
-            await _roleManager.CreateAsync(new IdentityRole(user.UserType));
-        }
-
-        var created = await _userManager.CreateAsync(user, password);
-        if (!created.Succeeded)
-        {
-            return ToResultMessage(created);
-        }
-
-        return ToResultMessage(await _userManager.AddToRoleAsync(user, user.UserType));
-    }
-
-    private async Task<ResultMessage> UpdateAccountAsync(ApplicationUser entity, string password)
-    {
         var existing = await _userManager.FindByIdAsync(entity.Id);
         if (existing is null)
         {
@@ -148,20 +148,20 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
         var updated = await _userManager.UpdateAsync(existing);
         if (!updated.Succeeded || string.IsNullOrEmpty(password))
         {
-            return ToResultMessage(updated);
+            return new ResultMessage
+            {
+                Success = updated.Succeeded,
+                Message = updated.Succeeded ? null : updated.Errors.First().Description
+            };
         }
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(existing);
+        var reset = await _userManager.ResetPasswordAsync(existing, token, password);
 
-        return ToResultMessage(await _userManager.ResetPasswordAsync(existing, token, password));
-    }
-
-    private static ResultMessage ToResultMessage(IdentityResult result)
-    {
         return new ResultMessage
         {
-            Success = result.Succeeded,
-            Message = result.Succeeded ? null : result.Errors.First().Description
+            Success = reset.Succeeded,
+            Message = reset.Succeeded ? null : reset.Errors.First().Description
         };
     }
 }

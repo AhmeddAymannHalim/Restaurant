@@ -129,36 +129,82 @@ public class EntryRepository : IEntryRepository
                 .ToList();
             if (lines.Count < 2)
             {
-                return Fail("JournalNeedsTwoLines");
+                return new ResultMessage { Success = false, Message = "JournalNeedsTwoLines" };
             }
 
-            if (lines.Any(a => (a.Debit.GetValueOrDefault() > 0) == (a.Credit.GetValueOrDefault() > 0) || a.Debit < 0 || a.Credit < 0))
+            var hasInvalidLine = false;
+            foreach (var line in lines)
             {
-                return Fail("JournalLineInvalid");
+                var hasDebit = line.Debit.GetValueOrDefault() > 0;
+                var hasCredit = line.Credit.GetValueOrDefault() > 0;
+                var hasNegativeDebit = line.Debit < 0;
+                var hasNegativeCredit = line.Credit < 0;
+
+                if (hasDebit == hasCredit || hasNegativeDebit || hasNegativeCredit)
+                {
+                    hasInvalidLine = true;
+                    break;
+                }
             }
 
-            if (Math.Round(lines.Sum(a => a.Debit.GetValueOrDefault()), 2) != Math.Round(lines.Sum(a => a.Credit.GetValueOrDefault()), 2))
+            if (hasInvalidLine)
             {
-                return Fail("JournalNotBalanced");
+                return new ResultMessage { Success = false, Message = "JournalLineInvalid" };
+            }
+
+            decimal totalDebit = 0;
+            decimal totalCredit = 0;
+            foreach (var line in lines)
+            {
+                totalDebit += line.Debit.GetValueOrDefault();
+                totalCredit += line.Credit.GetValueOrDefault();
+            }
+
+            var roundedTotalDebit = Math.Round(totalDebit, 2);
+            var roundedTotalCredit = Math.Round(totalCredit, 2);
+            if (roundedTotalDebit != roundedTotalCredit)
+            {
+                return new ResultMessage { Success = false, Message = "JournalNotBalanced" };
             }
 
             var ids = lines.Select(a => a.AccountId).Distinct().ToList();
-            if (await _context.Accounts.CountAsync(a => ids.Contains(a.Id) && a.AccountType != AccountType.Collective) != ids.Count)
+            var matchingAccountCount = await _context.Accounts.CountAsync(a => ids.Contains(a.Id) && a.AccountType != AccountType.Collective);
+            if (matchingAccountCount != ids.Count)
             {
-                return Fail("RecordNotFound");
+                return new ResultMessage { Success = false, Message = "RecordNotFound" };
             }
 
-            var type = model.EntryType is EntryType.CashReceipt or EntryType.CashPayment ? model.EntryType.Value : EntryType.Journal;
-            var (arName, enName) = type switch
+            EntryType type;
+            if (model.EntryType is EntryType.CashReceipt or EntryType.CashPayment)
             {
-                EntryType.CashReceipt => ("قبض", "Cash receipt"),
-                EntryType.CashPayment => ("صرف", "Cash payment"),
-                _ => ("قيد يومي", "Journal")
-            };
+                type = model.EntryType.Value;
+            }
+            else
+            {
+                type = EntryType.Journal;
+            }
+
+            string arName;
+            string enName;
+            switch (type)
+            {
+                case EntryType.CashReceipt:
+                    arName = "قبض";
+                    enName = "Cash receipt";
+                    break;
+                case EntryType.CashPayment:
+                    arName = "صرف";
+                    enName = "Cash payment";
+                    break;
+                default:
+                    arName = "قيد يومي";
+                    enName = "Journal";
+                    break;
+            }
 
             var setting = await BillSupport.GetEntrySettingAsync(_context, type, arName, enName);
             var number = await new JournalEntryRepository(_context).GetNextEntryNumberAsync();
-            var total = Math.Round(lines.Sum(a => a.Debit.GetValueOrDefault()), 2);
+            var total = roundedTotalDebit;
 
             await _context.EntryMasters.AddAsync(new EntryMaster
             {
@@ -187,7 +233,7 @@ public class EntryRepository : IEntryRepository
         }
         catch (Exception ex)
         {
-            return Fail(ErrorLog.Message(ex));
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
     }
 
@@ -205,7 +251,7 @@ public class EntryRepository : IEntryRepository
 
             if (entry.CollectEntryCode is null || !entry.CollectEntryCode.StartsWith("Manual:"))
             {
-                return Fail("EntryBelongsToDocument");
+                return new ResultMessage { Success = false, Message = "EntryBelongsToDocument" };
             }
 
             _context.EntryDetails.RemoveRange(entry.EntryDetails);
@@ -216,16 +262,8 @@ public class EntryRepository : IEntryRepository
         }
         catch (Exception ex)
         {
-            return Fail(ErrorLog.Message(ex));
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
     }
 
-    private static ResultMessage Fail(string message)
-    {
-        return new ResultMessage
-        {
-            Success = false,
-            Message = message
-        };
-    }
 }

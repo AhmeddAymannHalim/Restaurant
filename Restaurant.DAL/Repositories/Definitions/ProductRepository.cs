@@ -37,7 +37,18 @@ public class ProductRepository : IProductRepository
             .Take(request.PageSize)
             .ToListAsync();
 
-        await FillStocksAsync(data);
+        var pagedStores = await _context.Stores.AsNoTracking().OrderBy(a => a.Id).ToListAsync();
+        var pagedQuantities = await StoreStock.QuantitiesAsync(_context);
+
+        foreach (var product in data)
+        {
+            product.Stocks = pagedStores.Select(store => new ProductStock
+            {
+                StoreId = store.Id,
+                Store = store,
+                Quantity = pagedQuantities.GetValueOrDefault((store.Id, product.Id))
+            }).ToList();
+        }
 
         return PaginatedResult<Product>.Create(data, total, request);
     }
@@ -49,19 +60,9 @@ public class ProductRepository : IProductRepository
             .FirstOrDefaultAsync(a => a.Id == id);
         if (product is not null)
         {
-            await FillStocksAsync(new List<Product> { product });
-        }
+            var stores = await _context.Stores.AsNoTracking().OrderBy(a => a.Id).ToListAsync();
+            var quantities = await StoreStock.QuantitiesAsync(_context);
 
-        return product;
-    }
-
-    private async Task FillStocksAsync(List<Product> products)
-    {
-        var stores = await _context.Stores.AsNoTracking().OrderBy(a => a.Id).ToListAsync();
-        var quantities = await StoreStock.QuantitiesAsync(_context);
-
-        foreach (var product in products)
-        {
             product.Stocks = stores.Select(store => new ProductStock
             {
                 StoreId = store.Id,
@@ -69,6 +70,8 @@ public class ProductRepository : IProductRepository
                 Quantity = quantities.GetValueOrDefault((store.Id, product.Id))
             }).ToList();
         }
+
+        return product;
     }
 
     public async Task<ResultMessage> UpsertProductAsync(Product entity, IEnumerable<ProductStock> stocks)

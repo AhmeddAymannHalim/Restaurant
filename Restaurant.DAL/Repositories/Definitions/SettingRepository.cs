@@ -68,13 +68,21 @@ public class SettingRepository : ISettingRepository
 
         if (image is not null)
         {
-            ReplaceFile(existing.ImageUrl);
+            if (!string.IsNullOrEmpty(existing.ImageUrl))
+            {
+                DocumentSetting.DeleteFile(existing.ImageUrl);
+            }
+
             existing.ImageUrl = DocumentSetting.UploadFile(image, ImagesFolder);
         }
 
         if (video is not null)
         {
-            ReplaceFile(existing.VideoUrl);
+            if (!string.IsNullOrEmpty(existing.VideoUrl))
+            {
+                DocumentSetting.DeleteFile(existing.VideoUrl);
+            }
+
             existing.VideoUrl = DocumentSetting.UploadFile(video, VideosFolder);
         }
 
@@ -96,11 +104,4 @@ public class SettingRepository : ISettingRepository
         return new ResultMessage { Success = true };
     }
 
-    private static void ReplaceFile(string oldPath)
-    {
-        if (!string.IsNullOrEmpty(oldPath))
-        {
-            DocumentSetting.DeleteFile(oldPath);
-        }
-    }
 }

@@ -46,13 +46,6 @@ public class StoreRepository : IStoreRepository
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
-    private async Task<string> NewStoreCodeAsync()
-    {
-        var codes = await _context.Stores.AsNoTracking().Select(a => a.Code).ToListAsync();
-
-        return (codes.Where(code => int.TryParse(code, out _)).Select(int.Parse).DefaultIfEmpty(0).Max() + 1).ToString();
-    }
-
     public async Task<ResultMessage> UpsertStoreAsync(Store entity)
     {
         try
@@ -67,7 +60,8 @@ public class StoreRepository : IStoreRepository
             {
                 if (string.IsNullOrWhiteSpace(entity.Code))
                 {
-                    entity.Code = await NewStoreCodeAsync();
+                    var codes = await _context.Stores.AsNoTracking().Select(a => a.Code).ToListAsync();
+                    entity.Code = (codes.Where(code => int.TryParse(code, out _)).Select(int.Parse).DefaultIfEmpty(0).Max() + 1).ToString();
                 }
 
                 entity.CreatedAt = DateTime.Now;

@@ -67,87 +67,267 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
         }
 
         var total = await query.CountAsync();
-        var data = await query
+        var rawRows = await query
             .OrderBy(a => a.Code)
             .Skip(request.Offset)
             .Take(request.PageSize)
-            .Select(a => new AccountDefinitionViewModel
+            .Select(a => new
             {
-                Id = a.Id,
-                Code = a.Code,
-                ArName = a.ArName,
-                EnName = a.EnName,
-                AccountType = a.AccountType,
-                ParentAccountId = a.ParentAccountId,
+                a.Id,
+                a.Code,
+                a.ArName,
+                a.EnName,
+                a.AccountType,
+                a.ParentAccountId,
                 ParentArName = a.ParentAccount.ArName,
                 ParentEnName = a.ParentAccount.EnName,
-                Level = a.Level,
-                BalanceType = a.BalanceType,
-                Balance = a.BalanceType == AccountBalanceType.Debit ? a.DebitBalance - a.CreditBalance : a.CreditBalance - a.DebitBalance,
+                a.Level,
+                a.BalanceType,
+                a.DebitBalance,
+                a.CreditBalance,
+                HasAccountDetails = a.AccountDetails != null,
                 BuyValue = a.AccountDetails.BuyValue,
                 BuyDate = a.AccountDetails.BuyDate,
                 Location = a.AccountDetails.Location,
-                DepreciationType = a.AccountDetails == null ? DepreciationType.FixedInstallment : a.AccountDetails.DepreciationType,
-                ProductAge = a.AccountDetails.ProductAge,
-                Kind = a.AccountDetails != null ? AccountKind.Asset
-                    : OwnedTypes.Contains(a.AccountType) ? AccountKind.Owned
-                    : a.AccountType == AccountType.Bank ? AccountKind.Bank
-                    : a.AccountType == AccountType.Box ? AccountKind.Safe
-                    : a.Code.StartsWith(AccountCodes.Expenses) ? AccountKind.Expense
-                    : AccountKind.GeneralLedger,
-                IsOwned = OwnedTypes.Contains(a.AccountType),
-                IsSystem = SystemCodes.Contains(a.Code)
+                AccountDetailsDepreciationType = a.AccountDetails == null ? (DepreciationType?)null : a.AccountDetails.DepreciationType,
+                ProductAge = a.AccountDetails.ProductAge
             })
             .ToListAsync();
+
+        var data = new List<AccountDefinitionViewModel>();
+        foreach (var row in rawRows)
+        {
+            decimal balance;
+            if (row.BalanceType == AccountBalanceType.Debit)
+            {
+                balance = row.DebitBalance - row.CreditBalance;
+            }
+            else
+            {
+                balance = row.CreditBalance - row.DebitBalance;
+            }
+
+            DepreciationType depreciationType;
+            if (row.AccountDetailsDepreciationType.HasValue)
+            {
+                depreciationType = row.AccountDetailsDepreciationType.Value;
+            }
+            else
+            {
+                depreciationType = DepreciationType.FixedInstallment;
+            }
+
+            var isOwned = OwnedTypes.Contains(row.AccountType);
+            var isSystem = SystemCodes.Contains(row.Code);
+
+            AccountKind kind;
+            if (row.HasAccountDetails)
+            {
+                kind = AccountKind.Asset;
+            }
+            else if (isOwned)
+            {
+                kind = AccountKind.Owned;
+            }
+            else if (row.AccountType == AccountType.Bank)
+            {
+                kind = AccountKind.Bank;
+            }
+            else if (row.AccountType == AccountType.Box)
+            {
+                kind = AccountKind.Safe;
+            }
+            else if (row.Code.StartsWith(AccountCodes.Expenses))
+            {
+                kind = AccountKind.Expense;
+            }
+            else
+            {
+                kind = AccountKind.GeneralLedger;
+            }
+
+            data.Add(new AccountDefinitionViewModel
+            {
+                Id = row.Id,
+                Code = row.Code,
+                ArName = row.ArName,
+                EnName = row.EnName,
+                AccountType = row.AccountType,
+                ParentAccountId = row.ParentAccountId,
+                ParentArName = row.ParentArName,
+                ParentEnName = row.ParentEnName,
+                Level = row.Level,
+                BalanceType = row.BalanceType,
+                Balance = balance,
+                BuyValue = row.BuyValue,
+                BuyDate = row.BuyDate,
+                Location = row.Location,
+                DepreciationType = depreciationType,
+                ProductAge = row.ProductAge,
+                Kind = kind,
+                IsOwned = isOwned,
+                IsSystem = isSystem
+            });
+        }
 
         return PaginatedResult<AccountDefinitionViewModel>.Create(data, total, request);
     }
 
     public async Task<AccountDefinitionViewModel> GetAccountByIdAsync(int id)
     {
-        return await _context.Accounts.AsNoTracking()
+        var row = await _context.Accounts.AsNoTracking()
             .Where(a => a.Id == id)
-            .Select(a => new AccountDefinitionViewModel
+            .Select(a => new
             {
-                Id = a.Id,
-                Code = a.Code,
-                ArName = a.ArName,
-                EnName = a.EnName,
-                AccountType = a.AccountType,
-                ParentAccountId = a.ParentAccountId,
-                CurrencyId = a.CurrencyId,
-                Remarks = a.Remarks,
-                MaxDebitAllowed = a.MaxDebitAllowed,
-                RequiresCostCenter = a.RequiresCostCenter,
-                Level = a.Level,
-                BalanceType = a.BalanceType,
-                Balance = a.BalanceType == AccountBalanceType.Debit ? a.DebitBalance - a.CreditBalance : a.CreditBalance - a.DebitBalance,
+                a.Id,
+                a.Code,
+                a.ArName,
+                a.EnName,
+                a.AccountType,
+                a.ParentAccountId,
+                a.CurrencyId,
+                a.Remarks,
+                a.MaxDebitAllowed,
+                a.RequiresCostCenter,
+                a.Level,
+                a.BalanceType,
+                a.DebitBalance,
+                a.CreditBalance,
+                HasAccountDetails = a.AccountDetails != null,
                 Location = a.AccountDetails.Location,
                 BuyValue = a.AccountDetails.BuyValue,
                 BuyDate = a.AccountDetails.BuyDate,
                 StartUsingDate = a.AccountDetails.StartUsingDate,
                 ProductAge = a.AccountDetails.ProductAge,
-                DepreciationType = a.AccountDetails == null ? DepreciationType.FixedInstallment : a.AccountDetails.DepreciationType,
+                AccountDetailsDepreciationType = a.AccountDetails == null ? (DepreciationType?)null : a.AccountDetails.DepreciationType,
                 ScrapValue = a.AccountDetails.ScrapValue,
                 DepreciationAccountId = a.AccountDetails.DepreciationAccountId,
-                DepreciationExpensesAccountId = a.AccountDetails.DepreciationExpensesAccountId,
-                Kind = a.AccountDetails != null ? AccountKind.Asset
-                    : OwnedTypes.Contains(a.AccountType) ? AccountKind.Owned
-                    : a.AccountType == AccountType.Bank ? AccountKind.Bank
-                    : a.AccountType == AccountType.Box ? AccountKind.Safe
-                    : a.Code.StartsWith(AccountCodes.Expenses) ? AccountKind.Expense
-                    : AccountKind.GeneralLedger,
-                IsOwned = OwnedTypes.Contains(a.AccountType),
-                IsSystem = SystemCodes.Contains(a.Code)
+                DepreciationExpensesAccountId = a.AccountDetails.DepreciationExpensesAccountId
             })
             .FirstOrDefaultAsync();
+
+        if (row is null)
+        {
+            return null;
+        }
+
+        decimal balance;
+        if (row.BalanceType == AccountBalanceType.Debit)
+        {
+            balance = row.DebitBalance - row.CreditBalance;
+        }
+        else
+        {
+            balance = row.CreditBalance - row.DebitBalance;
+        }
+
+        DepreciationType depreciationType;
+        if (row.AccountDetailsDepreciationType.HasValue)
+        {
+            depreciationType = row.AccountDetailsDepreciationType.Value;
+        }
+        else
+        {
+            depreciationType = DepreciationType.FixedInstallment;
+        }
+
+        var isOwned = OwnedTypes.Contains(row.AccountType);
+        var isSystem = SystemCodes.Contains(row.Code);
+
+        AccountKind kind;
+        if (row.HasAccountDetails)
+        {
+            kind = AccountKind.Asset;
+        }
+        else if (isOwned)
+        {
+            kind = AccountKind.Owned;
+        }
+        else if (row.AccountType == AccountType.Bank)
+        {
+            kind = AccountKind.Bank;
+        }
+        else if (row.AccountType == AccountType.Box)
+        {
+            kind = AccountKind.Safe;
+        }
+        else if (row.Code.StartsWith(AccountCodes.Expenses))
+        {
+            kind = AccountKind.Expense;
+        }
+        else
+        {
+            kind = AccountKind.GeneralLedger;
+        }
+
+        return new AccountDefinitionViewModel
+        {
+            Id = row.Id,
+            Code = row.Code,
+            ArName = row.ArName,
+            EnName = row.EnName,
+            AccountType = row.AccountType,
+            ParentAccountId = row.ParentAccountId,
+            CurrencyId = row.CurrencyId,
+            Remarks = row.Remarks,
+            MaxDebitAllowed = row.MaxDebitAllowed,
+            RequiresCostCenter = row.RequiresCostCenter,
+            Level = row.Level,
+            BalanceType = row.BalanceType,
+            Balance = balance,
+            Location = row.Location,
+            BuyValue = row.BuyValue,
+            BuyDate = row.BuyDate,
+            StartUsingDate = row.StartUsingDate,
+            ProductAge = row.ProductAge,
+            DepreciationType = depreciationType,
+            ScrapValue = row.ScrapValue,
+            DepreciationAccountId = row.DepreciationAccountId,
+            DepreciationExpensesAccountId = row.DepreciationExpensesAccountId,
+            Kind = kind,
+            IsOwned = isOwned,
+            IsSystem = isSystem
+        };
     }
 
     public async Task<string> NewAccountCodeAsync(int? parentId, AccountKind kind)
     {
-        var parent = await ResolveParentAsync(parentId, kind);
+        Account parent = null;
+        if (parentId.HasValue)
+        {
+            parent = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == parentId.Value);
+        }
 
-        return await NextCodeAsync(parent);
+        if (parent is null)
+        {
+            var rootCode = kind switch
+            {
+                AccountKind.Asset => AccountCodes.Assets,
+                AccountKind.Expense => AccountCodes.Expenses,
+                AccountKind.Bank or AccountKind.Safe => AccountCodes.Assets,
+                _ => AccountCodes.Assets
+            };
+
+            parent = await _context.Accounts.FirstOrDefaultAsync(a => a.Code == rootCode);
+            if (parent is null)
+            {
+                await new JournalEntryRepository(_context).EnsureDefaultAccountsAsync();
+                parent = await _context.Accounts.FirstAsync(a => a.Code == rootCode);
+            }
+        }
+
+        var childCodes = await _context.Accounts.AsNoTracking()
+            .Where(a => a.ParentAccountId == parent.Id)
+            .Select(a => a.Code)
+            .ToListAsync();
+
+        var lastNumber = childCodes
+            .Where(code => code.Length > parent.Code.Length && code.StartsWith(parent.Code))
+            .Select(code => int.TryParse(code.Substring(parent.Code.Length), out var number) ? number : 0)
+            .DefaultIfEmpty(0)
+            .Max();
+
+        return parent.Code + (lastNumber + 1).ToString().PadLeft(CodeSuffixLength, '0');
     }
 
     public async Task<IEnumerable<LookupItem>> GetParentOptionsAsync(int? exceptId)
@@ -179,10 +359,50 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
         {
             if (account.Id == 0)
             {
-                var parent = await ResolveParentAsync(account.ParentAccountId, kind);
+                Account parent = null;
+                if (account.ParentAccountId.HasValue)
+                {
+                    parent = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == account.ParentAccountId.Value);
+                }
+
+                if (parent is null)
+                {
+                    var rootCode = kind switch
+                    {
+                        AccountKind.Asset => AccountCodes.Assets,
+                        AccountKind.Expense => AccountCodes.Expenses,
+                        AccountKind.Bank or AccountKind.Safe => AccountCodes.Assets,
+                        _ => AccountCodes.Assets
+                    };
+
+                    parent = await _context.Accounts.FirstOrDefaultAsync(a => a.Code == rootCode);
+                    if (parent is null)
+                    {
+                        await new JournalEntryRepository(_context).EnsureDefaultAccountsAsync();
+                        parent = await _context.Accounts.FirstAsync(a => a.Code == rootCode);
+                    }
+                }
+
                 account.ParentAccountId = parent.Id;
-                account.Code = await NextCodeAsync(parent);
-                account.AccountType = AccountTypeOf(kind);
+
+                var childCodes = await _context.Accounts.AsNoTracking()
+                    .Where(a => a.ParentAccountId == parent.Id)
+                    .Select(a => a.Code)
+                    .ToListAsync();
+
+                var lastNumber = childCodes
+                    .Where(code => code.Length > parent.Code.Length && code.StartsWith(parent.Code))
+                    .Select(code => int.TryParse(code.Substring(parent.Code.Length), out var number) ? number : 0)
+                    .DefaultIfEmpty(0)
+                    .Max();
+
+                account.Code = parent.Code + (lastNumber + 1).ToString().PadLeft(CodeSuffixLength, '0');
+                account.AccountType = kind switch
+                {
+                    AccountKind.Bank => AccountType.Bank,
+                    AccountKind.Safe => AccountType.Box,
+                    _ => AccountType.Normal
+                };
                 account.BalanceType = kind == AccountKind.GeneralLedger ? parent.BalanceType : AccountBalanceType.Debit;
                 account.Level = (parent.Level ?? 1) + 1;
                 account.AccDate = DateTime.Today;
@@ -193,7 +413,29 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
 
                 if (kind == AccountKind.Asset)
                 {
-                    account.AccountDetails = await BuildDetailsAsync(details, parent, null);
+                    var newDetails = new AccountDetails { CreatedAt = DateTime.Now };
+                    newDetails.Location = details?.Location;
+                    newDetails.BuyValue = details?.BuyValue;
+                    newDetails.BuyDate = details?.BuyDate;
+                    newDetails.StartUsingDate = details?.StartUsingDate;
+                    newDetails.ProductAge = details?.ProductAge;
+                    newDetails.DepreciationType = details?.DepreciationType ?? DepreciationType.FixedInstallment;
+                    newDetails.ScrapValue = details?.ScrapValue;
+                    newDetails.DepreciationAccountId = details?.DepreciationAccountId;
+                    newDetails.DepreciationExpensesAccountId = details?.DepreciationExpensesAccountId;
+                    newDetails.ParentAccountId = parent.Id;
+
+                    var detailsRoot = parent;
+                    var detailsRootGuard = 0;
+                    while (detailsRoot?.ParentAccountId != null && detailsRootGuard++ < 50)
+                    {
+                        detailsRoot = await _context.Accounts.AsNoTracking().FirstOrDefaultAsync(a => a.Id == detailsRoot.ParentAccountId.Value);
+                    }
+
+                    newDetails.MainParentAccountId = detailsRoot?.Id;
+                    newDetails.UpdatedAt = null;
+
+                    account.AccountDetails = newDetails;
                 }
 
                 await _context.Accounts.AddAsync(account);
@@ -207,25 +449,65 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
                 .FirstOrDefaultAsync(a => a.Id == account.Id);
             if (existing is null)
             {
-                return Fail("RecordNotFound");
+                return new ResultMessage { Success = false, Message = "RecordNotFound" };
             }
 
             if (OwnedTypes.Contains(existing.AccountType))
             {
-                return Fail("AccountOwnedByAnotherScreen");
+                return new ResultMessage { Success = false, Message = "AccountOwnedByAnotherScreen" };
             }
 
             if (account.ParentAccountId == existing.Id)
             {
-                return Fail("InvalidParent");
+                return new ResultMessage { Success = false, Message = "InvalidParent" };
             }
 
             if (account.ParentAccountId != existing.ParentAccountId)
             {
-                var newParent = await ResolveParentAsync(account.ParentAccountId, kind);
-                if (await IsDescendantAsync(newParent.Id, existing.Id))
+                Account newParent = null;
+                if (account.ParentAccountId.HasValue)
                 {
-                    return Fail("InvalidParent");
+                    newParent = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == account.ParentAccountId.Value);
+                }
+
+                if (newParent is null)
+                {
+                    var rootCode = kind switch
+                    {
+                        AccountKind.Asset => AccountCodes.Assets,
+                        AccountKind.Expense => AccountCodes.Expenses,
+                        AccountKind.Bank or AccountKind.Safe => AccountCodes.Assets,
+                        _ => AccountCodes.Assets
+                    };
+
+                    newParent = await _context.Accounts.FirstOrDefaultAsync(a => a.Code == rootCode);
+                    if (newParent is null)
+                    {
+                        await new JournalEntryRepository(_context).EnsureDefaultAccountsAsync();
+                        newParent = await _context.Accounts.FirstAsync(a => a.Code == rootCode);
+                    }
+                }
+
+                var isDescendant = false;
+                var descendantCurrent = (int?)newParent.Id;
+                var descendantGuard = 0;
+                while (descendantCurrent.HasValue && descendantGuard++ < 50)
+                {
+                    if (descendantCurrent.Value == existing.Id)
+                    {
+                        isDescendant = true;
+                        break;
+                    }
+
+                    descendantCurrent = await _context.Accounts.AsNoTracking()
+                        .Where(a => a.Id == descendantCurrent.Value)
+                        .Select(a => a.ParentAccountId)
+                        .FirstOrDefaultAsync();
+                }
+
+                if (isDescendant)
+                {
+                    return new ResultMessage { Success = false, Message = "InvalidParent" };
                 }
 
                 var oldParent = existing.ParentAccountId.HasValue
@@ -252,7 +534,29 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
             if (existing.AccountDetails is not null)
             {
                 var parentForDetails = await _context.Accounts.AsNoTracking().FirstOrDefaultAsync(a => a.Id == existing.ParentAccountId);
-                var updated = await BuildDetailsAsync(details, parentForDetails, existing.AccountDetails);
+
+                var updated = existing.AccountDetails;
+                updated.Location = details?.Location;
+                updated.BuyValue = details?.BuyValue;
+                updated.BuyDate = details?.BuyDate;
+                updated.StartUsingDate = details?.StartUsingDate;
+                updated.ProductAge = details?.ProductAge;
+                updated.DepreciationType = details?.DepreciationType ?? DepreciationType.FixedInstallment;
+                updated.ScrapValue = details?.ScrapValue;
+                updated.DepreciationAccountId = details?.DepreciationAccountId;
+                updated.DepreciationExpensesAccountId = details?.DepreciationExpensesAccountId;
+                updated.ParentAccountId = parentForDetails?.Id;
+
+                var updatedRoot = parentForDetails;
+                var updatedRootGuard = 0;
+                while (updatedRoot?.ParentAccountId != null && updatedRootGuard++ < 50)
+                {
+                    updatedRoot = await _context.Accounts.AsNoTracking().FirstOrDefaultAsync(a => a.Id == updatedRoot.ParentAccountId.Value);
+                }
+
+                updated.MainParentAccountId = updatedRoot?.Id;
+                updated.UpdatedAt = DateTime.Now;
+
                 existing.AccountDetails = updated;
             }
 
@@ -262,11 +566,11 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
         }
         catch (DbUpdateException ex) when (ex.InnerException != null && ex.InnerException.Message.Contains("IX_Accounts_Code"))
         {
-            return Fail("ConcurrentUpdate");
+            return new ResultMessage { Success = false, Message = "ConcurrentUpdate" };
         }
         catch (Exception ex)
         {
-            return Fail(ErrorLog.Message(ex));
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
     }
 
@@ -284,12 +588,12 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
 
             if (SystemCodes.Contains(account.Code))
             {
-                return Fail("SystemAccountCannotBeDeleted");
+                return new ResultMessage { Success = false, Message = "SystemAccountCannotBeDeleted" };
             }
 
             if (OwnedTypes.Contains(account.AccountType))
             {
-                return Fail("AccountOwnedByAnotherScreen");
+                return new ResultMessage { Success = false, Message = "AccountOwnedByAnotherScreen" };
             }
 
             if (await _context.Accounts.AnyAsync(a => a.ParentAccountId == id)
@@ -298,7 +602,7 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
                 || await _context.BillMasters.AnyAsync(a => a.CustomerOrSupplierAccountId == id || a.AccountPayId == id)
                 || await _context.AccountDetails.AnyAsync(a => a.DepreciationAccountId == id || a.DepreciationExpensesAccountId == id))
             {
-                return Fail("CannotDeleteLinkedRecord");
+                return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
             }
 
             var parent = account.ParentAccountId.HasValue
@@ -321,126 +625,12 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
         }
         catch (DbUpdateException)
         {
-            return Fail("CannotDeleteLinkedRecord");
+            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
         }
         catch (Exception ex)
         {
-            return Fail(ErrorLog.Message(ex));
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
     }
 
-    private async Task<Account> ResolveParentAsync(int? parentId, AccountKind kind)
-    {
-        if (parentId.HasValue)
-        {
-            var chosen = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == parentId.Value);
-            if (chosen is not null)
-            {
-                return chosen;
-            }
-        }
-
-        var rootCode = kind switch
-        {
-            AccountKind.Asset => AccountCodes.Assets,
-            AccountKind.Expense => AccountCodes.Expenses,
-            AccountKind.Bank or AccountKind.Safe => AccountCodes.Assets,
-            _ => AccountCodes.Assets
-        };
-
-        var root = await _context.Accounts.FirstOrDefaultAsync(a => a.Code == rootCode);
-        if (root is null)
-        {
-            await new JournalEntryRepository(_context).EnsureDefaultAccountsAsync();
-            root = await _context.Accounts.FirstAsync(a => a.Code == rootCode);
-        }
-
-        return root;
-    }
-
-    private async Task<string> NextCodeAsync(Account parent)
-    {
-        var childCodes = await _context.Accounts.AsNoTracking()
-            .Where(a => a.ParentAccountId == parent.Id)
-            .Select(a => a.Code)
-            .ToListAsync();
-
-        var last = childCodes
-            .Where(code => code.Length > parent.Code.Length && code.StartsWith(parent.Code))
-            .Select(code => int.TryParse(code.Substring(parent.Code.Length), out var number) ? number : 0)
-            .DefaultIfEmpty(0)
-            .Max();
-
-        return parent.Code + (last + 1).ToString().PadLeft(CodeSuffixLength, '0');
-    }
-
-    private async Task<bool> IsDescendantAsync(int candidateId, int ancestorId)
-    {
-        var current = (int?)candidateId;
-        var guard = 0;
-        while (current.HasValue && guard++ < 50)
-        {
-            if (current.Value == ancestorId)
-            {
-                return true;
-            }
-
-            current = await _context.Accounts.AsNoTracking()
-                .Where(a => a.Id == current.Value)
-                .Select(a => a.ParentAccountId)
-                .FirstOrDefaultAsync();
-        }
-
-        return false;
-    }
-
-    private async Task<AccountDetails> BuildDetailsAsync(AccountDetails source, Account parent, AccountDetails target)
-    {
-        var details = target ?? new AccountDetails { CreatedAt = DateTime.Now };
-        details.Location = source?.Location;
-        details.BuyValue = source?.BuyValue;
-        details.BuyDate = source?.BuyDate;
-        details.StartUsingDate = source?.StartUsingDate;
-        details.ProductAge = source?.ProductAge;
-        details.DepreciationType = source?.DepreciationType ?? DepreciationType.FixedInstallment;
-        details.ScrapValue = source?.ScrapValue;
-        details.DepreciationAccountId = source?.DepreciationAccountId;
-        details.DepreciationExpensesAccountId = source?.DepreciationExpensesAccountId;
-        details.ParentAccountId = parent?.Id;
-        details.MainParentAccountId = await RootOfAsync(parent);
-        details.UpdatedAt = target is null ? null : DateTime.Now;
-
-        return details;
-    }
-
-    private async Task<int?> RootOfAsync(Account account)
-    {
-        var current = account;
-        var guard = 0;
-        while (current?.ParentAccountId != null && guard++ < 50)
-        {
-            current = await _context.Accounts.AsNoTracking().FirstOrDefaultAsync(a => a.Id == current.ParentAccountId.Value);
-        }
-
-        return current?.Id;
-    }
-
-    private static AccountType AccountTypeOf(AccountKind kind)
-    {
-        return kind switch
-        {
-            AccountKind.Bank => AccountType.Bank,
-            AccountKind.Safe => AccountType.Box,
-            _ => AccountType.Normal
-        };
-    }
-
-    private static ResultMessage Fail(string message)
-    {
-        return new ResultMessage
-        {
-            Success = false,
-            Message = message
-        };
-    }
 }

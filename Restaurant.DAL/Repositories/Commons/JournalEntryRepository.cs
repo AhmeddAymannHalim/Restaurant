@@ -129,12 +129,12 @@ public class JournalEntryRepository : IJournalEntryRepository
 
         if (requested.Any(a => (a.Debit > 0) == (a.Credit > 0) || a.Debit < 0 || a.Credit < 0))
         {
-            return Fail("JournalLineInvalid");
+            return new ResultMessage { Success = false, Message = "JournalLineInvalid" };
         }
 
         if (Math.Round(requested.Sum(a => a.Debit), 2) != Math.Round(requested.Sum(a => a.Credit), 2))
         {
-            return Fail("JournalNotBalanced");
+            return new ResultMessage { Success = false, Message = "JournalNotBalanced" };
         }
 
         // Invoice entries are persisted by InvoiceRepository.AddEntryAsync (different shape: linked to BillId),
@@ -160,7 +160,7 @@ public class JournalEntryRepository : IJournalEntryRepository
 
         if (accounts.Count != codes.Count)
         {
-            return Fail("RecordNotFound");
+            return new ResultMessage { Success = false, Message = "RecordNotFound" };
         }
 
         var accountsByCode = accounts.ToDictionary(a => a.Code, a => a);
@@ -180,7 +180,7 @@ public class JournalEntryRepository : IJournalEntryRepository
             CurrencyRate = 1,
             IsPosted = true,
             EntryRemarks = description,
-            CollectEntryCode = SourceTag(sourceType, sourceId),
+            CollectEntryCode = $"{sourceType}:{sourceId}",
             AccountBoxOrBankId = cashId.HasValue && requested.Any(a => a.AccountCode == AccountCodes.Cash) ? cashId : null,
             EntrySetting = setting,
             CreatedAt = DateTime.Now,
@@ -224,7 +224,7 @@ public class JournalEntryRepository : IJournalEntryRepository
             return;
         }
 
-        var tag = SourceTag(sourceType, sourceId);
+        var tag = $"{sourceType}:{sourceId}";
         var entries = await _context.EntryMasters
             .Include(a => a.EntryDetails).ThenInclude(a => a.Account)
             .Where(a => a.CollectEntryCode == tag)
@@ -244,17 +244,4 @@ public class JournalEntryRepository : IJournalEntryRepository
         _context.EntryMasters.RemoveRange(entries);
     }
 
-    private static string SourceTag(JournalSourceType sourceType, int? sourceId)
-    {
-        return $"{sourceType}:{sourceId}";
-    }
-
-    private static ResultMessage Fail(string message)
-    {
-        return new ResultMessage
-        {
-            Success = false,
-            Message = message
-        };
-    }
 }

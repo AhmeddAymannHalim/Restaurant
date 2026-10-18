@@ -133,7 +133,44 @@ public class OnlineOrderRepository : IOnlineOrderRepository
             };
 
             await _context.OnlineOrders.AddAsync(entity);
-            await AddToCustomerListAsync(order);
+
+            var customerName = order.CustomerName.Trim();
+            var customerMobile = order.PhoneNumber.Trim();
+
+            var existingCustomer = await _context.Customers
+                .FirstOrDefaultAsync(a => a.PhoneNumber1 == customerMobile);
+            if (existingCustomer is not null)
+            {
+                if (string.IsNullOrWhiteSpace(existingCustomer.DetailedAddress) && !string.IsNullOrWhiteSpace(order.Address))
+                {
+                    existingCustomer.DetailedAddress = order.Address;
+                }
+            }
+            else
+            {
+                var nameTaken = await _context.Accounts.AnyAsync(a => a.ArName == customerName || a.EnName == customerName);
+                var uniqueName = nameTaken ? $"{customerName} - {customerMobile}" : customerName;
+                if (uniqueName.Length > 100)
+                {
+                    uniqueName = uniqueName[..100];
+                }
+
+                var newCustomerAccount = await AccountProvisioner.CreateAsync(
+                    _context,
+                    uniqueName,
+                    uniqueName,
+                    AccountType.Customer,
+                    AccountCodes.AccountsReceivable);
+
+                await _context.Customers.AddAsync(new Customer
+                {
+                    Account = newCustomerAccount,
+                    PhoneNumber1 = customerMobile,
+                    DetailedAddress = order.TableId.HasValue ? null : order.Address,
+                    CreatedAt = DateTime.Now
+                });
+            }
+
             await _context.SaveChangesAsync();
 
             return new ResultMessage
@@ -150,46 +187,6 @@ public class OnlineOrderRepository : IOnlineOrderRepository
                 Message = ErrorLog.Message(ex)
             };
         }
-    }
-
-    private async Task AddToCustomerListAsync(OnlineOrder order)
-    {
-        var name = order.CustomerName.Trim();
-        var mobile = order.PhoneNumber.Trim();
-
-        var existing = await _context.Customers
-            .FirstOrDefaultAsync(a => a.PhoneNumber1 == mobile);
-        if (existing is not null)
-        {
-            if (string.IsNullOrWhiteSpace(existing.DetailedAddress) && !string.IsNullOrWhiteSpace(order.Address))
-            {
-                existing.DetailedAddress = order.Address;
-            }
-
-            return;
-        }
-
-        var taken = await _context.Accounts.AnyAsync(a => a.ArName == name || a.EnName == name);
-        var unique = taken ? $"{name} - {mobile}" : name;
-        if (unique.Length > 100)
-        {
-            unique = unique[..100];
-        }
-
-        var account = await AccountProvisioner.CreateAsync(
-            _context,
-            unique,
-            unique,
-            AccountType.Customer,
-            AccountCodes.AccountsReceivable);
-
-        await _context.Customers.AddAsync(new Customer
-        {
-            Account = account,
-            PhoneNumber1 = mobile,
-            DetailedAddress = order.TableId.HasValue ? null : order.Address,
-            CreatedAt = DateTime.Now
-        });
     }
 
     public async Task<IEnumerable<OnlineOrder>> GetCustomerOrdersAsync(string customerId)

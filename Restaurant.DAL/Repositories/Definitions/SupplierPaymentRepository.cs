@@ -291,24 +291,6 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
             .ToListAsync();
     }
 
-    private async Task<decimal> GetRemainingRefundableAsync(int paymentId, int excludeRefundId = 0)
-    {
-        var payment = await _context.PaymentInvoiceSupplier.AsNoTracking()
-            .FirstOrDefaultAsync(a => a.Id == paymentId);
-        if (payment is null)
-        {
-            return 0;
-        }
-
-        var approved = await _context.PaymentRefunds.AsNoTracking()
-            .Where(a => a.SupplierPaymentId == paymentId
-                && a.Status == RefundStatus.Approved
-                && a.Id != excludeRefundId)
-            .SumAsync(a => a.Amount);
-
-        return payment.Paid - approved;
-    }
-
     public async Task<ResultMessage> RequestRefundAsync(PaymentRefund entity, string requestedByUserId)
     {
         try
@@ -388,7 +370,21 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
                 };
             }
 
-            var remaining = await GetRemainingRefundableAsync(refund.SupplierPaymentId.Value, refund.Id);
+            var paymentForRefund = await _context.PaymentInvoiceSupplier.AsNoTracking()
+                .FirstOrDefaultAsync(a => a.Id == refund.SupplierPaymentId.Value);
+
+            decimal remaining = 0;
+            if (paymentForRefund is not null)
+            {
+                var approved = await _context.PaymentRefunds.AsNoTracking()
+                    .Where(a => a.SupplierPaymentId == refund.SupplierPaymentId.Value
+                        && a.Status == RefundStatus.Approved
+                        && a.Id != refund.Id)
+                    .SumAsync(a => a.Amount);
+
+                remaining = paymentForRefund.Paid - approved;
+            }
+
             if (refund.Amount > remaining)
             {
                 return new ResultMessage

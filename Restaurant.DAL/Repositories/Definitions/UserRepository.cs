@@ -91,10 +91,12 @@ public class UserRepository : IUserRepository
             var created = await _userManager.CreateAsync(entity, password);
             if (!created.Succeeded)
             {
-                return ToResultMessage(created);
+                return new ResultMessage { Success = created.Succeeded, Message = created.Succeeded ? null : created.Errors.First().Description };
             }
 
-            return ToResultMessage(await _userManager.AddToRoleAsync(entity, entity.UserType));
+            var addedToRoleOnCreate = await _userManager.AddToRoleAsync(entity, entity.UserType);
+
+            return new ResultMessage { Success = addedToRoleOnCreate.Succeeded, Message = addedToRoleOnCreate.Succeeded ? null : addedToRoleOnCreate.Errors.First().Description };
         }
 
         var existing = await _userManager.FindByIdAsync(entity.Id);
@@ -107,7 +109,7 @@ public class UserRepository : IUserRepository
             };
         }
 
-        if (existing.UserType == AdminRole && entity.UserType != AdminRole && await IsLastAdminAsync())
+        if (existing.UserType == AdminRole && entity.UserType != AdminRole && (await _userManager.GetUsersInRoleAsync(AdminRole)).Count <= 1)
         {
             return new ResultMessage
             {
@@ -128,12 +130,14 @@ public class UserRepository : IUserRepository
         var updated = await _userManager.UpdateAsync(existing);
         if (!updated.Succeeded)
         {
-            return ToResultMessage(updated);
+            return new ResultMessage { Success = updated.Succeeded, Message = updated.Succeeded ? null : updated.Errors.First().Description };
         }
 
         await _userManager.RemoveFromRolesAsync(existing, oldRoles);
 
-        return ToResultMessage(await _userManager.AddToRoleAsync(existing, existing.UserType));
+        var addedToRole = await _userManager.AddToRoleAsync(existing, existing.UserType);
+
+        return new ResultMessage { Success = addedToRole.Succeeded, Message = addedToRole.Succeeded ? null : addedToRole.Errors.First().Description };
     }
 
     public async Task<ResultMessage> DeleteUserAsync(string id)
@@ -148,7 +152,7 @@ public class UserRepository : IUserRepository
             };
         }
 
-        if (entity.UserType == AdminRole && await IsLastAdminAsync())
+        if (entity.UserType == AdminRole && (await _userManager.GetUsersInRoleAsync(AdminRole)).Count <= 1)
         {
             return new ResultMessage
             {
@@ -157,22 +161,9 @@ public class UserRepository : IUserRepository
             };
         }
 
-        return ToResultMessage(await _userManager.DeleteAsync(entity));
+        var deleted = await _userManager.DeleteAsync(entity);
+
+        return new ResultMessage { Success = deleted.Succeeded, Message = deleted.Succeeded ? null : deleted.Errors.First().Description };
     }
 
-    private async Task<bool> IsLastAdminAsync()
-    {
-        var admins = await _userManager.GetUsersInRoleAsync(AdminRole);
-
-        return admins.Count <= 1;
-    }
-
-    private static ResultMessage ToResultMessage(IdentityResult result)
-    {
-        return new ResultMessage
-        {
-            Success = result.Succeeded,
-            Message = result.Succeeded ? null : result.Errors.First().Description
-        };
-    }
 }

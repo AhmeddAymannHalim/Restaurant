@@ -59,42 +59,17 @@ public class EmployeeRepository : IEmployeeRepository
             employee.HasLoginAccount = withLogin.Contains(employee.Code);
         }
 
-        await LoadImagesAsync(data);
-
-        return PaginatedResult<Employee>.Create(data, total, request);
-    }
-
-    private async Task LoadImagesAsync(IList<Employee> employees)
-    {
-        var ids = employees.Select(a => a.Id).ToList();
-        var images = await _context.EmployeeImages.AsNoTracking()
-            .Where(a => ids.Contains(a.EmployeeId))
+        var pagedIds = data.Select(a => a.Id).ToList();
+        var pagedImages = await _context.EmployeeImages.AsNoTracking()
+            .Where(a => pagedIds.Contains(a.EmployeeId))
             .ToDictionaryAsync(a => a.EmployeeId, a => a.Url);
 
-        foreach (var employee in employees)
+        foreach (var employee in data)
         {
-            employee.Image = images.GetValueOrDefault(employee.Id);
-        }
-    }
-
-    private async Task SaveImageAsync(int employeeId, string url)
-    {
-        var row = await _context.EmployeeImages.FirstOrDefaultAsync(a => a.EmployeeId == employeeId);
-        if (string.IsNullOrEmpty(url))
-        {
-            return;
+            employee.Image = pagedImages.GetValueOrDefault(employee.Id);
         }
 
-        if (row is null)
-        {
-            await _context.EmployeeImages.AddAsync(new EmployeeImage { EmployeeId = employeeId, Url = url });
-        }
-        else
-        {
-            row.Url = url;
-        }
-
-        await _context.SaveChangesAsync();
+        return PaginatedResult<Employee>.Create(data, total, request);
     }
 
     public async Task<Employee> GetEmployeeByIdAsync(int id)
@@ -111,7 +86,11 @@ public class EmployeeRepository : IEmployeeRepository
             .FirstOrDefaultAsync(a => a.Id == id);
         if (employee is not null)
         {
-            await LoadImagesAsync(new List<Employee> { employee });
+            var image = await _context.EmployeeImages.AsNoTracking()
+                .Where(a => a.EmployeeId == employee.Id)
+                .Select(a => a.Url)
+                .FirstOrDefaultAsync();
+            employee.Image = image;
         }
 
         return employee;
@@ -145,16 +124,91 @@ public class EmployeeRepository : IEmployeeRepository
             }
 
             (entity.GovId, entity.CountryId) = await LocationResolver.ResolveAsync(_context, entity.TownId);
-            CalculatePay(entity);
-            CalculateInsurance(entity);
-            CalculateLeaveDays(entity);
+
+            var weeksPerMonth = 52m / 12m;
+            var workDays = entity.WorkDays ?? 0;
+            var dailyHours = entity.DailyHours ?? 0;
+            var salary = entity.BasicSalary ?? 0;
+
+            entity.WeeklyHours = Math.Round(workDays * dailyHours, 2);
+            entity.MonthlyHours = Math.Round(entity.WeeklyHours.Value * weeksPerMonth, 2);
+
+            var monthlyDays = workDays * weeksPerMonth;
+            entity.DailyRate = monthlyDays > 0 ? Math.Round(salary / monthlyDays, 2) : null;
+            entity.HourlyRate = entity.DailyRate.HasValue && dailyHours > 0 ? Math.Round(entity.DailyRate.Value / dailyHours, 2) : null;
+            entity.MinuteRate = entity.HourlyRate.HasValue ? Math.Round(entity.HourlyRate.Value / 60m, 4) : null;
+
+            var insuranceWage = (entity.InsuranceBasicSalary ?? 0) + (entity.InsuranceAllowancesAmount ?? 0);
+            entity.EmployeeInsuranceAmount = entity.EmployeeInsurancePercent.HasValue
+                ? Math.Round(insuranceWage * entity.EmployeeInsurancePercent.Value / 100m, 2)
+                : null;
+            entity.CompanyInsuranceAmount = entity.CompanyInsurancePercent.HasValue
+                ? Math.Round(insuranceWage * entity.CompanyInsurancePercent.Value / 100m, 2)
+                : null;
+
+            foreach (var leave in entity.Leaves ?? new List<EmployeeLeave>())
+            {
+                if (leave.FromDate != default && leave.ToDate >= leave.FromDate)
+                {
+                    leave.Days = (leave.ToDate.Date - leave.FromDate.Date).Days + 1;
+                }
+            }
 
             if (entity.Id == 0)
             {
-                await ApplyTypeValuesAsync(entity, null);
+                // Allowance and deduction rows are never typed by hand: the chosen type decides the names and the amount.
+                var newAllowanceTypes = await _context.AllowanceTypes.AsNoTracking().ToDictionaryAsync(a => a.Id);
+                var newDeductionTypes = await _context.DeductionTypes.AsNoTracking().ToDictionaryAsync(a => a.Id);
+
+                foreach (var row in entity.Allowances ?? new List<EmployeeAllowance>())
+                {
+                    if (row.AllowanceTypeId.HasValue && newAllowanceTypes.TryGetValue(row.AllowanceTypeId.Value, out var type))
+                    {
+                        row.ArName = type.ArName;
+                        row.EnName = type.EnName;
+                        row.Amount = type.Amount ?? 0;
+                    }
+                    else
+                    {
+                        row.AllowanceTypeId = null;
+                        row.ArName = null;
+                        row.EnName = null;
+                        row.Amount = 0;
+                    }
+                }
+
+                foreach (var row in entity.FixedDeductions ?? new List<EmployeeFixedDeduction>())
+                {
+                    if (row.DeductionTypeId.HasValue && newDeductionTypes.TryGetValue(row.DeductionTypeId.Value, out var type))
+                    {
+                        row.ArName = type.ArName;
+                        row.EnName = type.EnName;
+                        row.Amount = type.Amount ?? 0;
+                    }
+                    else
+                    {
+                        row.DeductionTypeId = null;
+                        row.ArName = null;
+                        row.EnName = null;
+                        row.Amount = 0;
+                    }
+                }
+
                 entity.Code = await NewEmployeeCodeAsync();
                 entity.CreatedAt = DateTime.Now;
-                entity.Phones = BuildPhones(entity);
+
+                var newNumbers = new List<string>();
+                if (!string.IsNullOrWhiteSpace(entity.PhoneNumber))
+                {
+                    newNumbers.Add(entity.PhoneNumber.Trim());
+                }
+
+                newNumbers.AddRange((entity.Phones ?? new List<EmployeePhone>())
+                    .Select(a => a.PhoneNumber?.Trim())
+                    .Where(a => !string.IsNullOrWhiteSpace(a)));
+
+                entity.Phones = newNumbers.Distinct().Select(a => new EmployeePhone { PhoneNumber = a, CreatedAt = DateTime.Now }).ToList();
+
                 EmployeeChildren.PrepareNew(entity, documentFiles);
 
                 if (imageFile != null)
@@ -171,7 +225,21 @@ public class EmployeeRepository : IEmployeeRepository
 
                 await _context.Employees.AddAsync(entity);
                 await _context.SaveChangesAsync();
-                await SaveImageAsync(entity.Id, entity.Image);
+
+                if (!string.IsNullOrEmpty(entity.Image))
+                {
+                    var newImageRow = await _context.EmployeeImages.FirstOrDefaultAsync(a => a.EmployeeId == entity.Id);
+                    if (newImageRow is null)
+                    {
+                        await _context.EmployeeImages.AddAsync(new EmployeeImage { EmployeeId = entity.Id, Url = entity.Image });
+                    }
+                    else
+                    {
+                        newImageRow.Url = entity.Image;
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
 
                 return new ResultMessage { Success = true };
             }
@@ -225,21 +293,159 @@ public class EmployeeRepository : IEmployeeRepository
                 existing.Account.EnName = entity.EnName;
             }
 
-            await ApplyTypeValuesAsync(entity, existing);
+            // Allowance and deduction rows are never typed by hand: the chosen type decides the names and the amount.
+            // A saved row keeps its stored values while its type is unchanged, so editing a type later
+            // does not silently change what an employee already gets.
+            var allowanceTypes = await _context.AllowanceTypes.AsNoTracking().ToDictionaryAsync(a => a.Id);
+            var deductionTypes = await _context.DeductionTypes.AsNoTracking().ToDictionaryAsync(a => a.Id);
 
-            var phones = BuildPhones(entity);
+            foreach (var row in entity.Allowances ?? new List<EmployeeAllowance>())
+            {
+                var oldAllowance = row.Id == 0 ? null : existing.Allowances.FirstOrDefault(a => a.Id == row.Id);
+
+                if (oldAllowance != null && oldAllowance.AllowanceTypeId == row.AllowanceTypeId)
+                {
+                    row.ArName = oldAllowance.ArName;
+                    row.EnName = oldAllowance.EnName;
+                    row.Amount = oldAllowance.Amount;
+                }
+                else if (row.AllowanceTypeId.HasValue && allowanceTypes.TryGetValue(row.AllowanceTypeId.Value, out var allowanceType))
+                {
+                    row.ArName = allowanceType.ArName;
+                    row.EnName = allowanceType.EnName;
+                    row.Amount = allowanceType.Amount ?? 0;
+                }
+                else
+                {
+                    row.AllowanceTypeId = oldAllowance?.AllowanceTypeId;
+                    row.ArName = oldAllowance?.ArName;
+                    row.EnName = oldAllowance?.EnName;
+                    row.Amount = oldAllowance?.Amount ?? 0;
+                }
+            }
+
+            foreach (var row in entity.FixedDeductions ?? new List<EmployeeFixedDeduction>())
+            {
+                var oldDeduction = row.Id == 0 ? null : existing.FixedDeductions.FirstOrDefault(a => a.Id == row.Id);
+
+                if (oldDeduction != null && oldDeduction.DeductionTypeId == row.DeductionTypeId)
+                {
+                    row.ArName = oldDeduction.ArName;
+                    row.EnName = oldDeduction.EnName;
+                    row.Amount = oldDeduction.Amount;
+                }
+                else if (row.DeductionTypeId.HasValue && deductionTypes.TryGetValue(row.DeductionTypeId.Value, out var deductionType))
+                {
+                    row.ArName = deductionType.ArName;
+                    row.EnName = deductionType.EnName;
+                    row.Amount = deductionType.Amount ?? 0;
+                }
+                else
+                {
+                    row.DeductionTypeId = oldDeduction?.DeductionTypeId;
+                    row.ArName = oldDeduction?.ArName;
+                    row.EnName = oldDeduction?.EnName;
+                    row.Amount = oldDeduction?.Amount ?? 0;
+                }
+            }
+
+            var updateNumbers = new List<string>();
+            if (!string.IsNullOrWhiteSpace(entity.PhoneNumber))
+            {
+                updateNumbers.Add(entity.PhoneNumber.Trim());
+            }
+
+            updateNumbers.AddRange((entity.Phones ?? new List<EmployeePhone>())
+                .Select(a => a.PhoneNumber?.Trim())
+                .Where(a => !string.IsNullOrWhiteSpace(a)));
+
+            var phones = updateNumbers.Distinct().Select(a => new EmployeePhone { PhoneNumber = a, CreatedAt = DateTime.Now }).ToList();
+
             entity.Phones = null;
             _context.Entry(existing).CurrentValues.SetValues(entity);
-            SyncPhones(existing, phones);
+
+            var wantedPhones = phones.Select(a => a.PhoneNumber).ToHashSet();
+
+            foreach (var phone in existing.Phones.Where(a => !wantedPhones.Contains(a.PhoneNumber)).ToList())
+            {
+                _context.EmployeePhones.Remove(phone);
+            }
+
+            var keptPhones = existing.Phones.Select(a => a.PhoneNumber).ToHashSet();
+            foreach (var phone in phones.Where(a => !keptPhones.Contains(a.PhoneNumber)))
+            {
+                existing.Phones.Add(phone);
+            }
+
             EmployeeChildren.Sync(_context, existing, entity, documentFiles);
             if (existing.Account is null && entity.Account is not null)
             {
                 existing.Account = entity.Account;
             }
 
-            await SyncLoginAccountAsync(entity, job.ArName);
+            var loginUser = await _context.Users.FirstOrDefaultAsync(a => a.Code == entity.Code);
+            if (loginUser is not null)
+            {
+                var oldRoleName = loginUser.UserType;
+
+                loginUser.FirstName = entity.ArName;
+                loginUser.LastName = string.Empty;
+                loginUser.TownId = entity.TownId;
+                loginUser.Street = entity.Address;
+                loginUser.PhoneNumber = entity.PhoneNumber;
+                loginUser.UserType = job.ArName;
+
+                if (oldRoleName != job.ArName)
+                {
+                    var oldRole = await _context.Roles.FirstOrDefaultAsync(a => a.Name == oldRoleName);
+                    if (oldRole != null)
+                    {
+                        var oldLinks = await _context.UserRoles
+                            .Where(a => a.UserId == loginUser.Id && a.RoleId == oldRole.Id)
+                            .ToListAsync();
+                        _context.UserRoles.RemoveRange(oldLinks);
+                    }
+
+                    var newRole = await _context.Roles.FirstOrDefaultAsync(a => a.Name == job.ArName);
+                    if (newRole is null)
+                    {
+                        newRole = new IdentityRole
+                        {
+                            Name = job.ArName,
+                            NormalizedName = job.ArName.ToUpperInvariant(),
+                            ConcurrencyStamp = Guid.NewGuid().ToString()
+                        };
+                        await _context.Roles.AddAsync(newRole);
+                    }
+
+                    var alreadyInRole = await _context.UserRoles.AnyAsync(a => a.UserId == loginUser.Id && a.RoleId == newRole.Id);
+                    if (!alreadyInRole)
+                    {
+                        await _context.UserRoles.AddAsync(new IdentityUserRole<string>
+                        {
+                            UserId = loginUser.Id,
+                            RoleId = newRole.Id
+                        });
+                    }
+                }
+            }
+
             await _context.SaveChangesAsync();
-            await SaveImageAsync(existing.Id, entity.Image);
+
+            if (!string.IsNullOrEmpty(entity.Image))
+            {
+                var existingImageRow = await _context.EmployeeImages.FirstOrDefaultAsync(a => a.EmployeeId == existing.Id);
+                if (existingImageRow is null)
+                {
+                    await _context.EmployeeImages.AddAsync(new EmployeeImage { EmployeeId = existing.Id, Url = entity.Image });
+                }
+                else
+                {
+                    existingImageRow.Url = entity.Image;
+                }
+
+                await _context.SaveChangesAsync();
+            }
 
             if (imageFile != null && !string.IsNullOrEmpty(oldImage))
             {
@@ -255,189 +461,6 @@ public class EmployeeRepository : IEmployeeRepository
                 Success = false,
                 Message = ErrorLog.Message(ex)
             };
-        }
-    }
-
-    /* Allowance and deduction rows are never typed by hand: the chosen type decides the names and the amount.
-       A saved row keeps its stored values while its type is unchanged, so editing a type later
-       does not silently change what an employee already gets. */
-    private async Task ApplyTypeValuesAsync(Employee entity, Employee existing)
-    {
-        var allowanceTypes = await _context.AllowanceTypes.AsNoTracking().ToDictionaryAsync(a => a.Id);
-        var deductionTypes = await _context.DeductionTypes.AsNoTracking().ToDictionaryAsync(a => a.Id);
-
-        foreach (var row in entity.Allowances ?? new List<EmployeeAllowance>())
-        {
-            var old = row.Id == 0 ? null : existing?.Allowances.FirstOrDefault(a => a.Id == row.Id);
-
-            if (old != null && old.AllowanceTypeId == row.AllowanceTypeId)
-            {
-                row.ArName = old.ArName;
-                row.EnName = old.EnName;
-                row.Amount = old.Amount;
-            }
-            else if (row.AllowanceTypeId.HasValue && allowanceTypes.TryGetValue(row.AllowanceTypeId.Value, out var type))
-            {
-                row.ArName = type.ArName;
-                row.EnName = type.EnName;
-                row.Amount = type.Amount ?? 0;
-            }
-            else
-            {
-                row.AllowanceTypeId = old?.AllowanceTypeId;
-                row.ArName = old?.ArName;
-                row.EnName = old?.EnName;
-                row.Amount = old?.Amount ?? 0;
-            }
-        }
-
-        foreach (var row in entity.FixedDeductions ?? new List<EmployeeFixedDeduction>())
-        {
-            var old = row.Id == 0 ? null : existing?.FixedDeductions.FirstOrDefault(a => a.Id == row.Id);
-
-            if (old != null && old.DeductionTypeId == row.DeductionTypeId)
-            {
-                row.ArName = old.ArName;
-                row.EnName = old.EnName;
-                row.Amount = old.Amount;
-            }
-            else if (row.DeductionTypeId.HasValue && deductionTypes.TryGetValue(row.DeductionTypeId.Value, out var type))
-            {
-                row.ArName = type.ArName;
-                row.EnName = type.EnName;
-                row.Amount = type.Amount ?? 0;
-            }
-            else
-            {
-                row.DeductionTypeId = old?.DeductionTypeId;
-                row.ArName = old?.ArName;
-                row.EnName = old?.EnName;
-                row.Amount = old?.Amount ?? 0;
-            }
-        }
-    }
-
-    private static void CalculatePay(Employee employee)
-    {
-        var weeksPerMonth = 52m / 12m;
-        var workDays = employee.WorkDays ?? 0;
-        var dailyHours = employee.DailyHours ?? 0;
-        var salary = employee.BasicSalary ?? 0;
-
-        employee.WeeklyHours = Math.Round(workDays * dailyHours, 2);
-        employee.MonthlyHours = Math.Round(employee.WeeklyHours.Value * weeksPerMonth, 2);
-
-        var monthlyDays = workDays * weeksPerMonth;
-        employee.DailyRate = monthlyDays > 0 ? Math.Round(salary / monthlyDays, 2) : null;
-        employee.HourlyRate = employee.DailyRate.HasValue && dailyHours > 0 ? Math.Round(employee.DailyRate.Value / dailyHours, 2) : null;
-        employee.MinuteRate = employee.HourlyRate.HasValue ? Math.Round(employee.HourlyRate.Value / 60m, 4) : null;
-    }
-
-    private static void CalculateInsurance(Employee employee)
-    {
-        var wage = (employee.InsuranceBasicSalary ?? 0) + (employee.InsuranceAllowancesAmount ?? 0);
-
-        employee.EmployeeInsuranceAmount = employee.EmployeeInsurancePercent.HasValue
-            ? Math.Round(wage * employee.EmployeeInsurancePercent.Value / 100m, 2)
-            : null;
-        employee.CompanyInsuranceAmount = employee.CompanyInsurancePercent.HasValue
-            ? Math.Round(wage * employee.CompanyInsurancePercent.Value / 100m, 2)
-            : null;
-    }
-
-    private static void CalculateLeaveDays(Employee employee)
-    {
-        foreach (var leave in employee.Leaves ?? new List<EmployeeLeave>())
-        {
-            if (leave.FromDate != default && leave.ToDate >= leave.FromDate)
-            {
-                leave.Days = (leave.ToDate.Date - leave.FromDate.Date).Days + 1;
-            }
-        }
-    }
-
-    private static List<EmployeePhone> BuildPhones(Employee entity)
-    {
-        var numbers = new List<string>();
-        if (!string.IsNullOrWhiteSpace(entity.PhoneNumber))
-        {
-            numbers.Add(entity.PhoneNumber.Trim());
-        }
-
-        numbers.AddRange((entity.Phones ?? new List<EmployeePhone>())
-            .Select(a => a.PhoneNumber?.Trim())
-            .Where(a => !string.IsNullOrWhiteSpace(a)));
-
-        return numbers.Distinct().Select(a => new EmployeePhone { PhoneNumber = a, CreatedAt = DateTime.Now }).ToList();
-    }
-
-    private void SyncPhones(Employee existing, List<EmployeePhone> desired)
-    {
-        var wanted = desired.Select(a => a.PhoneNumber).ToHashSet();
-
-        foreach (var phone in existing.Phones.Where(a => !wanted.Contains(a.PhoneNumber)).ToList())
-        {
-            _context.EmployeePhones.Remove(phone);
-        }
-
-        var kept = existing.Phones.Select(a => a.PhoneNumber).ToHashSet();
-        foreach (var phone in desired.Where(a => !kept.Contains(a.PhoneNumber)))
-        {
-            existing.Phones.Add(phone);
-        }
-    }
-
-    private async Task SyncLoginAccountAsync(Employee employee, string roleName)
-    {
-        var user = await _context.Users.FirstOrDefaultAsync(a => a.Code == employee.Code);
-        if (user is null)
-        {
-            return;
-        }
-
-        var oldRoleName = user.UserType;
-
-        user.FirstName = employee.ArName;
-        user.LastName = string.Empty;
-        user.TownId = employee.TownId;
-        user.Street = employee.Address;
-        user.PhoneNumber = employee.PhoneNumber;
-        user.UserType = roleName;
-
-        if (oldRoleName == roleName)
-        {
-            return;
-        }
-
-        var oldRole = await _context.Roles.FirstOrDefaultAsync(a => a.Name == oldRoleName);
-        if (oldRole != null)
-        {
-            var oldLinks = await _context.UserRoles
-                .Where(a => a.UserId == user.Id && a.RoleId == oldRole.Id)
-                .ToListAsync();
-            _context.UserRoles.RemoveRange(oldLinks);
-        }
-
-        var newRole = await _context.Roles.FirstOrDefaultAsync(a => a.Name == roleName);
-        if (newRole is null)
-        {
-            newRole = new IdentityRole
-            {
-                Name = roleName,
-                NormalizedName = roleName.ToUpperInvariant(),
-                ConcurrencyStamp = Guid.NewGuid().ToString()
-            };
-            await _context.Roles.AddAsync(newRole);
-        }
-
-        var alreadyInRole = await _context.UserRoles.AnyAsync(a => a.UserId == user.Id && a.RoleId == newRole.Id);
-        if (!alreadyInRole)
-        {
-            await _context.UserRoles.AddAsync(new IdentityUserRole<string>
-            {
-                UserId = user.Id,
-                RoleId = newRole.Id
-            });
         }
     }
 

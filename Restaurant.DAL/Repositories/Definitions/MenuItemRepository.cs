@@ -19,18 +19,14 @@ public class MenuItemRepository : IMenuItemRepository
         _context = context;
     }
 
-    private IQueryable<MenuItem> MenuItemsWithCost()
+    public async Task<PaginatedResult<MenuItem>> GetPagedMenuItemsAsync(PageRequest request)
     {
-        return _context.MenuItems
+        var query = _context.MenuItems
             .Include(a => a.MenuSection)
             .Include(a => a.Store)
             .Include(a => a.Components)
-                .ThenInclude(a => a.Product);
-    }
-
-    public async Task<PaginatedResult<MenuItem>> GetPagedMenuItemsAsync(PageRequest request)
-    {
-        var query = MenuItemsWithCost().AsNoTracking();
+                .ThenInclude(a => a.Product)
+            .AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
@@ -50,7 +46,13 @@ public class MenuItemRepository : IMenuItemRepository
 
     public async Task<MenuItem> GetMenuItemByIdAsync(int id)
     {
-        return await MenuItemsWithCost().AsNoTracking().FirstOrDefaultAsync(a => a.Id == id);
+        return await _context.MenuItems
+            .Include(a => a.MenuSection)
+            .Include(a => a.Store)
+            .Include(a => a.Components)
+                .ThenInclude(a => a.Product)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == id);
     }
 
     public async Task<ResultMessage> UpsertMenuItemAsync(MenuItem entity, IFormFile imageFile)

@@ -98,7 +98,7 @@ public class StoreConvertRepository : IStoreConvertRepository
                 .ToList();
 
             var lines = new List<StoreConvertProduct>();
-            var movements = new List<(int StoreId, int ProductId, decimal Delta)>();
+            var movements = new List<StoreProductMovement>();
             foreach (var item in wanted)
             {
                 if (!await StoreStock.AdjustAsync(_context, convert.FromStoreId, item.ProductId, -item.Quantity, createIfMissing: false))
@@ -116,8 +116,20 @@ public class StoreConvertRepository : IStoreConvertRepository
                     ProductId = item.ProductId,
                     Quantity = item.Quantity
                 });
-                movements.Add((convert.FromStoreId, item.ProductId, -item.Quantity));
-                movements.Add((convert.ToStoreId, item.ProductId, item.Quantity));
+                movements.Add(new StoreProductMovement
+                {
+                    StoreId = convert.FromStoreId,
+                    ProductId = item.ProductId,
+                    QuantityDelta = -item.Quantity,
+                    Source = StockMovementSource.StoreConvert
+                });
+                movements.Add(new StoreProductMovement
+                {
+                    StoreId = convert.ToStoreId,
+                    ProductId = item.ProductId,
+                    QuantityDelta = item.Quantity,
+                    Source = StockMovementSource.StoreConvert
+                });
             }
 
             var entity = new StoreConvert
@@ -129,16 +141,10 @@ public class StoreConvertRepository : IStoreConvertRepository
                 StoreConvertProducts = lines
             };
 
-            foreach (var (storeId, productId, delta) in movements)
+            foreach (var movement in movements)
             {
-                await _context.StoreProductMovements.AddAsync(new StoreProductMovement
-                {
-                    StoreId = storeId,
-                    ProductId = productId,
-                    QuantityDelta = delta,
-                    Source = StockMovementSource.StoreConvert,
-                    ReferenceCode = entity.ConvertCode
-                });
+                movement.ReferenceCode = entity.ConvertCode;
+                await _context.StoreProductMovements.AddAsync(movement);
             }
 
             await _context.StoreConverts.AddAsync(entity);
