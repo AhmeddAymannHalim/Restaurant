@@ -15,13 +15,13 @@ public class InvoiceVmValidator : AbstractValidator<InvoiceViewModel>
             .NotNull()
             .GreaterThan(0)
             .WithMessage(required)
-            .When(x => x.IsSupplierInvoice);
+            .When(x => x.HasPartner && x.IsSupplierInvoice);
 
         RuleFor(x => x.CustomerId)
             .NotNull()
             .GreaterThan(0)
             .WithMessage(required)
-            .When(x => !x.IsSupplierInvoice);
+            .When(x => x.HasPartner && !x.IsSupplierInvoice);
 
         RuleFor(x => x.StoreId)
             .GreaterThan(0)

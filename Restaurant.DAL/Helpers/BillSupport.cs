@@ -17,7 +17,10 @@ public static class BillSupport
         [InvoiceType.Purchases] = ("PUR", BillType.Purchases, "مشتريات", "Purchases", EntryType.JournalPurchases),
         [InvoiceType.Returns] = ("PRET", BillType.PurchaseReturn, "مرتجع مشتريات", "Purchases Return", EntryType.ReturnJournalPurchases),
         [InvoiceType.Sales] = ("SAL", BillType.Sales, "مبيعات", "Sales", EntryType.JournalSales),
-        [InvoiceType.SalesReturn] = ("SRET", BillType.SalesReturn, "مرتجع مبيعات", "Sales Return", EntryType.ReturnJournalSales)
+        [InvoiceType.SalesReturn] = ("SRET", BillType.SalesReturn, "مرتجع مبيعات", "Sales Return", EntryType.ReturnJournalSales),
+        [InvoiceType.Shortage] = ("SHRT", BillType.InventoryDeficit, "عجز مخزون", "Inventory Shortage", EntryType.Journal),
+        [InvoiceType.Surplus] = ("SRPL", BillType.InventoryIncrease, "زيادة مخزون", "Inventory Surplus", EntryType.Journal),
+        [InvoiceType.OpeningInventory] = ("OPEN", BillType.OpeningBalance, "رصيد افتتاحي مخزون", "Opening Inventory", EntryType.Journal)
     };
 
     public static BillType[] InvoiceBillTypes => Types.Values.Select(a => a.BillType).ToArray();
@@ -191,6 +194,31 @@ public static class BillSupport
         {
             await context.ItemUnits.AddAsync(new ItemUnit { ItemId = itemId, UnitId = unitId, TransRate = 1, IsDefault = true, CreatedAt = DateTime.Now });
         }
+    }
+
+    public static async Task RecalculateInvoicePaymentAsync(ApplicationDbContext context, int billMasterId)
+    {
+        var bill = await context.BillMasters.FirstOrDefaultAsync(a => a.Id == billMasterId)
+            ?? context.BillMasters.Local.FirstOrDefault(a => a.Id == billMasterId);
+        if (bill is null)
+        {
+            return;
+        }
+
+        var paidBySuppliers = await context.PaymentInvoiceSupplier
+            .Where(a => a.BillMasterId == billMasterId)
+            .SumAsync(a => (decimal?)a.Paid) ?? 0;
+        var paidByCustomers = await context.PaymentInvoiceCustomer
+            .Where(a => a.BillMasterId == billMasterId)
+            .SumAsync(a => (decimal?)a.Paid) ?? 0;
+
+        // the invoice's own down payment (entered at invoice creation/edit, not through the
+        // dedicated payment screens) is tracked separately in InitialPaidAmount so it isn't lost
+        // here, since this method is the only place that recomputes AmountPaided afterwards.
+        var paidToDate = bill.InitialPaidAmount + paidBySuppliers + paidByCustomers;
+
+        bill.AmountPaided = paidToDate;
+        bill.CasherRemainingAmount = bill.TotalBillAmountAfterDiscountAndExtra - paidToDate;
     }
 
     public static async Task<StoreItemUnit> GetStockRowAsync(ApplicationDbContext context, int storeId, int itemId, int unitId)

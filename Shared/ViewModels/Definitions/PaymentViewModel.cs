@@ -9,13 +9,17 @@ public class PaymentViewModel
     public string ProcessCode { get; set; }
     public DateTime Date { get; set; } = DateTime.Now;
     public int PartnerId { get; set; }
+    public int BillMasterId { get; set; }
     public decimal Paid { get; set; }
     public string Description { get; set; }
 
     public string PartnerArName { get; set; }
     public string PartnerEnName { get; set; }
+    public string InvoiceCode { get; set; }
+    public decimal InvoiceRemainingAmount { get; set; }
 
     public IEnumerable<LookupItem> Partners { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> OpenInvoices { get; set; } = new List<LookupItem>();
 }
 
 public class PaymentRefundViewModel

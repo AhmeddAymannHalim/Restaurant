@@ -25,6 +25,9 @@
                 <option value="SRET" selected="@(Model.Type == "SRET")">@L["SalesReturn"]</option>
                 <option value="PUR" selected="@(Model.Type == "PUR")">@L["Purchases"]</option>
                 <option value="PRET" selected="@(Model.Type == "PRET")">@L["Returns"]</option>
+                <option value="SHRT" selected="@(Model.Type == "SHRT")">@L["Invoice.Shortage"]</option>
+                <option value="SRPL" selected="@(Model.Type == "SRPL")">@L["Invoice.Surplus"]</option>
+                <option value="OPEN" selected="@(Model.Type == "OPEN")">@L["Invoice.OpeningInventory"]</option>
             </select>
             <label class="ad-check"><input type="checkbox" name="unpaidOnly" value="true" checked="@Model.UnpaidOnly" /> @L["UnpaidInvoices"]</label>
             <input type="date" name="fromDate" class="form-control w-auto" value="@Model.FromDate?.ToString("yyyy-MM-dd")" aria-label="@L["From"]" title="@L["From"]" />

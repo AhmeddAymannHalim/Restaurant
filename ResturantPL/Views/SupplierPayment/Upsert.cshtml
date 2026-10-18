@@ -35,6 +35,17 @@
                 <span asp-validation-for="PartnerId" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label asp-for="BillMasterId" class="control-label">@L["Invoice"]</label>
+                <select asp-for="BillMasterId" class="form-select">
+                    <option value="">@L["Select"]</option>
+                    @foreach (var item in Model.OpenInvoices)
+                    {
+                        <option value="@item.Id" selected="@(Model.BillMasterId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                    }
+                </select>
+                <span asp-validation-for="BillMasterId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label class="control-label">@L["AmountDue"]</label>
                 <input id="due" class="form-control" readonly />
             </div>
@@ -69,7 +80,7 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         $(function () {
-            var savedPartner = '@(isNew ? "" : Model.PartnerId.ToString())';
+            var savedBillMasterId = '@(isNew ? "" : Model.BillMasterId.ToString())';
             var savedPaid = @(isNew ? "0" : Model.Paid.ToString(invariant));
             var due = 0;
 
@@ -81,18 +92,39 @@
                 $('#remaining').val(money(due - number($('#Paid').val())));
             }
 
+            function loadInvoices(partnerId, selectAfterLoad) {
+                $.get('/SupplierPayment/OpenInvoices', { partnerId: partnerId }, function (invoices) {
+                    var $select = $('#BillMasterId');
+                    $select.find('option[value!=""]').remove();
+                    $.each(invoices, function (i, invoice) {
+                        $select.append($('<option>').val(invoice.id).text(invoice.enName));
+                    });
+                    if (selectAfterLoad) { $select.val(selectAfterLoad); }
+                    $select.trigger('change');
+                });
+            }
+
             $('#PartnerId').on('change', function () {
                 var id = $(this).val();
-                if (!id) { due = 0; recalc(); return; }
-                $.get('/SupplierPayment/Balance', { partnerId: id }, function (balance) {
-                    due = number(balance) + (id === savedPartner ? savedPaid : 0);
-                    recalc();
-                });
+                due = 0;
+                if (!id) { recalc(); return; }
+                loadInvoices(id);
+            });
+
+            $('#BillMasterId').on('change', function () {
+                var billId = $(this).val();
+                if (!billId) { due = 0; recalc(); return; }
+                var text = $('#BillMasterId option:selected').text();
+                var parts = text.split(' - ');
+                due = number(parts[parts.length - 1]) + (billId === savedBillMasterId ? savedPaid : 0);
+                recalc();
             });
 
             $('#Paid').on('input', recalc);
 
-            if ($('#PartnerId').val()) { $('#PartnerId').trigger('change'); }
+            if ($('#PartnerId').val()) {
+                loadInvoices($('#PartnerId').val(), savedBillMasterId);
+            }
             recalc();
         });
     </script>

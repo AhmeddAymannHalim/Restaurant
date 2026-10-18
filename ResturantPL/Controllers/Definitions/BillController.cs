@@ -4,6 +4,7 @@ using Microsoft.Extensions.Localization;
 using Shared.Helpers.Localization;
 using Restaurant.BLL.Services.IServices.Commons;
 using Restaurant.BLL.Services.IServices.Definitions;
+using Restaurant.DAL.Models;
 using ResturantPL.Helper;
 using Rotativa.AspNetCore;
 using Shared;
@@ -258,6 +259,8 @@ namespace ResturantPL.Controllers.Definitions
             model.Suppliers = await _lookup.SupplierLookupAsync();
             model.Customers = await _lookup.CustomerLookupAsync();
             model.Stores = await _lookup.StoreLookupAsync();
+            model.CostCenters = await _lookup.NamedLookupAsync<CostCenter>();
+            model.Currencies = await _lookup.NamedLookupAsync<Currency>();
             model.Units = await _lookup.UnitPriceLookupAsync();
             model.Categories = await _lookup.ProductCategoryLookupAsync();
 

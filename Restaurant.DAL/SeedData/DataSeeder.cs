@@ -1,5 +1,6 @@
 using Restaurant.DAL.Helpers;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.Models;
 
 namespace Restaurant.DAL.SeedData
@@ -22,6 +23,19 @@ namespace Restaurant.DAL.SeedData
             await SeedApplicationSettings(context, defaultPassword);
             await SeedPrinterSettings(context);
             await SeedAdminRoleAndUsers(userManager, roleManager, seedDefaultUsers, defaultPassword);
+            await BackfillBillMasterInitialPaidAmount(context);
+        }
+
+        private static async Task BackfillBillMasterInitialPaidAmount(ApplicationDbContext context)
+        {
+            var suppliersWithPayments = context.PaymentInvoiceSupplier.Where(a => a.BillMasterId != null).Select(a => a.BillMasterId);
+            var customersWithPayments = context.PaymentInvoiceCustomer.Where(a => a.BillMasterId != null).Select(a => a.BillMasterId);
+
+            await context.BillMasters
+                .Where(a => a.InitialPaidAmount != a.AmountPaided
+                    && !suppliersWithPayments.Contains(a.Id)
+                    && !customersWithPayments.Contains(a.Id))
+                .ExecuteUpdateAsync(a => a.SetProperty(b => b.InitialPaidAmount, b => b.AmountPaided));
         }
 
         private static async Task SeedJobs(ApplicationDbContext context)

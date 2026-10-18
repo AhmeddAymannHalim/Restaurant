@@ -21,6 +21,8 @@ public static class AccountCodes
     public const string PurchaseReturns = "5090";
     public const string OperatingExpenses = "5020";
     public const string Salaries = "5030";
+    public const string InventoryAdjustment = "5040";
+    public const string OpeningBalanceEquity = "3020";
 
     public record Definition(string Code, string NameAr, string NameEn, AccountType AccountType, AccountBalanceType BalanceType, string ParentCode);
 
@@ -42,6 +44,8 @@ public static class AccountCodes
         new(SalesRevenue, "إيرادات المبيعات", "Sales revenue", AccountType.Normal, AccountBalanceType.Credit, Revenue),
         new(SalesReturns, "مرتجعات المبيعات", "Sales returns", AccountType.Normal, AccountBalanceType.Debit, Revenue),
         new(Purchases, "المشتريات وتكلفة البيع", "Purchases and cost of sales", AccountType.Normal, AccountBalanceType.Debit, Expenses),
-        new(PurchaseReturns, "مرتجعات المشتريات", "Purchase returns", AccountType.Normal, AccountBalanceType.Credit, Expenses)
+        new(PurchaseReturns, "مرتجعات المشتريات", "Purchase returns", AccountType.Normal, AccountBalanceType.Credit, Expenses),
+        new(InventoryAdjustment, "تسويات المخزون", "Inventory adjustments", AccountType.Normal, AccountBalanceType.Debit, Expenses),
+        new(OpeningBalanceEquity, "الرصيد الافتتاحي", "Opening balance equity", AccountType.Normal, AccountBalanceType.Credit, Equity)
     };
 }

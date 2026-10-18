@@ -148,7 +148,6 @@ public class JournalEntryRepository : IJournalEntryRepository
         var codes = requested.Where(a => a.AccountId is null).Select(a => a.AccountCode).Distinct().ToList();
         var accounts = await _context.Accounts
             .Where(a => codes.Contains(a.Code))
-            .Select(a => new { a.Id, a.Code })
             .ToListAsync();
 
         if (accounts.Count != codes.Count)
@@ -156,7 +155,6 @@ public class JournalEntryRepository : IJournalEntryRepository
             await EnsureDefaultAccountsAsync();
             accounts = await _context.Accounts
                 .Where(a => codes.Contains(a.Code))
-                .Select(a => new { a.Id, a.Code })
                 .ToListAsync();
         }
 
@@ -165,6 +163,7 @@ public class JournalEntryRepository : IJournalEntryRepository
             return Fail("RecordNotFound");
         }
 
+        var accountsByCode = accounts.ToDictionary(a => a.Code, a => a);
         var accountIds = accounts.ToDictionary(a => a.Code, a => a.Id);
         var setting = await BillSupport.GetEntrySettingAsync(_context, type.Type, type.ArName, type.EnName);
         var cashId = await _context.Accounts.AsNoTracking()
@@ -198,6 +197,14 @@ public class JournalEntryRepository : IJournalEntryRepository
 
         await _context.EntryMasters.AddAsync(entry);
 
+        // the partner (customer/supplier) side of each line is already adjusted directly by the
+        // caller (e.g. SupplierPaymentRepository); only the system/GL accounts resolved here by
+        // AccountCode need their stored balance kept in sync with this posting.
+        foreach (var line in requested.Where(a => a.AccountId is null))
+        {
+            accountsByCode[line.AccountCode].Adjust(line.Debit - line.Credit);
+        }
+
         if (saveChanges)
         {
             await _context.SaveChangesAsync();
@@ -219,9 +226,19 @@ public class JournalEntryRepository : IJournalEntryRepository
 
         var tag = SourceTag(sourceType, sourceId);
         var entries = await _context.EntryMasters
-            .Include(a => a.EntryDetails)
+            .Include(a => a.EntryDetails).ThenInclude(a => a.Account)
             .Where(a => a.CollectEntryCode == tag)
             .ToListAsync();
+
+        // reverse the GL-account balances this posting applied (see PostSourceEntryAsync);
+        // partner accounts are not touched here, they are reversed by the caller directly.
+        foreach (var detail in entries.SelectMany(a => a.EntryDetails))
+        {
+            if (detail.Account is not null && detail.Account.AccountType is not (AccountType.Customer or AccountType.Supplier))
+            {
+                detail.Account.Adjust(-(detail.Debit - detail.Credit));
+            }
+        }
 
         _context.EntryDetails.RemoveRange(entries.SelectMany(a => a.EntryDetails));
         _context.EntryMasters.RemoveRange(entries);

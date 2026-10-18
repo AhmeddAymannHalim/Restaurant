@@ -5,5 +5,8 @@ public enum InvoiceType
     Purchases,
     Returns,
     Sales,
-    SalesReturn
+    SalesReturn,
+    Shortage,
+    Surplus,
+    OpeningInventory
 }

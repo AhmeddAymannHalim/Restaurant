@@ -9,6 +9,7 @@ public interface ICustomerPaymentRepository
     Task<PaymentInvoiceCustomer> GetPaymentByIdAsync(int id);
     Task<string> GetNextCodeAsync();
     Task<decimal> GetBalanceAsync(int partnerId);
+    Task<IEnumerable<LookupItem>> GetOpenInvoicesForPartnerAsync(int partnerId);
     Task<ResultMessage> UpsertPaymentAsync(PaymentInvoiceCustomer entity);
     Task<ResultMessage> DeletePaymentAsync(int id);
 

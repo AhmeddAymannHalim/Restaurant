@@ -13,6 +13,9 @@ public class InvoiceViewModel
     public int? SupplierId { get; set; }
     public int? CustomerId { get; set; }
     public int StoreId { get; set; }
+    public int? CostCenterId { get; set; }
+    public int? CurrencyId { get; set; }
+    public decimal? CurrencyRate { get; set; } = 1;
     public decimal Discount { get; set; }
     public decimal Paid { get; set; }
     public bool AutoPost { get; set; } = true;
@@ -22,6 +25,7 @@ public class InvoiceViewModel
     public List<InvoiceItemViewModel> Items { get; set; } = new();
 
     public bool IsSupplierInvoice => InvoiceType is InvoiceType.Purchases or InvoiceType.Returns;
+    public bool HasPartner => InvoiceType is InvoiceType.Purchases or InvoiceType.Returns or InvoiceType.Sales or InvoiceType.SalesReturn;
 
     public decimal SubTotal => Items.Sum(a => a.Total);
     public decimal TotalPrice => SubTotal - Discount;
@@ -33,10 +37,16 @@ public class InvoiceViewModel
     public string CustomerEnName { get; set; }
     public string StoreArName { get; set; }
     public string StoreEnName { get; set; }
+    public string CostCenterArName { get; set; }
+    public string CostCenterEnName { get; set; }
+    public string CurrencyArName { get; set; }
+    public string CurrencyEnName { get; set; }
 
     public IEnumerable<LookupItem> Suppliers { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Customers { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Stores { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> CostCenters { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> Currencies { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Units { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Categories { get; set; } = new List<LookupItem>();
 }

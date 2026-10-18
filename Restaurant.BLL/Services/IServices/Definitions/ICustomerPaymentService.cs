@@ -9,6 +9,7 @@ public interface ICustomerPaymentService
     Task<PaymentViewModel> GetPaymentByIdAsync(int id);
     Task<string> GetNextCodeAsync();
     Task<decimal> GetBalanceAsync(int partnerId);
+    Task<IEnumerable<LookupItem>> GetOpenInvoicesForPartnerAsync(int partnerId);
     Task<ResultMessage> UpsertPaymentAsync(PaymentViewModel model);
     Task<ResultMessage> DeletePaymentAsync(int id);
 

@@ -26,6 +26,8 @@ public class InvoiceRepository : IInvoiceRepository
         var bill = await _context.BillMasters.AsNoTracking()
             .Include(a => a.BillSetting)
             .Include(a => a.Store)
+            .Include(a => a.CostCenter)
+            .Include(a => a.Currency)
             .Include(a => a.BillDetails).ThenInclude(a => a.Item)
             .Include(a => a.BillDetails).ThenInclude(a => a.Unit)
             .FirstOrDefaultAsync(a => a.Id == id);
@@ -46,6 +48,13 @@ public class InvoiceRepository : IInvoiceRepository
             StoreId = bill.StoreId ?? 0,
             StoreArName = bill.Store?.ArName,
             StoreEnName = bill.Store?.EnName,
+            CostCenterId = bill.CostCenterId,
+            CostCenterArName = bill.CostCenter?.ArName,
+            CostCenterEnName = bill.CostCenter?.EnName,
+            CurrencyId = bill.CurrencyId,
+            CurrencyArName = bill.Currency?.ArName,
+            CurrencyEnName = bill.Currency?.EnName,
+            CurrencyRate = bill.CurrencyRate,
             Discount = bill.BillDiscountValue,
             Paid = bill.AmountPaided,
             AutoPost = bill.IsEntryPosted,
@@ -223,6 +232,9 @@ public class InvoiceRepository : IInvoiceRepository
             var cost = isSale ? details.Sum(a => (a.UnitCostAtPosting ?? 0) * (a.Quantity ?? 0)) : (decimal?)null;
 
             bill.StoreId = model.StoreId;
+            bill.CostCenterId = model.CostCenterId;
+            bill.CurrencyId = model.CurrencyId;
+            bill.CurrencyRate = model.CurrencyRate ?? 1;
             bill.CustomerOrSupplierAccountId = partner.AccountId;
             bill.TotalAmountBeforeDiscountOrExtra = itemsTotal;
             bill.TotalItemsAmountAfterDiscountAndExtra = itemsTotal;
@@ -232,6 +244,7 @@ public class InvoiceRepository : IInvoiceRepository
             bill.PayType = model.PayType == Shared.Enums.PayType.Later ? Shared.Enums.PayType.Later : Shared.Enums.PayType.Cash;
             bill.AmountPaided = paid;
             bill.CasherRemainingAmount = remaining;
+            bill.InitialPaidAmount = paid;
             bill.IsStorageEffected = model.AutoStock;
             bill.IsEntryPosted = model.AutoPost;
             bill.BillCost = cost;
@@ -249,7 +262,7 @@ public class InvoiceRepository : IInvoiceRepository
 
             if (model.AutoPost)
             {
-                var journalLines = BuildJournalLines(model.InvoiceType, total, paid, remaining, partner.AccountId).ToList();
+                var journalLines = BuildJournalLines(model.InvoiceType, total, paid, remaining, partner.AccountId, cost).ToList();
                 var posting = await _journals.PostSourceEntryAsync(JournalSourceType.Invoice, 0, bill.Date, bill.Code, journalLines, saveChanges: false);
                 if (!posting.Success)
                 {
@@ -257,7 +270,7 @@ public class InvoiceRepository : IInvoiceRepository
                     return posting;
                 }
 
-                await AddEntryAsync(bill, model.InvoiceType, entrySetting, journalLines, paid);
+                await AddEntryAsync(bill, entrySetting, journalLines, paid);
             }
 
             await _context.SaveChangesAsync();
@@ -332,6 +345,11 @@ public class InvoiceRepository : IInvoiceRepository
 
     private async Task<Partner> FindPartnerAsync(InvoiceViewModel model)
     {
+        if (!model.HasPartner)
+        {
+            return new Partner(null, null, null);
+        }
+
         if (model.IsSupplierInvoice)
         {
             var supplier = model.SupplierId.HasValue
@@ -353,17 +371,19 @@ public class InvoiceRepository : IInvoiceRepository
         var productIds = items.Select(a => a.ProductId).Distinct().ToList();
         var unitIds = items.Select(a => a.UnitPriceId).Distinct().ToList();
 
-        var valid = partner.AccountId.HasValue
+        var valid = (!model.HasPartner || partner.AccountId.HasValue)
             && await _context.Stores.AnyAsync(a => a.Id == model.StoreId)
             && await _context.Products.CountAsync(a => productIds.Contains(a.Id)) == productIds.Count
-            && await _context.UnitPrices.CountAsync(a => unitIds.Contains(a.Id)) == unitIds.Count;
+            && await _context.UnitPrices.CountAsync(a => unitIds.Contains(a.Id)) == unitIds.Count
+            && (!model.CostCenterId.HasValue || await _context.CostCenters.AnyAsync(a => a.Id == model.CostCenterId.Value))
+            && (!model.CurrencyId.HasValue || await _context.Currencies.AnyAsync(a => a.Id == model.CurrencyId.Value));
 
         return valid ? null : Fail("RecordNotFound");
     }
 
     private static int StockSign(InvoiceType type)
     {
-        return type is InvoiceType.Purchases or InvoiceType.SalesReturn ? 1 : -1;
+        return type is InvoiceType.Purchases or InvoiceType.SalesReturn or InvoiceType.Surplus or InvoiceType.OpeningInventory ? 1 : -1;
     }
 
     private static int BalanceSign(InvoiceType type)
@@ -495,14 +515,14 @@ public class InvoiceRepository : IInvoiceRepository
             {
                 var (_, _, arName, enName, entryType) = BillSupport.Types[type];
                 var entrySetting = await BillSupport.GetEntrySettingAsync(_context, entryType, arName, enName);
-                var journalLines = BuildJournalLines(type, bill.TotalBillAmountAfterDiscountAndExtra, bill.AmountPaided, remaining, bill.CustomerOrSupplierAccountId).ToList();
+                var journalLines = BuildJournalLines(type, bill.TotalBillAmountAfterDiscountAndExtra, bill.AmountPaided, remaining, bill.CustomerOrSupplierAccountId, bill.BillCost).ToList();
                 var posting = await _journals.PostSourceEntryAsync(JournalSourceType.Invoice, 0, bill.Date, bill.Code, journalLines, saveChanges: false);
                 if (!posting.Success)
                 {
                     return posting;
                 }
 
-                await AddEntryAsync(bill, type, entrySetting, journalLines, bill.AmountPaided);
+                await AddEntryAsync(bill, entrySetting, journalLines, bill.AmountPaided);
                 await AdjustPartnerBalanceAsync(bill.CustomerOrSupplierAccountId, BalanceSign(type) * remaining);
                 bill.IsEntryPosted = true;
             }
@@ -575,9 +595,9 @@ public class InvoiceRepository : IInvoiceRepository
         account?.Adjust(delta);
     }
 
-    private static IEnumerable<JournalLineRequest> BuildJournalLines(InvoiceType type, decimal total, decimal paid, decimal remaining, int? partnerAccountId)
+    private static IEnumerable<JournalLineRequest> BuildJournalLines(InvoiceType type, decimal total, decimal paid, decimal remaining, int? partnerAccountId, decimal? cost = null)
     {
-        return type switch
+        var lines = type switch
         {
             InvoiceType.Purchases => new[]
             {
@@ -597,16 +617,43 @@ public class InvoiceRepository : IInvoiceRepository
                 new JournalLineRequest(AccountCodes.Cash, paid, 0),
                 new JournalLineRequest(AccountCodes.SalesRevenue, 0, total)
             },
-            _ => new[]
+            InvoiceType.SalesReturn => new[]
             {
                 new JournalLineRequest(AccountCodes.SalesReturns, total, 0),
                 new JournalLineRequest(AccountCodes.AccountsReceivable, 0, remaining, null, partnerAccountId),
                 new JournalLineRequest(AccountCodes.Cash, 0, paid)
-            }
+            },
+            InvoiceType.Shortage => new[]
+            {
+                new JournalLineRequest(AccountCodes.InventoryAdjustment, total, 0),
+                new JournalLineRequest(AccountCodes.Inventory, 0, total)
+            },
+            InvoiceType.Surplus => new[]
+            {
+                new JournalLineRequest(AccountCodes.Inventory, total, 0),
+                new JournalLineRequest(AccountCodes.InventoryAdjustment, 0, total)
+            },
+            InvoiceType.OpeningInventory => new[]
+            {
+                new JournalLineRequest(AccountCodes.Inventory, total, 0),
+                new JournalLineRequest(AccountCodes.OpeningBalanceEquity, 0, total)
+            },
+            _ => Array.Empty<JournalLineRequest>()
         };
+
+        if (type == InvoiceType.Sales && cost is > 0)
+        {
+            lines = lines.Concat(new[]
+            {
+                new JournalLineRequest(AccountCodes.Purchases, cost.Value, 0),
+                new JournalLineRequest(AccountCodes.Inventory, 0, cost.Value)
+            }).ToArray();
+        }
+
+        return lines;
     }
 
-    private async Task AddEntryAsync(BillMaster bill, InvoiceType type, EntrySetting entrySetting, IEnumerable<JournalLineRequest> journalLines, decimal paid)
+    private async Task AddEntryAsync(BillMaster bill, EntrySetting entrySetting, IEnumerable<JournalLineRequest> journalLines, decimal paid)
     {
         var requested = journalLines
             .Where(a => a.Debit > 0 || a.Credit > 0)
@@ -617,16 +664,19 @@ public class InvoiceRepository : IInvoiceRepository
         }
 
         var codes = requested.Where(a => a.AccountId is null).Select(a => a.AccountCode).Distinct().ToList();
-        var accounts = await _context.Accounts.AsNoTracking()
+        var accountEntities = await _context.Accounts
             .Where(a => codes.Contains(a.Code))
-            .ToDictionaryAsync(a => a.Code, a => a.Id);
-        if (accounts.Count != codes.Count)
+            .ToListAsync();
+        if (accountEntities.Count != codes.Count)
         {
             await _journals.EnsureDefaultAccountsAsync();
-            accounts = await _context.Accounts.AsNoTracking()
+            accountEntities = await _context.Accounts
                 .Where(a => codes.Contains(a.Code))
-                .ToDictionaryAsync(a => a.Code, a => a.Id);
+                .ToListAsync();
         }
+
+        var accountsByCode = accountEntities.ToDictionary(a => a.Code, a => a);
+        var accounts = accountEntities.ToDictionary(a => a.Code, a => a.Id);
 
         await _context.EntryMasters.AddAsync(new EntryMaster
         {
@@ -635,7 +685,7 @@ public class InvoiceRepository : IInvoiceRepository
             TotalBalance = requested.Sum(a => Math.Round(a.Debit, 2)),
             CurrencyRate = 1,
             IsPosted = true,
-            EntryRemarks = $"{type} {bill.Code}",
+            EntryRemarks = $"{(LanguageHelper.IsArabic() ? entrySetting.ArName : entrySetting.EnName)} {bill.Code}",
             AccountBoxOrBankId = paid > 0 && accounts.TryGetValue(AccountCodes.Cash, out var cashId) ? cashId : null,
             Bill = bill,
             EntrySetting = entrySetting,
@@ -650,14 +700,32 @@ public class InvoiceRepository : IInvoiceRepository
                 CreatedAt = DateTime.Now
             }).ToList()
         });
+
+        // the partner (customer/supplier) side of each line is already adjusted directly by
+        // UpsertInvoiceAsync/ApplyAsync via AdjustPartnerBalanceAsync; only the system/GL accounts
+        // resolved here by AccountCode need their stored balance kept in sync with this posting.
+        foreach (var line in requested.Where(a => a.AccountId is null))
+        {
+            accountsByCode[line.AccountCode].Adjust(line.Debit - line.Credit);
+        }
     }
 
     private async Task RemoveEntriesAsync(int billId)
     {
         var entries = await _context.EntryMasters
-            .Include(a => a.EntryDetails)
+            .Include(a => a.EntryDetails).ThenInclude(a => a.Account)
             .Where(a => a.BillId == billId)
             .ToListAsync();
+
+        // reverse the GL-account balances this posting applied (see AddEntryAsync); partner
+        // accounts are not touched here, they are reversed by the caller (TakeBackAsync) directly.
+        foreach (var detail in entries.SelectMany(a => a.EntryDetails))
+        {
+            if (detail.Account is not null && detail.Account.AccountType is not (AccountType.Customer or AccountType.Supplier))
+            {
+                detail.Account.Adjust(-(detail.Debit - detail.Credit));
+            }
+        }
 
         _context.EntryDetails.RemoveRange(entries.SelectMany(a => a.EntryDetails));
         _context.EntryMasters.RemoveRange(entries);

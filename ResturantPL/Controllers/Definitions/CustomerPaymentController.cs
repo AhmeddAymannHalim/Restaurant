@@ -154,6 +154,12 @@ namespace ResturantPL.Controllers.Definitions
             return Json(await _service.GetBalanceAsync(partnerId));
         }
 
+        [HttpGet]
+        public async Task<IActionResult> OpenInvoices(int partnerId)
+        {
+            return Json(await _service.GetOpenInvoicesForPartnerAsync(partnerId));
+        }
+
         public async Task<IActionResult> Refunds(int paymentId)
         {
             try
@@ -256,6 +262,9 @@ namespace ResturantPL.Controllers.Definitions
         private async Task PopulateData(PaymentViewModel model)
         {
             model.Partners = await _lookup.CustomerLookupAsync();
+            model.OpenInvoices = model.PartnerId > 0
+                ? await _service.GetOpenInvoicesForPartnerAsync(model.PartnerId)
+                : Enumerable.Empty<LookupItem>();
         }
     }
 }

@@ -13,6 +13,10 @@ public class PaymentVmValidator : AbstractValidator<PaymentViewModel>
             .GreaterThan(0)
             .WithMessage(localizer["Val.RequiredField"].Value);
 
+        RuleFor(x => x.BillMasterId)
+            .GreaterThan(0)
+            .WithMessage(localizer["Val.RequiredField"].Value);
+
         RuleFor(x => x.Paid)
             .GreaterThan(0)
             .WithMessage(localizer["Val.GreaterThanZero"].Value);

@@ -1,5 +1,6 @@
 using Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Commons;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -80,6 +81,30 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
         return account?.BalanceValue ?? 0;
     }
 
+    public async Task<IEnumerable<LookupItem>> GetOpenInvoicesForPartnerAsync(int partnerId)
+    {
+        var accountId = await _context.Suppliers.AsNoTracking()
+            .Where(a => a.Id == partnerId)
+            .Select(a => a.AccountId)
+            .FirstOrDefaultAsync();
+
+        if (!accountId.HasValue)
+        {
+            return Enumerable.Empty<LookupItem>();
+        }
+
+        return await _context.BillMasters.AsNoTracking()
+            .Where(a => a.CustomerOrSupplierAccountId == accountId.Value && a.CasherRemainingAmount != 0)
+            .OrderBy(a => a.Date)
+            .Select(a => new LookupItem
+            {
+                Id = a.Id,
+                ArName = $"{a.Code} - {a.CasherRemainingAmount}",
+                EnName = $"{a.Code} - {a.CasherRemainingAmount}"
+            })
+            .ToListAsync();
+    }
+
     public async Task<ResultMessage> UpsertPaymentAsync(PaymentInvoiceSupplier entity)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -96,9 +121,30 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
                 };
             }
 
+            var bill = await _context.BillMasters.FirstOrDefaultAsync(a => a.Id == entity.BillMasterId);
+            if (bill is null || bill.CustomerOrSupplierAccountId != partner.AccountId)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RecordNotFound"
+                };
+            }
+
+            int? oldBillMasterId = null;
+
             PaymentInvoiceSupplier payment;
             if (entity.Id == 0)
             {
+                if (entity.Paid > bill.CasherRemainingAmount)
+                {
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "PaymentExceedsInvoiceRemainingAmount"
+                    };
+                }
+
                 payment = entity;
                 payment.ProcessCode = await GetNextCodeAsync();
                 payment.Date = DateTime.Now;
@@ -116,15 +162,36 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
                     };
                 }
 
+                var remainingBeforeThisPayment = bill.CasherRemainingAmount + (payment.BillMasterId == entity.BillMasterId ? payment.Paid : 0);
+                if (entity.Paid > remainingBeforeThisPayment)
+                {
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "PaymentExceedsInvoiceRemainingAmount"
+                    };
+                }
+
                 var before = await _context.Suppliers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == payment.SupplierId);
                 before.Account.Adjust(payment.Paid);
+
+                oldBillMasterId = payment.BillMasterId;
 
                 payment.SupplierId = entity.SupplierId;
                 payment.Paid = entity.Paid;
                 payment.Description = entity.Description;
+                payment.BillMasterId = entity.BillMasterId;
             }
 
             partner.Account.Adjust(-payment.Paid);
+            await _context.SaveChangesAsync();
+
+            if (oldBillMasterId.HasValue && oldBillMasterId != payment.BillMasterId)
+            {
+                await BillSupport.RecalculateInvoicePaymentAsync(_context, oldBillMasterId.Value);
+            }
+
+            await BillSupport.RecalculateInvoicePaymentAsync(_context, payment.BillMasterId.Value);
             await _context.SaveChangesAsync();
 
             await _journals.RemoveSourceEntriesAsync(JournalSourceType.SupplierPaymentVoucher, payment.Id);
@@ -188,8 +255,17 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
 
             await _journals.RemoveSourceEntriesAsync(JournalSourceType.SupplierPaymentVoucher, payment.Id);
 
+            var billMasterId = payment.BillMasterId;
+
             _context.PaymentInvoiceSupplier.Remove(payment);
             await _context.SaveChangesAsync();
+
+            if (billMasterId.HasValue)
+            {
+                await BillSupport.RecalculateInvoicePaymentAsync(_context, billMasterId.Value);
+                await _context.SaveChangesAsync();
+            }
+
             await transaction.CommitAsync();
 
             return new ResultMessage { Success = true };

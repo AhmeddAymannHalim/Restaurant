@@ -50,20 +50,25 @@ public static class OrderLedger
 
         var entrySetting = await BillSupport.GetEntrySettingAsync(context, EntryType.JournalSales, "مبيعات يومية", "Daily sales");
         var codes = new[] { AccountCodes.Cash, AccountCodes.AccountsReceivable, AccountCodes.SalesRevenue };
-        var accounts = await context.Accounts.AsNoTracking()
+        var accountEntities = await context.Accounts
             .Where(a => codes.Contains(a.Code))
-            .ToDictionaryAsync(a => a.Code, a => a.Id);
+            .ToListAsync();
+        var accounts = accountEntities.ToDictionary(a => a.Code, a => a.Id);
 
-        int? customerAccountId = null;
+        Account customerAccount = null;
         if (pos.OnAccount && pos.CustomerId.HasValue)
         {
-            customerAccountId = await context.Customers.AsNoTracking()
+            var customerAccountId = await context.Customers.AsNoTracking()
                 .Where(a => a.Id == pos.CustomerId.Value)
                 .Select(a => a.AccountId)
                 .FirstOrDefaultAsync();
+            if (customerAccountId.HasValue)
+            {
+                customerAccount = await context.Accounts.FirstOrDefaultAsync(a => a.Id == customerAccountId.Value);
+            }
         }
 
-        var debitAccountId = customerAccountId
+        var debitAccountId = customerAccount?.Id
             ?? (pos.OnAccount ? accounts.GetValueOrDefault(AccountCodes.AccountsReceivable) : accounts.GetValueOrDefault(AccountCodes.Cash));
         if (debitAccountId == 0 || !accounts.TryGetValue(AccountCodes.SalesRevenue, out var salesId))
         {
@@ -88,14 +93,30 @@ public static class OrderLedger
                 new() { EntryRowCode = 2, AccountId = salesId, Debit = 0, Credit = total, EntryDetailsRemarks = pos.OrderCode, CreatedAt = DateTime.Now }
             }
         });
+        if (customerAccount is null)
+        {
+            var debitAccount = accountEntities.First(a => a.Id == debitAccountId);
+            debitAccount.Adjust(total);
+        }
+
+        var salesAccount = accountEntities.First(a => a.Id == salesId);
+        salesAccount.Adjust(-total);
     }
 
     public static async Task RemoveEntryAsync(ApplicationDbContext context, int billId)
     {
         var entries = await context.EntryMasters
-            .Include(a => a.EntryDetails)
+            .Include(a => a.EntryDetails).ThenInclude(a => a.Account)
             .Where(a => a.BillId == billId)
             .ToListAsync();
+
+        foreach (var detail in entries.SelectMany(a => a.EntryDetails))
+        {
+            if (detail.Account is not null && detail.Account.AccountType is not (AccountType.Customer or AccountType.Supplier))
+            {
+                detail.Account.Adjust(-(detail.Debit - detail.Credit));
+            }
+        }
 
         context.EntryDetails.RemoveRange(entries.SelectMany(a => a.EntryDetails));
         context.EntryMasters.RemoveRange(entries);

@@ -56,7 +56,9 @@ public class SupplierRepository : ISupplierRepository
     {
         var accountId = await _context.Suppliers.AsNoTracking().Where(a => a.Id == id).Select(a => a.AccountId).FirstOrDefaultAsync();
 
-        return accountId.HasValue ? await _context.BillMasters.CountAsync(a => a.CustomerOrSupplierAccountId == accountId) : 0;
+        return accountId.HasValue
+            ? await _context.BillMasters.CountAsync(a => a.CustomerOrSupplierAccountId == accountId
+                                                        && a.AmountPaided < a.TotalBillAmountAfterDiscountAndExtra): 0;
     }
 
     public async Task<ResultMessage> UpsertSupplierAsync(Supplier entity)

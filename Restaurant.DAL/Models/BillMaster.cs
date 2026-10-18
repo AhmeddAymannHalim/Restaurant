@@ -37,6 +37,7 @@ public class BillMaster : BaseEntity
     public bool IsCostingApplied { get; set; }
     public int BillDailyNo { get; set; }
     public decimal AmountPaided { get; set; }
+    public decimal InitialPaidAmount { get; set; }
     public decimal CasherCurrentPaidedAmount { get; set; }
     public decimal CasherDifferenceAmount { get; set; }
     public decimal CasherRemainingAmount { get; set; }

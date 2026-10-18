@@ -18,6 +18,14 @@ public class PaymentInvoiceSupplierConfig : IEntityTypeConfiguration<PaymentInvo
             .WithMany(a => a.PaymentInvoices)
             .HasForeignKey(a => a.SupplierId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(a => a.BillMasterId);
+
+        builder
+            .HasOne(a => a.BillMaster)
+            .WithMany()
+            .HasForeignKey(a => a.BillMasterId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -34,6 +42,14 @@ public class PaymentInvoiceCustomerConfig : IEntityTypeConfiguration<PaymentInvo
             .HasOne(a => a.Customer)
             .WithMany(a => a.PaymentInvoices)
             .HasForeignKey(a => a.CustomerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(a => a.BillMasterId);
+
+        builder
+            .HasOne(a => a.BillMaster)
+            .WithMany()
+            .HasForeignKey(a => a.BillMasterId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

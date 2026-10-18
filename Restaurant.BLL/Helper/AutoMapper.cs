@@ -126,19 +126,27 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.PartnerId, opt => opt.MapFrom(src => src.SupplierId))
             .ForMember(dest => dest.PartnerArName, opt => opt.MapFrom(src => src.Supplier.Account.ArName))
             .ForMember(dest => dest.PartnerEnName, opt => opt.MapFrom(src => src.Supplier.Account.EnName))
-            .ForMember(dest => dest.Partners, opt => opt.Ignore());
+            .ForMember(dest => dest.BillMasterId, opt => opt.MapFrom(src => src.BillMasterId ?? 0))
+            .ForMember(dest => dest.InvoiceCode, opt => opt.MapFrom(src => src.BillMaster != null ? src.BillMaster.Code : null))
+            .ForMember(dest => dest.Partners, opt => opt.Ignore())
+            .ForMember(dest => dest.OpenInvoices, opt => opt.Ignore());
         CreateMap<PaymentViewModel, PaymentInvoiceSupplier>()
             .ForMember(dest => dest.SupplierId, opt => opt.MapFrom(src => src.PartnerId))
-            .ForMember(dest => dest.Supplier, opt => opt.Ignore());
+            .ForMember(dest => dest.Supplier, opt => opt.Ignore())
+            .ForMember(dest => dest.BillMaster, opt => opt.Ignore());
 
         CreateMap<PaymentInvoiceCustomer, PaymentViewModel>()
             .ForMember(dest => dest.PartnerId, opt => opt.MapFrom(src => src.CustomerId))
             .ForMember(dest => dest.PartnerArName, opt => opt.MapFrom(src => src.Customer.Account.ArName))
             .ForMember(dest => dest.PartnerEnName, opt => opt.MapFrom(src => src.Customer.Account.EnName))
-            .ForMember(dest => dest.Partners, opt => opt.Ignore());
+            .ForMember(dest => dest.BillMasterId, opt => opt.MapFrom(src => src.BillMasterId ?? 0))
+            .ForMember(dest => dest.InvoiceCode, opt => opt.MapFrom(src => src.BillMaster != null ? src.BillMaster.Code : null))
+            .ForMember(dest => dest.Partners, opt => opt.Ignore())
+            .ForMember(dest => dest.OpenInvoices, opt => opt.Ignore());
         CreateMap<PaymentViewModel, PaymentInvoiceCustomer>()
             .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.PartnerId))
-            .ForMember(dest => dest.Customer, opt => opt.Ignore());
+            .ForMember(dest => dest.Customer, opt => opt.Ignore())
+            .ForMember(dest => dest.BillMaster, opt => opt.Ignore());
 
         CreateMap<PaymentRefund, PaymentRefundViewModel>()
             .ForMember(dest => dest.OriginalPaymentId, opt => opt.MapFrom(src => src.OriginalPaymentId ?? src.SupplierPaymentId ?? 0))

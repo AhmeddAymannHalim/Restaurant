@@ -45,6 +45,11 @@ public class CustomerPaymentService : ICustomerPaymentService
         return await _unitOfWork.CustomerPayments.GetBalanceAsync(partnerId);
     }
 
+    public async Task<IEnumerable<LookupItem>> GetOpenInvoicesForPartnerAsync(int partnerId)
+    {
+        return await _unitOfWork.CustomerPayments.GetOpenInvoicesForPartnerAsync(partnerId);
+    }
+
     public async Task<ResultMessage> UpsertPaymentAsync(PaymentViewModel model)
     {
         return await _unitOfWork.CustomerPayments.UpsertPaymentAsync(_mapper.Map<PaymentInvoiceCustomer>(model));

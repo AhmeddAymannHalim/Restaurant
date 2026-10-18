@@ -884,6 +884,10 @@ namespace Restaurant.DAL.Migrations
                     b.Property<string>("EtaUuid")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("InitialPaidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<bool>("IsCostingApplied")
                         .HasColumnType("bit");
 
@@ -4681,6 +4685,9 @@ namespace Restaurant.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("BillMasterId")
+                        .HasColumnType("int");
+
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
@@ -4702,6 +4709,8 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BillMasterId");
+
                     b.HasIndex("CustomerId");
 
                     b.HasIndex("Date");
@@ -4719,6 +4728,9 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("BillMasterId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
@@ -4740,6 +4752,8 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BillMasterId");
 
                     b.HasIndex("Date");
 
@@ -7338,22 +7352,36 @@ namespace Restaurant.DAL.Migrations
 
             modelBuilder.Entity("Restaurant.DAL.Models.PaymentInvoiceCustomer", b =>
                 {
+                    b.HasOne("Restaurant.DAL.Models.BillMaster", "BillMaster")
+                        .WithMany()
+                        .HasForeignKey("BillMasterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Restaurant.DAL.Models.Customer", "Customer")
                         .WithMany("PaymentInvoices")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("BillMaster");
+
                     b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.PaymentInvoiceSupplier", b =>
                 {
+                    b.HasOne("Restaurant.DAL.Models.BillMaster", "BillMaster")
+                        .WithMany()
+                        .HasForeignKey("BillMasterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Restaurant.DAL.Models.Supplier", "Supplier")
                         .WithMany("PaymentInvoices")
                         .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("BillMaster");
 
                     b.Navigation("Supplier");
                 });
