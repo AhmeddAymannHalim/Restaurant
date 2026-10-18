@@ -420,6 +420,50 @@ namespace Restaurant.DAL.Migrations
                     b.ToTable("AccountSettings");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.AllowanceType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AllowanceTypes");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.ApplicationSetting", b =>
                 {
                     b.Property<int>("Id")
@@ -2114,6 +2158,50 @@ namespace Restaurant.DAL.Migrations
                     b.ToTable("CustomerTierDiscounts");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.DeductionType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ArName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DeductionTypes");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.DeliveryZone", b =>
                 {
                     b.Property<int>("Id")
@@ -2251,9 +2339,6 @@ namespace Restaurant.DAL.Migrations
                     b.Property<string>("Address")
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
-
-                    b.Property<string>("Administration")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("AnnualLeaveDays")
                         .HasColumnType("int");
@@ -2425,10 +2510,6 @@ namespace Restaurant.DAL.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal?>("InsuranceAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal?>("InsuranceBasicSalary")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -2447,10 +2528,6 @@ namespace Restaurant.DAL.Migrations
 
                     b.Property<string>("InsuranceNumber")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("InsurancePercent")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("InsuranceStartDate")
                         .HasColumnType("datetime2");
@@ -2478,8 +2555,8 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("MinuteRate")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<decimal?>("MonthlyHours")
                         .HasPrecision(18, 2)
@@ -2548,15 +2625,8 @@ namespace Restaurant.DAL.Migrations
                     b.Property<string>("Religion")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double?>("Salary")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("float(18)");
-
                     b.Property<string>("SalaryNotes")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("SalaryType")
-                        .HasColumnType("int");
 
                     b.Property<int>("ShiftType")
                         .HasColumnType("int");
@@ -2654,6 +2724,9 @@ namespace Restaurant.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AllowanceTypeId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -2691,6 +2764,8 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AllowanceTypeId");
 
                     b.HasIndex("EmployeeId");
 
@@ -2820,6 +2895,9 @@ namespace Restaurant.DAL.Migrations
                     b.Property<string>("CreatedById")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("DeductionTypeId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
 
@@ -2843,6 +2921,8 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DeductionTypeId");
 
                     b.HasIndex("EmployeeId");
 
@@ -3579,8 +3659,20 @@ namespace Restaurant.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal?>("AllowancesAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("ArName")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("BasicWage")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("CompanyPercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -3593,6 +3685,10 @@ namespace Restaurant.DAL.Migrations
 
                     b.Property<string>("DeletedById")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("EmployeePercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("EnName")
                         .HasColumnType("nvarchar(max)");
@@ -6690,11 +6786,18 @@ namespace Restaurant.DAL.Migrations
 
             modelBuilder.Entity("Restaurant.DAL.Models.EmployeeAllowance", b =>
                 {
+                    b.HasOne("Restaurant.DAL.Models.AllowanceType", "AllowanceType")
+                        .WithMany()
+                        .HasForeignKey("AllowanceTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
                         .WithMany("Allowances")
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("AllowanceType");
 
                     b.Navigation("Employee");
                 });
@@ -6723,11 +6826,18 @@ namespace Restaurant.DAL.Migrations
 
             modelBuilder.Entity("Restaurant.DAL.Models.EmployeeFixedDeduction", b =>
                 {
+                    b.HasOne("Restaurant.DAL.Models.DeductionType", "DeductionType")
+                        .WithMany()
+                        .HasForeignKey("DeductionTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Restaurant.DAL.Models.Employee", "Employee")
                         .WithMany("FixedDeductions")
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("DeductionType");
 
                     b.Navigation("Employee");
                 });

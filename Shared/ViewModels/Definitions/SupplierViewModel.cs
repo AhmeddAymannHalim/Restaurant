@@ -13,6 +13,10 @@ public class SupplierViewModel
     public string PhoneNumber { get; set; }
     public List<PhoneViewModel> Phones { get; set; } = new();
     public decimal Balance { get; set; }
+    public decimal Debit { get; set; }
+    public decimal Credit { get; set; }
+    public int InvoiceCount { get; set; }
+    public bool HasBalance => Debit != 0 || Credit != 0;
 
     public string Email { get; set; }
     public string Website { get; set; }

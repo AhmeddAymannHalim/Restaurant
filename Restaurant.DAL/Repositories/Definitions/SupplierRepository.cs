@@ -52,11 +52,23 @@ public class SupplierRepository : ISupplierRepository
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
+    public async Task<int> CountInvoicesAsync(int id)
+    {
+        var accountId = await _context.Suppliers.AsNoTracking().Where(a => a.Id == id).Select(a => a.AccountId).FirstOrDefaultAsync();
+
+        return accountId.HasValue ? await _context.BillMasters.CountAsync(a => a.CustomerOrSupplierAccountId == accountId) : 0;
+    }
+
     public async Task<ResultMessage> UpsertSupplierAsync(Supplier entity)
     {
         try
         {
             var form = entity.Account;
+            if (form.DebitBalance < 0 || form.CreditBalance < 0)
+            {
+                return new ResultMessage { Success = false, Message = "NegativeAmount" };
+            }
+
             entity.Account = null;
             var phones = PhoneRows.Clean(entity.PhoneNumber1, entity.Phones);
             entity.Phones = new List<SupplierPhone>();
@@ -73,12 +85,12 @@ public class SupplierRepository : ISupplierRepository
                     form.EnName,
                     AccountType.Supplier,
                     AccountCodes.AccountsPayable,
-                    form.CreditBalance);
+                    form.CreditBalance - form.DebitBalance);
 
                 entity.Account = account;
                 openingAccount = account;
-                openingDelta = form.CreditBalance;
-                entity.LastBalance = form.CreditBalance;
+                openingDelta = form.CreditBalance - form.DebitBalance;
+                entity.LastBalance = openingDelta;
                 entity.CreatedAt = DateTime.Now;
 
                 PhoneRows.Sync(_context, entity.Phones, phones);
@@ -109,7 +121,7 @@ public class SupplierRepository : ISupplierRepository
                 existing.Account.ArName = form.ArName;
                 existing.Account.EnName = form.EnName;
                 openingAccount = existing.Account;
-                openingDelta = form.CreditBalance - existing.Account.BalanceValue;
+                openingDelta = (form.CreditBalance - form.DebitBalance) - (existing.Account.CreditBalance - existing.Account.DebitBalance);
                 existing.Account.Adjust(openingDelta);
                 _context.Entry(existing).CurrentValues.SetValues(entity);
                 PhoneRows.Sync(_context, existing.Phones, phones);
@@ -140,6 +152,11 @@ public class SupplierRepository : ISupplierRepository
             if (entity is null)
             {
                 return new ResultMessage { Success = true };
+            }
+
+            if (entity.Account is not null && entity.Account.DebitBalance != entity.Account.CreditBalance)
+            {
+                return new ResultMessage { Success = false, Message = "LockedByBalance" };
             }
 
             _context.Suppliers.Remove(entity);

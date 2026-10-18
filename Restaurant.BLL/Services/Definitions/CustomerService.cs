@@ -31,7 +31,13 @@ public class CustomerService : ICustomerService
     {
         var entity = await _unitOfWork.Customers.GetCustomerByIdAsync(id);
 
-        return _mapper.Map<CustomerViewModel>(entity);
+        var model = _mapper.Map<CustomerViewModel>(entity);
+        if (model is not null)
+        {
+            model.InvoiceCount = await _unitOfWork.Customers.CountInvoicesAsync(id);
+        }
+
+        return model;
     }
 
     public async Task<ResultMessage> UpsertCustomerAsync(CustomerViewModel model)

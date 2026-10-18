@@ -31,7 +31,13 @@ public class SupplierService : ISupplierService
     {
         var entity = await _unitOfWork.Suppliers.GetSupplierByIdAsync(id);
 
-        return _mapper.Map<SupplierViewModel>(entity);
+        var model = _mapper.Map<SupplierViewModel>(entity);
+        if (model is not null)
+        {
+            model.InvoiceCount = await _unitOfWork.Suppliers.CountInvoicesAsync(id);
+        }
+
+        return model;
     }
 
     public async Task<ResultMessage> UpsertSupplierAsync(SupplierViewModel model)

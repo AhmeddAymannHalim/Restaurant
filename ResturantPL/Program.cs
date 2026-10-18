@@ -188,6 +188,8 @@ services.AddScoped<ICurrencyService, CurrencyService>();
 services.AddScoped<ICompanyService, CompanyService>();
 services.AddScoped<ILeaveTypeService, LeaveTypeService>();
 services.AddScoped<IInsuranceCompanyService, InsuranceCompanyService>();
+services.AddScoped<IAllowanceTypeService, AllowanceTypeService>();
+services.AddScoped<IDeductionTypeService, DeductionTypeService>();
 services.AddScoped<IInsuranceCategoryService, InsuranceCategoryService>();
 services.AddScoped<IJobTypeService, JobTypeService>();
 services.AddScoped<IDepartmentService, DepartmentService>();

@@ -1,0 +1,47 @@
+@model AllowanceTypeViewModel
+@{
+    var isNew = Model.Id == 0;
+    ViewBag.Title = isNew ? L["NewAllowanceType"].Value : L["UpdateAllowanceType"].Value;
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-hand-holding-dollar" aria-hidden="true"></i></span>
+        <h1>@ViewBag.Title</h1>
+    </div>
+    <div class="ad-card-body">
+        <form asp-action="Upsert" method="post" class="ad-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="ArName" class="control-label">@L["ArabicName"]</label>
+                <input asp-for="ArName" class="form-control" />
+                <span asp-validation-for="ArName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EnName" class="control-label">@L["EnglishName"]</label>
+                <input asp-for="EnName" class="form-control" />
+                <span asp-validation-for="EnName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Amount" class="control-label">@L["Emp.Row.Amount"]</label>
+                <input asp-for="Amount" type="number" step="0.01" min="0" class="form-control" />
+                <span asp-validation-for="Amount" class="text-danger"></span>
+            </div>
+
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
+                <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+            @if (!isNew)
+            {
+                <button type="button" onclick="Delete('/AllowanceType/Delete/@Model.Id', '@Url.Action("Index")')" class="btn-ad btn-ad-danger push" ><i class="fas fa-trash" aria-hidden="true"></i> @L["Delete"]</button>
+            }
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

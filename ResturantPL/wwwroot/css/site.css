@@ -1906,3 +1906,22 @@ body.dash .ad-switch input:checked + .ad-switch-track { background: #19d08a; }
 body.dash .ad-switch input:checked + .ad-switch-track::after { inset-inline-start: 21px; }
 body.dash .ad-switch input:focus-visible + .ad-switch-track { outline: 2px solid var(--saffron); outline-offset: 2px; }
 body.dash .ad-switch input:checked ~ .ad-switch-text { color: #7ff0c4; }
+
+/* a hidden attribute must always win over other display rules */
+[hidden] {
+    display: none !important;
+}
+
+/* fields that appear when a checkbox is ticked */
+.ad-collapse {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.9s ease-in-out, opacity 0.9s ease-in-out;
+}
+
+.ad-collapse.open {
+    max-height: 120px;
+    opacity: 1;
+    overflow: visible;
+}

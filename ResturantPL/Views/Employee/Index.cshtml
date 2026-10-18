@@ -33,7 +33,6 @@
             <th>@L["Job"]</th>
             <th>@L["Phone"]</th>
             <th>@L["Address"]</th>
-            <th>@L["SalaryType"]</th>
             <th>@L["Salary"]</th>
             <th>@L["Branch"]</th>
             <th></th>
@@ -58,8 +57,7 @@
                     <td>@(isArabic ? item.JobArName : item.JobEnName)</td>
                     <td>@item.PhoneNumber</td>
                     <td>@(isArabic ? item.TownArName : item.TownEnName) - @item.Address</td>
-                    <td>@(item.SalaryType.HasValue ? (isArabic ? item.SalaryType.Value.ArName() : item.SalaryType.Value.EnName()) : string.Empty)</td>
-                    <td>@item.Salary</td>
+                    <td>@item.BasicSalary</td>
                     <td>@(isArabic ? item.BranchArName : item.BranchEnName)</td>
                     <td class="ad-row-actions">
                         <a asp-action="Upsert" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Edit"]" aria-label="@L["Edit"]"><i class="fas fa-pen" aria-hidden="true"></i></a>

@@ -66,11 +66,23 @@ public class CustomerRepository : ICustomerRepository
         return account?.BalanceValue;
     }
 
+    public async Task<int> CountInvoicesAsync(int id)
+    {
+        var accountId = await _context.Customers.AsNoTracking().Where(a => a.Id == id).Select(a => a.AccountId).FirstOrDefaultAsync();
+
+        return accountId.HasValue ? await _context.BillMasters.CountAsync(a => a.CustomerOrSupplierAccountId == accountId) : 0;
+    }
+
     public async Task<ResultMessage> UpsertCustomerAsync(Customer entity, IFormFile imageFile)
     {
         try
         {
             var form = entity.Account;
+            if (form.DebitBalance < 0 || form.CreditBalance < 0)
+            {
+                return new ResultMessage { Success = false, Message = "NegativeAmount" };
+            }
+
             entity.Account = null;
             var phones = PhoneRows.Clean(entity.PhoneNumber1, entity.Phones);
             entity.Phones = new List<CustomerPhone>();
@@ -88,9 +100,9 @@ public class CustomerRepository : ICustomerRepository
                     form.EnName,
                     AccountType.Customer,
                     AccountCodes.AccountsReceivable,
-                    form.DebitBalance);
+                    form.DebitBalance - form.CreditBalance);
                 openingAccount = entity.Account;
-                openingDelta = form.DebitBalance;
+                openingDelta = form.DebitBalance - form.CreditBalance;
                 entity.CreatedAt = DateTime.Now;
                 entity.ImageUrl = imageFile is null ? null : DocumentSetting.UploadFile(imageFile, ImagesFolder);
 
@@ -123,7 +135,7 @@ public class CustomerRepository : ICustomerRepository
                 existing.Account.ArName = form.ArName;
                 existing.Account.EnName = form.EnName;
                 openingAccount = existing.Account;
-                openingDelta = form.DebitBalance - existing.Account.BalanceValue;
+                openingDelta = (form.DebitBalance - form.CreditBalance) - (existing.Account.DebitBalance - existing.Account.CreditBalance);
                 existing.Account.Adjust(openingDelta);
                 _context.Entry(existing).CurrentValues.SetValues(entity);
                 PhoneRows.Sync(_context, existing.Phones, phones);
@@ -159,6 +171,11 @@ public class CustomerRepository : ICustomerRepository
             if (entity is null)
             {
                 return new ResultMessage { Success = true };
+            }
+
+            if (entity.Account is not null && entity.Account.DebitBalance != entity.Account.CreditBalance)
+            {
+                return new ResultMessage { Success = false, Message = "LockedByBalance" };
             }
 
             _context.Customers.Remove(entity);

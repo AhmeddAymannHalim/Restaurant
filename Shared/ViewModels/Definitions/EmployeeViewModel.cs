@@ -23,8 +23,7 @@ public class EmployeeViewModel
     public int? CountryId { get; set; }
     public int? GovernorateId { get; set; }
     public string IDNumber { get; set; }
-    public SalaryType? SalaryType { get; set; }
-    public decimal Salary { get; set; }
+    public decimal? BasicSalary { get; set; }
     public int BranchId { get; set; }
     public int JobId { get; set; }
     public string Image { get; set; }
@@ -57,7 +56,6 @@ public class EmployeeViewModel
     public string DrivingLicenseNumber { get; set; }
     public DateTime? DrivingLicenseIssueDate { get; set; }
     public DateTime? DrivingLicenseExpiryDate { get; set; }
-    public string Administration { get; set; }
     public DateTime? HireDate { get; set; }
     public DateTime? ContractDate { get; set; }
     public DateTime? ContractEndDate { get; set; }
@@ -99,8 +97,6 @@ public class EmployeeViewModel
     public string InsuranceCardNumber { get; set; }
     public DateTime? IssueDate { get; set; }
     public DateTime? ExpiryDate { get; set; }
-    public decimal? InsuranceAmount { get; set; }
-    public decimal? InsurancePercent { get; set; }
     public bool OverrideDelayRule { get; set; }
     public int? GracePeriodMinutesOverride { get; set; }
     public DelayDeductionMode? DelayDeductionModeOverride { get; set; }
@@ -126,9 +122,10 @@ public class EmployeeViewModel
 
     public IEnumerable<LookupItem> Branches { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Jobs { get; set; } = new List<LookupItem>();
-    public IEnumerable<LookupItem> SalaryTypes { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Nationalities { get; set; } = new List<LookupItem>();
-    public IEnumerable<LookupItem> LeaveTypes { get; set; } = new List<LookupItem>();
+    public IEnumerable<AllowanceTypeViewModel> AllowanceTypes { get; set; } = new List<AllowanceTypeViewModel>();
+    public IEnumerable<DeductionTypeViewModel> DeductionTypes { get; set; } = new List<DeductionTypeViewModel>();
+    public IEnumerable<LeaveTypeViewModel> LeaveTypes { get; set; } = new List<LeaveTypeViewModel>();
     public int? DepartmentId { get; set; }
     public IEnumerable<LookupItem> Departments { get; set; } = new List<LookupItem>();
     public int? ContractTypeId { get; set; }
@@ -138,7 +135,7 @@ public class EmployeeViewModel
     public int? JobTypeId { get; set; }
     public IEnumerable<LookupItem> JobTypes { get; set; } = new List<LookupItem>();
     public int? InsuranceCategoryId { get; set; }
-    public IEnumerable<LookupItem> InsuranceCategories { get; set; } = new List<LookupItem>();
+    public IEnumerable<InsuranceCategoryViewModel> InsuranceCategories { get; set; } = new List<InsuranceCategoryViewModel>();
     public int? InsuranceCompanyId { get; set; }
     public IEnumerable<LookupItem> InsuranceCompanies { get; set; } = new List<LookupItem>();
 }

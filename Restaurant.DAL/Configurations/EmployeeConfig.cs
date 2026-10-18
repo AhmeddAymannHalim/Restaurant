@@ -16,7 +16,7 @@ public class EmployeeConfig : IEntityTypeConfiguration<Employee>
         builder.Property(a => a.PhoneNumber).HasMaxLength(20);
         builder.Property(a => a.Address).HasMaxLength(250);
         builder.Property(a => a.IDNumber).HasMaxLength(20);
-        builder.Property(a => a.Salary).HasPrecision(18, 2);
+        builder.Property(a => a.MinuteRate).HasPrecision(18, 4);
 
         builder
             .HasMany(a => a.Accounts)

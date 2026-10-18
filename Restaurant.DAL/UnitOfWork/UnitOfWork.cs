@@ -31,6 +31,8 @@ namespace Restaurant.DAL.UnitOfWork
             Companies = new CompanyRepository(_context);
             LeaveTypes = new LeaveTypeRepository(_context);
             InsuranceCompanies = new InsuranceCompanyRepository(_context);
+            AllowanceTypes = new AllowanceTypeRepository(_context);
+            DeductionTypes = new DeductionTypeRepository(_context);
             InsuranceCategories = new InsuranceCategoryRepository(_context);
             JobTypes = new JobTypeRepository(_context);
             Departments = new DepartmentRepository(_context);
@@ -98,6 +100,8 @@ namespace Restaurant.DAL.UnitOfWork
         public ICompanyRepository Companies { get; set; }
         public ILeaveTypeRepository LeaveTypes { get; set; }
         public IInsuranceCompanyRepository InsuranceCompanies { get; set; }
+        public IAllowanceTypeRepository AllowanceTypes { get; set; }
+        public IDeductionTypeRepository DeductionTypes { get; set; }
         public IInsuranceCategoryRepository InsuranceCategories { get; set; }
         public IJobTypeRepository JobTypes { get; set; }
         public IDepartmentRepository Departments { get; set; }

@@ -30,5 +30,25 @@ public class InsuranceCategoryVmValidator : AbstractValidator<InsuranceCategoryV
             .WithMessage(MaxLength(100))
             .Must((model, enName) => !validator.IsEnNameExist(model.Id, enName))
             .WithMessage(localizer["Val.NameAlreadyExist"].Value);
+
+        RuleFor(x => x.EmployeePercent)
+            .InclusiveBetween(0, 100)
+            .When(x => x.EmployeePercent.HasValue)
+            .WithMessage(localizer["Val.PercentRange"].Value);
+
+        RuleFor(x => x.CompanyPercent)
+            .InclusiveBetween(0, 100)
+            .When(x => x.CompanyPercent.HasValue)
+            .WithMessage(localizer["Val.PercentRange"].Value);
+
+        RuleFor(x => x.BasicWage)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.BasicWage.HasValue)
+            .WithMessage(required);
+
+        RuleFor(x => x.AllowancesAmount)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.AllowancesAmount.HasValue)
+            .WithMessage(required);
     }
 }

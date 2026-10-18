@@ -9,6 +9,7 @@ public class PaginatedResult<T>
     public int NoOfPages { get; set; }
     public string SearchString { get; set; }
     public DateTime? FromDate { get; set; }
+    public bool UnpaidOnly { get; set; }
     public DateTime? ToDate { get; set; }
     public string Type { get; set; }
     public string Status { get; set; }
@@ -29,6 +30,7 @@ public class PaginatedResult<T>
             NoOfPages = totalRecords == 0 ? 0 : (int)Math.Ceiling((double)totalRecords / request.PageSize),
             SearchString = request.SearchString,
             FromDate = request.FromDate,
+            UnpaidOnly = request.UnpaidOnly,
             ToDate = request.ToDate,
             Type = request.Type,
             Status = request.Status,

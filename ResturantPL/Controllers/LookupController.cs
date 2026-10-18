@@ -27,12 +27,6 @@ namespace ResturantPL.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> SalaryTypes()
-        {
-            return Json(await _service.SalaryTypeLookupAsync());
-        }
-
-        [HttpGet]
         public async Task<IActionResult> Employees()
         {
             return Json(await _service.EmployeeLookupAsync());

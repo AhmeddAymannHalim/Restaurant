@@ -40,16 +40,63 @@ public class LookupRepository : ILookupRepository
         }));
     }
 
-    public Task<IEnumerable<LookupItem>> SalaryTypeLookupAsync()
+    public async Task<IEnumerable<LeaveTypeViewModel>> LeaveTypeLookupAsync()
     {
-        var items = Enum.GetValues<SalaryType>().Select(a => new LookupItem
-        {
-            Id = (int)a,
-            ArName = a.ArName(),
-            EnName = a.EnName()
-        });
+        return await _context.LeaveTypes.AsNoTracking()
+            .OrderBy(a => a.ArName)
+            .Select(a => new LeaveTypeViewModel
+            {
+                Id = a.Id,
+                ArName = a.ArName,
+                EnName = a.EnName,
+                DaysPerYear = a.DaysPerYear
+            })
+            .ToListAsync();
+    }
 
-        return Task.FromResult(items);
+    public async Task<IEnumerable<AllowanceTypeViewModel>> AllowanceTypeLookupAsync()
+    {
+        return await _context.AllowanceTypes.AsNoTracking()
+            .OrderBy(a => a.ArName)
+            .Select(a => new AllowanceTypeViewModel
+            {
+                Id = a.Id,
+                ArName = a.ArName,
+                EnName = a.EnName,
+                Amount = a.Amount
+            })
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<DeductionTypeViewModel>> DeductionTypeLookupAsync()
+    {
+        return await _context.DeductionTypes.AsNoTracking()
+            .OrderBy(a => a.ArName)
+            .Select(a => new DeductionTypeViewModel
+            {
+                Id = a.Id,
+                ArName = a.ArName,
+                EnName = a.EnName,
+                Amount = a.Amount
+            })
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<InsuranceCategoryViewModel>> InsuranceCategoryLookupAsync()
+    {
+        return await _context.InsuranceCategories.AsNoTracking()
+            .OrderBy(a => a.ArName)
+            .Select(a => new InsuranceCategoryViewModel
+            {
+                Id = a.Id,
+                ArName = a.ArName,
+                EnName = a.EnName,
+                BasicWage = a.BasicWage,
+                AllowancesAmount = a.AllowancesAmount,
+                EmployeePercent = a.EmployeePercent,
+                CompanyPercent = a.CompanyPercent
+            })
+            .ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> EmployeeLookupAsync()

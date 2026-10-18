@@ -11,6 +11,8 @@ public sealed class PageRequest
     private int _pageNo = 1;
     private int _pageSize = DefaultPageSize;
 
+    public bool UnpaidOnly { get; set; }
+
     public int PageNo
     {
         get => _pageNo;

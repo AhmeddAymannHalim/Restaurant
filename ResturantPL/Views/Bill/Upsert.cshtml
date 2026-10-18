@@ -9,6 +9,7 @@
     <div class="ad-card-head">
         <span class="ad-icon"><i class="fas fa-file-invoice" aria-hidden="true"></i></span>
         <h1>@ViewBag.Title <small>@Model.InvoiceCode</small></h1>
+        <a asp-action="Index" asp-route-unpaidOnly="true" class="btn-ad btn-ad-ghost"><i class="fas fa-hourglass-half" aria-hidden="true"></i> @L["UnpaidInvoices"]</a>
         @if (!isNew)
         {
             <a asp-action="Pdf" asp-route-id="@Model.Id" data-no-loader class="btn-ad btn-ad-ghost"><i class="fas fa-print" aria-hidden="true"></i> @L["Print"]</a>
@@ -173,7 +174,10 @@
             </div>
             <div class="form-group">
                 <label asp-for="Paid" class="control-label">@L["Paid"]</label>
-                <input id="paid" asp-for="Paid" type="number" step="any" min="0" class="form-control" />
+                <div class="input-group">
+                    <input id="paid" asp-for="Paid" type="number" step="any" min="0" class="form-control" />
+                    <button id="payFull" type="button" class="btn btn-success"><i class="fas fa-check" aria-hidden="true"></i> @L["PayFull"]</button>
+                </div>
                 <span asp-validation-for="Paid" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -353,6 +357,15 @@
             });
 
             $('#discount, #paid').on('input', recalc);
+
+            $('#payFull').on('click', function () {
+                $('#paid').val(money(Math.max(0, number($('#net').val()))));
+                recalc();
+            });
+
+            function togglePayFull() { $('#payFull').toggle($('#PayType').val() === 'Later'); }
+            $('#PayType').on('change', togglePayFull);
+            togglePayFull();
 
             $('#invoiceForm').on('submit', function () {
                 var form = $(this);

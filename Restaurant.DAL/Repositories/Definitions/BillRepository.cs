@@ -37,12 +37,17 @@ public class BillRepository : IBillRepository
                 || _context.Orders.Any(p => p.Id == a.Id && p.CustomerName.ToLower().Contains(search)));
         }
 
-        if (request.FromDate.HasValue)
+        if (request.UnpaidOnly)
+        {
+            query = query.Where(a => a.CasherRemainingAmount != 0 && a.CustomerOrSupplierAccountId != null);
+        }
+
+        if (request.FromDate.HasValue && !request.UnpaidOnly)
         {
             query = query.Where(a => a.Date >= request.FromDate.Value.Date);
         }
 
-        if (request.ToDate.HasValue)
+        if (request.ToDate.HasValue && !request.UnpaidOnly)
         {
             query = query.Where(a => a.Date < request.ToDate.Value.Date.AddDays(1));
         }

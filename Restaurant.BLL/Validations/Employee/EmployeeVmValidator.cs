@@ -76,12 +76,10 @@ public class EmployeeVmValidator : AbstractValidator<EmployeeViewModel>
             .Must((model, idNumber) => !validator.IsValueExist(model.Id, "IDNumber", idNumber))
             .WithMessage(localizer["NationalIdAlreadyExists"].Value);
 
-        RuleFor(x => x.Salary)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage(required);
-
-        RuleFor(x => x.SalaryType)
+        RuleFor(x => x.BasicSalary)
             .NotNull()
+            .WithMessage(required)
+            .GreaterThanOrEqualTo(0)
             .WithMessage(required);
 
         RuleForEach(x => x.Phones)
@@ -132,7 +130,7 @@ public class EmployeeVmValidator : AbstractValidator<EmployeeViewModel>
 
         foreach (var percent in new Expression<Func<EmployeeViewModel, decimal?>>[]
                  {
-                     x => x.EmployeeInsurancePercent, x => x.CompanyInsurancePercent, x => x.InsurancePercent
+                     x => x.EmployeeInsurancePercent, x => x.CompanyInsurancePercent
                  })
         {
             RuleFor(percent)
@@ -189,6 +187,10 @@ public class EmployeeVmValidator : AbstractValidator<EmployeeViewModel>
         RuleForEach(x => x.Documents)
             .ChildRules(row =>
             {
+                row.RuleFor(a => a.Name)
+                    .NotEmpty()
+                    .When(a => a.File is not null || !string.IsNullOrWhiteSpace(a.Url))
+                    .WithMessage(required);
                 row.RuleFor(a => a.Name).MaximumLength(150).WithMessage(MaxLength(150));
                 row.RuleFor(a => a.File)
                     .Must(file => file.Length <= 10 * 1024 * 1024)
