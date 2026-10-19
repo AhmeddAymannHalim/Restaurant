@@ -28,15 +28,11 @@ public class RegisterVmValidator : AbstractValidator<RegisterViewModel>
     {
         RuleFor(x => x.FirstName)
             .NotEmpty()
-            .WithMessage(localizer["Auth_FirstRequired"].Value)
-            .Length(3, 10)
-            .WithMessage(localizer["Auth_NameLen"].Value);
+            .WithMessage(localizer["Auth_FirstRequired"].Value);
 
         RuleFor(x => x.LastName)
             .NotEmpty()
-            .WithMessage(localizer["Auth_LastRequired"].Value)
-            .Length(3, 10)
-            .WithMessage(localizer["Auth_NameLen"].Value);
+            .WithMessage(localizer["Auth_LastRequired"].Value);
 
         RuleFor(x => x.Email)
             .NotEmpty()
@@ -46,25 +42,9 @@ public class RegisterVmValidator : AbstractValidator<RegisterViewModel>
             .Must(email => !users.IsEmailExist(null, email))
             .WithMessage(localizer["EmailAlreadyExists"].Value);
 
-        RuleFor(x => x.PhoneNumber)
-            .NotEmpty()
-            .WithMessage(localizer["Auth_PhoneRequired"].Value)
-            .Length(11)
-            .WithMessage(localizer["Auth_PhoneLen"].Value);
-
         RuleFor(x => x.Password)
             .NotEmpty()
-            .WithMessage(localizer["Auth_PasswordRequired"].Value)
-            .MinimumLength(6)
-            .WithMessage(localizer["Auth_PasswordMin"].Value);
-
-        RuleFor(x => x.ConfirmPassword)
-            .Equal(x => x.Password)
-            .WithMessage(localizer["Auth_PasswordMismatch"].Value);
-
-        RuleFor(x => x.IsAgree)
-            .Equal(true)
-            .WithMessage(localizer["Auth_AgreeRequired"].Value);
+            .WithMessage(localizer["Auth_PasswordRequired"].Value);
     }
 }
 

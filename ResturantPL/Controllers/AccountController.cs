@@ -55,9 +55,7 @@ namespace ResturantPL.Controllers
                 return View(model);
             }
 
-            await SendConfirmationEmailAsync(result.Data);
-
-            return RedirectToAction(nameof(CheckYourInbox), new { type = "confirm" });
+            return RedirectToAction(nameof(SignIn));
         }
 
         public IActionResult SignIn(string returnUrl = null)

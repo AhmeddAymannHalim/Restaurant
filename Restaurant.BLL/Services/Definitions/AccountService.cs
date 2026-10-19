@@ -30,12 +30,9 @@ public class AccountService : IAccountService
             };
         }
 
-        var token = await GetConfirmationTokenAsync(created.Data.Email);
-
         return new ResultMessage<AccountToken>
         {
-            Success = true,
-            Data = token
+            Success = true
         };
     }
 

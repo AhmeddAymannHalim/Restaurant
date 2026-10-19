@@ -45,6 +45,8 @@ public class AccountRepository : IAccountRepository
             await _roleManager.CreateAsync(new IdentityRole(CustomerRole));
         }
 
+        entity.EmailConfirmed = true;
+
         var created = await _userManager.CreateAsync(entity, password);
         if (!created.Succeeded)
         {
