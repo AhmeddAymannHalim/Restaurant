@@ -10,8 +10,6 @@ namespace Restaurant.DAL.Repositories.Definitions;
 
 public class SettingRepository : ISettingRepository
 {
-    //private const string ImagesFolder = "Images";
-    //private const string VideosFolder = "Videos";
 
     private readonly ApplicationDbContext _context;
     private readonly IShiftPasswordRepository _shiftPassword;

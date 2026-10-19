@@ -20,14 +20,6 @@ body {
   margin-bottom: 60px;
 }
 
-.order-actions {
-    text-align:center;
-}
-
-    .order-actions button {
-        padding: 10px 20px;
-    }
-
 @media print {
     .no-print {
         display: none;
@@ -58,9 +50,7 @@ body.auth-body {
 
 .auth-bg {
     position: fixed; inset: -6%;
-    background: url("/images/food.jpg") center / cover no-repeat;
-    filter: saturate(.8) brightness(.55);
-    animation: kenburns 28s ease-in-out infinite alternate;
+    background: #0d0f18;
     z-index: 0;
 }
 .auth-bg::after {
@@ -69,7 +59,6 @@ body.auth-body {
     background-size: 200% 200%;
     animation: tint 14s ease-in-out infinite alternate;
 }
-@keyframes kenburns { from { transform: scale(1) translate(0,0); } to { transform: scale(1.12) translate(-2%, -2%); } }
 @keyframes tint { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
 
 .embers { position: fixed; inset: 0; margin: 0; padding: 0; list-style: none; z-index: 1; pointer-events: none; overflow: hidden; }
@@ -1021,26 +1010,6 @@ body.dash .ad-form .form-text {
     .ad-card, .ad-table tbody tr { animation: none; }
 }
 
-.bo-fab {
-    position: fixed;
-    inset-block-end: 1.25rem;
-    inset-inline-start: 1.25rem;
-    z-index: 1040;
-    display: inline-flex;
-    align-items: center;
-    gap: .5rem;
-    padding: .6rem 1.1rem;
-    border-radius: 999px;
-    background: var(--blue);
-    color: #fff;
-    font-weight: 700;
-    text-decoration: none;
-    box-shadow: 0 10px 24px -10px rgba(0, 128, 255, .9);
-    transition: transform .25s var(--ease);
-}
-
-.bo-fab:hover { transform: translateY(-3px); color: #fff; }
-
 .dash-main { max-width: 1760px; }
 
 .ad-card .table {
@@ -1379,7 +1348,7 @@ a.shift-tile:hover {
 
 .ops-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
     margin-bottom: 1.25rem;
     align-items: start;
@@ -1573,7 +1542,6 @@ a.shift-tile:hover .shift-tile-icon {
     font-size: .9rem;
 }
 
-.menu-help,
 .menu-formula {
     margin: 0 0 .75rem;
     opacity: .75;
@@ -1674,8 +1642,6 @@ a.shift-tile:hover .shift-tile-icon {
     font-size: .8rem;
 }
 
-.pos-method { display: flex; align-items: center; gap: .5rem; flex-basis: 100%; }
-.pos-method .form-select { max-width: 220px; }
 .pos-saved { color: #e0795f; }
 .pos-saved[hidden] { display: none; }
 
@@ -1704,15 +1670,6 @@ a.shift-tile:hover .shift-tile-icon {
     border-radius: 10px;
 }
 
-/* Reject-online-order confirmation (SweetAlert content) */
-.reject-box { display: grid; gap: .9rem; text-align: start; }
-.reject-summary { display: grid; gap: .25rem; padding: .75rem .9rem; border: 1px solid #ddd; border-radius: 8px; background: #f7f7f7; color: #222; font-size: .9rem; }
-.reject-summary p { margin: 0; }
-.reject-summary ul { list-style: none; margin: .4rem 0; padding: 0; }
-.reject-summary li { display: flex; justify-content: space-between; gap: 1rem; border-bottom: 1px dashed #ccc; padding: .15rem 0; }
-.reject-box label { display: grid; gap: .35rem; color: #222; font-size: .9rem; }
-.reject-error { color: #c0392b; }
-
 /* Bootstrap captions default to a dark grey that vanishes on the dark admin theme. */
 .ad-card caption,
 .ad-table caption,
@@ -1721,49 +1678,6 @@ a.shift-tile:hover .shift-tile-icon {
     font-size: 1rem;
     font-weight: 700;
 }
-
-/* Online order card: totals as a small grid, then one clear primary action and two equal secondary ones. */
-.online-card dl.online-sums {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: .2rem 1rem;
-    margin: .25rem 0 0;
-    padding: .6rem .75rem;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, .04);
-    font-size: .8rem;
-}
-
-.online-card .online-sums div { display: flex; justify-content: space-between; gap: .5rem; }
-.online-card .online-sums dt { font-weight: 400; opacity: .7; }
-.online-card .online-sums dd { margin: 0; font-variant-numeric: tabular-nums; }
-
-.online-card footer { display: grid; gap: .75rem; }
-
-.online-total {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    padding-top: .5rem;
-    border-top: 1px solid var(--ad-line, rgba(255, 255, 255, .15));
-}
-
-.online-total strong { font-size: 1.4rem; font-variant-numeric: tabular-nums; }
-
-.online-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: .5rem;
-}
-
-.online-actions .btn-ad {
-    justify-content: center;
-    width: 100%;
-    margin: 0;
-    white-space: nowrap;
-}
-
-.online-actions .online-accept { grid-column: 1 / -1; padding-block: .65rem; font-weight: 700; }
 
 /* Collapsible sections of long forms (employee) */
 body.dash .ad-section {
@@ -1919,41 +1833,6 @@ body.dash .ad-switch input:checked ~ .ad-switch-text { color: #7ff0c4; }
     max-height: 120px;
     opacity: 1;
     overflow: visible;
-}
-
-
-/* storefront header: rounded controls */
-.site-lang,
-.site-burger,
-.site-signin {
-    border-radius: 999px;
-}
-
-.site-dropdown {
-    border-radius: 16px;
-}
-
-.site-dropdown .dropdown-item {
-    border-radius: 10px;
-}
-
-.site-link {
-    border-radius: 999px;
-}
-
-.site-link:hover,
-.site-link.is-current {
-    background: #fff3d0;
-}
-
-.site-link.is-current::after {
-    display: none;
-}
-
-@media (max-width: 991px) {
-    .site-menu {
-        border-radius: 0 0 18px 18px;
-    }
 }
 
 
