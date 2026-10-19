@@ -68,27 +68,16 @@ public class SupplierPaymentService : ISupplierPaymentService
             return null;
         }
 
-        var refunds = _mapper.Map<List<PaymentRefundViewModel>>(await _unitOfWork.SupplierPayments.GetRefundsForPaymentAsync(paymentId));
-        var reserved = refunds.Where(a => a.Status != RefundStatus.Rejected).Sum(a => a.Amount);
+        var model = _mapper.Map<PaymentRefundRequestViewModel>(payment);
+        model.Refunds = _mapper.Map<List<PaymentRefundViewModel>>(await _unitOfWork.SupplierPayments.GetRefundsForPaymentAsync(paymentId));
+        model.RemainingRefundable = payment.Paid - model.Refunds.Where(a => a.Status != RefundStatus.Rejected).Sum(a => a.Amount);
 
-        return new PaymentRefundRequestViewModel
-        {
-            OriginalPaymentId = payment.Id,
-            OriginalPaymentCode = payment.ProcessCode,
-            OriginalPaymentAmount = payment.Paid,
-            RemainingRefundable = payment.Paid - reserved,
-            Refunds = refunds
-        };
+        return model;
     }
 
     public async Task<ResultMessage> RequestRefundAsync(PaymentRefundRequestViewModel model, string requestedByUserId)
     {
-        var entity = new PaymentRefund
-        {
-            SupplierPaymentId = model.OriginalPaymentId,
-            Amount = model.Amount,
-            Reason = model.Reason
-        };
+        var entity = _mapper.Map<PaymentRefund>(model);
 
         return await _unitOfWork.SupplierPayments.RequestRefundAsync(entity, requestedByUserId);
     }

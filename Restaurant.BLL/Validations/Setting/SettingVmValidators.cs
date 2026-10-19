@@ -29,36 +29,6 @@ public class ApplicationSettingVmValidator : AbstractValidator<ApplicationSettin
     }
 }
 
-public class RestaurantSettingVmValidator : AbstractValidator<RestaurantSettingViewModel>
-{
-    public RestaurantSettingVmValidator(IStringLocalizer<SharedResource> localizer)
-    {
-        var required = localizer["Val.RequiredField"].Value;
-        string MaxLength(int length) => string.Format(localizer["Val.MaxLength"].Value, length);
-
-        RuleFor(x => x.ArName)
-            .NotEmpty()
-            .WithMessage(required)
-            .MaximumLength(100)
-            .WithMessage(MaxLength(100));
-
-        RuleFor(x => x.EnName)
-            .NotEmpty()
-            .WithMessage(required)
-            .MaximumLength(100)
-            .WithMessage(MaxLength(100));
-
-        RuleFor(x => x.Email)
-            .EmailAddress()
-            .When(x => !string.IsNullOrWhiteSpace(x.Email))
-            .WithMessage(localizer["Auth_EmailInvalid"].Value);
-
-        RuleFor(x => x.Phone)
-            .MaximumLength(20)
-            .WithMessage(MaxLength(20));
-    }
-}
-
 public class PrinterSettingVmValidator : AbstractValidator<PrinterSettingViewModel>
 {
     public PrinterSettingVmValidator(IStringLocalizer<SharedResource> localizer)

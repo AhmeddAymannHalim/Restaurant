@@ -26,6 +26,10 @@ public class Account : BaseEntity
     public decimal BalanceValue => BalanceType == AccountBalanceType.Debit ? DebitBalance - CreditBalance : CreditBalance - DebitBalance;
 
     public AccountBalanceType BalanceType { get; set; }
+
+    // bank, safe, expense, asset... filled by the repository for the screens
+    [NotMapped]
+    public AccountKind Kind { get; set; }
     public AccountType AccountType { get; set; }
 
     public int? EmployeeId { get; set; }

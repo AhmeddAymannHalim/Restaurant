@@ -48,25 +48,14 @@ public class EmployeeAccountService : IEmployeeAccountService
             return null;
         }
 
-        return new EmployeeAccountViewModel
-        {
-            EmployeeId = employee.Id,
-            Code = employee.Code,
-            FirstName = employee.ArName,
-            LastName = employee.EnName
-        };
+        return _mapper.Map<EmployeeAccountViewModel>(employee);
     }
 
     public async Task<IEnumerable<LookupItem>> GetEmployeesWithoutAccountAsync()
     {
         var employees = await _repository.GetEmployeesWithoutAccountAsync();
 
-        return employees.Select(a => new LookupItem
-        {
-            Id = a.Id,
-            ArName = a.ArName,
-            EnName = a.EnName
-        });
+        return _mapper.Map<List<LookupItem>>(employees);
     }
 
     public async Task<ResultMessage> UpsertAccountAsync(EmployeeAccountViewModel model)

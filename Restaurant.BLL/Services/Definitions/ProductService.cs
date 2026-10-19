@@ -38,11 +38,7 @@ public class ProductService : IProductService
     {
         var entity = _mapper.Map<Product>(model);
 
-        var stocks = model.Stocks.Select(a => new ProductStock
-        {
-            StoreId = a.StoreId,
-            Quantity = a.Quantity
-        }).ToList();
+        var stocks = _mapper.Map<List<ProductStock>>(model.Stocks);
 
         return await _unitOfWork.Products.UpsertProductAsync(entity, stocks);
     }

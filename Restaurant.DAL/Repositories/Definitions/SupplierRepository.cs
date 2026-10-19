@@ -92,7 +92,6 @@ public class SupplierRepository : ISupplierRepository
                 var account = await _accountProvision.CreateAsync(form.ArName,
                     form.EnName,
                     AccountType.Supplier,
-                    AccountCodeRepository.AccountsPayable,
                     form.CreditBalance - form.DebitBalance);
 
                 entity.Account = account;

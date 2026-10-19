@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
 using Shared.Helpers;
@@ -17,100 +16,256 @@ public class EmployeeChildrenRepository : IEmployeeChildrenRepository
         _context = context;
     }
 
+    // a new employee: keep only the filled rows, every row is a new record
     public void PrepareNew(Employee entity, IList<IFormFile> documentFiles)
     {
-        var newDependents = new List<EmployeeDependent>();
-        foreach (var row in entity.Dependents ?? new List<EmployeeDependent>())
-        {
-            if (IsBlank(row))
-            {
-                continue;
-            }
+        var now = DateTime.Now;
 
+        entity.Dependents = (entity.Dependents ?? new List<EmployeeDependent>())
+            .Where(a => !string.IsNullOrWhiteSpace(a.ArName) || !string.IsNullOrWhiteSpace(a.EnName))
+            .ToList();
+        foreach (var row in entity.Dependents)
+        {
             row.Id = 0;
-            row.CreatedAt = DateTime.Now;
-            newDependents.Add(row);
+            row.CreatedAt = now;
         }
 
-        entity.Dependents = newDependents;
-
-        var newAllowances = new List<EmployeeAllowance>();
-        foreach (var row in entity.Allowances ?? new List<EmployeeAllowance>())
+        entity.Allowances = (entity.Allowances ?? new List<EmployeeAllowance>())
+            .Where(a => !string.IsNullOrWhiteSpace(a.ArName) || !string.IsNullOrWhiteSpace(a.EnName) || a.Amount != 0)
+            .ToList();
+        foreach (var row in entity.Allowances)
         {
-            if (IsBlank(row))
-            {
-                continue;
-            }
-
             row.Id = 0;
-            row.CreatedAt = DateTime.Now;
-            newAllowances.Add(row);
+            row.CreatedAt = now;
         }
 
-        entity.Allowances = newAllowances;
-
-        var newFixedDeductions = new List<EmployeeFixedDeduction>();
-        foreach (var row in entity.FixedDeductions ?? new List<EmployeeFixedDeduction>())
+        entity.FixedDeductions = (entity.FixedDeductions ?? new List<EmployeeFixedDeduction>())
+            .Where(a => !string.IsNullOrWhiteSpace(a.ArName) || !string.IsNullOrWhiteSpace(a.EnName) || a.Amount != 0)
+            .ToList();
+        foreach (var row in entity.FixedDeductions)
         {
-            if (IsBlank(row))
-            {
-                continue;
-            }
-
             row.Id = 0;
-            row.CreatedAt = DateTime.Now;
-            newFixedDeductions.Add(row);
+            row.CreatedAt = now;
         }
 
-        entity.FixedDeductions = newFixedDeductions;
-
-        var newLeaves = new List<EmployeeLeave>();
-        foreach (var row in entity.Leaves ?? new List<EmployeeLeave>())
+        entity.Leaves = (entity.Leaves ?? new List<EmployeeLeave>())
+            .Where(a => a.FromDate != default || a.ToDate != default || a.Days != 0 || !string.IsNullOrWhiteSpace(a.Notes))
+            .ToList();
+        foreach (var row in entity.Leaves)
         {
-            if (IsBlank(row))
-            {
-                continue;
-            }
-
             row.Id = 0;
-            row.CreatedAt = DateTime.Now;
-            newLeaves.Add(row);
+            row.CreatedAt = now;
         }
 
-        entity.Leaves = newLeaves;
-
+        // the file number i belongs to the document row number i
         var documents = new List<EmployeeDocument>();
-        var incoming = new List<EmployeeDocument>(entity.Documents ?? new List<EmployeeDocument>());
-        for (var i = 0; i < incoming.Count; i++)
+        var postedDocuments = (entity.Documents ?? new List<EmployeeDocument>()).ToList();
+        for (var i = 0; i < postedDocuments.Count; i++)
         {
-            var file = GetFile(documentFiles, i);
-            if (IsBlank(incoming[i], file))
+            var row = postedDocuments[i];
+            var file = documentFiles != null && i < documentFiles.Count ? documentFiles[i] : null;
+            if (string.IsNullOrWhiteSpace(row.Name) && file == null && string.IsNullOrWhiteSpace(row.Url))
             {
                 continue;
             }
 
-            incoming[i].Id = 0;
-            incoming[i].CreatedAt = DateTime.Now;
+            row.Id = 0;
+            row.CreatedAt = now;
             if (file != null)
             {
-                incoming[i].Url = DocumentSetting.UploadFile(file, DocumentsFolder);
+                row.Url = DocumentSetting.UploadFile(file, DocumentsFolder);
             }
 
-            documents.Add(incoming[i]);
+            documents.Add(row);
         }
 
         entity.Documents = documents;
     }
 
+    // an existing employee: delete the removed rows, update the old rows, add the new rows
     public void Sync(Employee existing, Employee incoming, IList<IFormFile> documentFiles)
     {
-        SyncDependents(existing, incoming);
-        SyncAllowances(existing, incoming);
-        SyncFixedDeductions(existing, incoming);
-        SyncLeaves(existing, incoming);
+        var now = DateTime.Now;
 
-        var incomingDocuments = new List<EmployeeDocument>(incoming.Documents ?? new List<EmployeeDocument>());
-        SyncDocuments(existing, incomingDocuments, documentFiles);
+        // dependents
+        var dependents = (incoming.Dependents ?? new List<EmployeeDependent>())
+            .Where(a => !string.IsNullOrWhiteSpace(a.ArName) || !string.IsNullOrWhiteSpace(a.EnName))
+            .ToList();
+        foreach (var saved in existing.Dependents.ToList())
+        {
+            if (!dependents.Any(a => a.Id > 0 && a.Id == saved.Id))
+            {
+                _context.Remove(saved);
+            }
+        }
+        foreach (var row in dependents)
+        {
+            var saved = existing.Dependents.FirstOrDefault(a => row.Id > 0 && a.Id == row.Id);
+            if (saved == null)
+            {
+                row.Id = 0;
+                row.CreatedAt = now;
+                existing.Dependents.Add(row);
+                continue;
+            }
+
+            saved.ArName = row.ArName;
+            saved.EnName = row.EnName;
+            saved.Relation = row.Relation;
+            saved.BirthDate = row.BirthDate;
+            saved.UpdatedAt = now;
+        }
+
+        // allowances
+        var allowances = (incoming.Allowances ?? new List<EmployeeAllowance>())
+            .Where(a => !string.IsNullOrWhiteSpace(a.ArName) || !string.IsNullOrWhiteSpace(a.EnName) || a.Amount != 0)
+            .ToList();
+        foreach (var saved in existing.Allowances.ToList())
+        {
+            if (!allowances.Any(a => a.Id > 0 && a.Id == saved.Id))
+            {
+                _context.Remove(saved);
+            }
+        }
+        foreach (var row in allowances)
+        {
+            var saved = existing.Allowances.FirstOrDefault(a => row.Id > 0 && a.Id == row.Id);
+            if (saved == null)
+            {
+                row.Id = 0;
+                row.CreatedAt = now;
+                existing.Allowances.Add(row);
+                continue;
+            }
+
+            saved.AllowanceTypeId = row.AllowanceTypeId;
+            saved.ArName = row.ArName;
+            saved.EnName = row.EnName;
+            saved.Amount = row.Amount;
+            saved.UpdatedAt = now;
+        }
+
+        // fixed deductions
+        var deductions = (incoming.FixedDeductions ?? new List<EmployeeFixedDeduction>())
+            .Where(a => !string.IsNullOrWhiteSpace(a.ArName) || !string.IsNullOrWhiteSpace(a.EnName) || a.Amount != 0)
+            .ToList();
+        foreach (var saved in existing.FixedDeductions.ToList())
+        {
+            if (!deductions.Any(a => a.Id > 0 && a.Id == saved.Id))
+            {
+                _context.Remove(saved);
+            }
+        }
+        foreach (var row in deductions)
+        {
+            var saved = existing.FixedDeductions.FirstOrDefault(a => row.Id > 0 && a.Id == row.Id);
+            if (saved == null)
+            {
+                row.Id = 0;
+                row.CreatedAt = now;
+                existing.FixedDeductions.Add(row);
+                continue;
+            }
+
+            saved.DeductionTypeId = row.DeductionTypeId;
+            saved.ArName = row.ArName;
+            saved.EnName = row.EnName;
+            saved.Amount = row.Amount;
+            saved.UpdatedAt = now;
+        }
+
+        // leaves
+        var leaves = (incoming.Leaves ?? new List<EmployeeLeave>())
+            .Where(a => a.FromDate != default || a.ToDate != default || a.Days != 0 || !string.IsNullOrWhiteSpace(a.Notes))
+            .ToList();
+        foreach (var saved in existing.Leaves.ToList())
+        {
+            if (!leaves.Any(a => a.Id > 0 && a.Id == saved.Id))
+            {
+                _context.Remove(saved);
+            }
+        }
+        foreach (var row in leaves)
+        {
+            var saved = existing.Leaves.FirstOrDefault(a => row.Id > 0 && a.Id == row.Id);
+            if (saved == null)
+            {
+                row.Id = 0;
+                row.CreatedAt = now;
+                existing.Leaves.Add(row);
+                continue;
+            }
+
+            saved.LeaveTypeId = row.LeaveTypeId;
+            saved.FromDate = row.FromDate;
+            saved.ToDate = row.ToDate;
+            saved.Days = row.Days;
+            saved.Notes = row.Notes;
+            saved.UpdatedAt = now;
+        }
+
+        // documents: the file number i belongs to the document row number i
+        var postedDocuments = (incoming.Documents ?? new List<EmployeeDocument>()).ToList();
+        var keptDocuments = new List<EmployeeDocument>();
+        var keptFiles = new List<IFormFile>();
+        for (var i = 0; i < postedDocuments.Count; i++)
+        {
+            var file = documentFiles != null && i < documentFiles.Count ? documentFiles[i] : null;
+            if (string.IsNullOrWhiteSpace(postedDocuments[i].Name) && file == null && string.IsNullOrWhiteSpace(postedDocuments[i].Url))
+            {
+                continue;
+            }
+
+            keptDocuments.Add(postedDocuments[i]);
+            keptFiles.Add(file);
+        }
+
+        foreach (var saved in existing.Documents.ToList())
+        {
+            if (keptDocuments.Any(a => a.Id > 0 && a.Id == saved.Id))
+            {
+                continue;
+            }
+
+            if (!string.IsNullOrEmpty(saved.Url))
+            {
+                DocumentSetting.DeleteFile(saved.Url);
+            }
+
+            _context.Remove(saved);
+        }
+
+        for (var i = 0; i < keptDocuments.Count; i++)
+        {
+            var row = keptDocuments[i];
+            var file = keptFiles[i];
+            var saved = existing.Documents.FirstOrDefault(a => row.Id > 0 && a.Id == row.Id);
+
+            if (saved == null)
+            {
+                row.Id = 0;
+                row.CreatedAt = now;
+                if (file != null)
+                {
+                    row.Url = DocumentSetting.UploadFile(file, DocumentsFolder);
+                }
+
+                existing.Documents.Add(row);
+                continue;
+            }
+
+            saved.Name = row.Name;
+            saved.UpdatedAt = now;
+            if (file != null)
+            {
+                if (!string.IsNullOrEmpty(saved.Url))
+                {
+                    DocumentSetting.DeleteFile(saved.Url);
+                }
+
+                saved.Url = DocumentSetting.UploadFile(file, DocumentsFolder);
+            }
+        }
     }
 
     public void Remove(Employee employee)
@@ -128,336 +283,5 @@ public class EmployeeChildrenRepository : IEmployeeChildrenRepository
         _context.EmployeeFixedDeductions.RemoveRange(employee.FixedDeductions);
         _context.EmployeeLeaves.RemoveRange(employee.Leaves);
         _context.EmployeeDocuments.RemoveRange(employee.Documents);
-    }
-
-    private void SyncDependents(Employee existing, Employee incoming)
-    {
-        var rows = new List<EmployeeDependent>();
-        foreach (var row in incoming.Dependents ?? new List<EmployeeDependent>())
-        {
-            if (!IsBlank(row))
-            {
-                rows.Add(row);
-            }
-        }
-
-        var savedRows = new List<EmployeeDependent>(existing.Dependents);
-        foreach (var saved in savedRows)
-        {
-            if (!ContainsId(rows, saved.Id))
-            {
-                _context.Remove(saved);
-            }
-        }
-
-        foreach (var row in rows)
-        {
-            EmployeeDependent saved = null;
-            if (row.Id > 0)
-            {
-                foreach (var candidate in existing.Dependents)
-                {
-                    if (candidate.Id == row.Id)
-                    {
-                        saved = candidate;
-                    }
-                }
-            }
-
-            if (saved == null)
-            {
-                row.Id = 0;
-                row.CreatedAt = DateTime.Now;
-                existing.Dependents.Add(row);
-                continue;
-            }
-
-            saved.ArName = row.ArName;
-            saved.EnName = row.EnName;
-            saved.Relation = row.Relation;
-            saved.BirthDate = row.BirthDate;
-            saved.UpdatedAt = DateTime.Now;
-        }
-    }
-
-    private void SyncAllowances(Employee existing, Employee incoming)
-    {
-        var rows = new List<EmployeeAllowance>();
-        foreach (var row in incoming.Allowances ?? new List<EmployeeAllowance>())
-        {
-            if (!IsBlank(row))
-            {
-                rows.Add(row);
-            }
-        }
-
-        var savedRows = new List<EmployeeAllowance>(existing.Allowances);
-        foreach (var saved in savedRows)
-        {
-            if (!ContainsId(rows, saved.Id))
-            {
-                _context.Remove(saved);
-            }
-        }
-
-        foreach (var row in rows)
-        {
-            EmployeeAllowance saved = null;
-            if (row.Id > 0)
-            {
-                foreach (var candidate in existing.Allowances)
-                {
-                    if (candidate.Id == row.Id)
-                    {
-                        saved = candidate;
-                    }
-                }
-            }
-
-            if (saved == null)
-            {
-                row.Id = 0;
-                row.CreatedAt = DateTime.Now;
-                existing.Allowances.Add(row);
-                continue;
-            }
-
-            saved.AllowanceTypeId = row.AllowanceTypeId;
-            saved.ArName = row.ArName;
-            saved.EnName = row.EnName;
-            saved.Amount = row.Amount;
-            saved.UpdatedAt = DateTime.Now;
-        }
-    }
-
-    private void SyncFixedDeductions(Employee existing, Employee incoming)
-    {
-        var rows = new List<EmployeeFixedDeduction>();
-        foreach (var row in incoming.FixedDeductions ?? new List<EmployeeFixedDeduction>())
-        {
-            if (!IsBlank(row))
-            {
-                rows.Add(row);
-            }
-        }
-
-        var savedRows = new List<EmployeeFixedDeduction>(existing.FixedDeductions);
-        foreach (var saved in savedRows)
-        {
-            if (!ContainsId(rows, saved.Id))
-            {
-                _context.Remove(saved);
-            }
-        }
-
-        foreach (var row in rows)
-        {
-            EmployeeFixedDeduction saved = null;
-            if (row.Id > 0)
-            {
-                foreach (var candidate in existing.FixedDeductions)
-                {
-                    if (candidate.Id == row.Id)
-                    {
-                        saved = candidate;
-                    }
-                }
-            }
-
-            if (saved == null)
-            {
-                row.Id = 0;
-                row.CreatedAt = DateTime.Now;
-                existing.FixedDeductions.Add(row);
-                continue;
-            }
-
-            saved.DeductionTypeId = row.DeductionTypeId;
-            saved.ArName = row.ArName;
-            saved.EnName = row.EnName;
-            saved.Amount = row.Amount;
-            saved.UpdatedAt = DateTime.Now;
-        }
-    }
-
-    private void SyncLeaves(Employee existing, Employee incoming)
-    {
-        var rows = new List<EmployeeLeave>();
-        foreach (var row in incoming.Leaves ?? new List<EmployeeLeave>())
-        {
-            if (!IsBlank(row))
-            {
-                rows.Add(row);
-            }
-        }
-
-        var savedRows = new List<EmployeeLeave>(existing.Leaves);
-        foreach (var saved in savedRows)
-        {
-            if (!ContainsId(rows, saved.Id))
-            {
-                _context.Remove(saved);
-            }
-        }
-
-        foreach (var row in rows)
-        {
-            EmployeeLeave saved = null;
-            if (row.Id > 0)
-            {
-                foreach (var candidate in existing.Leaves)
-                {
-                    if (candidate.Id == row.Id)
-                    {
-                        saved = candidate;
-                    }
-                }
-            }
-
-            if (saved == null)
-            {
-                row.Id = 0;
-                row.CreatedAt = DateTime.Now;
-                existing.Leaves.Add(row);
-                continue;
-            }
-
-            saved.LeaveTypeId = row.LeaveTypeId;
-            saved.FromDate = row.FromDate;
-            saved.ToDate = row.ToDate;
-            saved.Days = row.Days;
-            saved.Notes = row.Notes;
-            saved.UpdatedAt = DateTime.Now;
-        }
-    }
-
-    private void SyncDocuments(Employee existing, List<EmployeeDocument> incoming, IList<IFormFile> files)
-    {
-        var uploads = new List<DocumentUpload>();
-        for (var i = 0; i < incoming.Count; i++)
-        {
-            var file = GetFile(files, i);
-            if (!IsBlank(incoming[i], file))
-            {
-                uploads.Add(new DocumentUpload { Row = incoming[i], File = file });
-            }
-        }
-
-        var savedDocuments = new List<EmployeeDocument>(existing.Documents);
-        foreach (var saved in savedDocuments)
-        {
-            var stillThere = false;
-            foreach (var upload in uploads)
-            {
-                if (upload.Row.Id > 0 && upload.Row.Id == saved.Id)
-                {
-                    stillThere = true;
-                }
-            }
-
-            if (stillThere)
-            {
-                continue;
-            }
-
-            if (!string.IsNullOrEmpty(saved.Url))
-            {
-                DocumentSetting.DeleteFile(saved.Url);
-            }
-
-            _context.Remove(saved);
-        }
-
-        foreach (var upload in uploads)
-        {
-            var row = upload.Row;
-            var file = upload.File;
-
-            EmployeeDocument saved = null;
-            if (row.Id > 0)
-            {
-                foreach (var candidate in existing.Documents)
-                {
-                    if (candidate.Id == row.Id)
-                    {
-                        saved = candidate;
-                    }
-                }
-            }
-
-            if (saved == null)
-            {
-                row.Id = 0;
-                row.CreatedAt = DateTime.Now;
-                if (file != null)
-                {
-                    row.Url = DocumentSetting.UploadFile(file, DocumentsFolder);
-                }
-
-                existing.Documents.Add(row);
-                continue;
-            }
-
-            saved.Name = row.Name;
-            saved.UpdatedAt = DateTime.Now;
-
-            if (file != null)
-            {
-                if (!string.IsNullOrEmpty(saved.Url))
-                {
-                    DocumentSetting.DeleteFile(saved.Url);
-                }
-
-                saved.Url = DocumentSetting.UploadFile(file, DocumentsFolder);
-            }
-        }
-    }
-
-    private bool ContainsId(IEnumerable<BaseEntity> rows, int id)
-    {
-        foreach (var row in rows)
-        {
-            if (row.Id > 0 && row.Id == id)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private IFormFile GetFile(IList<IFormFile> files, int index)
-    {
-        if (files == null || index >= files.Count)
-        {
-            return null;
-        }
-
-        return files[index];
-    }
-
-    private bool IsBlank(EmployeeDependent row)
-    {
-        return string.IsNullOrWhiteSpace(row.ArName) && string.IsNullOrWhiteSpace(row.EnName);
-    }
-
-    private bool IsBlank(EmployeeAllowance row)
-    {
-        return string.IsNullOrWhiteSpace(row.ArName) && string.IsNullOrWhiteSpace(row.EnName) && row.Amount == 0;
-    }
-
-    private bool IsBlank(EmployeeFixedDeduction row)
-    {
-        return string.IsNullOrWhiteSpace(row.ArName) && string.IsNullOrWhiteSpace(row.EnName) && row.Amount == 0;
-    }
-
-    private bool IsBlank(EmployeeLeave row)
-    {
-        return row.FromDate == default && row.ToDate == default && row.Days == 0 && string.IsNullOrWhiteSpace(row.Notes);
-    }
-
-    private bool IsBlank(EmployeeDocument row, IFormFile file)
-    {
-        return string.IsNullOrWhiteSpace(row.Name) && file == null && string.IsNullOrWhiteSpace(row.Url);
     }
 }

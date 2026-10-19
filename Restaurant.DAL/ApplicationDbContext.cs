@@ -28,9 +28,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         }
     }
 
-    public DbSet<IndexSettings> IndexSettings { get; set; }
-    public DbSet<ChefItem> ChefItem { get; set; }
-    public DbSet<GalleryItem> GalleryItem { get; set; }
 
     public DbSet<Job> Jobs { get; set; }
     public DbSet<JobType> JobTypes { get; set; }
@@ -122,8 +119,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderMenuItem> OrderMenuItems { get; set; }
     public DbSet<OrderIngredient> OrderIngredients { get; set; }
-    public DbSet<OnlineOrder> OnlineOrders { get; set; }
-    public DbSet<OnlineOrderMenuItem> OnlineOrderMenuItems { get; set; }
     public DbSet<ShiftCloseReport> ShiftCloseReports { get; set; }
 
     public DbSet<Expense> Expenses { get; set; }

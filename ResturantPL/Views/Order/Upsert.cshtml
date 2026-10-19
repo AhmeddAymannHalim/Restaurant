@@ -2,7 +2,6 @@
 @{
     ViewBag.Title = L["Cashier"].Value;
     var isArabic = LanguageHelper.IsArabic();
-    var isOnline = Model.OnlineOrderId.HasValue;
     var invariant = CultureInfo.InvariantCulture;
     var sections = Model.Menu.GroupBy(a => a.SectionId).Select(g => g.First()).ToList();
 }
@@ -15,7 +14,6 @@
     <div class="ad-card-body">
         <form id="orderForm" asp-action="Upsert" method="post" class="pos">
             <div asp-validation-summary="All" class="text-danger"></div>
-            <input type="hidden" name="OnlineOrderId" value="@Model.OnlineOrderId" />
             <input type="hidden" id="cash" name="Cash" value="false" />
             <input type="hidden" id="onAccount" name="OnAccount" value="false" />
 
@@ -51,19 +49,12 @@
                 <div class="ad-form pos-fields">
                     <div class="form-group">
                         <label class="control-label" for="orderType">@L["OrderType"]</label>
-                        @if (isOnline)
-                        {
-                            <input type="hidden" id="orderType" name="Type" value="@Model.Type" />
-                            <input class="form-control" value="@L[Model.Type.ToString()]" readonly />
-                        }
-                        else
-                        {
-                            <select id="orderType" name="Type" class="form-select">
-                                <option value="Hall" selected="@(Model.Type == OrderType.Hall)">@L["Hall"]</option>
-                                <option value="TakeAway" selected="@(Model.Type == OrderType.TakeAway)">@L["TakeAway"]</option>
-                                <option value="Delivery" selected="@(Model.Type == OrderType.Delivery)">@L["Delivery"]</option>
-                            </select>
-                        }
+                        <select id="orderType" name="Type" class="form-select">
+                            <option value="Hall" selected="@(Model.Type == OrderType.Hall)">@L["Hall"]</option>
+                            <option value="TakeAway" selected="@(Model.Type == OrderType.TakeAway)">@L["TakeAway"]</option>
+                            <option value="Delivery" selected="@(Model.Type == OrderType.Delivery)">@L["Delivery"]</option>
+                        </select>
+                        
                     </div>
                     <div class="form-group" data-for="Hall">
                         <label class="control-label" for="TableId">@L["Table"]</label>
@@ -101,21 +92,14 @@
                     </div>
                     <div class="form-group" data-for="Delivery Delivery_Online">
                         <label class="control-label" for="DeliveryZoneId">@L["DeliveryZone"]</label>
-                        @if (isOnline)
-                        {
-                            <input type="hidden" id="DeliveryZoneId" name="DeliveryZoneId" value="@Model.DeliveryZoneId" data-fee="@Model.DeliveryFee.ToString(invariant)" />
-                            <input class="form-control" value="@(isArabic ? Model.DeliveryZoneArName : Model.DeliveryZoneEnName)" readonly />
-                        }
-                        else
-                        {
-                            <select id="DeliveryZoneId" name="DeliveryZoneId" class="form-select">
-                                <option value="" data-fee="0">@L["Select"]</option>
-                                @foreach (var zone in Model.DeliveryZones)
-                                {
-                                    <option value="@zone.Id" data-fee="@zone.Fee.ToString(invariant)" selected="@(Model.DeliveryZoneId == zone.Id)">@(isArabic ? zone.ArName : zone.EnName) - @zone.Fee.ToString("N2")</option>
-                                }
-                            </select>
-                        }
+                        <select id="DeliveryZoneId" name="DeliveryZoneId" class="form-select">
+                            <option value="" data-fee="0">@L["Select"]</option>
+                            @foreach (var zone in Model.DeliveryZones)
+                            {
+                                <option value="@zone.Id" data-fee="@zone.Fee.ToString(invariant)" selected="@(Model.DeliveryZoneId == zone.Id)">@(isArabic ? zone.ArName : zone.EnName) - @zone.Fee.ToString("N2")</option>
+                            }
+                        </select>
+                        
                     </div>
                     <div class="form-group" data-for="Delivery Delivery_Online">
                         <label class="control-label" for="Address">@L["Address"]</label>

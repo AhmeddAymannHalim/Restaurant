@@ -44,20 +44,6 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Table, opt => opt.Ignore())
             .ForMember(dest => dest.Customer, opt => opt.Ignore())
             .ForMember(dest => dest.CustomerId, opt => opt.Ignore());
-        CreateMap<ReservationCreateViewModel, TableReservation>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.ReservationDate, opt => opt.MapFrom(src => src.ReservationDate ?? default))
-            .ForMember(dest => dest.Status, opt => opt.Ignore())
-            .ForMember(dest => dest.RejectionReason, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-            .ForMember(dest => dest.CustomerId, opt => opt.Ignore())
-            .ForMember(dest => dest.Table, opt => opt.Ignore())
-            .ForMember(dest => dest.Customer, opt => opt.Ignore());
-        CreateMap<TableSlot, TableSlotViewModel>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Table.Id))
-            .ForMember(dest => dest.ArName, opt => opt.MapFrom(src => src.Table.ArName))
-            .ForMember(dest => dest.EnName, opt => opt.MapFrom(src => src.Table.EnName))
-            .ForMember(dest => dest.NumOfPersons, opt => opt.MapFrom(src => src.Table.NumOfPersons));
         CreateMap<TableViewModel, Restaurant.DAL.Models.Table>()
             .ForMember(dest => dest.IsPending, opt => opt.Ignore());
 
@@ -130,13 +116,44 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Employees, opt => opt.Ignore());
         CreateMap<EmployeeAccountViewModel, ApplicationUser>();
 
+        CreateMap<Account, AccountDefinitionViewModel>()
+            .ForMember(dest => dest.ParentArName, opt => opt.MapFrom(src => src.ParentAccount.ArName))
+            .ForMember(dest => dest.ParentEnName, opt => opt.MapFrom(src => src.ParentAccount.EnName))
+            .ForMember(dest => dest.Balance, opt => opt.MapFrom(src => src.BalanceValue))
+            .ForMember(dest => dest.IsOwned, opt => opt.MapFrom(src => src.Kind == AccountKind.Owned))
+            .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.AccountDetails.Location))
+            .ForMember(dest => dest.BuyValue, opt => opt.MapFrom(src => src.AccountDetails.BuyValue))
+            .ForMember(dest => dest.BuyDate, opt => opt.MapFrom(src => src.AccountDetails.BuyDate))
+            .ForMember(dest => dest.StartUsingDate, opt => opt.MapFrom(src => src.AccountDetails.StartUsingDate))
+            .ForMember(dest => dest.ProductAge, opt => opt.MapFrom(src => src.AccountDetails.ProductAge))
+            .ForMember(dest => dest.DepreciationType, opt => opt.MapFrom(src => src.AccountDetails == null ? DepreciationType.FixedInstallment : src.AccountDetails.DepreciationType))
+            .ForMember(dest => dest.ScrapValue, opt => opt.MapFrom(src => src.AccountDetails.ScrapValue))
+            .ForMember(dest => dest.DepreciationAccountId, opt => opt.MapFrom(src => src.AccountDetails.DepreciationAccountId))
+            .ForMember(dest => dest.DepreciationExpensesAccountId, opt => opt.MapFrom(src => src.AccountDetails.DepreciationExpensesAccountId));
+        CreateMap<AccountDefinitionViewModel, Account>()
+            .ForMember(dest => dest.Kind, opt => opt.Ignore());
+        CreateMap<AccountDefinitionViewModel, AccountDetails>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
+        CreateMap<PaymentInvoiceCustomer, PaymentRefundRequestViewModel>()
+            .ForMember(dest => dest.OriginalPaymentId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.OriginalPaymentCode, opt => opt.MapFrom(src => src.ProcessCode))
+            .ForMember(dest => dest.OriginalPaymentAmount, opt => opt.MapFrom(src => src.Paid));
+        CreateMap<PaymentInvoiceSupplier, PaymentRefundRequestViewModel>()
+            .ForMember(dest => dest.OriginalPaymentId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.OriginalPaymentCode, opt => opt.MapFrom(src => src.ProcessCode))
+            .ForMember(dest => dest.OriginalPaymentAmount, opt => opt.MapFrom(src => src.Paid));
+        CreateMap<PaymentRefundRequestViewModel, PaymentRefund>();
+        CreateMap<Employee, EmployeeAccountViewModel>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.ArName))
+            .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.EnName));
+        CreateMap<Employee, LookupItem>();
+        CreateMap<ProductStockViewModel, ProductStock>()
+            .ForMember(dest => dest.Store, opt => opt.Ignore());
         CreateMap<ApplicationSetting, ApplicationSettingViewModel>()
             .ForMember(dest => dest.Password, opt => opt.Ignore());
         CreateMap<ApplicationSettingViewModel, ApplicationSetting>();
-        CreateMap<IndexSettings, RestaurantSettingViewModel>()
-            .ForMember(dest => dest.Image, opt => opt.Ignore())
-            .ForMember(dest => dest.Video, opt => opt.Ignore());
-        CreateMap<RestaurantSettingViewModel, IndexSettings>();
         CreateMap<PrinterSetting, PrinterSettingViewModel>()
             .ForMember(dest => dest.Printers, opt => opt.Ignore());
         CreateMap<PrinterSettingViewModel, PrinterSetting>();
@@ -218,7 +235,6 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => (LanguageHelper.IsArabic() ? src.Employee.ArName : src.Employee.EnName)))
             .ForMember(dest => dest.ItemsCount, opt => opt.MapFrom(src => src.Lines.Count))
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Lines))
-            .ForMember(dest => dest.OnlineOrderId, opt => opt.Ignore())
             .ForMember(dest => dest.TaxPercent, opt => opt.Ignore())
             .ForMember(dest => dest.DefaultService, opt => opt.Ignore())
             .ForMember(dest => dest.Customers, opt => opt.Ignore())
@@ -231,13 +247,16 @@ public class AutoMapper : Profile
         CreateMap<OrderMenuItem, OrderItemViewModel>()
             .ForMember(dest => dest.MenuItemArName, opt => opt.MapFrom(src => src.MenuItem.ArName))
             .ForMember(dest => dest.MenuItemEnName, opt => opt.MapFrom(src => src.MenuItem.EnName));
-        CreateMap<OnlineOrderMenuItem, OrderItemViewModel>()
-            .ForMember(dest => dest.MenuItemArName, opt => opt.MapFrom(src => src.MenuItem.ArName))
-            .ForMember(dest => dest.MenuItemEnName, opt => opt.MapFrom(src => src.MenuItem.EnName));
-        CreateMap<OnlineOrder, PendingOnlineOrderViewModel>()
-            .ForMember(dest => dest.DeliveryZoneArName, opt => opt.MapFrom(src => src.DeliveryZone.ArName))
-            .ForMember(dest => dest.DeliveryZoneEnName, opt => opt.MapFrom(src => src.DeliveryZone.EnName))
-            .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OnlineOrderMenuItems));
+        CreateMap<OrderViewModel, Order>()
+            .ForMember(dest => dest.Bill, opt => opt.MapFrom(src => new BillMaster { BillDiscountValue = src.Discount }))
+            .ForMember(dest => dest.Lines, opt => opt.MapFrom(src => src.Items));
+        CreateMap<OrderItemViewModel, OrderMenuItem>()
+            .ForMember(dest => dest.BillDetail, opt => opt.MapFrom(src => new BillDetail { Quantity = src.Quantity }));
+        CreateMap<ApplicationSetting, OrderViewModel>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.TaxPercent, opt => opt.MapFrom(src => src.OrderTax))
+            .ForMember(dest => dest.DefaultService, opt => opt.MapFrom(src => src.OrderService))
+            .ForMember(dest => dest.Service, opt => opt.MapFrom(src => src.OrderService));
         CreateMap<MenuItem, CashierMenuItemViewModel>()
             .ForMember(dest => dest.Available, opt => opt.MapFrom(src => src.AvailablePortions))
             .ForMember(dest => dest.ArIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.ArName))))
@@ -246,22 +265,6 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.SectionArName, opt => opt.MapFrom(src => src.MenuSection.ArName))
             .ForMember(dest => dest.SectionEnName, opt => opt.MapFrom(src => src.MenuSection.EnName));
         CreateMap<Table, LookupItem>();
-        CreateMap<OnlineOrderCreateViewModel, OnlineOrder>()
-            .ForMember(dest => dest.OnlineOrderMenuItems, opt => opt.MapFrom(src => src.OnlineOrderMenuItems))
-            .ForMember(dest => dest.Customer, opt => opt.Ignore())
-            .ForMember(dest => dest.DeliveryZone, opt => opt.Ignore())
-            .ForMember(dest => dest.DeliveryFee, opt => opt.Ignore())
-            .ForMember(dest => dest.Tax, opt => opt.Ignore())
-            .ForMember(dest => dest.Service, opt => opt.Ignore())
-            .ForMember(dest => dest.Table, opt => opt.Ignore());
-        CreateMap<OnlineOrderLineViewModel, OnlineOrderMenuItem>()
-            .ForMember(dest => dest.OnlineOrder, opt => opt.Ignore())
-            .ForMember(dest => dest.MenuItem, opt => opt.Ignore());
-        CreateMap<MenuItem, OnlineMenuItemViewModel>()
-            .ForMember(dest => dest.ArIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.ArName))))
-            .ForMember(dest => dest.EnIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.EnName))))
-            .ForMember(dest => dest.SectionArName, opt => opt.MapFrom(src => src.MenuSection.ArName))
-            .ForMember(dest => dest.SectionEnName, opt => opt.MapFrom(src => src.MenuSection.EnName));
 
         CreateMap<Supplier, SupplierViewModel>()
             .ForMember(dest => dest.GovernorateId, opt => opt.MapFrom(src => src.GovId ?? src.Town.GovernorateId))
@@ -551,8 +554,7 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Categories, opt => opt.Ignore());
         CreateMap<MenuItemViewModel, MenuItem>()
             .ForMember(dest => dest.Store, opt => opt.Ignore())
-            .ForMember(dest => dest.MenuSection, opt => opt.Ignore())
-            .ForMember(dest => dest.OnlineOrderMenuItems, opt => opt.Ignore());
+            .ForMember(dest => dest.MenuSection, opt => opt.Ignore());
 
         CreateMap<MenuItemComponent, MenuItemComponentViewModel>()
             .ForMember(dest => dest.ProductArName, opt => opt.MapFrom(src => src.Product.ArName))
@@ -564,25 +566,6 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.MenuItemId, opt => opt.Ignore())
             .ForMember(dest => dest.Product, opt => opt.Ignore())
             .ForMember(dest => dest.MenuItem, opt => opt.Ignore());
-
-        CreateMap<IndexSettings, HomeViewModel>()
-            .ForMember(dest => dest.MenuSections, opt => opt.Ignore())
-            .ForMember(dest => dest.Chefs, opt => opt.Ignore())
-            .ForMember(dest => dest.Gallery, opt => opt.Ignore());
-        CreateMap<MenuItem, HomeMenuItemViewModel>()
-            .ForMember(dest => dest.ArIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.ArName))))
-            .ForMember(dest => dest.EnIngredients, opt => opt.MapFrom(src => src.Components == null ? null : string.Join(" - ", src.Components.OrderBy(c => c.Id).Where(c => c.Product != null).Select(c => c.Product.EnName))))
-            .ForMember(dest => dest.Size, opt => opt.MapFrom(src => src.Size.HasValue ? src.Size.Value.ToString() : null));
-
-        CreateMap<ChefItem, ChefViewModel>()
-            .ForMember(dest => dest.ImageFile, opt => opt.Ignore());
-        CreateMap<ChefViewModel, ChefItem>()
-            .ForMember(dest => dest.ImageUrl, opt => opt.Ignore());
-
-        CreateMap<GalleryItem, GalleryViewModel>()
-            .ForMember(dest => dest.ImageFile, opt => opt.Ignore());
-        CreateMap<GalleryViewModel, GalleryItem>()
-            .ForMember(dest => dest.PictureUrl, opt => opt.Ignore());
 
         #endregion
     }

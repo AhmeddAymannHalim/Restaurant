@@ -1,3 +1,4 @@
 namespace Restaurant.DAL.Models;
 
-public record JournalLineRequest(string AccountCode, decimal Debit, decimal Credit, string Description = null, int? AccountId = null);
+// AccountId null = the main account of the voucher (EntrySetting.Account)
+public record JournalLineRequest(int? AccountId, decimal Debit, decimal Credit, string Description = null);

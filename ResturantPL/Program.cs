@@ -140,8 +140,6 @@ services.AddScoped<IUnitOfWork, UnitOfWork>();
 services.AddScoped(typeof(IValidatorRepository<>), typeof(ValidatorRepository<>));
 services.AddScoped(typeof(IValidatorService<>), typeof(ValidatorService<>));
 services.AddScoped<ILookupService, LookupService>();
-services.AddScoped<IChefService, ChefService>();
-services.AddScoped<IGalleryService, GalleryService>();
 services.AddScoped<IBranchService, BranchService>();
 services.AddScoped<IJobService, JobService>();
 services.AddScoped<ITableService, TableService>();
@@ -161,7 +159,6 @@ services.AddScoped<IOrderService, OrderService>();
 services.AddScoped<IBillService, BillService>();
 services.AddScoped<IAccountDefinitionService, AccountDefinitionService>();
 services.AddScoped<IEntryService, EntryService>();
-services.AddScoped<IOnlineOrderService, OnlineOrderService>();
 services.AddScoped<IReportService, ReportService>();
 services.AddScoped<IStoreConvertService, StoreConvertService>();
 services.AddScoped<ISupplierPaymentService, SupplierPaymentService>();
@@ -237,8 +234,7 @@ using (var scope = app.Services.CreateScope())
             scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
             scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>(),
             configuration.GetValue("Database:SeedDefaultUsers", true),
-            configuration["Database:DefaultPassword"] ?? (app.Environment.IsDevelopment() ? "@Qwe12" : null),
-            configuration.GetValue("Database:SeedOpeningStock", app.Environment.IsDevelopment()));
+            configuration["Database:DefaultPassword"] ?? (app.Environment.IsDevelopment() ? "@Qwe12" : null));
     }
 }
 

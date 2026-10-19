@@ -8,8 +8,6 @@ public interface ITableReservationRepository
 {
     Task<PaginatedResult<TableReservation>> GetPagedReservationsAsync(PageRequest request, ReservationStatus? status);
     Task<TableReservation> GetReservationByIdAsync(int id);
-    Task<List<TableSlot>> GetTableSlotsAsync(DateTime when, int guests);
-    Task<ResultMessage> BookAsync(TableReservation entity, string customerId);
     Task<ResultMessage> UpsertReservationAsync(TableReservation entity);
     Task<ResultMessage> SetStatusAsync(int id, ReservationStatus status, string reason);
     Task<ResultMessage> ArriveAsync(int id);

@@ -79,20 +79,6 @@ public class ExitExpenseRepository : IExitExpenseRepository
                 await _context.SaveChangesAsync();
             }
 
-            await _journals.RemoveSourceEntriesAsync(JournalSourceType.ExitExpense, entity.Id);
-            var posting = await _journals.PostSourceEntryAsync(JournalSourceType.ExitExpense,
-                entity.Id,
-                entity.Date,
-                $"Expense {entity.Id}",
-                new[]
-                {
-                    new JournalLineRequest(AccountCodeRepository.OperatingExpenses, entity.Price, 0),
-                    new JournalLineRequest(AccountCodeRepository.Cash, 0, entity.Price)
-                });
-            if (!posting.Success)
-            {
-                return posting;
-            }
 
             await transaction.CommitAsync();
 

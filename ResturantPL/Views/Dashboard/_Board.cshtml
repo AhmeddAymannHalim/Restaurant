@@ -50,12 +50,6 @@
         <strong>@Model.ShiftSales.ToString("N2")</strong>
         <small>@Model.ShiftOrders @L["Orders"]</small>
     </div>
-    <a class="shift-tile @(Model.WaitingOnline > 0 ? "shift-tile-warn" : "")" asp-controller="Order" asp-action="Online">
-        <i class="fas fa-globe shift-tile-icon" aria-hidden="true"></i>
-        <span>@L["OnlineRequests"]</span>
-        <strong>@Model.WaitingOnline</strong>
-        <small>@L["OnlineOrders"]</small>
-    </a>
     <a class="shift-tile @(Model.InKitchen > 0 ? "shift-tile-warn" : "")" asp-controller="KitchenOrder" asp-action="Index">
         <i class="fas fa-fire-burner shift-tile-icon" aria-hidden="true"></i>
         <span>@L["KitchenQueue"]</span>
@@ -76,43 +70,11 @@
     </a>
 </div>
 
-<partial name="_Floor" model="Model" />
+<div hidden style="display:none">
+    <partial name="_Floor" model="Model" />
+</div>
 
 <div class="ops-grid">
-    <section class="ops-col">
-        <h2><i class="fas fa-globe" aria-hidden="true"></i> @L["OnlineRequests"] <b>@Model.WaitingOnline</b></h2>
-        @if (Model.OnlineRequests.Count == 0)
-        {
-            <p class="ad-empty">@L["NothingWaiting"]</p>
-        }
-        @foreach (var order in Model.OnlineRequests)
-        {
-            <article class="ops-card @(Late(order.OrderDate) ? "is-late" : "")">
-                <header>
-                    <strong>@order.CustomerName</strong>
-                    <span class="ops-age">@Age(order.OrderDate)</span>
-                </header>
-                <p class="ops-where">
-                    <i class="fas @(order.TableId.HasValue ? "fa-chair" : "fa-motorcycle")" aria-hidden="true"></i>
-                    @(order.TableId.HasValue ? Where(OrderType.Hall, order.TableArName, order.TableEnName) : order.Address)
-                </p>
-                <ul>
-                    @foreach (var line in order.Items)
-                    {
-                        <li><span>@(isArabic ? line.ArName : line.EnName)</span><b>x @line.Quantity.ToString("0.###", CultureInfo.InvariantCulture)</b></li>
-                    }
-                </ul>
-                <footer>
-                    <strong>@order.TotalPrice.ToString("N2")</strong>
-                    <span>
-                        <a asp-controller="Order" asp-action="Upsert" asp-route-onlineOrderId="@order.Id" class="btn-ad btn-ad-primary"><i class="fas fa-check" aria-hidden="true"></i> @L["AcceptOrder"]</a>
-                        <button type="button" class="btn-ad btn-ad-danger btn-icon" title="@L["CancelOrder"]" aria-label="@L["CancelOrder"]" onclick="Delete('/Order/CancelOnline/@order.Id')"><i class="fas fa-xmark" aria-hidden="true"></i></button>
-                    </span>
-                </footer>
-            </article>
-        }
-    </section>
-
     <section class="ops-col">
         <h2><i class="fas fa-fire-burner" aria-hidden="true"></i> @L["KitchenQueue"] <b>@Model.InKitchen</b></h2>
         @if (Model.Kitchen.Count == 0)

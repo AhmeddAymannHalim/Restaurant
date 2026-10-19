@@ -30,18 +30,6 @@ public class SettingService : ISettingService
         return await _repository.UpdateApplicationSettingAsync(_mapper.Map<ApplicationSetting>(model));
     }
 
-    public async Task<RestaurantSettingViewModel> GetRestaurantSettingAsync()
-    {
-        var entity = await _repository.GetRestaurantSettingAsync();
-
-        return _mapper.Map<RestaurantSettingViewModel>(entity);
-    }
-
-    public async Task<ResultMessage> UpdateRestaurantSettingAsync(RestaurantSettingViewModel model)
-    {
-        return await _repository.UpdateRestaurantSettingAsync(_mapper.Map<IndexSettings>(model), model.Image, model.Video);
-    }
-
     public async Task<PrinterSettingViewModel> GetPrinterSettingAsync()
     {
         var entity = await _repository.GetPrinterSettingAsync();

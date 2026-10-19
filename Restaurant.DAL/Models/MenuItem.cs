@@ -13,7 +13,6 @@ public class MenuItem
     public string ImageUrl { get; set; }
     public int StoreId { get; set; }
     public decimal Price { get; set; }
-    public bool ShowOnWebsite { get; set; } = true;
     public bool IsAvailable { get; set; } = true;
     public Size? Size { get; set; }
 
@@ -23,7 +22,6 @@ public class MenuItem
 
     [System.ComponentModel.DataAnnotations.Schema.NotMapped]
     public int? AvailablePortions { get; set; }
-    public virtual ICollection<OnlineOrderMenuItem> OnlineOrderMenuItems { get; set; }
 
     public decimal TotalCost => Components?.Sum(a => a.Quantity * (a.Product?.Cost ?? 0)) ?? 0;
     public decimal Benefit => Price - TotalCost;

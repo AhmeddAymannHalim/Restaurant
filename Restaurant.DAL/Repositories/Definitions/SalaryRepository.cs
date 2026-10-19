@@ -123,20 +123,6 @@ public class SalaryRepository : ISalaryRepository
                 await _context.SaveChangesAsync();
             }
 
-            await _journals.RemoveSourceEntriesAsync(JournalSourceType.Salary, entity.Id);
-            var posting = await _journals.PostSourceEntryAsync(JournalSourceType.Salary,
-                entity.Id,
-                entity.SalaryDate,
-                $"Salary {entity.SalaryCode}",
-                new[]
-                {
-                    new JournalLineRequest(AccountCodeRepository.Salaries, entity.SalaryAmount, 0),
-                    new JournalLineRequest(AccountCodeRepository.Cash, 0, entity.SalaryAmount)
-                });
-            if (!posting.Success)
-            {
-                return posting;
-            }
 
             await transaction.CommitAsync();
 

@@ -22,7 +22,6 @@ public class AccountDefinitionViewModel
     public decimal OpeningBalance { get; set; }
     public decimal Balance { get; set; }
     public AccountBalanceType BalanceType { get; set; }
-    public bool IsSystem { get; set; }
     public bool IsOwned { get; set; }
 
     public string Location { get; set; }

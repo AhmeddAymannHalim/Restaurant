@@ -203,8 +203,8 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
                 $"Customer receipt {payment.ProcessCode}",
                 new[]
                 {
-                    new JournalLineRequest(AccountCodeRepository.Cash, payment.Paid, 0),
-                    new JournalLineRequest(null, 0, payment.Paid, null, partner.Account.Id)
+                    new JournalLineRequest(null, payment.Paid, 0),
+                    new JournalLineRequest(partner.Account.Id, 0, payment.Paid)
                 },
                 saveChanges: false);
             if (!posting.Success)
@@ -410,8 +410,8 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
                 $"Customer refund {payment.ProcessCode}",
                 new[]
                 {
-                    new JournalLineRequest(null, refund.Amount, 0, null, customer.Account.Id),
-                    new JournalLineRequest(AccountCodeRepository.Cash, 0, refund.Amount)
+                    new JournalLineRequest(customer.Account.Id, refund.Amount, 0),
+                    new JournalLineRequest(null, 0, refund.Amount)
                 },
                 saveChanges: false);
             if (!posting.Success)

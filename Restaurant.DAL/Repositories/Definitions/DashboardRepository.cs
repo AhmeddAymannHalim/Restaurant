@@ -51,7 +51,6 @@ public class DashboardRepository : IDashboardRepository
             ShiftOrders = shift.Count,
             ShiftSales = shift.Where(a => a.Cash).Sum(a => a.TotalPrice),
             InKitchen = await _context.Orders.AsNoTracking().CountAsync(a => !a.Complete),
-            WaitingOnline = await _context.OnlineOrders.AsNoTracking().CountAsync(a => a.IsPending),
             AwaitingPayment = unpaid.Count,
             AwaitingPaymentAmount = unpaid.Sum(a => a.TotalPrice),
             WaitingReservations = await _context.TableReservations.AsNoTracking().CountAsync(a => a.Status == ReservationStatus.Pending)
@@ -76,31 +75,6 @@ public class DashboardRepository : IDashboardRepository
             Unpaid = unpaid.Count(a => a.Type == type),
             Paid = shift.Count(a => a.Cash && a.Type == type)
         }).ToList();
-
-        model.OnlineRequests = await _context.OnlineOrders
-            .AsNoTracking()
-            .Where(a => a.IsPending)
-            .OrderBy(a => a.OrderDate)
-            .Take(ListLimit)
-            .Select(a => new DashboardOnlineItem
-            {
-                Id = a.Id,
-                CustomerName = a.CustomerName,
-                PhoneNumber = a.PhoneNumber,
-                Address = a.Address,
-                TableId = a.TableId,
-                TableArName = a.Table.ArName,
-                TableEnName = a.Table.EnName,
-                TotalPrice = a.TotalPrice,
-                OrderDate = a.OrderDate,
-                Items = a.OnlineOrderMenuItems.Select(i => new DashboardLine
-                {
-                    ArName = i.MenuItem.ArName,
-                    EnName = i.MenuItem.EnName,
-                    Quantity = i.Quantity
-                }).ToList()
-            })
-            .ToListAsync();
 
         model.Kitchen = await _context.Orders
             .AsNoTracking()
@@ -141,42 +115,15 @@ public class DashboardRepository : IDashboardRepository
             })
             .ToListAsync();
 
-        await FillTablesAsync(model);
-
-        return model;
-    }
-
-    // ---------- table floor ----------
-    // Each table is Free, Reserved or Occupied. To change how long a booking holds a table, edit the two numbers below.
-
-    private const int HoldBeforeMinutes = 30;
-    private const int HoldAfterHours = 3;
-
-    private async Task FillTablesAsync(DashboardViewModel model)
-    {
-        model.Reservations = await GetUpcomingReservationsAsync();
-
-        var openOrderByTable = await GetOpenOrderByTableAsync();
-        var tables = await _context.Tables.AsNoTracking().OrderBy(a => a.Id).ToListAsync();
-
-        foreach (var table in tables)
-        {
-            model.Tables.Add(BuildTableCard(table, model.Reservations, openOrderByTable));
-        }
-    }
-
-    // Bookings that are not finished yet (waiting or confirmed), from 2 hours ago until the end of tomorrow.
-    private async Task<List<DashboardReservation>> GetUpcomingReservationsAsync()
-    {
+        // reservations that are waiting from 2 hours ago until 2 days ahead
         var now = DateTime.Now;
-        var from = now.AddHours(-2);
-        var until = now.Date.AddDays(2);
-
-        return await _context.TableReservations
+        var reservationsFrom = now.AddHours(-2);
+        var reservationsUntil = now.Date.AddDays(2);
+        model.Reservations = await _context.TableReservations
             .AsNoTracking()
             .Where(a => (a.Status == ReservationStatus.Pending || a.Status == ReservationStatus.Confirmed)
-                && a.ReservationDate >= from
-                && a.ReservationDate < until)
+                && a.ReservationDate >= reservationsFrom
+                && a.ReservationDate < reservationsUntil)
             .OrderBy(a => a.ReservationDate)
             .Take(20)
             .Select(a => new DashboardReservation
@@ -193,81 +140,56 @@ public class DashboardRepository : IDashboardRepository
                 Status = a.Status
             })
             .ToListAsync();
-    }
 
-    // Table id -> id of the unpaid hall order that is open on it.
-    private async Task<Dictionary<int, int>> GetOpenOrderByTableAsync()
-    {
-        var openOrders = await _context.Orders
+        var openHallOrders = await _context.Orders
             .AsNoTracking()
             .Where(a => a.Type == OrderType.Hall && a.TableId != null && !a.Cash && !a.FinishShift)
             .OrderBy(a => a.Id)
             .Select(a => new { TableId = a.TableId.Value, OrderId = a.Id })
             .ToListAsync();
 
-        var orderByTable = new Dictionary<int, int>();
-        foreach (var order in openOrders)
-        {
-            orderByTable[order.TableId] = order.OrderId;
-        }
+        // a reservation holds its table from 30 minutes before until 3 hours after
+        var holdFrom = now.AddMinutes(-30);
+        var holdTo = now.AddHours(3);
 
-        return orderByTable;
-    }
-
-    private DashboardTable BuildTableCard(Table table, List<DashboardReservation> reservations, Dictionary<int, int> openOrderByTable)
-    {
-        var card = new DashboardTable
+        var tables = await _context.Tables.AsNoTracking().OrderBy(a => a.Id).ToListAsync();
+        foreach (var table in tables)
         {
-            Id = table.Id,
-            ArName = table.ArName,
-            EnName = table.EnName,
-            Seats = table.NumOfPersons,
-            State = DashboardTableState.Free
-        };
-
-        // An open order means guests are sitting there right now.
-        if (table.IsPending)
-        {
-            card.State = DashboardTableState.Occupied;
-            if (openOrderByTable.TryGetValue(table.Id, out var orderId))
+            var card = new DashboardTable
             {
-                card.OrderId = orderId;
+                Id = table.Id,
+                ArName = table.ArName,
+                EnName = table.EnName,
+                Seats = table.NumOfPersons,
+                State = DashboardTableState.Free
+            };
+
+            if (table.IsPending)
+            {
+                // an open order means guests are sitting there right now
+                card.State = DashboardTableState.Occupied;
+                card.OrderId = openHallOrders.LastOrDefault(a => a.TableId == table.Id)?.OrderId;
+            }
+            else
+            {
+                var booking = model.Reservations.FirstOrDefault(a => a.TableId == table.Id
+                    && a.ReservationDate >= holdFrom
+                    && a.ReservationDate < holdTo);
+                if (booking != null)
+                {
+                    card.State = DashboardTableState.Reserved;
+                    card.ReservationId = booking.Id;
+                    card.BookingStatus = booking.Status;
+                    card.CustomerName = booking.CustomerName;
+                    card.PhoneNumber = booking.PhoneNumber;
+                    card.ReservedAt = booking.ReservationDate;
+                    card.Guests = booking.GuestCount;
+                }
             }
 
-            return card;
+            model.Tables.Add(card);
         }
 
-        var booking = FindBookingHoldingTable(table.Id, reservations);
-        if (booking != null)
-        {
-            card.State = DashboardTableState.Reserved;
-            card.ReservationId = booking.Id;
-            card.BookingStatus = booking.Status;
-            card.CustomerName = booking.CustomerName;
-            card.PhoneNumber = booking.PhoneNumber;
-            card.ReservedAt = booking.ReservationDate;
-            card.Guests = booking.GuestCount;
-        }
-
-        return card;
-    }
-
-    // The earliest booking of this table that falls inside the holding window, or null.
-    private DashboardReservation FindBookingHoldingTable(int tableId, List<DashboardReservation> reservations)
-    {
-        var holdFrom = DateTime.Now.AddMinutes(-HoldBeforeMinutes);
-        var holdTo = DateTime.Now.AddHours(HoldAfterHours);
-
-        foreach (var booking in reservations)
-        {
-            var isThisTable = booking.TableId == tableId;
-            var isInWindow = booking.ReservationDate >= holdFrom && booking.ReservationDate < holdTo;
-            if (isThisTable && isInWindow)
-            {
-                return booking;
-            }
-        }
-
-        return null;
+        return model;
     }
 }

@@ -26,7 +26,6 @@ namespace Restaurant.DAL.UnitOfWork
         public IBillRepository Bills { get; set; }
         public IAccountDefinitionRepository AccountDefinitions { get; set; }
         public IEntryRepository Entries { get; set; }
-        public IOnlineOrderRepository OnlineOrders { get; set; }
         public IReportRepository Reports { get; set; }
         public IStoreConvertRepository StoreConverts { get; set; }
         public ISupplierPaymentRepository SupplierPayments { get; set; }
@@ -62,9 +61,6 @@ namespace Restaurant.DAL.UnitOfWork
         public IDashboardRepository Dashboard { get; set; }
         public ILookupRepository Lookups { get; set; }
         public IJournalEntryRepository Journals { get; set; }
-        public IHomeRepository Home { get; set; }
-        public IChefRepository Chefs { get; set; }
-        public IGalleryRepository Galleries { get; set; }
 
         int Complete();
     }

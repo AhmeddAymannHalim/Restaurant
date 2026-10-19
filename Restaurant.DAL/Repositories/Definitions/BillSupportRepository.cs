@@ -190,7 +190,17 @@ public class BillSupportRepository : IBillSupportRepository
         var highest = 0;
         foreach (var code in codes)
         {
-            var number = GetTrailingNumber(code);
+            var number = 0;
+            if (!string.IsNullOrEmpty(code))
+            {
+                var digits = "";
+                for (var i = code.Length - 1; i >= 0 && char.IsDigit(code[i]); i--)
+                {
+                    digits = code[i] + digits;
+                }
+
+                int.TryParse(digits, out number);
+            }
             if (number > highest)
             {
                 highest = number;
@@ -198,23 +208,6 @@ public class BillSupportRepository : IBillSupportRepository
         }
 
         return (highest + 1).ToString();
-    }
-
-    private int GetTrailingNumber(string code)
-    {
-        if (string.IsNullOrEmpty(code))
-        {
-            return 0;
-        }
-
-        var digits = "";
-        for (var i = code.Length - 1; i >= 0 && char.IsDigit(code[i]); i--)
-        {
-            digits = code[i] + digits;
-        }
-
-        int.TryParse(digits, out var number);
-        return number;
     }
 
     public async Task<EntrySetting> GetEntrySettingAsync(EntryType type, string arName, string enName)
@@ -277,22 +270,23 @@ public class BillSupportRepository : IBillSupportRepository
 
     public int ProductIdOf(string itemCode)
     {
-        return GetNumberAfterPrefix(itemCode, ItemCodePrefix);
+        var number = 0;
+        if (itemCode != null && itemCode.StartsWith(ItemCodePrefix))
+        {
+            int.TryParse(itemCode.Substring(ItemCodePrefix.Length), out number);
+        }
+
+        return number;
     }
 
     public int UnitPriceIdOf(string unitCode)
     {
-        return GetNumberAfterPrefix(unitCode, UnitCodePrefix);
-    }
-
-    private int GetNumberAfterPrefix(string code, string prefix)
-    {
-        if (code == null || !code.StartsWith(prefix))
+        var number = 0;
+        if (unitCode != null && unitCode.StartsWith(UnitCodePrefix))
         {
-            return 0;
+            int.TryParse(unitCode.Substring(UnitCodePrefix.Length), out number);
         }
 
-        int.TryParse(code.Substring(prefix.Length), out var number);
         return number;
     }
 

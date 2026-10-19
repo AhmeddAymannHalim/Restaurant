@@ -7,8 +7,8 @@ namespace Restaurant.DAL.IRepositories.Definitions;
 
 public interface IAccountDefinitionRepository
 {
-    Task<PaginatedResult<AccountDefinitionViewModel>> GetPagedAccountsAsync(PageRequest request, bool assetsOnly);
-    Task<AccountDefinitionViewModel> GetAccountByIdAsync(int id);
+    Task<PaginatedResult<Account>> GetPagedAccountsAsync(PageRequest request, bool assetsOnly);
+    Task<Account> GetAccountByIdAsync(int id);
     Task<string> NewAccountCodeAsync(int? parentId, AccountKind kind);
     Task<IEnumerable<LookupItem>> GetParentOptionsAsync(int? exceptId);
     Task<IEnumerable<LookupItem>> GetPostingAccountOptionsAsync();

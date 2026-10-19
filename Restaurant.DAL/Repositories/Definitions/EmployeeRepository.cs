@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
 using Shared.Enums;
@@ -226,8 +225,7 @@ public class EmployeeRepository : IEmployeeRepository
 
                 entity.Account = await _accountProvision.CreateAsync(entity.ArName,
                                                                      entity.EnName,
-                                                                     AccountType.Employee,
-                                                                     AccountCodeRepository.EmployeesPayable);
+                                                                     AccountType.Employee);
 
                 await _context.Employees.AddAsync(entity);
                 await _context.SaveChangesAsync();
@@ -288,8 +286,7 @@ public class EmployeeRepository : IEmployeeRepository
             {
                 entity.Account = await _accountProvision.CreateAsync(entity.ArName,
                     entity.EnName,
-                    AccountType.Employee,
-                    AccountCodeRepository.EmployeesPayable);
+                    AccountType.Employee);
             }
             else
             {
@@ -297,9 +294,6 @@ public class EmployeeRepository : IEmployeeRepository
                 existing.Account.EnName = entity.EnName;
             }
 
-            // Allowance and deduction rows are never typed by hand: the chosen type decides the names and the amount.
-            // A saved row keeps its stored values while its type is unchanged, so editing a type later
-            // does not silently change what an employee already gets.
             var allowanceTypes = await _context.AllowanceTypes.AsNoTracking().ToDictionaryAsync(a => a.Id);
             var deductionTypes = await _context.DeductionTypes.AsNoTracking().ToDictionaryAsync(a => a.Id);
 

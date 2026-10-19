@@ -27,65 +27,68 @@ public class OrderRepository : IOrderRepository
         _billSupport = new BillSupportRepository(context);
     }
 
+    // ---------------------------------------------------------------- shift
+
     public async Task<ShiftDashboardViewModel> GetShiftDashboardAsync(string userId)
     {
-        var paidTypes = new[] { OrderType.Hall, OrderType.Delivery, OrderType.Delivery_Online, OrderType.TakeAway };
-        var unpaidTypes = new[] { OrderType.Hall, OrderType.Delivery, OrderType.Delivery_Online };
-
         var openOrders = _context.Orders.AsNoTracking().Where(a => !a.FinishShift);
 
-        var collectedRows = new List<ShiftRowViewModel>();
+        var model = new ShiftDashboardViewModel();
+
+        var paidTypes = new[] { OrderType.Hall, OrderType.Delivery, OrderType.Delivery_Online, OrderType.TakeAway };
         foreach (var type in paidTypes)
         {
-            var bucket = openOrders.Where(a => a.Type == type
+            var paid = openOrders.Where(a => a.Type == type
                 && a.Cash
                 && !a.OnAccount
                 && a.SellerId == userId
                 && a.ReceiverId == userId);
-            var count = await bucket.CountAsync();
-            var amount = await bucket.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0;
-            collectedRows.Add(new ShiftRowViewModel { Type = type, Count = count, Amount = amount });
+            model.Collected.Add(new ShiftRowViewModel
+            {
+                Type = type,
+                Count = await paid.CountAsync(),
+                Amount = await paid.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0
+            });
         }
 
-        var pendingMineRows = new List<ShiftRowViewModel>();
+        // orders still waiting for payment, mine and the other cashiers'
+        var unpaidTypes = new[] { OrderType.Hall, OrderType.Delivery, OrderType.Delivery_Online };
         foreach (var type in unpaidTypes)
         {
-            var bucket = openOrders.Where(a => a.Type == type && !a.Cash && a.SellerId == userId);
-            var count = await bucket.CountAsync();
-            var amount = await bucket.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0;
-            pendingMineRows.Add(new ShiftRowViewModel { Type = type, Count = count, Amount = amount });
+            var mine = openOrders.Where(a => a.Type == type && !a.Cash && a.SellerId == userId);
+            model.PendingMine.Add(new ShiftRowViewModel
+            {
+                Type = type,
+                Count = await mine.CountAsync(),
+                Amount = await mine.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0
+            });
+
+            var others = openOrders.Where(a => a.Type == type && !a.Cash && a.SellerId != userId);
+            model.PendingOthers.Add(new ShiftRowViewModel
+            {
+                Type = type,
+                Count = await others.CountAsync(),
+                Amount = await others.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0
+            });
         }
 
-        var pendingOthersRows = new List<ShiftRowViewModel>();
-        foreach (var type in unpaidTypes)
-        {
-            var bucket = openOrders.Where(a => a.Type == type && !a.Cash && a.SellerId != userId);
-            var count = await bucket.CountAsync();
-            var amount = await bucket.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0;
-            pendingOthersRows.Add(new ShiftRowViewModel { Type = type, Count = count, Amount = amount });
-        }
+        var fromOthers = openOrders.Where(a => a.Cash && !a.OnAccount && a.SellerId != userId && a.ReceiverId == userId);
+        model.CollectedFromOthers.Count = await fromOthers.CountAsync();
+        model.CollectedFromOthers.Amount = await fromOthers.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0;
 
-        var fromOthersQuery = openOrders.Where(a => a.Cash
-            && !a.OnAccount
-            && a.SellerId != userId
-            && a.ReceiverId == userId);
-        var fromOthersCount = await fromOthersQuery.CountAsync();
-        var fromOthersAmount = await fromOthersQuery.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0;
-
-        var electronicQuery = openOrders.Where(a => a.Cash
+        var electronic = openOrders.Where(a => a.Cash
             && !a.OnAccount
             && a.PaymentMethod != null
             && a.PaymentMethod != PaymentMethod.Cash
             && a.ReceiverId == userId);
-        var electronicCount = await electronicQuery.CountAsync();
-        var electronicAmount = await electronicQuery.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0;
+        model.Electronic.Count = await electronic.CountAsync();
+        model.Electronic.Amount = await electronic.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0;
 
-        var onAccountQuery = openOrders.Where(a => a.OnAccount
-            && (a.SellerId == userId || a.ReceiverId == userId));
-        var onAccountCount = await onAccountQuery.CountAsync();
-        var onAccountAmount = await onAccountQuery.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0;
+        var onAccount = openOrders.Where(a => a.OnAccount && (a.SellerId == userId || a.ReceiverId == userId));
+        model.OnAccount.Count = await onAccount.CountAsync();
+        model.OnAccount.Amount = await onAccount.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0;
 
-        var lastReport = await _context.ShiftCloseReports.AsNoTracking()
+        model.LastShiftReport = await _context.ShiftCloseReports.AsNoTracking()
             .Where(a => a.UserId == userId)
             .OrderByDescending(a => a.Id)
             .Select(a => new ShiftCloseReportViewModel
@@ -98,29 +101,74 @@ public class OrderRepository : IOrderRepository
             })
             .FirstOrDefaultAsync();
 
-        return new ShiftDashboardViewModel
-        {
-            Collected = collectedRows,
-            PendingMine = pendingMineRows,
-            PendingOthers = pendingOthersRows,
-            CollectedFromOthers = new ShiftRowViewModel
-            {
-                Count = fromOthersCount,
-                Amount = fromOthersAmount
-            },
-            Electronic = new ShiftRowViewModel
-            {
-                Count = electronicCount,
-                Amount = electronicAmount
-            },
-            OnAccount = new ShiftRowViewModel
-            {
-                Count = onAccountCount,
-                Amount = onAccountAmount
-            },
-            LastShiftReport = lastReport
-        };
+        return model;
     }
+
+    public async Task<ResultMessage> FinishShiftAsync(string userId, decimal countedCash)
+    {
+        try
+        {
+            if (countedCash < 0)
+            {
+                return new ResultMessage { Success = false, Message = "CountedCashInvalid" };
+            }
+
+            var hadIncompleteOrders = await _context.Orders.AnyAsync(a => a.Cash && !a.FinishShift && a.ReceiverId == userId && !a.Complete);
+            var expectedCash = (await GetShiftDashboardAsync(userId)).MoneyInDrawer;
+
+            var orders = await _context.Orders.Where(a => a.Cash && !a.FinishShift && a.ReceiverId == userId).ToListAsync();
+            foreach (var order in orders)
+            {
+                order.FinishShift = true;
+            }
+
+            await _context.ShiftCloseReports.AddAsync(new ShiftCloseReport
+            {
+                UserId = userId,
+                ExpectedCash = expectedCash,
+                CountedCash = countedCash,
+                Variance = countedCash - expectedCash,
+                HadIncompleteOrders = hadIncompleteOrders
+            });
+
+            await _context.SaveChangesAsync();
+
+            return new ResultMessage { Success = true };
+        }
+        catch (Exception ex)
+        {
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
+        }
+    }
+
+    public async Task<bool> VerifyShiftPasswordAsync(string password)
+    {
+        var setting = await _context.ApplicationSettings.OrderByDescending(a => a.Id).FirstOrDefaultAsync();
+        if (setting is null || !_shiftPassword.Verify(setting.Password, password, out var needsRehash))
+        {
+            return false;
+        }
+
+        if (needsRehash)
+        {
+            setting.Password = _shiftPassword.Hash(password);
+            await _context.SaveChangesAsync();
+        }
+
+        return true;
+    }
+
+    public async Task<IEnumerable<Order>> GetIncompleteCashOrdersAsync(string userId)
+    {
+        return await _context.Orders.AsNoTracking()
+            .Include(a => a.Bill)
+            .Include(a => a.Table)
+            .Where(a => a.Cash && !a.FinishShift && a.ReceiverId == userId && !a.Complete)
+            .OrderBy(a => a.Bill.Date)
+            .ToListAsync();
+    }
+
+    // ---------------------------------------------------------------- read
 
     public async Task<PaginatedResult<Order>> GetPagedOrdersAsync(PageRequest request, string userId)
     {
@@ -193,86 +241,6 @@ public class OrderRepository : IOrderRepository
         return await _billSupport.NextBillCodeAsync(setting.Id);
     }
 
-    public async Task<IEnumerable<MenuItem>> GetCashierMenuAsync()
-    {
-        var menu = await _context.MenuItems.AsNoTracking()
-            .Include(a => a.MenuSection)
-            .Include(a => a.Components).ThenInclude(a => a.Product)
-            .OrderBy(a => a.MenuSection.ArName)
-            .ThenBy(a => a.ArName)
-            .ToListAsync();
-
-        var portions = await GetAvailablePortionsAsync();
-        foreach (var dish in menu)
-        {
-            if (portions.ContainsKey(dish.Id))
-            {
-                dish.AvailablePortions = portions[dish.Id];
-            }
-
-            if (dish.AvailablePortions <= 0)
-            {
-                dish.IsAvailable = false;
-            }
-        }
-
-        return menu;
-    }
-
-    public async Task<Dictionary<int, int>> GetAvailablePortionsAsync()
-    {
-        var stock = await _stock.QuantitiesAsync();
-        var menuItems = await _context.MenuItems
-            .AsNoTracking()
-            .Include(a => a.Components)
-            .Where(a => a.Components.Any())
-            .ToListAsync();
-
-        var portionsByMenuItem = new Dictionary<int, int>();
-        foreach (var menuItem in menuItems)
-        {
-            portionsByMenuItem[menuItem.Id] = CountPortions(menuItem, stock);
-        }
-
-        return portionsByMenuItem;
-    }
-
-    private void AddNeed(List<StockQuantity> needs, int storeId, int productId, decimal quantity)
-    {
-        foreach (var need in needs)
-        {
-            if (need.StoreId == storeId && need.ProductId == productId)
-            {
-                need.Quantity += quantity;
-                return;
-            }
-        }
-
-        needs.Add(new StockQuantity { StoreId = storeId, ProductId = productId, Quantity = quantity });
-    }
-
-    private int CountPortions(MenuItem menuItem, List<StockQuantity> stock)
-    {
-        var portions = int.MaxValue;
-
-        foreach (var component in menuItem.Components)
-        {
-            if (component.Quantity <= 0)
-            {
-                continue;
-            }
-
-            var inStock = _stock.FindQuantity(stock, menuItem.StoreId, component.ProductId);
-            var possible = (int)Math.Floor(inStock / component.Quantity);
-            if (possible < portions)
-            {
-                portions = possible;
-            }
-        }
-
-        return portions;
-    }
-
     public async Task<ApplicationSetting> GetSettingsAsync()
     {
         return await _context.ApplicationSettings.AsNoTracking().OrderByDescending(a => a.Id).FirstOrDefaultAsync()
@@ -287,7 +255,60 @@ public class OrderRepository : IOrderRepository
             .ToListAsync();
     }
 
-    public async Task<ResultMessage> CreateOrderAsync(Order order, int? onlineOrderId, string userId)
+    public async Task<IEnumerable<MenuItem>> GetCashierMenuAsync()
+    {
+        var menu = await _context.MenuItems.AsNoTracking()
+            .Include(a => a.MenuSection)
+            .Include(a => a.Components).ThenInclude(a => a.Product)
+            .OrderBy(a => a.MenuSection.ArName)
+            .ThenBy(a => a.ArName)
+            .ToListAsync();
+
+        var stock = await _stock.QuantitiesAsync();
+        foreach (var dish in menu)
+        {
+            // a dish without a recipe has no stock limit
+            if (dish.Components.Any())
+            {
+                var portions = int.MaxValue;
+                foreach (var component in dish.Components)
+                {
+                    if (component.Quantity <= 0)
+                    {
+                        continue;
+                    }
+
+                    var inStock = _stock.FindQuantity(stock, dish.StoreId, component.ProductId);
+                    portions = Math.Min(portions, (int)Math.Floor(inStock / component.Quantity));
+                }
+
+                dish.AvailablePortions = portions;
+            }
+
+            if (dish.AvailablePortions <= 0)
+            {
+                dish.IsAvailable = false;
+            }
+        }
+
+        return menu;
+    }
+
+    public async Task<IEnumerable<Order>> GetKitchenOrdersAsync()
+    {
+        return await _context.Orders.AsNoTracking()
+            .Include(a => a.Bill)
+            .Include(a => a.Table)
+            .Include(a => a.Lines).ThenInclude(a => a.BillDetail)
+            .Include(a => a.Lines).ThenInclude(a => a.MenuItem)
+            .Where(a => !a.Complete)
+            .OrderBy(a => a.Bill.Date)
+            .ToListAsync();
+    }
+
+    // ---------------------------------------------------------------- write
+
+    public async Task<ResultMessage> CreateOrderAsync(Order order, string userId)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -295,25 +316,18 @@ public class OrderRepository : IOrderRepository
         {
             var settings = await GetSettingsAsync();
 
-            var wanted = order.Lines
-                .GroupBy(a => a.MenuItemId)
-                .Select(g => new
-                    {
-                        MenuItemId = g.Key,
-                        Quantity = g.Sum(x => x.Quantity)
-                    })
-                .ToList();
-            if (wanted.Count == 0)
+            // 1. the dishes: the same dish may come twice, so its quantity is summed
+            var menuItemIds = order.Lines.Select(a => a.MenuItemId).Distinct().ToList();
+            if (menuItemIds.Count == 0)
             {
                 return new ResultMessage { Success = false, Message = "AtLeastOneItem" };
             }
 
-            var ids = wanted.Select(a => a.MenuItemId).ToList();
             var menu = await _context.MenuItems
                 .Include(a => a.Components).ThenInclude(a => a.Product)
-                .Where(a => ids.Contains(a.Id))
+                .Where(a => menuItemIds.Contains(a.Id))
                 .ToListAsync();
-            if (menu.Count != ids.Count)
+            if (menu.Count != menuItemIds.Count)
             {
                 return new ResultMessage { Success = false, Message = "RecordNotFound" };
             }
@@ -323,113 +337,112 @@ public class OrderRepository : IOrderRepository
                 return new ResultMessage { Success = false, Message = "MenuItemNotAvailable" };
             }
 
+            // 2. the customer, only when the order is on account
             Customer customer = null;
             if (order.OnAccount)
             {
-                customer = order.CustomerId.HasValue ? await _context.Customers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == order.CustomerId.Value) : null;
+                customer = order.CustomerId.HasValue
+                    ? await _context.Customers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == order.CustomerId.Value)
+                    : null;
                 if (customer is null)
                 {
                     return new ResultMessage { Success = false, Message = "CustomerRequired" };
                 }
             }
 
+            // 3. each order type decides if it is paid now and what it needs (table, driver)
             Table table = null;
-            Order mergeInto = null;
             var cash = order.Cash || order.OnAccount;
-            switch (order.Type)
+            if (order.Type == OrderType.TakeAway)
             {
-                case OrderType.TakeAway:
-                    cash = true;
+                cash = true;
+                order.TableId = null;
+                order.EmployeeId = null;
+            }
+            else if (order.Type == OrderType.Hall)
+            {
+                order.EmployeeId = null;
+                if (cash)
+                {
                     order.TableId = null;
-                    order.EmployeeId = null;
-                    break;
-
-                case OrderType.Hall:
-                    order.EmployeeId = null;
-                    if (cash)
+                }
+                else
+                {
+                    table = order.TableId.HasValue ? await _context.Tables.FindAsync(order.TableId.Value) : null;
+                    if (table is null)
                     {
-                        order.TableId = null;
-                    }
-                    else
-                    {
-                        table = order.TableId.HasValue ? await _context.Tables.FindAsync(order.TableId.Value) : null;
-                        if (table is null)
-                        {
-                            return new ResultMessage { Success = false, Message = "TableRequired" };
-                        }
-
-                        if (table.IsPending)
-                        {
-                            if (!onlineOrderId.HasValue)
-                            {
-                                return new ResultMessage { Success = false, Message = "TableBusy" };
-                            }
-
-                            mergeInto = await _context.Orders
-                                .Include(a => a.Bill).ThenInclude(a => a.BillDetails)
-                                .Include(a => a.Lines).ThenInclude(a => a.BillDetail)
-                                .FirstOrDefaultAsync(a => a.TableId == table.Id
-                                    && !a.Cash
-                                    && a.Type == OrderType.Hall);
-                            if (mergeInto is null)
-                            {
-                                return new ResultMessage { Success = false, Message = "TableBusy" };
-                            }
-
-                            table = null;
-                        }
-                    }
-                    break;
-
-                case OrderType.Delivery:
-                case OrderType.Delivery_Online:
-                    order.TableId = null;
-                    cash = true;
-                    if (order.Type == OrderType.Delivery_Online && !onlineOrderId.HasValue)
-                    {
-                        return new ResultMessage { Success = false, Message = "RecordNotFound" };
+                        return new ResultMessage { Success = false, Message = "TableRequired" };
                     }
 
-                    if (!order.EmployeeId.HasValue
-                        || !await _context.Employees.AnyAsync(a => a.Id == order.EmployeeId))
+                    if (table.IsPending)
                     {
-                        return new ResultMessage { Success = false, Message = "DeliveryDriverRequired" };
+                        return new ResultMessage { Success = false, Message = "TableBusy" };
                     }
-                    break;
+                }
+            }
+            else
+            {
+                order.TableId = null;
+                cash = true;
+                if (!order.EmployeeId.HasValue || !await _context.Employees.AnyAsync(a => a.Id == order.EmployeeId))
+                {
+                    return new ResultMessage { Success = false, Message = "DeliveryDriverRequired" };
+                }
             }
 
-            var posSetting = await _orderLedger.GetSettingAsync();
-            var itemIds = await _orderLedger.GetItemIdsAsync(menu);
-
-            var lines = wanted.Select((w, index) =>
+            // 4. delivery zone and fee
+            int? deliveryZoneId = null;
+            decimal deliveryFee = 0;
+            if (order.Type is OrderType.Delivery or OrderType.Delivery_Online)
             {
-                var dish = menu.First(a => a.Id == w.MenuItemId);
-                return new OrderMenuItem
+                var zones = await _context.DeliveryZones.AsNoTracking().ToListAsync();
+                if (zones.Count > 0)
+                {
+                    var zone = zones.FirstOrDefault(a => a.Id == order.DeliveryZoneId);
+                    if (zone is null)
+                    {
+                        return new ResultMessage { Success = false, Message = "DeliveryZoneRequired" };
+                    }
+
+                    deliveryZoneId = zone.Id;
+                    deliveryFee = zone.Fee;
+                }
+            }
+
+            // 5. the order lines, and take the ingredients out of the stock
+            var lines = new List<OrderMenuItem>();
+            var movements = new List<StoreProductMovement>();
+            var rowNumber = 0;
+            foreach (var menuItemId in menuItemIds)
+            {
+                var dish = menu.First(a => a.Id == menuItemId);
+                var quantity = order.Lines.Where(a => a.MenuItemId == menuItemId).Sum(a => a.Quantity);
+                rowNumber++;
+
+                var line = new OrderMenuItem
                 {
                     MenuItemId = dish.Id,
                     BillDetail = new BillDetail
                     {
-                        RowNumber = (byte)Math.Min(index + 1, byte.MaxValue),
-                        ItemId = itemIds[dish.Id],
+                        RowNumber = (byte)Math.Min(rowNumber, byte.MaxValue),
+                        ItemId = await _orderLedger.GetItemIdAsync(dish),
                         StoreId = dish.StoreId,
-                        Quantity = w.Quantity,
+                        Quantity = quantity,
                         UnitPrice = dish.Price,
                         TransRate = 1,
                         UnitCostAtPosting = dish.TotalCost,
-                        TotalAmount = Math.Round(w.Quantity * dish.Price, 2),
+                        TotalAmount = Math.Round(quantity * dish.Price, 2),
                         CreatedAt = DateTime.Now
                     }
                 };
-            }).ToList();
 
-            var needs = new List<StockQuantity>();
-            foreach (var line in lines)
-            {
-                var dish = menu.First(a => a.Id == line.MenuItemId);
                 foreach (var component in dish.Components)
                 {
-                    var used = line.Quantity * component.Quantity;
-                    AddNeed(needs, dish.StoreId, component.ProductId, used);
+                    var used = quantity * component.Quantity;
+                    if (!await _stock.AdjustAsync(dish.StoreId, component.ProductId, -used, createIfMissing: false))
+                    {
+                        return new ResultMessage { Success = false, Message = "InsufficientStock" };
+                    }
 
                     line.Ingredients.Add(new OrderIngredient
                     {
@@ -437,147 +450,40 @@ public class OrderRepository : IOrderRepository
                         ProductId = component.ProductId,
                         Quantity = used
                     });
-                }
-            }
-
-            var movements = new List<StoreProductMovement>();
-            foreach (var need in needs)
-            {
-                if (!await _stock.AdjustAsync(need.StoreId, need.ProductId, -need.Quantity, createIfMissing: false))
-                {
-                    return new ResultMessage { Success = false, Message = "InsufficientStock" };
-                }
-
-                movements.Add(new StoreProductMovement
-                {
-                    StoreId = need.StoreId,
-                    ProductId = need.ProductId,
-                    QuantityDelta = -need.Quantity,
-                    Source = StockMovementSource.Order
-                });
-            }
-
-            if (mergeInto is not null)
-            {
-                foreach (var line in lines)
-                {
-                    line.BillDetail.BillMasterId = mergeInto.Id;
-                    mergeInto.Lines.Add(line);
-                    mergeInto.Bill.BillDetails.Add(line.BillDetail);
-                }
-
-                
-    {
-        var recalcBill = mergeInto.Bill;
-        var subTotal = mergeInto.Lines.Sum(a => a.Price);
-        mergeInto.Tax = Math.Round(subTotal *  settings.OrderTax / 100, 2);
-
-        var extras = mergeInto.Tax + mergeInto.Service + mergeInto.DeliveryFee;
-        var gross = subTotal + extras;
-        var discountFloor = Math.Max(0, recalcBill.BillDiscountValue);
-        var discount = Math.Min(discountFloor, gross);
-        var total = gross - discount;
-        decimal cost = 0;
-        foreach (var costLine in mergeInto.Lines)
-        {
-            cost += costLine.UnitCost * costLine.Quantity;
-        }
-
-        recalcBill.TotalAmountBeforeDiscountOrExtra = subTotal;
-        recalcBill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
-        recalcBill.BillDiscountValue = discount;
-        recalcBill.TotalDiscountValueOnBillAndItems = discount;
-        recalcBill.BillExtraValue = extras;
-        recalcBill.TotalExtraValueOnBillAndItems = extras;
-        recalcBill.TotalBillAmountAfterDiscountAndExtra = total;
-        var costLimit = 999_999_999_999m;
-        recalcBill.BillCost = Math.Abs(cost) > costLimit ? null : cost;
-        recalcBill.BillProfit = Math.Abs(total - cost) > costLimit ? null : total - cost;
-        recalcBill.PayType = mergeInto.OnAccount ? PayType.Later : PayType.Cash;
-        recalcBill.IsEntryPosted = false;
-        recalcBill.AmountPaided = mergeInto.Cash && !mergeInto.OnAccount ? total : 0;
-        recalcBill.CasherRemainingAmount = total - recalcBill.AmountPaided;
-        recalcBill.UpdatedAt = DateTime.Now;
-    }
-
-
-                var waiting = await _context.OnlineOrders.FirstOrDefaultAsync(a => a.Id == onlineOrderId.Value);
-                if (waiting is not null && waiting.Status == OnlineOrderStatus.Rejected)
-                {
-                    return new ResultMessage { Success = false, Message = "OnlineOrderRejected" };
-                }
-                if (waiting is null || !waiting.IsPending)
-                {
-                    return new ResultMessage { Success = false, Message = "RecordNotFound" };
-                }
-
-                waiting.IsPending = false;
-                waiting.Status = OnlineOrderStatus.Accepted;
-                mergeInto.Complete = false;
-
-                foreach (var movement in movements)
-                {
-                    movement.ReferenceCode = mergeInto.OrderCode;
-                }
-                await _context.StoreProductMovements.AddRangeAsync(movements);
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                return new ResultMessage
-                {
-                    Success = true,
-                    Data = mergeInto.Id.ToString()
-                };
-            }
-
-            int? deliveryZoneId = null;
-            decimal deliveryFee = 0;
-            if (order.Type is OrderType.Delivery or OrderType.Delivery_Online)
-            {
-                if (onlineOrderId.HasValue)
-                {
-                    var source = await _context.OnlineOrders.AsNoTracking().FirstOrDefaultAsync(a => a.Id == onlineOrderId.Value);
-                    deliveryZoneId = source?.DeliveryZoneId;
-                    deliveryFee = source?.DeliveryFee ?? 0;
-                }
-                else
-                {
-                    var zones = await _context.DeliveryZones.AsNoTracking().ToListAsync();
-                    if (zones.Count > 0)
+                    movements.Add(new StoreProductMovement
                     {
-                        var zone = zones.FirstOrDefault(a => a.Id == order.DeliveryZoneId);
-                        if (zone is null)
-                        {
-                            return new ResultMessage { Success = false, Message = "DeliveryZoneRequired" };
-                        }
-
-                        deliveryZoneId = zone.Id;
-                        deliveryFee = zone.Fee;
-                    }
+                        StoreId = dish.StoreId,
+                        ProductId = component.ProductId,
+                        QuantityDelta = -used,
+                        Source = StockMovementSource.Order
+                    });
                 }
+
+                lines.Add(line);
             }
 
-            var now = DateTime.Now;
+            // 6. the bill and the order
+            var billSetting = await _orderLedger.GetSettingAsync();
             var code = await GetNextCodeAsync();
-            var phone = order.PhoneNumber;
+            var now = DateTime.Now;
+
             var bill = new BillMaster
             {
                 Code = code,
                 CodeWithoutSuffix = code,
                 Date = now,
                 CurrencyRate = 1,
-                BillSettingId = posSetting.Id,
-                BillDiscountValue = Math.Max(0, order.Bill?.BillDiscountValue ?? 0),
-                CustomerOrSupplierPhoneNumber = phone,
+                BillSettingId = billSetting.Id,
+                BillDiscountValue = order.Bill?.BillDiscountValue ?? 0,
+                CustomerOrSupplierPhoneNumber = order.PhoneNumber,
                 CustomerOrSupplierAccountId = customer?.AccountId,
                 EmployeeId = order.EmployeeId,
-                StoreId = lines.Select(a => a.BillDetail.StoreId).FirstOrDefault(),
+                StoreId = lines.First().BillDetail.StoreId,
                 IsStorageEffected = true,
                 CreatedAt = now,
                 BillDetails = lines.Select(a => a.BillDetail).ToList()
             };
-            bill.BillDailyNo = await _context.BillMasters.CountAsync(a => a.BillSettingId == posSetting.Id && a.Date.Date == now.Date) + 1;
+            bill.BillDailyNo = await _context.BillMasters.CountAsync(a => a.BillSettingId == billSetting.Id && a.Date.Date == now.Date) + 1;
 
             var entity = new Order
             {
@@ -589,8 +495,6 @@ public class OrderRepository : IOrderRepository
                 PaymentMethod = cash && !order.OnAccount ? order.PaymentMethod ?? PaymentMethod.Cash : null,
                 OnAccount = order.OnAccount,
                 ReceiverId = cash ? userId : null,
-                Complete = false,
-                FinishShift = false,
                 CustomerName = string.IsNullOrWhiteSpace(order.CustomerName) ? "عميل نقدي" : order.CustomerName.Trim(),
                 CustomerId = order.CustomerId,
                 TableId = order.TableId,
@@ -602,41 +506,28 @@ public class OrderRepository : IOrderRepository
                 Service = order.Type == OrderType.TakeAway ? 0 : settings.OrderService,
                 Lines = lines
             };
-            
-    {
-        var recalcBill = entity.Bill;
-        var subTotal = entity.Lines.Sum(a => a.Price);
-        entity.Tax = Math.Round(subTotal *  settings.OrderTax / 100, 2);
+            entity.Tax = Math.Round(entity.Lines.Sum(a => a.Price) * settings.OrderTax / 100, 2);
+            var subTotal = entity.Lines.Sum(a => a.Price);
+            var extras = entity.Tax + entity.Service + entity.DeliveryFee;
+            var discount = Math.Min(Math.Max(0, entity.Bill.BillDiscountValue), subTotal + extras);
+            var total = subTotal + extras - discount;
+            var cost = entity.Lines.Sum(a => a.UnitCost * a.Quantity);
+            entity.Bill.TotalAmountBeforeDiscountOrExtra = subTotal;
+            entity.Bill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
+            entity.Bill.BillDiscountValue = discount;
+            entity.Bill.TotalDiscountValueOnBillAndItems = discount;
+            entity.Bill.BillExtraValue = extras;
+            entity.Bill.TotalExtraValueOnBillAndItems = extras;
+            entity.Bill.TotalBillAmountAfterDiscountAndExtra = total;
+            entity.Bill.BillCost = cost;
+            entity.Bill.BillProfit = total - cost;
+            entity.Bill.PayType = entity.OnAccount ? PayType.Later : PayType.Cash;
+            entity.Bill.IsEntryPosted = false;
+            entity.Bill.AmountPaided = entity.Cash && !entity.OnAccount ? total : 0;
+            entity.Bill.CasherRemainingAmount = total - entity.Bill.AmountPaided;
+            entity.Bill.UpdatedAt = DateTime.Now;
 
-        var extras = entity.Tax + entity.Service + entity.DeliveryFee;
-        var gross = subTotal + extras;
-        var discountFloor = Math.Max(0, recalcBill.BillDiscountValue);
-        var discount = Math.Min(discountFloor, gross);
-        var total = gross - discount;
-        decimal cost = 0;
-        foreach (var costLine in entity.Lines)
-        {
-            cost += costLine.UnitCost * costLine.Quantity;
-        }
-
-        recalcBill.TotalAmountBeforeDiscountOrExtra = subTotal;
-        recalcBill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
-        recalcBill.BillDiscountValue = discount;
-        recalcBill.TotalDiscountValueOnBillAndItems = discount;
-        recalcBill.BillExtraValue = extras;
-        recalcBill.TotalExtraValueOnBillAndItems = extras;
-        recalcBill.TotalBillAmountAfterDiscountAndExtra = total;
-        var costLimit = 999_999_999_999m;
-        recalcBill.BillCost = Math.Abs(cost) > costLimit ? null : cost;
-        recalcBill.BillProfit = Math.Abs(total - cost) > costLimit ? null : total - cost;
-        recalcBill.PayType = entity.OnAccount ? PayType.Later : PayType.Cash;
-        recalcBill.IsEntryPosted = false;
-        recalcBill.AmountPaided = entity.Cash && !entity.OnAccount ? total : 0;
-        recalcBill.CasherRemainingAmount = total - recalcBill.AmountPaided;
-        recalcBill.UpdatedAt = DateTime.Now;
-    }
-
-
+            // 7. customer balance, table and stock movements
             if (customer is not null)
             {
                 customer.Account.Adjust(bill.TotalBillAmountAfterDiscountAndExtra);
@@ -645,22 +536,6 @@ public class OrderRepository : IOrderRepository
             if (table is not null)
             {
                 table.IsPending = true;
-            }
-
-            if (onlineOrderId.HasValue)
-            {
-                var online = await _context.OnlineOrders.FirstOrDefaultAsync(a => a.Id == onlineOrderId.Value);
-                if (online is not null && online.Status == OnlineOrderStatus.Rejected)
-                {
-                    return new ResultMessage { Success = false, Message = "OnlineOrderRejected" };
-                }
-                if (online is null || !online.IsPending)
-                {
-                    return new ResultMessage { Success = false, Message = "RecordNotFound" };
-                }
-
-                online.IsPending = false;
-                online.Status = OnlineOrderStatus.Accepted;
             }
 
             foreach (var movement in movements)
@@ -672,25 +547,21 @@ public class OrderRepository : IOrderRepository
             await _context.Orders.AddAsync(entity);
             await _context.SaveChangesAsync();
 
+            // 8. a paid order gets its journal entry now
             if (entity.Cash)
             {
-                var postSetting = await _orderLedger.GetSettingAsync();
-            if (postSetting.EntryGenerate == EntryGenerate.AutomaticEntryCreated)
-            {
-                await _orderLedger.PostEntryAsync(entity);
-                entity.Bill.IsEntryPosted = true;
-            }
+                if (billSetting.EntryGenerate == EntryGenerate.AutomaticEntryCreated)
+                {
+                    await _orderLedger.PostEntryAsync(entity);
+                    entity.Bill.IsEntryPosted = true;
+                }
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
             }
 
             await transaction.CommitAsync();
 
-            return new ResultMessage
-            {
-                Success = true,
-                Data = entity.Id.ToString()
-            };
+            return new ResultMessage { Success = true, Data = entity.Id.ToString() };
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -708,23 +579,23 @@ public class OrderRepository : IOrderRepository
 
     public async Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
             var order = await _context.Orders
                 .Include(a => a.Bill).ThenInclude(a => a.BillDetails)
-                .Include(a => a.Lines).ThenInclude(a => a.BillDetail).FirstOrDefaultAsync(a => a.Id == id);
+                .Include(a => a.Lines).ThenInclude(a => a.BillDetail)
+                .FirstOrDefaultAsync(a => a.Id == id);
             if (order is null)
             {
                 return new ResultMessage { Success = false, Message = "RecordNotFound" };
             }
 
+            // already paid, nothing to do
             if (order.Cash)
             {
-                return new ResultMessage
-                {
-                    Success = true,
-                    Data = order.Id.ToString()
-                };
+                return new ResultMessage { Success = true, Data = order.Id.ToString() };
             }
 
             if (order.Type == OrderType.Hall && order.TableId.HasValue)
@@ -735,62 +606,44 @@ public class OrderRepository : IOrderRepository
                     freedTable.IsPending = false;
                 }
             }
+
             order.Cash = true;
             order.PaymentMethod = method;
             order.ReceiverId = userId;
             order.Bill.Date = DateTime.Now;
-            var recalcSettings = await GetSettingsAsync();
-            {
-                var recalcBill = order.Bill;
-                var subTotal = order.Lines.Sum(a => a.Price);
-                order.Tax = Math.Round(subTotal * recalcSettings.OrderTax / 100, 2);
+            var settings = await GetSettingsAsync();
+            order.Tax = Math.Round(order.Lines.Sum(a => a.Price) * settings.OrderTax / 100, 2);
+            var subTotal = order.Lines.Sum(a => a.Price);
+            var extras = order.Tax + order.Service + order.DeliveryFee;
+            var discount = Math.Min(Math.Max(0, order.Bill.BillDiscountValue), subTotal + extras);
+            var total = subTotal + extras - discount;
+            var cost = order.Lines.Sum(a => a.UnitCost * a.Quantity);
+            order.Bill.TotalAmountBeforeDiscountOrExtra = subTotal;
+            order.Bill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
+            order.Bill.BillDiscountValue = discount;
+            order.Bill.TotalDiscountValueOnBillAndItems = discount;
+            order.Bill.BillExtraValue = extras;
+            order.Bill.TotalExtraValueOnBillAndItems = extras;
+            order.Bill.TotalBillAmountAfterDiscountAndExtra = total;
+            order.Bill.BillCost = cost;
+            order.Bill.BillProfit = total - cost;
+            order.Bill.PayType = order.OnAccount ? PayType.Later : PayType.Cash;
+            order.Bill.IsEntryPosted = false;
+            order.Bill.AmountPaided = order.Cash && !order.OnAccount ? total : 0;
+            order.Bill.CasherRemainingAmount = total - order.Bill.AmountPaided;
+            order.Bill.UpdatedAt = DateTime.Now;
 
-                var extras = order.Tax + order.Service + order.DeliveryFee;
-                var gross = subTotal + extras;
-                var discountFloor = Math.Max(0, recalcBill.BillDiscountValue);
-                var discount = Math.Min(discountFloor, gross);
-                var total = gross - discount;
-
-                decimal cost = 0;
-                foreach (var costLine in order.Lines)
-                {
-                    cost += costLine.UnitCost * costLine.Quantity;
-                }
-
-                recalcBill.TotalAmountBeforeDiscountOrExtra = subTotal;
-                recalcBill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
-                recalcBill.BillDiscountValue = discount;
-                recalcBill.TotalDiscountValueOnBillAndItems = discount;
-                recalcBill.BillExtraValue = extras;
-                recalcBill.TotalExtraValueOnBillAndItems = extras;
-                recalcBill.TotalBillAmountAfterDiscountAndExtra = total;
-                var costLimit = 999_999_999_999m;
-                recalcBill.BillCost = Math.Abs(cost) > costLimit ? null : cost;
-                recalcBill.BillProfit = Math.Abs(total - cost) > costLimit ? null : total - cost;
-                recalcBill.PayType = order.OnAccount ? PayType.Later : PayType.Cash;
-                recalcBill.IsEntryPosted = false;
-                recalcBill.AmountPaided = order.Cash && !order.OnAccount ? total : 0;
-                recalcBill.CasherRemainingAmount = total - recalcBill.AmountPaided;
-                recalcBill.UpdatedAt = DateTime.Now;
-            }
-
-            await using var transaction = await _context.Database.BeginTransactionAsync();
             await _context.SaveChangesAsync();
-            var postSetting = await _orderLedger.GetSettingAsync();
-            if (postSetting.EntryGenerate == EntryGenerate.AutomaticEntryCreated)
+            var billSetting = await _orderLedger.GetSettingAsync();
+            if (billSetting.EntryGenerate == EntryGenerate.AutomaticEntryCreated)
             {
                 await _orderLedger.PostEntryAsync(order);
                 order.Bill.IsEntryPosted = true;
             }
-
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            return new ResultMessage
-            {
-                Success = true,
-                Data = order.Id.ToString()
-            };
+            return new ResultMessage { Success = true, Data = order.Id.ToString() };
         }
         catch (Exception ex)
         {
@@ -827,100 +680,60 @@ public class OrderRepository : IOrderRepository
             line.BillDetail.BillMasterId = to.Id;
             _context.ChangeTracker.DetectChanges();
 
-            if (!from.Lines.Any(a => a.OrderId == from.Id))
-            {
-                if (from.Type == OrderType.Hall && from.TableId.HasValue)
-            {
-                var freedTable = await _context.Tables.FindAsync(from.TableId.Value);
-                if (freedTable is not null)
-                {
-                    freedTable.IsPending = false;
-                }
-            }
-                await _orderLedger.RemoveEntryAsync(from.Id);
+            // the orders that stay open get new totals
+            var openOrders = new List<Order> { to };
 
-            var ownLines = from.Lines.Where(a => a.OrderId == from.Id).ToList();
-            var ownDetails = ownLines.Select(a => a.BillDetail).Where(a => a is not null).ToList();
-            _context.OrderIngredients.RemoveRange(ownLines.SelectMany(a => a.Ingredients));
-            _context.OrderMenuItems.RemoveRange(ownLines);
-            _context.Orders.Remove(from);
-            _context.BillDetails.RemoveRange(ownDetails);
-            if (from.Bill is not null)
+            if (from.Lines.Any(a => a.OrderId == from.Id))
             {
-                _context.BillMasters.Remove(from.Bill);
-            }
+                openOrders.Add(from);
             }
             else
             {
-                
-    {
-        var recalcBill = from.Bill;
-        var subTotal = from.Lines.Sum(a => a.Price);
-        from.Tax = Math.Round(subTotal *  settings.OrderTax / 100, 2);
+                // the last dish moved away, so the source order is deleted
+                if (from.Type == OrderType.Hall && from.TableId.HasValue)
+                {
+                    var freedTable = await _context.Tables.FindAsync(from.TableId.Value);
+                    if (freedTable is not null)
+                    {
+                        freedTable.IsPending = false;
+                    }
+                }
 
-        var extras = from.Tax + from.Service + from.DeliveryFee;
-        var gross = subTotal + extras;
-        var discountFloor = Math.Max(0, recalcBill.BillDiscountValue);
-        var discount = Math.Min(discountFloor, gross);
-        var total = gross - discount;
-        decimal cost = 0;
-        foreach (var costLine in from.Lines)
-        {
-            cost += costLine.UnitCost * costLine.Quantity;
-        }
-
-        recalcBill.TotalAmountBeforeDiscountOrExtra = subTotal;
-        recalcBill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
-        recalcBill.BillDiscountValue = discount;
-        recalcBill.TotalDiscountValueOnBillAndItems = discount;
-        recalcBill.BillExtraValue = extras;
-        recalcBill.TotalExtraValueOnBillAndItems = extras;
-        recalcBill.TotalBillAmountAfterDiscountAndExtra = total;
-        var costLimit = 999_999_999_999m;
-        recalcBill.BillCost = Math.Abs(cost) > costLimit ? null : cost;
-        recalcBill.BillProfit = Math.Abs(total - cost) > costLimit ? null : total - cost;
-        recalcBill.PayType = from.OnAccount ? PayType.Later : PayType.Cash;
-        recalcBill.IsEntryPosted = false;
-        recalcBill.AmountPaided = from.Cash && !from.OnAccount ? total : 0;
-        recalcBill.CasherRemainingAmount = total - recalcBill.AmountPaided;
-        recalcBill.UpdatedAt = DateTime.Now;
-    }
-
+                await _orderLedger.RemoveEntryAsync(from.Id);
+                var fromLines = from.Lines.Where(a => a.OrderId == from.Id).ToList();
+                _context.OrderIngredients.RemoveRange(fromLines.SelectMany(a => a.Ingredients));
+                _context.OrderMenuItems.RemoveRange(fromLines);
+                _context.BillDetails.RemoveRange(fromLines.Select(a => a.BillDetail).Where(a => a is not null));
+                _context.Orders.Remove(from);
+                if (from.Bill is not null)
+                {
+                    _context.BillMasters.Remove(from.Bill);
+                }
             }
 
-            
-    {
-        var recalcBill = to.Bill;
-        var subTotal = to.Lines.Sum(a => a.Price);
-        to.Tax = Math.Round(subTotal *  settings.OrderTax / 100, 2);
-
-        var extras = to.Tax + to.Service + to.DeliveryFee;
-        var gross = subTotal + extras;
-        var discountFloor = Math.Max(0, recalcBill.BillDiscountValue);
-        var discount = Math.Min(discountFloor, gross);
-        var total = gross - discount;
-        decimal cost = 0;
-        foreach (var costLine in to.Lines)
-        {
-            cost += costLine.UnitCost * costLine.Quantity;
-        }
-
-        recalcBill.TotalAmountBeforeDiscountOrExtra = subTotal;
-        recalcBill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
-        recalcBill.BillDiscountValue = discount;
-        recalcBill.TotalDiscountValueOnBillAndItems = discount;
-        recalcBill.BillExtraValue = extras;
-        recalcBill.TotalExtraValueOnBillAndItems = extras;
-        recalcBill.TotalBillAmountAfterDiscountAndExtra = total;
-        var costLimit = 999_999_999_999m;
-        recalcBill.BillCost = Math.Abs(cost) > costLimit ? null : cost;
-        recalcBill.BillProfit = Math.Abs(total - cost) > costLimit ? null : total - cost;
-        recalcBill.PayType = to.OnAccount ? PayType.Later : PayType.Cash;
-        recalcBill.IsEntryPosted = false;
-        recalcBill.AmountPaided = to.Cash && !to.OnAccount ? total : 0;
-        recalcBill.CasherRemainingAmount = total - recalcBill.AmountPaided;
-        recalcBill.UpdatedAt = DateTime.Now;
-    }
+            foreach (var open in openOrders)
+            {
+                open.Tax = Math.Round(open.Lines.Sum(a => a.Price) * settings.OrderTax / 100, 2);
+                var subTotal = open.Lines.Sum(a => a.Price);
+                var extras = open.Tax + open.Service + open.DeliveryFee;
+                var discount = Math.Min(Math.Max(0, open.Bill.BillDiscountValue), subTotal + extras);
+                var total = subTotal + extras - discount;
+                var cost = open.Lines.Sum(a => a.UnitCost * a.Quantity);
+                open.Bill.TotalAmountBeforeDiscountOrExtra = subTotal;
+                open.Bill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
+                open.Bill.BillDiscountValue = discount;
+                open.Bill.TotalDiscountValueOnBillAndItems = discount;
+                open.Bill.BillExtraValue = extras;
+                open.Bill.TotalExtraValueOnBillAndItems = extras;
+                open.Bill.TotalBillAmountAfterDiscountAndExtra = total;
+                open.Bill.BillCost = cost;
+                open.Bill.BillProfit = total - cost;
+                open.Bill.PayType = open.OnAccount ? PayType.Later : PayType.Cash;
+                open.Bill.IsEntryPosted = false;
+                open.Bill.AmountPaided = open.Cash && !open.OnAccount ? total : 0;
+                open.Bill.CasherRemainingAmount = total - open.Bill.AmountPaided;
+                open.Bill.UpdatedAt = DateTime.Now;
+            }
 
             await _context.SaveChangesAsync();
 
@@ -960,40 +773,26 @@ public class OrderRepository : IOrderRepository
 
             to.Service += from.Service;
             to.Bill.BillDiscountValue += from.Bill.BillDiscountValue;
-            
-    {
-        var recalcBill = to.Bill;
-        var subTotal = to.Lines.Sum(a => a.Price);
-        to.Tax = Math.Round(subTotal *  settings.OrderTax / 100, 2);
-
-        var extras = to.Tax + to.Service + to.DeliveryFee;
-        var gross = subTotal + extras;
-        var discountFloor = Math.Max(0, recalcBill.BillDiscountValue);
-        var discount = Math.Min(discountFloor, gross);
-        var total = gross - discount;
-        decimal cost = 0;
-        foreach (var costLine in to.Lines)
-        {
-            cost += costLine.UnitCost * costLine.Quantity;
-        }
-
-        recalcBill.TotalAmountBeforeDiscountOrExtra = subTotal;
-        recalcBill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
-        recalcBill.BillDiscountValue = discount;
-        recalcBill.TotalDiscountValueOnBillAndItems = discount;
-        recalcBill.BillExtraValue = extras;
-        recalcBill.TotalExtraValueOnBillAndItems = extras;
-        recalcBill.TotalBillAmountAfterDiscountAndExtra = total;
-        var costLimit = 999_999_999_999m;
-        recalcBill.BillCost = Math.Abs(cost) > costLimit ? null : cost;
-        recalcBill.BillProfit = Math.Abs(total - cost) > costLimit ? null : total - cost;
-        recalcBill.PayType = to.OnAccount ? PayType.Later : PayType.Cash;
-        recalcBill.IsEntryPosted = false;
-        recalcBill.AmountPaided = to.Cash && !to.OnAccount ? total : 0;
-        recalcBill.CasherRemainingAmount = total - recalcBill.AmountPaided;
-        recalcBill.UpdatedAt = DateTime.Now;
-    }
-
+            to.Tax = Math.Round(to.Lines.Sum(a => a.Price) * settings.OrderTax / 100, 2);
+            var subTotal = to.Lines.Sum(a => a.Price);
+            var extras = to.Tax + to.Service + to.DeliveryFee;
+            var discount = Math.Min(Math.Max(0, to.Bill.BillDiscountValue), subTotal + extras);
+            var total = subTotal + extras - discount;
+            var cost = to.Lines.Sum(a => a.UnitCost * a.Quantity);
+            to.Bill.TotalAmountBeforeDiscountOrExtra = subTotal;
+            to.Bill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
+            to.Bill.BillDiscountValue = discount;
+            to.Bill.TotalDiscountValueOnBillAndItems = discount;
+            to.Bill.BillExtraValue = extras;
+            to.Bill.TotalExtraValueOnBillAndItems = extras;
+            to.Bill.TotalBillAmountAfterDiscountAndExtra = total;
+            to.Bill.BillCost = cost;
+            to.Bill.BillProfit = total - cost;
+            to.Bill.PayType = to.OnAccount ? PayType.Later : PayType.Cash;
+            to.Bill.IsEntryPosted = false;
+            to.Bill.AmountPaided = to.Cash && !to.OnAccount ? total : 0;
+            to.Bill.CasherRemainingAmount = total - to.Bill.AmountPaided;
+            to.Bill.UpdatedAt = DateTime.Now;
 
             if (from.Type == OrderType.Hall && from.TableId.HasValue)
             {
@@ -1003,18 +802,18 @@ public class OrderRepository : IOrderRepository
                     freedTable.IsPending = false;
                 }
             }
-            await _orderLedger.RemoveEntryAsync(from.Id);
 
-            var ownLines = from.Lines.Where(a => a.OrderId == from.Id).ToList();
-            var ownDetails = ownLines.Select(a => a.BillDetail).Where(a => a is not null).ToList();
-            _context.OrderIngredients.RemoveRange(ownLines.SelectMany(a => a.Ingredients));
-            _context.OrderMenuItems.RemoveRange(ownLines);
+            await _orderLedger.RemoveEntryAsync(from.Id);
+            var fromLines = from.Lines.Where(a => a.OrderId == from.Id).ToList();
+            _context.OrderIngredients.RemoveRange(fromLines.SelectMany(a => a.Ingredients));
+            _context.OrderMenuItems.RemoveRange(fromLines);
+            _context.BillDetails.RemoveRange(fromLines.Select(a => a.BillDetail).Where(a => a is not null));
             _context.Orders.Remove(from);
-            _context.BillDetails.RemoveRange(ownDetails);
             if (from.Bill is not null)
             {
                 _context.BillMasters.Remove(from.Bill);
             }
+
             await _context.SaveChangesAsync();
 
             return new ResultMessage { Success = true };
@@ -1035,7 +834,6 @@ public class OrderRepository : IOrderRepository
                 .Include(a => a.Bill).ThenInclude(a => a.BillDetails)
                 .Include(a => a.Lines).ThenInclude(a => a.BillDetail)
                 .Include(a => a.Lines).ThenInclude(a => a.Ingredients)
-                .Include(a => a.Lines).ThenInclude(a => a.MenuItem).ThenInclude(a => a.Components)
                 .FirstOrDefaultAsync(a => a.Id == id);
             if (order is null)
             {
@@ -1047,25 +845,10 @@ public class OrderRepository : IOrderRepository
                 return new ResultMessage { Success = false, Message = "ShiftClosed" };
             }
 
+            // give the ingredients back to the stock
             foreach (var line in order.Lines)
             {
-                var ingredients = line.Ingredients
-                    .Select(a => new { a.StoreId, a.ProductId, a.Quantity })
-                    .ToList();
-
-                if (ingredients.Count == 0)
-                {
-                    ingredients = line.MenuItem.Components
-                        .Select(a =>
-                        {
-                            var componentQuantity = line.Quantity * a.Quantity;
-
-                            return new { StoreId = line.MenuItem.StoreId, a.ProductId, Quantity = componentQuantity };
-                        })
-                        .ToList();
-                }
-
-                foreach (var ingredient in ingredients)
+                foreach (var ingredient in line.Ingredients)
                 {
                     var adjusted = await _stock.AdjustAsync(ingredient.StoreId, ingredient.ProductId, ingredient.Quantity, allowNegative: true, createIfMissing: false);
                     if (adjusted)
@@ -1082,6 +865,7 @@ public class OrderRepository : IOrderRepository
                 }
             }
 
+            // take the amount back from the customer account
             if (order.OnAccount && order.CustomerId.HasValue)
             {
                 var customer = await _context.Customers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == order.CustomerId.Value);
@@ -1099,18 +883,18 @@ public class OrderRepository : IOrderRepository
                     freedTable.IsPending = false;
                 }
             }
-            await _orderLedger.RemoveEntryAsync(order.Id);
 
-            var ownLines = order.Lines.Where(a => a.OrderId == order.Id).ToList();
-            var ownDetails = ownLines.Select(a => a.BillDetail).Where(a => a is not null).ToList();
-            _context.OrderIngredients.RemoveRange(ownLines.SelectMany(a => a.Ingredients));
-            _context.OrderMenuItems.RemoveRange(ownLines);
+            await _orderLedger.RemoveEntryAsync(order.Id);
+            var orderLines = order.Lines.Where(a => a.OrderId == order.Id).ToList();
+            _context.OrderIngredients.RemoveRange(orderLines.SelectMany(a => a.Ingredients));
+            _context.OrderMenuItems.RemoveRange(orderLines);
+            _context.BillDetails.RemoveRange(orderLines.Select(a => a.BillDetail).Where(a => a is not null));
             _context.Orders.Remove(order);
-            _context.BillDetails.RemoveRange(ownDetails);
             if (order.Bill is not null)
             {
                 _context.BillMasters.Remove(order.Bill);
             }
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -1124,65 +908,6 @@ public class OrderRepository : IOrderRepository
         {
             return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
-    }
-
-    public async Task<IEnumerable<Order>> GetIncompleteCashOrdersAsync(string userId)
-    {
-        return await _context.Orders.AsNoTracking()
-            .Include(a => a.Bill)
-            .Include(a => a.Table)
-            .Where(a => a.Cash && !a.FinishShift && a.ReceiverId == userId && !a.Complete)
-            .OrderBy(a => a.Bill.Date)
-            .ToListAsync();
-    }
-
-    public async Task<ResultMessage> FinishShiftAsync(string userId, decimal countedCash)
-    {
-        try
-        {
-            if (countedCash < 0)
-            {
-                return new ResultMessage { Success = false, Message = "CountedCashInvalid" };
-            }
-
-            var hadIncompleteOrders = await _context.Orders.AnyAsync(a => a.Cash && !a.FinishShift && a.ReceiverId == userId && !a.Complete);
-            var expectedCash = (await GetShiftDashboardAsync(userId)).MoneyInDrawer;
-
-            var orders = await _context.Orders.Where(a => a.Cash && !a.FinishShift && a.ReceiverId == userId).ToListAsync();
-            foreach (var order in orders)
-            {
-                order.FinishShift = true;
-            }
-
-            await _context.ShiftCloseReports.AddAsync(new ShiftCloseReport
-            {
-                UserId = userId,
-                ExpectedCash = expectedCash,
-                CountedCash = countedCash,
-                Variance = countedCash - expectedCash,
-                HadIncompleteOrders = hadIncompleteOrders
-            });
-
-            await _context.SaveChangesAsync();
-
-            return new ResultMessage { Success = true };
-        }
-        catch (Exception ex)
-        {
-            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
-        }
-    }
-
-    public async Task<IEnumerable<Order>> GetKitchenOrdersAsync()
-    {
-        return await _context.Orders.AsNoTracking()
-            .Include(a => a.Bill)
-            .Include(a => a.Table)
-            .Include(a => a.Lines).ThenInclude(a => a.BillDetail)
-            .Include(a => a.Lines).ThenInclude(a => a.MenuItem)
-            .Where(a => !a.Complete)
-            .OrderBy(a => a.Bill.Date)
-            .ToListAsync();
     }
 
     public async Task<ResultMessage> CompleteOrderAsync(int id)
@@ -1205,87 +930,4 @@ public class OrderRepository : IOrderRepository
             return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
     }
-
-    public async Task<bool> VerifyShiftPasswordAsync(string password)
-    {
-        var setting = await _context.ApplicationSettings.OrderByDescending(a => a.Id).FirstOrDefaultAsync();
-        if (setting is null || !_shiftPassword.Verify(setting.Password, password, out var needsRehash))
-        {
-            return false;
-        }
-
-        if (needsRehash)
-        {
-            setting.Password = _shiftPassword.Hash(password);
-            await _context.SaveChangesAsync();
-        }
-
-        return true;
-    }
-
-    public async Task<IEnumerable<OnlineOrder>> GetPendingOnlineOrdersAsync()
-    {
-        return await _context.OnlineOrders.AsNoTracking()
-            .Include(a => a.Table)
-            .Include(a => a.DeliveryZone)
-            .Include(a => a.OnlineOrderMenuItems).ThenInclude(a => a.MenuItem)
-            .Where(a => a.IsPending)
-            .OrderBy(a => a.OrderDate)
-            .ToListAsync();
-    }
-
-    public async Task<OnlineOrder> GetOnlineOrderAsync(int id)
-    {
-        return await _context.OnlineOrders.AsNoTracking()
-            .Include(a => a.Table)
-            .Include(a => a.DeliveryZone)
-            .Include(a => a.OnlineOrderMenuItems).ThenInclude(a => a.MenuItem)
-            .FirstOrDefaultAsync(a => a.Id == id && a.IsPending);
-    }
-
-    public async Task<ResultMessage> CancelOnlineOrderAsync(int id)
-    {
-        try
-        {
-            var online = await _context.OnlineOrders.FirstOrDefaultAsync(a => a.Id == id && a.IsPending);
-            if (online is not null)
-            {
-                _context.OnlineOrders.Remove(online);
-                await _context.SaveChangesAsync();
-            }
-
-            return new ResultMessage { Success = true };
-        }
-        catch (Exception ex)
-        {
-            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
-        }
-    }
-
-    public async Task<ResultMessage> RejectOnlineOrderAsync(int id, string reason)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(reason))
-            {
-                return new ResultMessage { Success = false, Message = "RejectionReasonRequired" };
-            }
-
-            var online = await _context.OnlineOrders.FirstOrDefaultAsync(a => a.Id == id && a.IsPending);
-            if (online is not null)
-            {
-                online.IsPending = false;
-                online.Status = OnlineOrderStatus.Rejected;
-                online.RejectionReason = reason.Trim();
-                await _context.SaveChangesAsync();
-            }
-
-            return new ResultMessage { Success = true };
-        }
-        catch (Exception ex)
-        {
-            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
-        }
-    }
-
 }

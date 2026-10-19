@@ -78,8 +78,7 @@ public class CustomerRepository : ICustomerRepository
 
         return accountId.HasValue
             ? await _context.BillMasters.CountAsync(a => a.CustomerOrSupplierAccountId == accountId
-                                                        && a.AmountPaided < a.TotalBillAmountAfterDiscountAndExtra)
-            : 0;
+           && a.AmountPaided < a.TotalBillAmountAfterDiscountAndExtra) : 0;
     }
 
     public async Task<ResultMessage> UpsertCustomerAsync(Customer entity, IFormFile imageFile)
@@ -108,7 +107,6 @@ public class CustomerRepository : ICustomerRepository
                 entity.Account = await _accountProvision.CreateAsync(form.ArName,
                     form.EnName,
                     AccountType.Customer,
-                    AccountCodeRepository.AccountsReceivable,
                     form.DebitBalance - form.CreditBalance);
                 openingAccount = entity.Account;
                 openingDelta = form.DebitBalance - form.CreditBalance;

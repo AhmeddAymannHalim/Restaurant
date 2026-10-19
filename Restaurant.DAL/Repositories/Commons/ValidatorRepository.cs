@@ -12,16 +12,6 @@ public class ValidatorRepository<T> : IValidatorRepository<T> where T : class
         _context = context;
     }
 
-    private string KeyName()
-    {
-        return _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
-    }
-
-    private static string Normalize(string value)
-    {
-        return value.Replace(" ", string.Empty).ToLower();
-    }
-
     public bool IsCodeExist(int id, string code)
     {
         if (string.IsNullOrWhiteSpace(code))
@@ -29,8 +19,8 @@ public class ValidatorRepository<T> : IValidatorRepository<T> where T : class
             return false;
         }
 
-        var keyName = KeyName();
-        var normalized = Normalize(code);
+        var keyName = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
+        var normalized = code.Replace(" ", string.Empty).ToLower();
 
         return _context.Set<T>()
             .AsNoTracking()
@@ -45,8 +35,8 @@ public class ValidatorRepository<T> : IValidatorRepository<T> where T : class
             return false;
         }
 
-        var keyName = KeyName();
-        var normalized = Normalize(arName);
+        var keyName = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
+        var normalized = arName.Replace(" ", string.Empty).ToLower();
 
         return _context.Set<T>()
             .AsNoTracking()
@@ -61,8 +51,8 @@ public class ValidatorRepository<T> : IValidatorRepository<T> where T : class
             return false;
         }
 
-        var keyName = KeyName();
-        var normalized = Normalize(enName);
+        var keyName = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
+        var normalized = enName.Replace(" ", string.Empty).ToLower();
 
         return _context.Set<T>()
             .AsNoTracking()
@@ -77,7 +67,7 @@ public class ValidatorRepository<T> : IValidatorRepository<T> where T : class
             return false;
         }
 
-        var keyName = KeyName();
+        var keyName = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
 
         return _context.Set<T>()
             .AsNoTracking()
@@ -92,9 +82,9 @@ public class ValidatorRepository<T> : IValidatorRepository<T> where T : class
             return false;
         }
 
-        var keyName = KeyName();
-        var first = Normalize(firstName);
-        var last = Normalize(lastName);
+        var keyName = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
+        var first = firstName.Replace(" ", string.Empty).ToLower();
+        var last = lastName.Replace(" ", string.Empty).ToLower();
 
         return _context.Set<T>()
             .AsNoTracking()
@@ -110,7 +100,7 @@ public class ValidatorRepository<T> : IValidatorRepository<T> where T : class
             return false;
         }
 
-        var keyName = KeyName();
+        var keyName = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
 
         return _context.Set<T>()
             .AsNoTracking()

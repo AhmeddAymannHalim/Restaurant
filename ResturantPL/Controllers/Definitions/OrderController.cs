@@ -68,7 +68,7 @@ namespace ResturantPL.Controllers.Definitions
             }
         }
 
-        public async Task<IActionResult> Upsert(int? onlineOrderId, int? tableId, int? reservationId)
+        public async Task<IActionResult> Upsert(int? tableId, int? reservationId)
         {
             try
             {
@@ -78,11 +78,7 @@ namespace ResturantPL.Controllers.Definitions
                 }
 
                 OrderViewModel model;
-                if (onlineOrderId.HasValue)
-                {
-                    model = await _service.GetNewOrderFromOnlineAsync(onlineOrderId.Value);
-                }
-                else if (tableId.HasValue)
+                if (tableId.HasValue)
                 {
                     model = await _service.GetNewOrderFromReservationAsync(tableId.Value, reservationId);
                 }
@@ -94,7 +90,7 @@ namespace ResturantPL.Controllers.Definitions
                 if (model == null)
                 {
                     _toastr.Error(_localizer["RecordNotFound"].Value);
-                    return RedirectToAction(nameof(Online));
+                    return RedirectToAction(nameof(List));
                 }
 
                 await PopulateData(model);
@@ -258,72 +254,6 @@ namespace ResturantPL.Controllers.Definitions
             });
         }
 
-        public async Task<IActionResult> Online()
-        {
-            try
-            {
-                return View(await _service.GetPendingOnlineOrdersAsync());
-            }
-            catch (Exception ex)
-            {
-                return ErrorHandler.ErrorView(ex);
-            }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CancelOnline(int id)
-        {
-            try
-            {
-                var result = await _service.CancelOnlineOrderAsync(id);
-                if (result.Success)
-                {
-                    return Json(new { success = true });
-                }
-
-                return Json(new
-                {
-                    success = false,
-                    errorMessage = _localizer[result.Message].Value
-                });
-            }
-            catch (Exception)
-            {
-                return Json(new
-                {
-                    success = false,
-                    errorMessage = _localizer["SomethingWentError"].Value
-                });
-            }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> RejectOnline(int id, string reason)
-        {
-            try
-            {
-                var result = await _service.RejectOnlineOrderAsync(id, reason);
-                if (result.Success)
-                {
-                    return Json(new { success = true });
-                }
-
-                return Json(new
-                {
-                    success = false,
-                    errorMessage = _localizer[result.Message].Value
-                });
-            }
-            catch (Exception)
-            {
-                return Json(new
-                {
-                    success = false,
-                    errorMessage = _localizer["SomethingWentError"].Value
-                });
-            }
-        }
-
         private async Task<IActionResult> ShowMove(int id)
         {
             try
@@ -367,16 +297,14 @@ namespace ResturantPL.Controllers.Definitions
         private async Task PopulateData(OrderViewModel model)
         {
             model.Customers = await _lookup.CustomerLookupAsync();
-            model.Tables = model.OnlineOrderId.HasValue ? await _lookup.TableLookupAsync() : await _lookup.FreeTableLookupAsync();
+            model.Tables = await _lookup.FreeTableLookupAsync();
             model.DeliveryDrivers = await _lookup.DeliveryDriverLookupAsync();
             model.DeliveryZones = await _lookup.DeliveryZoneLookupAsync();
         }
 
         private async Task Reload(OrderViewModel model)
         {
-            var fresh = model.OnlineOrderId.HasValue
-                ? await _service.GetNewOrderFromOnlineAsync(model.OnlineOrderId.Value)
-                : await _service.GetNewOrderAsync();
+            var fresh = await _service.GetNewOrderAsync();
             model.OrderCode = fresh?.OrderCode;
             model.TaxPercent = fresh?.TaxPercent ?? 0;
             model.DefaultService = fresh?.DefaultService ?? 0;
@@ -394,14 +322,6 @@ namespace ResturantPL.Controllers.Definitions
                 item.MenuItemEnName = dish.EnName;
                 item.PriceForUnit = dish.Price;
                 item.Price = dish.Price * item.Quantity;
-            }
-
-            if (model.OnlineOrderId.HasValue)
-            {
-                model.DeliveryZoneId = fresh?.DeliveryZoneId;
-                model.DeliveryFee = fresh?.DeliveryFee ?? 0;
-                model.DeliveryZoneArName = fresh?.DeliveryZoneArName;
-                model.DeliveryZoneEnName = fresh?.DeliveryZoneEnName;
             }
 
             await PopulateData(model);

@@ -9,8 +9,6 @@ public interface ISettingRepository
     Task<ApplicationSetting> GetApplicationSettingAsync();
     Task<ResultMessage> UpdateApplicationSettingAsync(ApplicationSetting entity);
 
-    Task<IndexSettings> GetRestaurantSettingAsync();
-    Task<ResultMessage> UpdateRestaurantSettingAsync(IndexSettings entity, IFormFile image, IFormFile video);
 
     Task<PrinterSetting> GetPrinterSettingAsync();
     Task<ResultMessage> UpdatePrinterSettingAsync(PrinterSetting entity);

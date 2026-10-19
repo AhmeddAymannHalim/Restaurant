@@ -94,20 +94,6 @@ public class DepositRepository : IDepositRepository
                 await _context.SaveChangesAsync();
             }
 
-            await _journals.RemoveSourceEntriesAsync(JournalSourceType.Deposit, entity.Id);
-            var posting = await _journals.PostSourceEntryAsync(JournalSourceType.Deposit,
-                entity.Id,
-                entity.CreatedTime,
-                $"Deposit {entity.ProcessCode}",
-                new[]
-                {
-                    new JournalLineRequest(AccountCodeRepository.Cash, entity.Amount, 0),
-                    new JournalLineRequest(AccountCodeRepository.Deposits, 0, entity.Amount)
-                });
-            if (!posting.Success)
-            {
-                return posting;
-            }
 
             await transaction.CommitAsync();
 

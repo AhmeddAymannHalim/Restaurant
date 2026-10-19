@@ -9,12 +9,6 @@ public class RoleRepository : IRoleRepository
 {
     private readonly RoleManager<IdentityRole> _roleManager;
 
-    // These four roles come with the program and cannot be changed or deleted.
-    private bool IsSystemRole(string name)
-    {
-        return name == "Admin" || name == "Manager" || name == "كاشير" || name == "User";
-    }
-
     public RoleRepository(RoleManager<IdentityRole> roleManager)
     {
         _roleManager = roleManager;
@@ -77,7 +71,7 @@ public class RoleRepository : IRoleRepository
                 };
             }
 
-            if (IsSystemRole(existing.Name))
+            if ((existing.Name == "Admin" || existing.Name == "Manager" || existing.Name == "كاشير" || existing.Name == "User"))
             {
                 return new ResultMessage
                 {
@@ -105,7 +99,7 @@ public class RoleRepository : IRoleRepository
             };
         }
 
-        if (IsSystemRole(entity.Name))
+        if ((entity.Name == "Admin" || entity.Name == "Manager" || entity.Name == "كاشير" || entity.Name == "User"))
         {
             return new ResultMessage
             {

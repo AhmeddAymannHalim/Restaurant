@@ -55,7 +55,6 @@ namespace Restaurant.DAL.UnitOfWork
             Bills = new BillRepository(_context);
             AccountDefinitions = new AccountDefinitionRepository(_context);
             Entries = new EntryRepository(_context);
-            OnlineOrders = new OnlineOrderRepository(_context);
             Reports = new ReportRepository(_context);
             StoreConverts = new StoreConvertRepository(_context);
             SupplierPayments = new SupplierPaymentRepository(_context, Journals);
@@ -68,9 +67,6 @@ namespace Restaurant.DAL.UnitOfWork
             Scrounges = new ScroungeRepository(_context, Journals);
             Salaries = new SalaryRepository(_context, Journals);
             Lookups = new LookupRepository(_context);
-            Home = new HomeRepository(_context);
-            Chefs = new ChefRepository(_context);
-            Galleries = new GalleryRepository(_context);
         }
 
         public IBranchRepository Branches { get; set; }
@@ -90,7 +86,6 @@ namespace Restaurant.DAL.UnitOfWork
         public IBillRepository Bills { get; set; }
         public IAccountDefinitionRepository AccountDefinitions { get; set; }
         public IEntryRepository Entries { get; set; }
-        public IOnlineOrderRepository OnlineOrders { get; set; }
         public IReportRepository Reports { get; set; }
         public IStoreConvertRepository StoreConverts { get; set; }
         public ISupplierPaymentRepository SupplierPayments { get; set; }
@@ -126,9 +121,6 @@ namespace Restaurant.DAL.UnitOfWork
         public IDashboardRepository Dashboard { get; set; }
         public ILookupRepository Lookups { get; set; }
         public IJournalEntryRepository Journals { get; set; }
-        public IHomeRepository Home { get; set; }
-        public IChefRepository Chefs { get; set; }
-        public IGalleryRepository Galleries { get; set; }
 
         public int Complete()
         {

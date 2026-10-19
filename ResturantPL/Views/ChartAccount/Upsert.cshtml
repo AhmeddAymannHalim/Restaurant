@@ -98,7 +98,7 @@
             <div class="ad-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
                 <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
-                @if (!isNew && !Model.IsSystem)
+                @if (!isNew)
                 {
                     <button type="button" onclick="Delete('/ChartAccount/Delete/@Model.Id', '@Url.Action("Index")')" class="btn-ad btn-ad-danger push"><i class="fas fa-trash" aria-hidden="true"></i> @L["Delete"]</button>
                 }

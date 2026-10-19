@@ -14,7 +14,6 @@ public class MenuItemViewModel
     public Size? Size { get; set; }
     public string ArDescription { get; set; }
     public string EnDescription { get; set; }
-    public bool ShowOnWebsite { get; set; } = true;
     public bool IsAvailable { get; set; } = true;
     public string ImageUrl { get; set; }
     public IFormFile ImageFile { get; set; }

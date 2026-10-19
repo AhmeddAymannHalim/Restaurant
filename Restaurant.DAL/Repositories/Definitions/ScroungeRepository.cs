@@ -80,28 +80,6 @@ public class ScroungeRepository : IScroungeRepository
                 await _context.SaveChangesAsync();
             }
 
-            await _journals.RemoveSourceEntriesAsync(JournalSourceType.Scrounge, entity.Id);
-
-            var debitCode = entity.State == MoneyState.Incentive ? AccountCodeRepository.Salaries
-                : entity.State == MoneyState.Dept ? AccountCodeRepository.EmployeesPayable
-                : null;
-            if (debitCode is not null)
-            {
-                var posting = await _journals.PostSourceEntryAsync(JournalSourceType.Scrounge,
-                    entity.Id,
-                    entity.Date,
-                    $"{entity.State} {entity.Id}",
-                    new[]
-                    {
-                        new JournalLineRequest(debitCode, entity.Amount, 0),
-                        new JournalLineRequest(AccountCodeRepository.Cash, 0, entity.Amount)
-                    });
-                if (!posting.Success)
-                {
-                    return posting;
-                }
-            }
-
             await transaction.CommitAsync();
 
             return new ResultMessage { Success = true };

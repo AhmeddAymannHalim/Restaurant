@@ -13,11 +13,11 @@ public interface IOrderRepository
     Task<Order> GetOrderByIdAsync(int id);
     Task<string> GetNextCodeAsync();
     Task<IEnumerable<MenuItem>> GetCashierMenuAsync();
-    Task<Dictionary<int, int>> GetAvailablePortionsAsync();
+
     Task<ApplicationSetting> GetSettingsAsync();
     Task<IEnumerable<Table>> GetPendingTablesAsync(int exceptTableId);
 
-    Task<ResultMessage> CreateOrderAsync(Order order, int? onlineOrderId, string userId);
+    Task<ResultMessage> CreateOrderAsync(Order order, string userId);
     Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method);
     Task<ResultMessage> MoveItemAsync(int orderMenuItemId, int targetTableId);
     Task<ResultMessage> MergeOrderAsync(int id, int targetTableId);
@@ -29,8 +29,4 @@ public interface IOrderRepository
     Task<IEnumerable<Order>> GetKitchenOrdersAsync();
     Task<ResultMessage> CompleteOrderAsync(int id);
 
-    Task<IEnumerable<OnlineOrder>> GetPendingOnlineOrdersAsync();
-    Task<OnlineOrder> GetOnlineOrderAsync(int id);
-    Task<ResultMessage> CancelOnlineOrderAsync(int id);
-    Task<ResultMessage> RejectOnlineOrderAsync(int id, string reason);
 }

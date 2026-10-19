@@ -5,7 +5,7 @@ namespace Restaurant.DAL.IRepositories.Definitions;
 public interface IOrderLedgerRepository
 {
     Task<BillSetting> GetSettingAsync();
-    Task<Dictionary<int, int>> GetItemIdsAsync(IEnumerable<MenuItem> dishes);
+    Task<int> GetItemIdAsync(MenuItem dish);
     Task PostEntryAsync(Order order);
     Task RemoveEntryAsync(int billId);
 }

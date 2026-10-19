@@ -34,16 +34,6 @@ public class TableReservationService : ITableReservationService
         return _mapper.Map<TableReservationViewModel>(await _unitOfWork.TableReservations.GetReservationByIdAsync(id));
     }
 
-    public async Task<List<TableSlotViewModel>> GetTableSlotsAsync(DateTime when, int guests)
-    {
-        return _mapper.Map<List<TableSlotViewModel>>(await _unitOfWork.TableReservations.GetTableSlotsAsync(when, guests));
-    }
-
-    public async Task<ResultMessage> BookAsync(ReservationCreateViewModel model, string customerId)
-    {
-        return await _unitOfWork.TableReservations.BookAsync(_mapper.Map<TableReservation>(model), customerId);
-    }
-
     public async Task<ResultMessage> UpsertReservationAsync(TableReservationViewModel model)
     {
         return await _unitOfWork.TableReservations.UpsertReservationAsync(_mapper.Map<TableReservation>(model));

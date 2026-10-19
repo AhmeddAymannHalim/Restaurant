@@ -10,7 +10,6 @@ public interface IOrderService
     Task<PaginatedResult<OrderViewModel>> GetPagedOrdersAsync(PageRequest request, string userId);
     Task<OrderViewModel> GetOrderByIdAsync(int id);
     Task<OrderViewModel> GetNewOrderAsync();
-    Task<OrderViewModel> GetNewOrderFromOnlineAsync(int onlineOrderId);
     Task<OrderViewModel> GetNewOrderFromReservationAsync(int tableId, int? reservationId);
     Task<IEnumerable<LookupItem>> GetPendingTablesAsync(int exceptTableId);
 
@@ -25,7 +24,4 @@ public interface IOrderService
     Task<IEnumerable<OrderViewModel>> GetKitchenOrdersAsync();
     Task<ResultMessage> CompleteOrderAsync(int id);
 
-    Task<IEnumerable<PendingOnlineOrderViewModel>> GetPendingOnlineOrdersAsync();
-    Task<ResultMessage> CancelOnlineOrderAsync(int id);
-    Task<ResultMessage> RejectOnlineOrderAsync(int id, string reason);
 }

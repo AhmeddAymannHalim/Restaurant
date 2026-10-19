@@ -67,39 +67,6 @@ namespace ResturantPL.Controllers
             }
         }
 
-        public async Task<IActionResult> RestaurantSetting()
-        {
-            try
-            {
-                return View(await _service.GetRestaurantSettingAsync());
-            }
-            catch (Exception ex)
-            {
-                return ErrorHandler.ErrorView(ex);
-            }
-        }
-
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> RestaurantSetting(RestaurantSettingViewModel model)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    _toastr.Error(_localizer["ValidationError"].Value);
-                    return View(model);
-                }
-
-                var result = await _service.UpdateRestaurantSettingAsync(model);
-
-                return Saved(result, nameof(RestaurantSetting), model);
-            }
-            catch (Exception ex)
-            {
-                return ErrorHandler.ErrorView(ex);
-            }
-        }
-
         public async Task<IActionResult> PrinterSetting()
         {
             try

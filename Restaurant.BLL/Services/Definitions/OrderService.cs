@@ -41,18 +41,11 @@ public class OrderService : IOrderService
 
     public async Task<OrderViewModel> GetNewOrderAsync()
     {
-        var settings = await _unitOfWork.Orders.GetSettingsAsync();
-        var menu = _mapper.Map<List<CashierMenuItemViewModel>>(await _unitOfWork.Orders.GetCashierMenuAsync());
+        var model = _mapper.Map<OrderViewModel>(await _unitOfWork.Orders.GetSettingsAsync());
+        model.OrderCode = await _unitOfWork.Orders.GetNextCodeAsync();
+        model.Menu = _mapper.Map<List<CashierMenuItemViewModel>>(await _unitOfWork.Orders.GetCashierMenuAsync());
 
-        return new OrderViewModel
-        {
-            OrderCode = await _unitOfWork.Orders.GetNextCodeAsync(),
-            CustomerName = string.Empty,
-            TaxPercent = settings.OrderTax,
-            DefaultService = settings.OrderService,
-            Service = settings.OrderService,
-            Menu = menu
-        };
+        return model;
     }
 
     public async Task<OrderViewModel> GetNewOrderFromReservationAsync(int tableId, int? reservationId)
@@ -74,30 +67,6 @@ public class OrderService : IOrderService
         return model;
     }
 
-    public async Task<OrderViewModel> GetNewOrderFromOnlineAsync(int onlineOrderId)
-    {
-        var online = await _unitOfWork.Orders.GetOnlineOrderAsync(onlineOrderId);
-        if (online is null)
-        {
-            return null;
-        }
-
-        var model = await GetNewOrderAsync();
-        model.OnlineOrderId = online.Id;
-        model.Type = online.TableId.HasValue ? OrderType.Hall : OrderType.Delivery_Online;
-        model.TableId = online.TableId;
-        model.CustomerName = online.CustomerName;
-        model.Address = online.Address;
-        model.PhoneNumber = online.PhoneNumber;
-        model.DeliveryZoneId = online.DeliveryZoneId;
-        model.DeliveryFee = online.DeliveryFee;
-        model.DeliveryZoneArName = online.DeliveryZone?.ArName;
-        model.DeliveryZoneEnName = online.DeliveryZone?.EnName;
-        model.Items = _mapper.Map<List<OrderItemViewModel>>(online.OnlineOrderMenuItems);
-
-        return model;
-    }
-
     public async Task<IEnumerable<LookupItem>> GetPendingTablesAsync(int exceptTableId)
     {
         return _mapper.Map<List<LookupItem>>(await _unitOfWork.Orders.GetPendingTablesAsync(exceptTableId));
@@ -105,28 +74,9 @@ public class OrderService : IOrderService
 
     public async Task<ResultMessage> CreateOrderAsync(OrderViewModel model, string userId)
     {
-        var order = new Order
-        {
-            Type = model.Type,
-            Cash = model.Cash,
-            PaymentMethod = model.PaymentMethod,
-            OnAccount = model.OnAccount,
-            CustomerName = model.CustomerName,
-            CustomerId = model.CustomerId,
-            TableId = model.TableId,
-            EmployeeId = model.EmployeeId,
-            Address = model.Address,
-            PhoneNumber = model.PhoneNumber,
-            DeliveryZoneId = model.DeliveryZoneId,
-            Bill = new BillMaster { BillDiscountValue = model.Discount },
-            Lines = model.Items.Select(a => new OrderMenuItem
-            {
-                MenuItemId = a.MenuItemId,
-                BillDetail = new BillDetail { Quantity = a.Quantity }
-            }).ToList()
-        };
+        var order = _mapper.Map<Order>(model);
 
-        return await _unitOfWork.Orders.CreateOrderAsync(order, model.OnlineOrderId, userId);
+        return await _unitOfWork.Orders.CreateOrderAsync(order, userId);
     }
 
     public async Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method)
@@ -172,20 +122,5 @@ public class OrderService : IOrderService
     public async Task<bool> VerifyShiftPasswordAsync(string password)
     {
         return await _unitOfWork.Orders.VerifyShiftPasswordAsync(password);
-    }
-
-    public async Task<IEnumerable<PendingOnlineOrderViewModel>> GetPendingOnlineOrdersAsync()
-    {
-        return _mapper.Map<List<PendingOnlineOrderViewModel>>(await _unitOfWork.Orders.GetPendingOnlineOrdersAsync());
-    }
-
-    public async Task<ResultMessage> CancelOnlineOrderAsync(int id)
-    {
-        return await _unitOfWork.Orders.CancelOnlineOrderAsync(id);
-    }
-
-    public async Task<ResultMessage> RejectOnlineOrderAsync(int id, string reason)
-    {
-        return await _unitOfWork.Orders.RejectOnlineOrderAsync(id, reason);
     }
 }

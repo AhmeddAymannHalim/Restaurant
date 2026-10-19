@@ -32,8 +32,6 @@ public class OrderViewModel
     public string Address { get; set; }
     public string PhoneNumber { get; set; }
 
-    public int? OnlineOrderId { get; set; }
-
     public string SellerName { get; set; }
     public string ReceiverName { get; set; }
     public string TableArName { get; set; }
@@ -141,28 +139,4 @@ public class ShiftRowViewModel
     public OrderType Type { get; set; }
     public int Count { get; set; }
     public decimal Amount { get; set; }
-}
-
-public class PendingOnlineOrderViewModel
-{
-    public int Id { get; set; }
-    public bool IsPending { get; set; }
-    public OnlineOrderStatus Status { get; set; }
-    public string RejectionReason { get; set; }
-    public string CustomerId { get; set; }
-    public string CustomerName { get; set; }
-    public string Address { get; set; }
-    public string PhoneNumber { get; set; }
-    public int? TableId { get; set; }
-    public string TableArName { get; set; }
-    public string TableEnName { get; set; }
-    public decimal TotalPrice { get; set; }
-    public decimal Tax { get; set; }
-    public decimal Service { get; set; }
-    public decimal DeliveryFee { get; set; }
-    public string DeliveryZoneArName { get; set; }
-    public string DeliveryZoneEnName { get; set; }
-    public DateTime OrderDate { get; set; }
-    public List<OrderItemViewModel> Items { get; set; } = new();
-    public decimal SubTotal => Items.Sum(a => a.Price);
 }

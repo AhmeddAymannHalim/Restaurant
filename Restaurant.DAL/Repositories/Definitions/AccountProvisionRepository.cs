@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
-using Restaurant.DAL.Repositories.Commons;
 using Shared.Enums;
 
 namespace Restaurant.DAL.Repositories.Definitions;
@@ -17,72 +16,71 @@ public class AccountProvisionRepository : IAccountProvisionRepository
         _context = context;
     }
 
-    public async Task<Account> CreateAsync(string arName, string enName, AccountType type, string parentCode, decimal openingBalance = 0)
+    public async Task<Account> CreateAsync(string arName, string enName, AccountType type, decimal openingBalance = 0)
     {
-        var parent = await _context.Accounts.FirstOrDefaultAsync(a => a.Code == parentCode);
-        if (parent == null)
-        {
-            await new JournalEntryRepository(_context).EnsureDefaultAccountsAsync();
-            parent = await _context.Accounts.FirstAsync(a => a.Code == parentCode);
-        }
+        var setting = await _context.AccountSettings.AsNoTracking().OrderByDescending(a => a.Id).FirstOrDefaultAsync();
 
-        var parentLevel = parent.Level ?? 1;
-        var subAccounts = parent.NumberOfSubAccounts ?? 0;
+        int? parentId = null;
+        if (type == AccountType.Customer)
+        {
+            parentId = setting?.ParentCustomerId;
+        }
+        else if (type == AccountType.Supplier)
+        {
+            parentId = setting?.ParentSupplierId;
+        }
+        else if (type == AccountType.Employee)
+        {
+            parentId = setting?.ParentEmployeeId;
+        }
 
         var account = new Account
         {
-            Code = await NextCodeAsync(parent),
             ArName = arName,
             EnName = enName,
             AccountType = type,
-            BalanceType = GetBalanceType(type),
-            ParentAccountId = parent.Id,
-            Level = parentLevel + 1,
+            BalanceType = type == AccountType.Customer ? AccountBalanceType.Debit : AccountBalanceType.Credit,
             AccDate = DateTime.Today,
             AccCheckDate = DateTime.Today
         };
 
+        var parent = parentId.HasValue ? await _context.Accounts.FirstOrDefaultAsync(a => a.Id == parentId.Value) : null;
+        if (parent == null)
+        {
+            // no parent in AccountSetting: the account is a main account with the next free number
+            var codes = await _context.Accounts.AsNoTracking().Select(a => a.Code).ToListAsync();
+            var lastNumber = codes.Where(code => int.TryParse(code, out _)).Select(int.Parse).DefaultIfEmpty(0).Max();
+
+            account.Code = (lastNumber + 1).ToString();
+            account.Level = 1;
+        }
+        else
+        {
+            // the code is the parent code followed by the next number of its children
+            var childCodes = await _context.Accounts.AsNoTracking()
+                .Where(a => a.ParentAccountId == parent.Id)
+                .Select(a => a.Code)
+                .ToListAsync();
+
+            var lastNumber = 0;
+            foreach (var code in childCodes)
+            {
+                if (code.Length > parent.Code.Length && code.StartsWith(parent.Code))
+                {
+                    int.TryParse(code.Substring(parent.Code.Length), out var number);
+                    lastNumber = Math.Max(lastNumber, number);
+                }
+            }
+
+            account.Code = parent.Code + (lastNumber + 1).ToString().PadLeft(CodeSuffixLength, '0');
+            account.ParentAccountId = parent.Id;
+            account.Level = (parent.Level ?? 1) + 1;
+            parent.NumberOfSubAccounts = (parent.NumberOfSubAccounts ?? 0) + 1;
+        }
+
         account.Adjust(openingBalance);
-
-        parent.NumberOfSubAccounts = subAccounts + 1;
-
         await _context.Accounts.AddAsync(account);
+
         return account;
-    }
-
-    private AccountBalanceType GetBalanceType(AccountType type)
-    {
-        if (type == AccountType.Customer || type == AccountType.Box || type == AccountType.Bank)
-        {
-            return AccountBalanceType.Debit;
-        }
-
-        return AccountBalanceType.Credit;
-    }
-
-    private async Task<string> NextCodeAsync(Account parent)
-    {
-        var childCodes = await _context.Accounts.AsNoTracking()
-            .Where(a => a.ParentAccountId == parent.Id)
-            .Select(a => a.Code)
-            .ToListAsync();
-
-        var highest = 0;
-        foreach (var code in childCodes)
-        {
-            var isChildCode = code.Length > parent.Code.Length && code.StartsWith(parent.Code);
-            if (!isChildCode)
-            {
-                continue;
-            }
-
-            int.TryParse(code.Substring(parent.Code.Length), out var number);
-            if (number > highest)
-            {
-                highest = number;
-            }
-        }
-
-        return parent.Code + (highest + 1).ToString().PadLeft(CodeSuffixLength, '0');
     }
 }

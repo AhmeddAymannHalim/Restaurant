@@ -10,8 +10,8 @@ namespace Restaurant.DAL.Repositories.Definitions;
 
 public class SettingRepository : ISettingRepository
 {
-    private const string ImagesFolder = "Images";
-    private const string VideosFolder = "Videos";
+    //private const string ImagesFolder = "Images";
+    //private const string VideosFolder = "Videos";
 
     private readonly ApplicationDbContext _context;
     private readonly IShiftPasswordRepository _shiftPassword;
@@ -33,61 +33,6 @@ public class SettingRepository : ISettingRepository
         entity.Password = string.IsNullOrWhiteSpace(entity.Password) ? existing?.Password : _shiftPassword.Hash(entity.Password);
 
         _context.ApplicationSettings.Update(entity);
-        await _context.SaveChangesAsync();
-
-        return new ResultMessage { Success = true };
-    }
-
-    public async Task<IndexSettings> GetRestaurantSettingAsync()
-    {
-        return await _context.IndexSettings.AsNoTracking().OrderBy(a => a.Id).LastOrDefaultAsync();
-    }
-
-    public async Task<ResultMessage> UpdateRestaurantSettingAsync(IndexSettings entity, IFormFile image, IFormFile video)
-    {
-        var existing = await _context.IndexSettings.FirstOrDefaultAsync(a => a.Id == entity.Id);
-        if (existing is null)
-        {
-            return new ResultMessage
-            {
-                Success = false,
-                Message = "RecordNotFound"
-            };
-        }
-
-        existing.ArName = entity.ArName;
-        existing.EnName = entity.EnName;
-        existing.ArDescription = entity.ArDescription;
-        existing.EnDescription = entity.EnDescription;
-        existing.Phone = entity.Phone;
-        existing.Email = entity.Email;
-        existing.ArLocation = entity.ArLocation;
-        existing.EnLocation = entity.EnLocation;
-        existing.StartDay = entity.StartDay;
-        existing.EndDay = entity.EndDay;
-        existing.StartHour = entity.StartHour;
-        existing.EndHour = entity.EndHour;
-
-        if (image is not null)
-        {
-            if (!string.IsNullOrEmpty(existing.ImageUrl))
-            {
-                DocumentSetting.DeleteFile(existing.ImageUrl);
-            }
-
-            existing.ImageUrl = DocumentSetting.UploadFile(image, ImagesFolder);
-        }
-
-        if (video is not null)
-        {
-            if (!string.IsNullOrEmpty(existing.VideoUrl))
-            {
-                DocumentSetting.DeleteFile(existing.VideoUrl);
-            }
-
-            existing.VideoUrl = DocumentSetting.UploadFile(video, VideosFolder);
-        }
-
         await _context.SaveChangesAsync();
 
         return new ResultMessage { Success = true };

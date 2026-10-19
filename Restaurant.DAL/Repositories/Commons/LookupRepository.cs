@@ -24,22 +24,24 @@ public class LookupRepository : ILookupRepository
 
     public async Task<IEnumerable<LookupItem>> BranchLookupAsync()
     {
-        return await ToListAsync(_context.CompanyBranches.Select(a => new LookupItem
+        return await _context.CompanyBranches.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
             EnName = a.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> JobLookupAsync()
     {
-        return await ToListAsync(_context.Jobs.Select(a => new LookupItem
+        return await _context.Jobs.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
             EnName = a.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LeaveTypeViewModel>> LeaveTypeLookupAsync()
@@ -103,24 +105,26 @@ public class LookupRepository : ILookupRepository
 
     public async Task<IEnumerable<LookupItem>> EmployeeLookupAsync()
     {
-        return await ToListAsync(_context.Employees.Select(a => new LookupItem
+        return await _context.Employees.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
             EnName = a.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> DeliveryDriverLookupAsync()
     {
-        return await ToListAsync(_context.Employees
+        return await _context.Employees
             .Where(a => a.Job.ArName == "طيار")
             .Select(a => new LookupItem
             {
                 Id = a.Id,
                 ArName = a.ArName,
                 EnName = a.EnName
-            }));
+            })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> StorekeeperLookupAsync()
@@ -133,126 +137,137 @@ public class LookupRepository : ILookupRepository
         storekeeperTitles.Add("أمين مخازن");
         storekeeperTitles.Add("أمين مخزن");
 
-        return await ToListAsync(_context.Employees
+        return await _context.Employees
             .Where(a => storekeeperTitles.Contains(a.Job.ArName) || storekeeperTitles.Contains(a.Job.EnName))
             .Select(a => new LookupItem
             {
                 Id = a.Id,
                 ArName = a.ArName,
                 EnName = a.EnName
-            }));
+            })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> KitchenLookupAsync()
     {
-        return await ToListAsync(_context.Kitchens.Select(a => new LookupItem
+        return await _context.Kitchens.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
             EnName = a.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> MenuSectionLookupAsync()
     {
-        return await ToListAsync(_context.MenuSections.Select(a => new LookupItem
+        return await _context.MenuSections.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
             EnName = a.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> ReadyMenuSectionLookupAsync()
     {
-        return await ToListAsync(_context.MenuSections
-            .Where(a => a.MenuItems.Any(i => i.ShowOnWebsite))
+        return await _context.MenuSections
             .Select(a => new LookupItem
                 {
                     Id = a.Id,
                     ArName = a.ArName,
                     EnName = a.EnName
-                }));
+                })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> FreeTableLookupAsync()
     {
-        return await ToListAsync(_context.Tables.Where(a => !a.IsPending).Select(a => new LookupItem
+        return await _context.Tables.Where(a => !a.IsPending).Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
             EnName = a.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> TableLookupAsync()
     {
-        return await ToListAsync(_context.Tables.Select(a => new LookupItem
+        return await _context.Tables.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
             EnName = a.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> StoreLookupAsync()
     {
-        return await ToListAsync(_context.Stores.Select(a => new LookupItem
+        return await _context.Stores.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
             EnName = a.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> ProductLookupAsync()
     {
-        return await ToListAsync(_context.Products.Select(a => new LookupItem
+        return await _context.Products.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
             EnName = a.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> ProductCategoryLookupAsync()
     {
-        return await ToListAsync(_context.ProductCategories.Select(a => new LookupItem
+        return await _context.ProductCategories.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
             EnName = a.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> UnitPriceLookupAsync()
     {
-        return await ToListAsync(_context.UnitPrices.Select(a => new LookupItem
+        return await _context.UnitPrices.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
             EnName = a.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> SupplierLookupAsync()
     {
-        return await ToListAsync(_context.Suppliers.Select(a => new LookupItem
+        return await _context.Suppliers.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.Account.ArName,
             EnName = a.Account.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> CustomerLookupAsync()
     {
-        return await ToListAsync(_context.Customers.Select(a => new LookupItem
+        return await _context.Customers.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.Account.ArName,
             EnName = a.Account.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<StoreProductLookupItem>> StoreProductLookupByStoreIdAsync(int storeId)
@@ -298,12 +313,13 @@ public class LookupRepository : ILookupRepository
 
     public async Task<IEnumerable<LookupItem>> ExpenseLookupAsync()
     {
-        return await ToListAsync(_context.Expenses.Select(a => new LookupItem
+        return await _context.Expenses.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
             EnName = a.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem_String>> RoleLookupAsync()
@@ -322,64 +338,64 @@ public class LookupRepository : ILookupRepository
 
     public async Task<IEnumerable<LookupItem>> CountryLookupAsync()
     {
-        return await ToListAsync(_context.Countries.Select(a => new LookupItem
+        return await _context.Countries.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,
             EnName = a.EnName
-        }));
+        })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> GovernorateLookupAsync(int countryId)
     {
-        return await ToListAsync(_context.Governorates
+        return await _context.Governorates
             .Where(a => a.CountryId == countryId)
             .Select(a => new LookupItem
             {
                 Id = a.Id,
                 ArName = a.ArName,
                 EnName = a.EnName
-            }));
+            })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> CityLookupAsync(int governorateId)
     {
-        return await ToListAsync(_context.Towns
+        return await _context.Towns
             .Where(a => a.GovernorateId == governorateId)
             .Select(a => new LookupItem
             {
                 Id = a.Id,
                 ArName = a.ArName,
                 EnName = a.EnName
-            }));
+            })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> NamedLookupAsync<T>() where T : class
     {
-        return await ToListAsync(_context.Set<T>().AsNoTracking()
+        return await _context.Set<T>().AsNoTracking()
             .OrderBy(a => EF.Property<string>(a, "ArName"))
             .Select(a => new LookupItem
             {
                 Id = EF.Property<int>(a, "Id"),
                 ArName = EF.Property<string>(a, "ArName"),
                 EnName = EF.Property<string>(a, "EnName")
-            }));
+            })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<LookupItem>> VillageLookupAsync(int townId)
     {
-        return await ToListAsync(_context.Villages
+        return await _context.Villages
             .Where(a => a.TownId == townId)
             .Select(a => new LookupItem
             {
                 Id = a.Id,
                 ArName = a.ArName,
                 EnName = a.EnName
-            }));
-    }
-
-    private static async Task<IEnumerable<LookupItem>> ToListAsync(IQueryable<LookupItem> query)
-    {
-        return await query.AsNoTracking().OrderBy(a => a.Id).ToListAsync();
+            })
+            .AsNoTracking().OrderBy(a => a.Id).ToListAsync();
     }
 }

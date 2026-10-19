@@ -7,7 +7,6 @@ namespace Restaurant.DAL.IRepositories.Commons;
 public interface IJournalEntryRepository
 {
     Task<string> GetNextEntryNumberAsync();
-    Task EnsureDefaultAccountsAsync();
     Task<ResultMessage> PostSourceEntryAsync(JournalSourceType sourceType,
         int sourceId,
         DateTime date,
@@ -15,4 +14,5 @@ public interface IJournalEntryRepository
         IEnumerable<JournalLineRequest> lines,
         bool saveChanges = true);
     Task RemoveSourceEntriesAsync(JournalSourceType sourceType, int sourceId);
+    Task PostBillEntryAsync(BillMaster bill, InvoiceType type, decimal paid, decimal remaining, int? partnerAccountId, EntrySetting entrySetting);
 }

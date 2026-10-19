@@ -13,215 +13,13 @@ namespace Restaurant.DAL.SeedData
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             bool seedDefaultUsers = true,
-            string defaultPassword = null,
-            bool seedOpeningStock = false)
+            string defaultPassword = null)
         {
-            await SeedJobs(context);
             await SeedLocations(context);
-            await SeedIndexSettings(context);
-            await SeedTables(context);
             await SeedUnitPrices(context);
-            await SeedProductCategories(context);
             await SeedApplicationSettings(context, defaultPassword);
             await SeedPrinterSettings(context);
             await SeedAdminRoleAndUsers(userManager, roleManager, seedDefaultUsers, defaultPassword);
-            await BackfillBillMasterInitialPaidAmount(context);
-            if (seedOpeningStock)
-            {
-                await SeedOpeningStock(context);
-            }
-        }
-
-        private static async Task SeedOpeningStock(ApplicationDbContext context)
-        {
-            const decimal target = 60;
-            const decimal lowMark = 10;
-
-            var stock = new StockRepository(context);
-
-            var pairs = await context.MenuItemComponents
-                .AsNoTracking()
-                .Select(a => new { a.MenuItem.StoreId, a.ProductId })
-                .Distinct()
-                .ToListAsync();
-
-            foreach (var pair in pairs)
-            {
-                var row = await stock.FindAsync(pair.StoreId, pair.ProductId);
-                var current = row?.Quantity ?? 0;
-                if (current >= lowMark)
-                {
-                    continue;
-                }
-
-                var delta = target - current;
-                if (!await stock.AdjustAsync(pair.StoreId, pair.ProductId, delta))
-                {
-                    continue;
-                }
-
-                await context.StoreProductMovements.AddAsync(new StoreProductMovement
-                {
-                    StoreId = pair.StoreId,
-                    ProductId = pair.ProductId,
-                    QuantityDelta = delta,
-                    MovementDate = DateTime.Now,
-                    Source = Shared.Enums.StockMovementSource.OpeningBalance,
-                    ReferenceCode = "OPENING"
-                });
-            }
-
-            await context.SaveChangesAsync();
-        }
-
-        private static async Task BackfillBillMasterInitialPaidAmount(ApplicationDbContext context)
-        {
-            var suppliersWithPayments = context.PaymentInvoiceSupplier.Where(a => a.BillMasterId != null).Select(a => a.BillMasterId);
-            var customersWithPayments = context.PaymentInvoiceCustomer.Where(a => a.BillMasterId != null).Select(a => a.BillMasterId);
-
-            await context.BillMasters
-                .Where(a => a.InitialPaidAmount != a.AmountPaided
-                    && !suppliersWithPayments.Contains(a.Id)
-                    && !customersWithPayments.Contains(a.Id))
-                .ExecuteUpdateAsync(a => a.SetProperty(b => b.InitialPaidAmount, b => b.AmountPaided));
-        }
-
-        private static async Task SeedJobs(ApplicationDbContext context)
-        {
-            if (!context.Jobs.Any())
-            {
-                var jobs = new[]
-                {
-                    new Job
-                    {
-                        ArName = "كاشير",
-                        EnName = "Cashier",
-                        Code = "1"
-                    },
-                    new Job
-                    {
-                        ArName = "طيار",
-                        EnName = "Delivery Driver",
-                        Code = "2"
-                    },
-                    new Job
-                    {
-                        ArName = "امين مخزن",
-                        EnName = "Storekeeper",
-                        Code = "3"
-                    },
-                    new Job
-                    {
-                        ArName = "جرسون",
-                        EnName = "Waiter",
-                        Code = "4"
-                    },
-                    new Job
-                    {
-                        ArName = "طباخ",
-                        EnName = "Cook",
-                        Code = "5"
-                    },
-                    new Job
-                    {
-                        ArName = "نادل الصالة",
-                        EnName = "Hall Waiter",
-                        Code = "6"
-                    },
-                };
-                context.Jobs.AddRange(jobs);
-                await context.SaveChangesAsync();
-            }
-        }
-
-        private static async Task SeedIndexSettings(ApplicationDbContext context)
-        {
-            if (!context.IndexSettings.Any())
-            {
-                var indexes = new[]
-                {
-                    new IndexSettings
-                    {
-                        ArName = "الاكلات الشهية",
-                        EnName = "Delicious Meals",
-                        ArDescription = "جميع الاطعمة و المشويات",
-                        EnDescription = "All kinds of food and grills",
-                        Email = "di.hamdan55@gmail.com",
-                        StartDay = "Saturday",
-                        EndDay = "Friday",
-                        Phone = "01010164599",
-                        ArLocation = "القاهرة رمسيس شارع الفجالة",
-                        EnLocation = "Cairo, Ramses, El-Fagala Street",
-                        StartHour = "9",
-                        EndHour = "12",
-                        ImageUrl = null,
-                        VideoUrl = null
-                    }
-                };
-                context.IndexSettings.AddRange(indexes);
-                await context.SaveChangesAsync();
-            }
-        }
-
-        private static async Task SeedTables(ApplicationDbContext context)
-        {
-            if (!context.Tables.Any())
-            {
-                var tables = new[]
-                {
-                    new Table
-                    {
-                        ArName = "طاولة رقم 1 ",
-                        EnName = "Table No. 1 ",
-                        IsPending = false,
-                        NumOfPersons = 4
-                    },
-                    new Table
-                    {
-                        ArName = "طاولة رقم 2 ",
-                        EnName = "Table No. 2 ",
-                        IsPending = false,
-                        NumOfPersons = 6
-                    },
-                    new Table
-                    {
-                        ArName = "طاولة رقم 3 ",
-                        EnName = "Table No. 3 ",
-                        IsPending = false,
-                        NumOfPersons = 8
-                    },
-                    new Table
-                    {
-                        ArName = "طاولة رقم 4 ",
-                        EnName = "Table No. 4 ",
-                        IsPending = false,
-                        NumOfPersons = 3
-                    },
-                    new Table
-                    {
-                        ArName = "طاولة رقم 5 ",
-                        EnName = "Table No. 5 ",
-                        IsPending = false,
-                        NumOfPersons = 2
-                    },
-                    new Table
-                    {
-                        ArName = "طاولة رقم 6 ",
-                        EnName = "Table No. 6 ",
-                        IsPending = false,
-                        NumOfPersons = 4
-                    },
-                    new Table
-                    {
-                        ArName = "طاولة رقم 7 ",
-                        EnName = "Table No. 7 ",
-                        IsPending = false,
-                        NumOfPersons = 3
-                    },
-                };
-                context.Tables.AddRange(tables);
-                await context.SaveChangesAsync();
-            }
         }
 
         private static async Task SeedLocations(ApplicationDbContext context)
@@ -442,48 +240,6 @@ namespace Restaurant.DAL.SeedData
 
         }
 
-        private static async Task SeedProductCategories(ApplicationDbContext context)
-        {
-            if (!context.ProductCategories.Any())
-            {
-                var categories = new[]
-                {
-                    new ProductCategory
-                    {
-                        ArName = "خضروات وفواكه",
-                        EnName = "Vegetables and fruits"
-                    },
-                    new ProductCategory
-                    {
-                        ArName = "لحوم ودواجن",
-                        EnName = "Meat and poultry"
-                    },
-                    new ProductCategory
-                    {
-                        ArName = "ألبان وأجبان",
-                        EnName = "Dairy"
-                    },
-                    new ProductCategory
-                    {
-                        ArName = "مخبوزات ودقيق",
-                        EnName = "Bakery and flour"
-                    },
-                    new ProductCategory
-                    {
-                        ArName = "مشروبات",
-                        EnName = "Drinks"
-                    },
-                    new ProductCategory
-                    {
-                        ArName = "أخرى",
-                        EnName = "Other"
-                    }
-                };
-                context.ProductCategories.AddRange(categories);
-                await context.SaveChangesAsync();
-            }
-        }
-
         private static async Task SeedUnitPrices(ApplicationDbContext context)
         {
             if (!context.UnitPrices.Any())
@@ -616,11 +372,11 @@ namespace Restaurant.DAL.SeedData
                 },
                 new ApplicationUser
                 {
-                    FirstName = "محمود",
-                    LastName = "اسماعيل",
-                    UserName = "Mahmoud",
-                    Email = "mahmoud@gmail.com",
-                    PhoneNumber = "01154809509",
+                    FirstName = "احمد ايمن",
+                    LastName = "حليم",
+                    UserName = "Halim",
+                    Email = "halim@gmail.com",
+                    PhoneNumber = "01021487569",
                     UserType = "Admin",
                     EmailConfirmed = true
                 }

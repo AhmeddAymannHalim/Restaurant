@@ -1,3 +1,4 @@
+using AutoMapper;
 using Restaurant.BLL.Services.IServices.Definitions;
 using Restaurant.DAL.Models;
 using Restaurant.DAL.UnitOfWork;
@@ -10,20 +11,24 @@ namespace Restaurant.BLL.Services.Definitions;
 public class AccountDefinitionService : IAccountDefinitionService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public AccountDefinitionService(IUnitOfWork unitOfWork)
+    public AccountDefinitionService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
     public async Task<PaginatedResult<AccountDefinitionViewModel>> GetPagedAccountsAsync(PageRequest request, bool assetsOnly)
     {
-        return await _unitOfWork.AccountDefinitions.GetPagedAccountsAsync(request, assetsOnly);
+        var result = await _unitOfWork.AccountDefinitions.GetPagedAccountsAsync(request, assetsOnly);
+
+        return PaginatedResult<AccountDefinitionViewModel>.Create(_mapper.Map<List<AccountDefinitionViewModel>>(result.Data), result.TotalRecords, request);
     }
 
     public async Task<AccountDefinitionViewModel> GetAccountByIdAsync(int id)
     {
-        return await _unitOfWork.AccountDefinitions.GetAccountByIdAsync(id);
+        return _mapper.Map<AccountDefinitionViewModel>(await _unitOfWork.AccountDefinitions.GetAccountByIdAsync(id));
     }
 
     public async Task<string> NewAccountCodeAsync(int? parentId, AccountKind kind)
@@ -43,32 +48,8 @@ public class AccountDefinitionService : IAccountDefinitionService
 
     public async Task<ResultMessage> UpsertAccountAsync(AccountDefinitionViewModel model)
     {
-        var account = new Account
-        {
-            Id = model.Id,
-            ArName = model.ArName?.Trim(),
-            EnName = model.EnName?.Trim(),
-            ParentAccountId = model.ParentAccountId,
-            CurrencyId = model.CurrencyId,
-            Remarks = model.Remarks,
-            MaxDebitAllowed = model.MaxDebitAllowed,
-            RequiresCostCenter = model.RequiresCostCenter
-        };
-
-        var details = model.Kind == AccountKind.Asset
-            ? new AccountDetails
-            {
-                Location = model.Location,
-                BuyValue = model.BuyValue,
-                BuyDate = model.BuyDate,
-                StartUsingDate = model.StartUsingDate,
-                ProductAge = model.ProductAge,
-                DepreciationType = model.DepreciationType,
-                ScrapValue = model.ScrapValue,
-                DepreciationAccountId = model.DepreciationAccountId,
-                DepreciationExpensesAccountId = model.DepreciationExpensesAccountId
-            }
-            : null;
+        var account = _mapper.Map<Account>(model);
+        var details = model.Kind == AccountKind.Asset ? _mapper.Map<AccountDetails>(model) : null;
 
         return await _unitOfWork.AccountDefinitions.UpsertAccountAsync(account, details, model.Kind, model.OpeningBalance);
     }
