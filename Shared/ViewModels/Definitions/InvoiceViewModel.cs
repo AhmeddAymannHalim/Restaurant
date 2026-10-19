@@ -18,6 +18,7 @@ public class InvoiceViewModel
     public decimal? CurrencyRate { get; set; } = 1;
     public decimal Discount { get; set; }
     public decimal Paid { get; set; }
+    public decimal LinkedPayments { get; set; }
     public bool AutoPost { get; set; } = true;
     public bool AutoStock { get; set; } = true;
     public List<PostingDefaultViewModel> PostingDefaults { get; set; } = new();
@@ -29,7 +30,7 @@ public class InvoiceViewModel
 
     public decimal SubTotal => Items.Sum(a => a.Total);
     public decimal TotalPrice => SubTotal - Discount;
-    public decimal Remaining => TotalPrice - Paid;
+    public decimal Remaining => TotalPrice - Paid - LinkedPayments;
 
     public string SupplierArName { get; set; }
     public string SupplierEnName { get; set; }

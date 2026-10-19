@@ -24,7 +24,7 @@ public class LookupRepository : ILookupRepository
 
     public async Task<IEnumerable<LookupItem>> BranchLookupAsync()
     {
-        return await _context.Branches.Select(a => new LookupItem
+        return await _context.CompanyBranches.Select(a => new LookupItem
         {
             Id = a.Id,
             ArName = a.ArName,

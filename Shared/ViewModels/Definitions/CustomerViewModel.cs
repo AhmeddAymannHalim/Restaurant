@@ -46,7 +46,7 @@ public class CustomerViewModel
     public int? CreditDurationInDays { get; set; }
     public int? CreditDurationInMonth { get; set; }
     public int? CreditDurationInYears { get; set; }
-    public int? BranchId { get; set; }
+    public int? CompanyBranchId { get; set; }
     public int? EmployeeId { get; set; }
     public string BarCodeNumeric { get; set; }
     public decimal LoyaltyPointsNumber { get; set; }

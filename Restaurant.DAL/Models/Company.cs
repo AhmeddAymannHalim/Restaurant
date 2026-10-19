@@ -82,6 +82,6 @@ public class Company : BaseEntity
     public virtual Tax Tax { get; set; }
     public virtual Currency Currency { get; set; }
 
-    public virtual ICollection<Branch> Branches { get; set; } = new List<Branch>();
+    public virtual ICollection<CompanyBranch> Branches { get; set; } = new List<CompanyBranch>();
 
 }

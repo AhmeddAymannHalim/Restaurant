@@ -28,7 +28,7 @@ public class Supplier : BaseEntity
     public int? TownId { get; set; }
 
     public virtual Account Account { get; set; }
-    public virtual Branch Branch { get; set; }
+    public virtual CompanyBranch Branch { get; set; }
     public virtual CostCenter CostCenter { get; set; }
     public virtual Employee Employee { get; set; }
     public virtual Country Country { get; set; }

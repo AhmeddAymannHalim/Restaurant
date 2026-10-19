@@ -13,7 +13,7 @@ public class AutoMapper : Profile
     {
         #region Definitions
 
-        CreateMap<Branch, BranchViewModel>()
+        CreateMap<CompanyBranch, BranchViewModel>()
             .ForMember(dest => dest.CompanyArName, opt => opt.MapFrom(src => src.Company.ArName))
             .ForMember(dest => dest.CompanyEnName, opt => opt.MapFrom(src => src.Company.EnName))
             .ForMember(dest => dest.CurrencyArName, opt => opt.MapFrom(src => src.Currency.ArName))
@@ -22,7 +22,7 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Phone1, opt => opt.MapFrom(src => src.PhoneNumber1))
             .ForMember(dest => dest.Phone2, opt => opt.MapFrom(src => src.PhoneNumber2))
             .ForMember(dest => dest.Mobile1, opt => opt.MapFrom(src => src.PhoneNumber3));
-        CreateMap<BranchViewModel, Branch>()
+        CreateMap<BranchViewModel, CompanyBranch>()
             .ForMember(dest => dest.Code, opt => opt.Ignore())
             .ForMember(dest => dest.Company, opt => opt.Ignore())
             .ForMember(dest => dest.Currency, opt => opt.Ignore())
@@ -337,7 +337,7 @@ public class AutoMapper : Profile
                 DebitBalance = src.Debit,
                 CreditBalance = src.Credit
             }))
-            .ForMember(dest => dest.Branch, opt => opt.Ignore())
+            .ForMember(dest => dest.CompanyBranch, opt => opt.Ignore())
             .ForMember(dest => dest.SellType, opt => opt.Ignore())
             .ForMember(dest => dest.CostCenter, opt => opt.Ignore())
             .ForMember(dest => dest.Employee, opt => opt.Ignore())
@@ -414,7 +414,7 @@ public class AutoMapper : Profile
         CreateMap<CurrencyViewModel, Currency>()
             .ForMember(dest => dest.Code, opt => opt.Ignore())
             .ForMember(dest => dest.Companies, opt => opt.Ignore())
-            .ForMember(dest => dest.Branches, opt => opt.Ignore())
+            .ForMember(dest => dest.CompanyBranches, opt => opt.Ignore())
             .ForMember(dest => dest.Accounts, opt => opt.Ignore());
 
         CreateMap<Kitchen, KitchenViewModel>();

@@ -127,6 +127,11 @@
                 <span asp-validation-for="JobId" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label asp-for="Administration" class="control-label">@L["Emp.Administration"]</label>
+                <input asp-for="Administration" class="form-control" maxlength="100" />
+                <span asp-validation-for="Administration" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label asp-for="ImageFile" class="control-label">@L["Image"]</label>
                 @if (!string.IsNullOrEmpty(Model.Image))
                 {
@@ -450,6 +455,18 @@
                     <span asp-validation-for="BasicSalary" class="text-danger"></span>
                 </div>
                 <div class="form-group">
+                    <label asp-for="Salary" class="control-label">@L["Emp.Salary"]</label>
+                    <input asp-for="Salary" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="Salary" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="SalaryType" class="control-label">@L["Emp.SalaryType"]</label>
+                    <select asp-for="SalaryType" asp-items="Html.GetLocalizedEnumSelectList<SalaryType>(L)" class="form-control">
+                        <option value="">@L["Select"]</option>
+                    </select>
+                    <span asp-validation-for="SalaryType" class="text-danger"></span>
+                </div>
+                <div class="form-group">
                     <label asp-for="WorkDays" class="control-label">@L["Emp.WorkDays"]</label>
                     <input asp-for="WorkDays" type="number" min="0" class="form-control" data-pay="days" />
                     <span asp-validation-for="WorkDays" class="text-danger"></span>
@@ -654,6 +671,16 @@
                     <label asp-for="EmployeeInsurancePercent" class="control-label">@L["Emp.EmployeeInsurancePercent"]</label>
                     <input asp-for="EmployeeInsurancePercent" type="number" step="0.01" min="0" class="form-control" data-ins="employee" />
                     <span asp-validation-for="EmployeeInsurancePercent" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="InsuranceAmount" class="control-label">@L["Emp.InsuranceAmount"]</label>
+                    <input asp-for="InsuranceAmount" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="InsuranceAmount" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="InsurancePercent" class="control-label">@L["Emp.InsurancePercent"]</label>
+                    <input asp-for="InsurancePercent" type="number" step="0.01" min="0" max="100" class="form-control" />
+                    <span asp-validation-for="InsurancePercent" class="text-danger"></span>
                 </div>
                 <div class="form-group">
                     <label asp-for="EmployeeInsuranceAmount" class="control-label">@L["Emp.EmployeeInsuranceAmount"]</label>

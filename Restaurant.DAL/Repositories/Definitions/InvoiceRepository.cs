@@ -79,6 +79,9 @@ public class InvoiceRepository : IInvoiceRepository
                 .ToList()
         };
 
+        model.LinkedPayments = (await _context.PaymentInvoiceSupplier.Where(a => a.BillMasterId == bill.Id).SumAsync(a => (decimal?)a.Paid) ?? 0)
+            + (await _context.PaymentInvoiceCustomer.Where(a => a.BillMasterId == bill.Id).SumAsync(a => (decimal?)a.Paid) ?? 0);
+
         var accountId = bill.CustomerOrSupplierAccountId;
         if (accountId.HasValue)
         {

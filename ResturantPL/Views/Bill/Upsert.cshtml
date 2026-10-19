@@ -253,6 +253,7 @@
             var msgStock = @Html.Raw(Json.Serialize(L["InsufficientStock"].Value));
             var msgSelect = @Html.Raw(Json.Serialize(L["Select"].Value));
 
+            var linkedPayments = @Html.Raw(Json.Serialize(Model.LinkedPayments));
             function number(value) { return parseFloat(value) || 0; }
             function money(value) { return (Math.round(value * 100) / 100).toFixed(2); }
 
@@ -264,7 +265,7 @@
                 var net = sub - number($('#discount').val());
                 $('#subTotal').val(money(sub));
                 $('#net').val(money(net));
-                $('#remaining').val(money(net - number($('#paid').val())));
+                $('#remaining').val(money(net - number($('#paid').val()) - linkedPayments));
             }
 
             var isArabic = @Html.Raw(Json.Serialize(LanguageHelper.IsArabic()));
@@ -406,7 +407,7 @@
             $('#discount, #paid').on('input', recalc);
 
             $('#payFull').on('click', function () {
-                $('#paid').val(money(Math.max(0, number($('#net').val()))));
+                $('#paid').val(money(Math.max(0, number($('#net').val()) - linkedPayments)));
                 recalc();
             });
 

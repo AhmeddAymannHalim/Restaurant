@@ -199,10 +199,15 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
         // a main account: the next free number
         if (parent is null)
         {
-            var allCodes = await _context.Accounts.AsNoTracking().Select(a => a.Code).ToListAsync();
-            var lastRootNumber = allCodes.Where(code => int.TryParse(code, out _)).Select(int.Parse).DefaultIfEmpty(0).Max();
+            // only main accounts count, a child code like 30001 must not push the next main number
+            var rootCodes = await _context.Accounts.AsNoTracking().Where(a => a.ParentAccountId == null).Select(a => a.Code).ToListAsync();
+            var nextRoot = rootCodes.Where(code => int.TryParse(code, out _)).Select(int.Parse).DefaultIfEmpty(0).Max() + 1;
+            while (await _context.Accounts.AsNoTracking().AnyAsync(a => a.Code == nextRoot.ToString()))
+            {
+                nextRoot++;
+            }
 
-            return (lastRootNumber + 1).ToString();
+            return nextRoot.ToString();
         }
 
         var childCodes = await _context.Accounts.AsNoTracking()
@@ -216,7 +221,13 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
             .DefaultIfEmpty(0)
             .Max();
 
-        return parent.Code + (lastNumber + 1).ToString().PadLeft(CodeSuffixLength, '0');
+        var nextNumber = lastNumber + 1;
+        while (await _context.Accounts.AsNoTracking().AnyAsync(a => a.Code == parent.Code + nextNumber.ToString().PadLeft(CodeSuffixLength, '0')))
+        {
+            nextNumber++;
+        }
+
+        return parent.Code + nextNumber.ToString().PadLeft(CodeSuffixLength, '0');
     }
 
     public async Task<IEnumerable<LookupItem>> GetParentOptionsAsync(int? exceptId)
@@ -290,11 +301,15 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
                 if (parent is null)
                 {
                     // a main account: the next free number
-                    var allCodes = await _context.Accounts.AsNoTracking().Select(a => a.Code).ToListAsync();
-                    var lastRootNumber = allCodes.Where(code => int.TryParse(code, out _)).Select(int.Parse).DefaultIfEmpty(0).Max();
+                    var rootCodes = await _context.Accounts.AsNoTracking().Where(a => a.ParentAccountId == null).Select(a => a.Code).ToListAsync();
+                    var nextRoot = rootCodes.Where(code => int.TryParse(code, out _)).Select(int.Parse).DefaultIfEmpty(0).Max() + 1;
+                    while (await _context.Accounts.AsNoTracking().AnyAsync(a => a.Code == nextRoot.ToString()))
+                    {
+                        nextRoot++;
+                    }
 
                     account.ParentAccountId = null;
-                    account.Code = (lastRootNumber + 1).ToString();
+                    account.Code = nextRoot.ToString();
                     account.BalanceType = AccountBalanceType.Debit;
                     account.Level = 1;
                 }
@@ -311,8 +326,14 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
                         .DefaultIfEmpty(0)
                         .Max();
 
+                    var nextNumber = lastNumber + 1;
+                    while (await _context.Accounts.AsNoTracking().AnyAsync(a => a.Code == parent.Code + nextNumber.ToString().PadLeft(CodeSuffixLength, '0')))
+                    {
+                        nextNumber++;
+                    }
+
                     account.ParentAccountId = parent.Id;
-                    account.Code = parent.Code + (lastNumber + 1).ToString().PadLeft(CodeSuffixLength, '0');
+                    account.Code = parent.Code + nextNumber.ToString().PadLeft(CodeSuffixLength, '0');
                     account.BalanceType = kind == AccountKind.GeneralLedger ? parent.BalanceType : AccountBalanceType.Debit;
                     account.Level = (parent.Level ?? 1) + 1;
                     parent.NumberOfSubAccounts = (parent.NumberOfSubAccounts ?? 0) + 1;

@@ -4,9 +4,9 @@ using Restaurant.DAL.Models;
 
 namespace Restaurant.DAL.Configurations;
 
-public class BranchConfig : IEntityTypeConfiguration<Branch>
+public class CompanyBranchConfig : IEntityTypeConfiguration<CompanyBranch>
 {
-    public void Configure(EntityTypeBuilder<Branch> builder)
+    public void Configure(EntityTypeBuilder<CompanyBranch> builder)
     {
         builder.HasIndex(a => a.ArName).IsUnique();
         builder.HasIndex(a => a.EnName).IsUnique();
@@ -28,7 +28,7 @@ public class BranchConfig : IEntityTypeConfiguration<Branch>
 
         builder
             .HasOne(a => a.Currency)
-            .WithMany(a => a.Branches)
+            .WithMany(a => a.CompanyBranches)
             .HasForeignKey(a => a.CurrencyId)
             .OnDelete(DeleteBehavior.Restrict);
     }

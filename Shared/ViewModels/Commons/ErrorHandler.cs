@@ -28,7 +28,7 @@ public static class ErrorHandler
 
         var errorViewModel = new ErrorViewModel
         {
-            ErrorMessage = ex is null || !Shared.Helpers.ErrorLog.ShowDetails ? "An unexpected error occurred. Please try again later." : ex.Message
+            ErrorMessage = ex is null || !Shared.Helpers.ErrorLog.ShowDetails ? (LanguageHelper.IsArabic() ? "حدث خطأ غير متوقع، حاول مرة أخرى لاحقًا." : "An unexpected error occurred. Please try again later.") : ex.Message
         };
 
         return new ViewResult

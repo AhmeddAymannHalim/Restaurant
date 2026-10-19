@@ -12,14 +12,12 @@ public class InvoiceVmValidator : AbstractValidator<InvoiceViewModel>
         var required = localizer["Val.RequiredField"].Value;
 
         RuleFor(x => x.SupplierId)
-            .NotNull()
-            .GreaterThan(0)
+            .Must(id => id.GetValueOrDefault() > 0)
             .WithMessage(required)
             .When(x => x.HasPartner && x.IsSupplierInvoice);
 
         RuleFor(x => x.CustomerId)
-            .NotNull()
-            .GreaterThan(0)
+            .Must(id => id.GetValueOrDefault() > 0)
             .WithMessage(required)
             .When(x => x.HasPartner && !x.IsSupplierInvoice);
 
@@ -42,7 +40,7 @@ public class InvoiceVmValidator : AbstractValidator<InvoiceViewModel>
         RuleFor(x => x.Paid)
             .GreaterThanOrEqualTo(0)
             .WithMessage(localizer["Val.NotNegative"].Value)
-            .LessThanOrEqualTo(x => x.TotalPrice)
+            .Must((x, paid) => paid + x.LinkedPayments <= x.TotalPrice)
             .WithMessage(localizer["Val.PaidTooBig"].Value);
     }
 }

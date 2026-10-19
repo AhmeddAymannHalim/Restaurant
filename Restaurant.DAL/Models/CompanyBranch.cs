@@ -4,7 +4,7 @@ using Shared.Enums.Others;
 
 namespace Restaurant.DAL.Models;
 
-public class Branch : BaseEntity
+public class CompanyBranch : BaseEntity
 {
     public string Code { get; set; }
     public string ArName { get; set; }
@@ -38,7 +38,7 @@ public class Branch : BaseEntity
 
 
     public virtual Company Company { get; set; }
-    public virtual Branch Parent { get; set; }
+    public virtual CompanyBranch Parent { get; set; }
     public virtual Country Country { get; set; }
     public virtual Governorate Gov { get; set; }
     public virtual Town Town { get; set; }

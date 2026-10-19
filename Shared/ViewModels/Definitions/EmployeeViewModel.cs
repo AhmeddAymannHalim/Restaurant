@@ -24,6 +24,9 @@ public class EmployeeViewModel
     public int? GovernorateId { get; set; }
     public string IDNumber { get; set; }
     public decimal? BasicSalary { get; set; }
+    public double? Salary { get; set; }
+    public SalaryType? SalaryType { get; set; }
+    public string Administration { get; set; }
     public int BranchId { get; set; }
     public int JobId { get; set; }
     public string Image { get; set; }
@@ -97,6 +100,8 @@ public class EmployeeViewModel
     public string InsuranceCardNumber { get; set; }
     public DateTime? IssueDate { get; set; }
     public DateTime? ExpiryDate { get; set; }
+    public decimal? InsuranceAmount { get; set; }
+    public decimal? InsurancePercent { get; set; }
     public bool OverrideDelayRule { get; set; }
     public int? GracePeriodMinutesOverride { get; set; }
     public DelayDeductionMode? DelayDeductionModeOverride { get; set; }

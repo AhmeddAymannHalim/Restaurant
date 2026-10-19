@@ -1,19 +1,19 @@
 ﻿@model ErrorViewModel
 @{
-    ViewData["Title"] = "Error";
+    ViewData["Title"] = L["Error.Title"].Value;
 }
 <div class="m-5">
 
-<h1 class="text-danger text-center">خطأ</h1>
+<h1 class="text-danger text-center">@L["Error.Title"]</h1>
 <hr />
 
-<h2 class="text-danger">حدث خطأ اثناء اجراء العملية</h2>
+<h2 class="text-danger">@L["Error.Heading"]</h2>
 <br />
 
 @if (Model.ShowErrorMessage)
 {
     <h4>
-            <strong>رسالة الخطأ : </strong>  <span style="color:deeppink">@Model.ErrorMessage</span>
+            <strong>@L["Error.MessageLabel"] : </strong>  <span style="color:deeppink">@Model.ErrorMessage</span>
     </h4>
 }
 

@@ -820,9 +820,6 @@ namespace Restaurant.DAL.Migrations
                     b.Property<int?>("BillSettingId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("BranchId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("CasherCurrentPaidedAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -840,6 +837,9 @@ namespace Restaurant.DAL.Migrations
 
                     b.Property<string>("CodeWithoutSuffix")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CompanyBranchId")
+                        .HasColumnType("int");
 
                     b.Property<int?>("CostCenterId")
                         .HasColumnType("int");
@@ -992,7 +992,7 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasIndex("BillSettingId");
 
-                    b.HasIndex("BranchId");
+                    b.HasIndex("CompanyBranchId");
 
                     b.HasIndex("CostCenterId");
 
@@ -1175,154 +1175,6 @@ namespace Restaurant.DAL.Migrations
                     b.HasIndex("ToStoreId");
 
                     b.ToTable("BillSettings");
-                });
-
-            modelBuilder.Entity("Restaurant.DAL.Models.Branch", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ArAddress")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<string>("ArName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("ArStreetName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ArVillage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int?>("CompanyId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CostCenterId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CountryId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("CurrencyId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DeletedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EnAddress")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<string>("EnName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("EnStreetName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EnVillage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("GovId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ParentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PhoneNumber1")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("PhoneNumber2")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("PhoneNumber3")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("PostalCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RegistrationNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("State")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TaxId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TownId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedById")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("VatNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("buildingNo")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ArName")
-                        .IsUnique();
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("CostCenterId");
-
-                    b.HasIndex("CountryId");
-
-                    b.HasIndex("CurrencyId");
-
-                    b.HasIndex("EnName")
-                        .IsUnique();
-
-                    b.HasIndex("GovId");
-
-                    b.HasIndex("ParentId");
-
-                    b.HasIndex("TaxId");
-
-                    b.HasIndex("TownId");
-
-                    b.ToTable("Branches");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Brand", b =>
@@ -1622,6 +1474,154 @@ namespace Restaurant.DAL.Migrations
                     b.ToTable("Companies");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.CompanyBranch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArAddress")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("ArName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("ArStreetName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ArVillage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CostCenterId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CountryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnAddress")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("EnName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("EnStreetName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EnVillage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("GovId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PhoneNumber1")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PhoneNumber2")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PhoneNumber3")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PostalCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RegistrationNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("State")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TaxId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TownId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VatNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("buildingNo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArName")
+                        .IsUnique();
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("CostCenterId");
+
+                    b.HasIndex("CountryId");
+
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("EnName")
+                        .IsUnique();
+
+                    b.HasIndex("GovId");
+
+                    b.HasIndex("ParentId");
+
+                    b.HasIndex("TaxId");
+
+                    b.HasIndex("TownId");
+
+                    b.ToTable("CompanyBranches");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.ContractType", b =>
                 {
                     b.Property<int>("Id")
@@ -1846,9 +1846,6 @@ namespace Restaurant.DAL.Migrations
                     b.Property<int>("BillPayType")
                         .HasColumnType("int");
 
-                    b.Property<int?>("BranchId")
-                        .HasColumnType("int");
-
                     b.Property<string>("BuildingNo")
                         .HasColumnType("nvarchar(max)");
 
@@ -1856,6 +1853,9 @@ namespace Restaurant.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("ClassificationId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CompanyBranchId")
                         .HasColumnType("int");
 
                     b.Property<int?>("CostCenterId")
@@ -1993,9 +1993,9 @@ namespace Restaurant.DAL.Migrations
                         .IsUnique()
                         .HasFilter("[AccountId] IS NOT NULL");
 
-                    b.HasIndex("BranchId");
-
                     b.HasIndex("ClassificationId");
+
+                    b.HasIndex("CompanyBranchId");
 
                     b.HasIndex("CostCenterId");
 
@@ -2361,6 +2361,9 @@ namespace Restaurant.DAL.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
+                    b.Property<string>("Administration")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("AnnualLeaveDays")
                         .HasColumnType("int");
 
@@ -2531,6 +2534,10 @@ namespace Restaurant.DAL.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal?>("InsuranceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal?>("InsuranceBasicSalary")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -2549,6 +2556,10 @@ namespace Restaurant.DAL.Migrations
 
                     b.Property<string>("InsuranceNumber")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("InsurancePercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("InsuranceStartDate")
                         .HasColumnType("datetime2");
@@ -2646,8 +2657,14 @@ namespace Restaurant.DAL.Migrations
                     b.Property<string>("Religion")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<double?>("Salary")
+                        .HasColumnType("float");
+
                     b.Property<string>("SalaryNotes")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SalaryType")
+                        .HasColumnType("int");
 
                     b.Property<int>("ShiftType")
                         .HasColumnType("int");
@@ -6405,9 +6422,9 @@ namespace Restaurant.DAL.Migrations
                         .HasForeignKey("BillSettingId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Restaurant.DAL.Models.Branch", "Branch")
+                    b.HasOne("Restaurant.DAL.Models.CompanyBranch", "CompanyBranch")
                         .WithMany()
-                        .HasForeignKey("BranchId")
+                        .HasForeignKey("CompanyBranchId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Restaurant.DAL.Models.CostCenter", "CostCenter")
@@ -6453,7 +6470,7 @@ namespace Restaurant.DAL.Migrations
 
                     b.Navigation("BillSetting");
 
-                    b.Navigation("Branch");
+                    b.Navigation("CompanyBranch");
 
                     b.Navigation("CostCenter");
 
@@ -6558,65 +6575,6 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("ToStore");
                 });
 
-            modelBuilder.Entity("Restaurant.DAL.Models.Branch", b =>
-                {
-                    b.HasOne("Restaurant.DAL.Models.Company", "Company")
-                        .WithMany("Branches")
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Restaurant.DAL.Models.CostCenter", "CostCenter")
-                        .WithMany()
-                        .HasForeignKey("CostCenterId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Restaurant.DAL.Models.Country", "Country")
-                        .WithMany()
-                        .HasForeignKey("CountryId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Restaurant.DAL.Models.Currency", "Currency")
-                        .WithMany("Branches")
-                        .HasForeignKey("CurrencyId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Restaurant.DAL.Models.Governorate", "Gov")
-                        .WithMany()
-                        .HasForeignKey("GovId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Restaurant.DAL.Models.Branch", "Parent")
-                        .WithMany()
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Restaurant.DAL.Models.Tax", "Tax")
-                        .WithMany("Branches")
-                        .HasForeignKey("TaxId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Restaurant.DAL.Models.Town", "Town")
-                        .WithMany()
-                        .HasForeignKey("TownId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Company");
-
-                    b.Navigation("CostCenter");
-
-                    b.Navigation("Country");
-
-                    b.Navigation("Currency");
-
-                    b.Navigation("Gov");
-
-                    b.Navigation("Parent");
-
-                    b.Navigation("Tax");
-
-                    b.Navigation("Town");
-                });
-
             modelBuilder.Entity("Restaurant.DAL.Models.Company", b =>
                 {
                     b.HasOne("Restaurant.DAL.Models.Country", "Country")
@@ -6655,6 +6613,65 @@ namespace Restaurant.DAL.Migrations
                     b.Navigation("Town");
                 });
 
+            modelBuilder.Entity("Restaurant.DAL.Models.CompanyBranch", b =>
+                {
+                    b.HasOne("Restaurant.DAL.Models.Company", "Company")
+                        .WithMany("Branches")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.CostCenter", "CostCenter")
+                        .WithMany()
+                        .HasForeignKey("CostCenterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Country", "Country")
+                        .WithMany()
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Currency", "Currency")
+                        .WithMany("CompanyBranches")
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Governorate", "Gov")
+                        .WithMany()
+                        .HasForeignKey("GovId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.CompanyBranch", "Parent")
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Tax", "Tax")
+                        .WithMany("Branches")
+                        .HasForeignKey("TaxId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.Town", "Town")
+                        .WithMany()
+                        .HasForeignKey("TownId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Company");
+
+                    b.Navigation("CostCenter");
+
+                    b.Navigation("Country");
+
+                    b.Navigation("Currency");
+
+                    b.Navigation("Gov");
+
+                    b.Navigation("Parent");
+
+                    b.Navigation("Tax");
+
+                    b.Navigation("Town");
+                });
+
             modelBuilder.Entity("Restaurant.DAL.Models.CostCenter", b =>
                 {
                     b.HasOne("Restaurant.DAL.Models.CostCenter", "Parent")
@@ -6672,14 +6689,14 @@ namespace Restaurant.DAL.Migrations
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Restaurant.DAL.Models.Branch", "Branch")
-                        .WithMany()
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Restaurant.DAL.Models.Classification", "Classification")
                         .WithMany("Customers")
                         .HasForeignKey("ClassificationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Restaurant.DAL.Models.CompanyBranch", "CompanyBranch")
+                        .WithMany()
+                        .HasForeignKey("CompanyBranchId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Restaurant.DAL.Models.CostCenter", "CostCenter")
@@ -6729,9 +6746,9 @@ namespace Restaurant.DAL.Migrations
 
                     b.Navigation("Account");
 
-                    b.Navigation("Branch");
-
                     b.Navigation("Classification");
+
+                    b.Navigation("CompanyBranch");
 
                     b.Navigation("CostCenter");
 
@@ -6789,7 +6806,7 @@ namespace Restaurant.DAL.Migrations
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Restaurant.DAL.Models.Branch", "Branch")
+                    b.HasOne("Restaurant.DAL.Models.CompanyBranch", "Branch")
                         .WithMany()
                         .HasForeignKey("BranchId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -7553,7 +7570,7 @@ namespace Restaurant.DAL.Migrations
 
             modelBuilder.Entity("Restaurant.DAL.Models.Store", b =>
                 {
-                    b.HasOne("Restaurant.DAL.Models.Branch", "Branch")
+                    b.HasOne("Restaurant.DAL.Models.CompanyBranch", "Branch")
                         .WithMany()
                         .HasForeignKey("BranchId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -7695,7 +7712,7 @@ namespace Restaurant.DAL.Migrations
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Restaurant.DAL.Models.Branch", "Branch")
+                    b.HasOne("Restaurant.DAL.Models.CompanyBranch", "Branch")
                         .WithMany()
                         .HasForeignKey("BranchId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -7855,9 +7872,9 @@ namespace Restaurant.DAL.Migrations
                 {
                     b.Navigation("Accounts");
 
-                    b.Navigation("Branches");
-
                     b.Navigation("Companies");
+
+                    b.Navigation("CompanyBranches");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Customer", b =>
