@@ -32,7 +32,7 @@ public class ProductVmValidator : AbstractValidator<ProductViewModel>
             .WithMessage(localizer["Val.NameAlreadyExist"].Value);
 
         RuleFor(x => x.ProductCategoryId)
-            .GreaterThan(0)
+            .NotNull()
             .WithMessage(required);
 
         RuleForEach(x => x.Stocks)

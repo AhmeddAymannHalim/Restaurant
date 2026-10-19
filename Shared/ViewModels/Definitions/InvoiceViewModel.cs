@@ -12,7 +12,7 @@ public class InvoiceViewModel
     public PayType PayType { get; set; } = PayType.Cash;
     public int? SupplierId { get; set; }
     public int? CustomerId { get; set; }
-    public int StoreId { get; set; }
+    public int? StoreId { get; set; }
     public int? CostCenterId { get; set; }
     public int? CurrencyId { get; set; }
     public decimal? CurrencyRate { get; set; } = 1;

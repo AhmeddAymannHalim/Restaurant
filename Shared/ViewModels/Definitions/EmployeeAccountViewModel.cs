@@ -5,7 +5,7 @@ namespace Shared.ViewModels.Definitions;
 public class EmployeeAccountViewModel
 {
     public string Id { get; set; }
-    public int EmployeeId { get; set; }
+    public int? EmployeeId { get; set; }
     public string Code { get; set; }
     public string UserName { get; set; }
     public string Email { get; set; }

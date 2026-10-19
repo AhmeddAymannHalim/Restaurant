@@ -263,7 +263,7 @@ namespace ResturantPL.Controllers.Definitions
         {
             model.Partners = await _lookup.CustomerLookupAsync();
             model.OpenInvoices = model.PartnerId > 0
-                ? await _service.GetOpenInvoicesForPartnerAsync(model.PartnerId)
+                ? await _service.GetOpenInvoicesForPartnerAsync(model.PartnerId.GetValueOrDefault())
                 : Enumerable.Empty<LookupItem>();
         }
     }

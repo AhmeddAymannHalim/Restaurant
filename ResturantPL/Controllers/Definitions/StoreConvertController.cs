@@ -157,7 +157,7 @@ namespace ResturantPL.Controllers.Definitions
 
             if (model.Items.Count > 0)
             {
-                var products = (await _lookup.StoreProductLookupByStoreIdAsync(model.FromStoreId)).ToDictionary(p => p.ProductId);
+                var products = (await _lookup.StoreProductLookupByStoreIdAsync(model.FromStoreId.GetValueOrDefault())).ToDictionary(p => p.ProductId);
                 foreach (var item in model.Items)
                 {
                     if (products.TryGetValue(item.ProductId, out var product))

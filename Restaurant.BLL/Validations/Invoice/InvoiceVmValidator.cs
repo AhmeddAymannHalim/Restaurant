@@ -22,7 +22,7 @@ public class InvoiceVmValidator : AbstractValidator<InvoiceViewModel>
             .When(x => x.HasPartner && !x.IsSupplierInvoice);
 
         RuleFor(x => x.StoreId)
-            .GreaterThan(0)
+            .NotNull()
             .WithMessage(required);
 
         RuleFor(x => x.Items)

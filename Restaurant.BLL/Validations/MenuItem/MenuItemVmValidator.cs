@@ -36,11 +36,11 @@ public class MenuItemVmValidator : AbstractValidator<MenuItemViewModel>
             .WithMessage(MaxLength(40));
 
         RuleFor(x => x.MenuSectionId)
-            .GreaterThan(0)
+            .NotNull()
             .WithMessage(required);
 
         RuleFor(x => x.StoreId)
-            .GreaterThan(0)
+            .NotNull()
             .WithMessage(required);
 
         RuleFor(x => x.ArDescription)

@@ -10,11 +10,11 @@ public class PaymentVmValidator : AbstractValidator<PaymentViewModel>
     public PaymentVmValidator(IStringLocalizer<SharedResource> localizer)
     {
         RuleFor(x => x.PartnerId)
-            .GreaterThan(0)
+            .NotNull()
             .WithMessage(localizer["Val.RequiredField"].Value);
 
         RuleFor(x => x.BillMasterId)
-            .GreaterThan(0)
+            .NotNull()
             .WithMessage(localizer["Val.RequiredField"].Value);
 
         RuleFor(x => x.Paid)

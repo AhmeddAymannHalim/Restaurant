@@ -16,7 +16,7 @@ public class ScroungeVmValidator : AbstractValidator<ScroungeViewModel>
         string MaxLength(int length) => string.Format(localizer["Val.MaxLength"].Value, length);
 
         RuleFor(x => x.EmployeeId)
-            .GreaterThan(0)
+            .NotNull()
             .WithMessage(required);
 
         RuleFor(x => x.Amount)

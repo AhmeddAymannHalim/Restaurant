@@ -87,22 +87,6 @@ services.AddControllersWithViews(options =>
     })
     .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
     .AddDataAnnotationsLocalization();
-services.AddOptions<MvcOptions>().Configure<IStringLocalizer<Shared.SharedResource>>((options, localizer) =>
-{
-    // the framework binding messages are English by default; these follow the request language
-    var messages = options.ModelBindingMessageProvider;
-    messages.SetValueIsInvalidAccessor(value => string.Format(localizer["Val.Bind.Invalid"].Value, value));
-    messages.SetAttemptedValueIsInvalidAccessor((value, field) => string.Format(localizer["Val.Bind.InvalidField"].Value, value, field));
-    messages.SetNonPropertyAttemptedValueIsInvalidAccessor(value => string.Format(localizer["Val.Bind.Invalid"].Value, value));
-    messages.SetUnknownValueIsInvalidAccessor(field => string.Format(localizer["Val.Bind.Unknown"].Value, field));
-    messages.SetNonPropertyUnknownValueIsInvalidAccessor(() => localizer["Val.Bind.UnknownNoField"].Value);
-    messages.SetValueMustBeANumberAccessor(field => string.Format(localizer["Val.Bind.Number"].Value, field));
-    messages.SetNonPropertyValueMustBeANumberAccessor(() => localizer["Val.Bind.NumberNoField"].Value);
-    messages.SetValueMustNotBeNullAccessor(value => localizer["Val.RequiredField"].Value);
-    messages.SetMissingBindRequiredValueAccessor(field => string.Format(localizer["Val.Bind.Missing"].Value, field));
-    messages.SetMissingKeyOrValueAccessor(() => localizer["Val.Bind.MissingKeyOrValue"].Value);
-    messages.SetMissingRequestBodyRequiredValueAccessor(() => localizer["Val.Bind.BodyRequired"].Value);
-});
 services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
 services.AddValidatorsFromAssemblyContaining<BranchVmValidator>();
 services.AddAutoMapper(cfg => { }, typeof(Restaurant.BLL.Helper.AutoMapper).Assembly);
@@ -117,7 +101,6 @@ services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         options.Password.RequireUppercase = false;
         options.User.RequireUniqueEmail = true;
     })
-    .AddErrorDescriber<ResturantPL.Helper.LocalizedIdentityErrorDescriber>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 

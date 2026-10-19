@@ -53,7 +53,7 @@ public class AccountRepository : IAccountRepository
             return new ResultMessage<ApplicationUser>
             {
                 Success = false,
-                Message = created.Errors.First().Description
+                Message = "Identity." + created.Errors.First().Code
             };
         }
 
@@ -136,7 +136,7 @@ public class AccountRepository : IAccountRepository
         return new ResultMessage
         {
             Success = result.Succeeded,
-            Message = result.Succeeded ? null : result.Errors.First().Description
+            Message = result.Succeeded ? null : "Identity." + result.Errors.First().Code
         };
     }
 
@@ -163,7 +163,7 @@ public class AccountRepository : IAccountRepository
             return new ResultMessage
             {
                 Success = false,
-                Message = result.Errors.First().Description
+                Message = "Identity." + result.Errors.First().Code
             };
         }
 
@@ -202,7 +202,7 @@ public class AccountRepository : IAccountRepository
         return new ResultMessage
         {
             Success = false,
-            Message = wrongCurrent ? "Auth_WrongPassword" : result.Errors.First().Description
+            Message = wrongCurrent ? "Auth_WrongPassword" : "Identity." + result.Errors.First().Code
         };
     }
 

@@ -15,7 +15,7 @@ public class SalaryVmValidator : AbstractValidator<SalaryViewModel>
         var required = localizer["Val.RequiredField"].Value;
 
         RuleFor(x => x.EmployeeId)
-            .GreaterThan(0)
+            .NotNull()
             .WithMessage(required);
 
         RuleFor(x => x.SalaryAmount)

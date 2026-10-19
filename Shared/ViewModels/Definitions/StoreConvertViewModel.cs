@@ -7,8 +7,8 @@ public class StoreConvertViewModel
     public int Id { get; set; }
     public string ConvertCode { get; set; }
     public DateTime ConvertDate { get; set; } = DateTime.Now;
-    public int FromStoreId { get; set; }
-    public int ToStoreId { get; set; }
+    public int? FromStoreId { get; set; }
+    public int? ToStoreId { get; set; }
 
     public string FromStoreArName { get; set; }
     public string FromStoreEnName { get; set; }

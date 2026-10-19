@@ -8,8 +8,8 @@ public class PaymentViewModel
     public int Id { get; set; }
     public string ProcessCode { get; set; }
     public DateTime Date { get; set; } = DateTime.Now;
-    public int PartnerId { get; set; }
-    public int BillMasterId { get; set; }
+    public int? PartnerId { get; set; }
+    public int? BillMasterId { get; set; }
     public decimal Paid { get; set; }
     public string Description { get; set; }
 

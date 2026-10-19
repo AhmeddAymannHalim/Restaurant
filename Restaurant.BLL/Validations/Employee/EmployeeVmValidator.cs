@@ -57,7 +57,7 @@ public class EmployeeVmValidator : AbstractValidator<EmployeeViewModel>
             .WithMessage(localizer["PhoneAlreadyExists"].Value);
 
         RuleFor(x => x.TownId)
-            .GreaterThan(0)
+            .NotNull()
             .WithMessage(required);
 
         RuleFor(x => x.Address)
@@ -199,11 +199,11 @@ public class EmployeeVmValidator : AbstractValidator<EmployeeViewModel>
             });
 
         RuleFor(x => x.BranchId)
-            .GreaterThan(0)
+            .NotNull()
             .WithMessage(required);
 
         RuleFor(x => x.JobId)
-            .GreaterThan(0)
+            .NotNull()
             .WithMessage(required);
     }
 }

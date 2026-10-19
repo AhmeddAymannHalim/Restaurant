@@ -9,7 +9,7 @@ public class MenuItemViewModel
     public string Code { get; set; }
     public string ArName { get; set; }
     public string EnName { get; set; }
-    public int MenuSectionId { get; set; }
+    public int? MenuSectionId { get; set; }
     public string MenuSectionArName { get; set; }
     public string MenuSectionEnName { get; set; }
     public Size? Size { get; set; }
@@ -18,7 +18,7 @@ public class MenuItemViewModel
     public bool IsAvailable { get; set; } = true;
     public string ImageUrl { get; set; }
     public IFormFile ImageFile { get; set; }
-    public int StoreId { get; set; }
+    public int? StoreId { get; set; }
     public string StoreArName { get; set; }
     public string StoreEnName { get; set; }
     public decimal Price { get; set; }

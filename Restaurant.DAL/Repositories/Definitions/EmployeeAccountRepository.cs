@@ -119,7 +119,7 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
                 return new ResultMessage
                 {
                     Success = created.Succeeded,
-                    Message = created.Succeeded ? null : created.Errors.First().Description
+                    Message = created.Succeeded ? null : "Identity." + created.Errors.First().Code
                 };
             }
 
@@ -128,7 +128,7 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
             return new ResultMessage
             {
                 Success = addedToRole.Succeeded,
-                Message = addedToRole.Succeeded ? null : addedToRole.Errors.First().Description
+                Message = addedToRole.Succeeded ? null : "Identity." + addedToRole.Errors.First().Code
             };
         }
 
@@ -151,7 +151,7 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
             return new ResultMessage
             {
                 Success = updated.Succeeded,
-                Message = updated.Succeeded ? null : updated.Errors.First().Description
+                Message = updated.Succeeded ? null : "Identity." + updated.Errors.First().Code
             };
         }
 
@@ -161,7 +161,7 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
         return new ResultMessage
         {
             Success = reset.Succeeded,
-            Message = reset.Succeeded ? null : reset.Errors.First().Description
+            Message = reset.Succeeded ? null : "Identity." + reset.Errors.First().Code
         };
     }
 }

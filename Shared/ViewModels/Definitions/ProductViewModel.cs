@@ -9,7 +9,7 @@ public class ProductViewModel
     public string ArName { get; set; }
     public string EnName { get; set; }
     public decimal Cost { get; set; }
-    public int ProductCategoryId { get; set; }
+    public int? ProductCategoryId { get; set; }
 
     public string ProductCategoryArName { get; set; }
     public string ProductCategoryEnName { get; set; }

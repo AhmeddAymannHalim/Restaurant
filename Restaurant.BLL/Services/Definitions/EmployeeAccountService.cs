@@ -62,6 +62,6 @@ public class EmployeeAccountService : IEmployeeAccountService
     {
         var entity = _mapper.Map<ApplicationUser>(model);
 
-        return await _repository.UpsertAccountAsync(entity, model.EmployeeId, model.Password);
+        return await _repository.UpsertAccountAsync(entity, model.EmployeeId.GetValueOrDefault(), model.Password);
     }
 }

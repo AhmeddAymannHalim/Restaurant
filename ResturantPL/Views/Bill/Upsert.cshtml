@@ -252,6 +252,10 @@
             var msgFill = @Html.Raw(Json.Serialize(L["FillComponentFields"].Value));
             var msgStock = @Html.Raw(Json.Serialize(L["InsufficientStock"].Value));
             var msgSelect = @Html.Raw(Json.Serialize(L["Select"].Value));
+            var msgRequired = @Html.Raw(Json.Serialize(L["Val.RequiredField"].Value));
+            var msgNeedItems = @Html.Raw(Json.Serialize(L["InvoiceNeedsItems"].Value));
+            var msgDiscountTooBig = @Html.Raw(Json.Serialize(L["Val.DiscountTooBig"].Value));
+            var msgPaidTooBig = @Html.Raw(Json.Serialize(L["Val.PaidTooBig"].Value));
 
             var linkedPayments = @Html.Raw(Json.Serialize(Model.LinkedPayments));
             function number(value) { return parseFloat(value) || 0; }
@@ -415,9 +419,36 @@
             $('#PayType').on('change', togglePayFull);
             togglePayFull();
 
-            $('#invoiceForm').on('submit', function () {
+            $('#invoiceForm').on('submit', function (e) {
                 var form = $(this);
                 form.find('input.line-input').remove();
+
+                // same rules as InvoiceVmValidator, so the request never leaves the page when it is wrong
+                var errors = [];
+                $('.is-invalid').removeClass('is-invalid');
+                $('#SupplierId:visible, #CustomerId:visible, #StoreId').each(function () {
+                    if (!$(this).val()) {
+                        $(this).addClass('is-invalid');
+                        errors.push($('label[for="' + this.id + '"]').text() + ': ' + msgRequired);
+                    }
+                });
+                if ($('#linesTable tbody tr').length === 0) {
+                    errors.push(msgNeedItems);
+                }
+                if (number($('#discount').val()) > number($('#subTotal').val())) {
+                    $('#discount').addClass('is-invalid');
+                    errors.push(msgDiscountTooBig);
+                }
+                if (number($('#paid').val()) + linkedPayments > number($('#net').val())) {
+                    $('#paid').addClass('is-invalid');
+                    errors.push(msgPaidTooBig);
+                }
+                if (errors.length > 0) {
+                    e.preventDefault();
+                    $.each(errors, function (i, message) { toastr.error(message); });
+                    return;
+                }
+
                 $('#linesTable tbody tr').each(function (i) {
                     var row = $(this);
                     var values = { ProductId: row.data('product'), UnitPriceId: row.data('unit'), Quantity: row.data('qty'), Price: row.data('price') };

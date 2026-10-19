@@ -95,6 +95,10 @@
         $(function () {
             var balanced = @Html.Raw(Json.Serialize(L["Bill.Balanced"].Value));
             var unbalanced = @Html.Raw(Json.Serialize(L["Bill.Unbalanced"].Value));
+            var msgRequired = @Html.Raw(Json.Serialize(L["Val.RequiredField"].Value));
+            var msgTwoLines = @Html.Raw(Json.Serialize(L["JournalNeedsTwoLines"].Value));
+            var msgLineInvalid = @Html.Raw(Json.Serialize(L["JournalLineInvalid"].Value));
+            var msgNotBalanced = @Html.Raw(Json.Serialize(L["JournalNotBalanced"].Value));
 
             function sum(selector) {
                 var total = 0;
@@ -112,6 +116,36 @@
             $(document).on('input', '.line-debit, .line-credit', refresh);
             $(document).on('click', '[data-row-remove], [data-row-add]', function () { setTimeout(refresh, 0); });
             refresh();
+
+            // same rules as EntryVmValidator, so the request never leaves the page when it is wrong
+            $('form.ad-form').on('submit', function (e) {
+                var errors = [];
+                $('.is-invalid').removeClass('is-invalid');
+                if (!$('#EntryDate').val()) {
+                    $('#EntryDate').addClass('is-invalid');
+                    errors.push(msgRequired);
+                }
+
+                var usedLines = 0;
+                var badLine = false;
+                $('[data-rows] [data-row]').each(function () {
+                    var account = $(this).find('select').val();
+                    var debit = parseFloat($(this).find('.line-debit').val()) || 0;
+                    var credit = parseFloat($(this).find('.line-credit').val()) || 0;
+                    if (account && (debit > 0 || credit > 0)) {
+                        usedLines++;
+                        if ((debit > 0) === (credit > 0)) { badLine = true; $(this).find('.line-debit, .line-credit').addClass('is-invalid'); }
+                    }
+                });
+                if (usedLines < 2) { errors.push(msgTwoLines); }
+                if (badLine) { errors.push(msgLineInvalid); }
+                if (Math.abs(sum('.line-debit') - sum('.line-credit')) >= 0.005) { errors.push(msgNotBalanced); }
+
+                if (errors.length > 0) {
+                    e.preventDefault();
+                    $.each(errors, function (i, message) { toastr.error(message); });
+                }
+            });
         });
     </script>
 }

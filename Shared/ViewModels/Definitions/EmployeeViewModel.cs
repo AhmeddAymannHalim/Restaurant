@@ -17,7 +17,7 @@ public class EmployeeViewModel
     public List<EmployeeFixedDeductionViewModel> FixedDeductions { get; set; } = new();
     public List<EmployeeLeaveViewModel> Leaves { get; set; } = new();
     public List<EmployeeDocumentViewModel> Documents { get; set; } = new();
-    public int TownId { get; set; }
+    public int? TownId { get; set; }
     public string Address { get; set; }
 
     public int? CountryId { get; set; }
@@ -27,8 +27,8 @@ public class EmployeeViewModel
     public double? Salary { get; set; }
     public SalaryType? SalaryType { get; set; }
     public string Administration { get; set; }
-    public int BranchId { get; set; }
-    public int JobId { get; set; }
+    public int? BranchId { get; set; }
+    public int? JobId { get; set; }
     public string Image { get; set; }
     public IFormFile ImageFile { get; set; }
 

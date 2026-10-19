@@ -15,7 +15,7 @@ public class EmployeeAccountVmValidator : AbstractValidator<EmployeeAccountViewM
         string MinLength(int length) => string.Format(localizer["Val.MinLength"].Value, length);
 
         RuleFor(x => x.EmployeeId)
-            .GreaterThan(0)
+            .NotNull()
             .When(x => string.IsNullOrEmpty(x.Id))
             .WithMessage(required);
 

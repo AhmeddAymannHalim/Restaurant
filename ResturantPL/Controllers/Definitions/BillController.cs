@@ -266,7 +266,7 @@ namespace ResturantPL.Controllers.Definitions
 
             if (model.Items.Count > 0)
             {
-                var products = (await _lookup.StoreProductLookupByStoreIdAsync(model.StoreId)).ToDictionary(p => p.ProductId);
+                var products = (await _lookup.StoreProductLookupByStoreIdAsync(model.StoreId.GetValueOrDefault())).ToDictionary(p => p.ProductId);
                 var isArabic = LanguageHelper.IsArabic();
                 foreach (var item in model.Items)
                 {

@@ -15,7 +15,7 @@ public class ExitExpenseVmValidator : AbstractValidator<ExitExpenseViewModel>
         var required = localizer["Val.RequiredField"].Value;
 
         RuleFor(x => x.ExpenseId)
-            .GreaterThan(0)
+            .NotNull()
             .WithMessage(required);
 
         RuleFor(x => x.Price)

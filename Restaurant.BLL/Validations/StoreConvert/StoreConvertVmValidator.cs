@@ -10,11 +10,11 @@ public class StoreConvertVmValidator : AbstractValidator<StoreConvertViewModel>
     public StoreConvertVmValidator(IStringLocalizer<SharedResource> localizer)
     {
         RuleFor(x => x.FromStoreId)
-            .GreaterThan(0)
+            .NotNull()
             .WithMessage(localizer["Val.RequiredField"].Value);
 
         RuleFor(x => x.ToStoreId)
-            .GreaterThan(0)
+            .NotNull()
             .WithMessage(localizer["Val.RequiredField"].Value)
             .NotEqual(x => x.FromStoreId)
             .WithMessage(localizer["SameStore"].Value);

@@ -91,12 +91,12 @@ public class UserRepository : IUserRepository
             var created = await _userManager.CreateAsync(entity, password);
             if (!created.Succeeded)
             {
-                return new ResultMessage { Success = created.Succeeded, Message = created.Succeeded ? null : created.Errors.First().Description };
+                return new ResultMessage { Success = created.Succeeded, Message = created.Succeeded ? null : "Identity." + created.Errors.First().Code };
             }
 
             var addedToRoleOnCreate = await _userManager.AddToRoleAsync(entity, entity.UserType);
 
-            return new ResultMessage { Success = addedToRoleOnCreate.Succeeded, Message = addedToRoleOnCreate.Succeeded ? null : addedToRoleOnCreate.Errors.First().Description };
+            return new ResultMessage { Success = addedToRoleOnCreate.Succeeded, Message = addedToRoleOnCreate.Succeeded ? null : "Identity." + addedToRoleOnCreate.Errors.First().Code };
         }
 
         var existing = await _userManager.FindByIdAsync(entity.Id);
@@ -130,14 +130,14 @@ public class UserRepository : IUserRepository
         var updated = await _userManager.UpdateAsync(existing);
         if (!updated.Succeeded)
         {
-            return new ResultMessage { Success = updated.Succeeded, Message = updated.Succeeded ? null : updated.Errors.First().Description };
+            return new ResultMessage { Success = updated.Succeeded, Message = updated.Succeeded ? null : "Identity." + updated.Errors.First().Code };
         }
 
         await _userManager.RemoveFromRolesAsync(existing, oldRoles);
 
         var addedToRole = await _userManager.AddToRoleAsync(existing, existing.UserType);
 
-        return new ResultMessage { Success = addedToRole.Succeeded, Message = addedToRole.Succeeded ? null : addedToRole.Errors.First().Description };
+        return new ResultMessage { Success = addedToRole.Succeeded, Message = addedToRole.Succeeded ? null : "Identity." + addedToRole.Errors.First().Code };
     }
 
     public async Task<ResultMessage> DeleteUserAsync(string id)
@@ -163,7 +163,7 @@ public class UserRepository : IUserRepository
 
         var deleted = await _userManager.DeleteAsync(entity);
 
-        return new ResultMessage { Success = deleted.Succeeded, Message = deleted.Succeeded ? null : deleted.Errors.First().Description };
+        return new ResultMessage { Success = deleted.Succeeded, Message = deleted.Succeeded ? null : "Identity." + deleted.Errors.First().Code };
     }
 
 }
