@@ -127,9 +127,7 @@ if (relaxedSecurity)
 else
 {
     services.AddAuthorizationBuilder()
-        .AddPolicy("Staff", policy => policy
-            .RequireAuthenticatedUser()
-            .RequireAssertion(context => !context.User.IsInRole("User")))
+        .AddPolicy("Staff", policy => policy.RequireAuthenticatedUser())
         .AddPolicy("Management", policy => policy.RequireRole("Admin", "Manager"))
         .AddPolicy("Admin", policy => policy.RequireRole("Admin"));
 }
@@ -142,7 +140,6 @@ services.AddScoped<IUnitOfWork, UnitOfWork>();
 services.AddScoped(typeof(IValidatorRepository<>), typeof(ValidatorRepository<>));
 services.AddScoped(typeof(IValidatorService<>), typeof(ValidatorService<>));
 services.AddScoped<ILookupService, LookupService>();
-services.AddScoped<IHomeService, HomeService>();
 services.AddScoped<IChefService, ChefService>();
 services.AddScoped<IGalleryService, GalleryService>();
 services.AddScoped<IBranchService, BranchService>();
@@ -222,7 +219,7 @@ app.UseRotativa();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "default", pattern: "{controller=Dashboard}/{action=Index}/{id?}");
 
 using (var scope = app.Services.CreateScope())
 {

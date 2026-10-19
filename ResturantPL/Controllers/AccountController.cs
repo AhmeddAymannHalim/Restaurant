@@ -32,7 +32,7 @@ namespace ResturantPL.Controllers
         [Authorize]
         public IActionResult AdminDash()
         {
-            return User.IsInRole("User") ? RedirectToAction("Index", "Home") : RedirectToAction("Index", "Dashboard");
+            return RedirectToAction("Index", "Dashboard");
         }
 
         public IActionResult Register()
@@ -85,7 +85,7 @@ namespace ResturantPL.Controllers
 
             await SignInCookieAsync(result.Data, model.RememberMe);
 
-            return Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl) : RedirectToAction("Index", "Home");
+            return Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl) : RedirectToAction("Index", "Dashboard");
         }
 
         public new async Task<IActionResult> SignOut()

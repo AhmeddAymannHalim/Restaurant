@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.BLL.Services.IServices.Commons;
 using Shared.ViewModels.Commons;
 using System.Diagnostics;
 
@@ -7,35 +6,9 @@ namespace ResturantPL.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IHomeService _service;
-
-        public HomeController(IHomeService service)
+        public IActionResult Index()
         {
-            _service = service;
-        }
-
-        public async Task<IActionResult> Index()
-        {
-            try
-            {
-                return View(await _service.GetHomeAsync());
-            }
-            catch (Exception ex)
-            {
-                return ErrorHandler.ErrorView(ex);
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Pricing()
-        {
-            return Json(await _service.GetPricingAsync());
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> MenuItems(int? sectionId)
-        {
-            return Json(await _service.GetMenuItemsAsync(sectionId));
+            return RedirectToAction("Index", "Dashboard");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
