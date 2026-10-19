@@ -1,4 +1,4 @@
-@{
+﻿@{
     var controller = ViewContext.RouteData.Values["controller"] as string;
-    Layout = controller is "Account" ? "_AuthenticationLayout" : "_AdminLayout";
+    Layout = controller is "Account" ? "_AuthLayout" : "_Layout";
 }

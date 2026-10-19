@@ -1,13 +1,3 @@
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<partial name="_Loader" />
-<partial name="_Csrf" />
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.10.8/sweetalert2.all.min.js"></script>
-<partial name="_DeleteText" />
-<script src="~/js/confirm-dialogs.js" asp-append-version="true"></script>
-<partial name="_NotificationPartial" />
-<script>
 /* Shows every <input type="date"> as day/month/year, for example 2/11/2026 (no month names, no Arabic or
    English words). The input itself stays a native date input (same ISO value, same name, same picker),
    so form posting and validation are untouched. Rows added later by row-lists.js are picked up too. */
@@ -64,4 +54,3 @@
     scan(document);
     new MutationObserver(function () { scan(document); }).observe(document.body, { childList: true, subtree: true });
 })();
-</script>

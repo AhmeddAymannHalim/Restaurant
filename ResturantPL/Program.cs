@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc.Razor;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
@@ -19,7 +20,6 @@ using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
 using Restaurant.DAL.Repositories.Commons;
 using Restaurant.DAL.Repositories.Definitions;
-using Restaurant.DAL.SeedData;
 using Restaurant.DAL.UnitOfWork;
 using ResturantPL.Filters;
 using ResturantPL.Services;
@@ -27,6 +27,7 @@ using Rotativa.AspNetCore;
 using Shared.Helpers;
 using Shared.Helpers.Localization;
 using System.Globalization;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -115,6 +116,17 @@ services.AddAuthentication(options =>
         options.AccessDeniedPath = "/Home/Error";
         options.Cookie.HttpOnly = true;
         options.ExpireTimeSpan = TimeSpan.FromDays(6);
+
+        options.Events.OnValidatePrincipal = async context =>
+        {
+            var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var users = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+            if (userId == null || await users.FindByIdAsync(userId) == null)
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+        };
     });
 
 if (relaxedSecurity)
@@ -221,21 +233,7 @@ app.MapControllerRoute(name: "default", pattern: "{controller=Dashboard}/{action
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-    if (configuration.GetValue("Database:MigrateOnStartup", true))
-    {
-        await dbContext.Database.MigrateAsync();
-    }
-
-    if (configuration.GetValue("Database:SeedOnStartup", true))
-    {
-        await DataSeeder.SeedData(
-            dbContext,
-            scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
-            scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>(),
-            configuration.GetValue("Database:SeedDefaultUsers", true),
-            configuration["Database:DefaultPassword"] ?? (app.Environment.IsDevelopment() ? "@Qwe12" : null));
-    }
+    await dbContext.Database.MigrateAsync();
 }
 
 app.Run();

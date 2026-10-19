@@ -1,4 +1,4 @@
-@model PaginatedResult<AccountDefinitionViewModel>
+﻿@model PaginatedResult<AccountDefinitionViewModel>
 @{
     ViewBag.Title = L["ChartOfAccounts"].Value;
     var isArabic = LanguageHelper.IsArabic();
@@ -29,7 +29,7 @@
             <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
         </form>
 
-        @await Html.PartialAsync("_ExportToolbar", "ChartAccount-table")
+        @await Html.PartialAsync("_TableExportToolbar", "ChartAccount-table")
         <div class="ad-table-wrap">
             <table id="ChartAccount-table" class="ad-table">
                 <thead>

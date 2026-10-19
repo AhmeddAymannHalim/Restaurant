@@ -1,5 +1,5 @@
 // Reservation buttons used on the reservations page and on the dashboard.
-// The texts come from the hidden #reservationTexts element (see Views/Shared/_ReservationTexts.cshtml).
+// The texts come from the hidden #reservationTexts element (it is written inside the dashboard and reservation pages).
 
 $(function () {
     fillReservationStatuses();

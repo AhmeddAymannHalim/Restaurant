@@ -185,34 +185,30 @@ public class JournalEntryRepository : IJournalEntryRepository
         return new ResultMessage { Success = true, Data = number };
     }
 
-    // the entry of a bill. The accounts come from the BillSetting of the bill:
-    // AccountItem = sales / purchases account, AccountPay = cash / bank account.
-    // The customer or supplier account takes the unpaid part. Without these accounts no entry is created.
-    public async Task PostBillEntryAsync(BillMaster bill, InvoiceType type, decimal paid, decimal remaining, int? partnerAccountId, EntrySetting entrySetting)
+    public async Task<bool> PostBillEntryAsync(BillMaster bill, InvoiceType type, decimal paid, decimal remaining, int? partnerAccountId, EntrySetting entrySetting)
     {
         var setting = await _context.BillSettings.AsNoTracking().FirstOrDefaultAsync(a => a.Id == bill.BillSettingId);
         var total = bill.TotalBillAmountAfterDiscountAndExtra;
         if (setting?.AccountItemId == null || total <= 0)
         {
-            return;
+            return false;
         }
 
         if (paid > 0 && setting.AccountPayId == null)
         {
-            return;
+            return false;
         }
 
         if (remaining > 0 && partnerAccountId == null)
         {
-            return;
+            return false;
         }
 
-        // purchases and sales returns take the items in (debit), sales and purchase returns give them out (credit)
         var itemIsDebit = type is InvoiceType.Purchases or InvoiceType.SalesReturn;
         var itemIsCredit = type is InvoiceType.Sales or InvoiceType.Returns;
         if (!itemIsDebit && !itemIsCredit)
         {
-            return;
+            return false;
         }
 
         var lines = new List<EntryDetail>();
@@ -262,7 +258,6 @@ public class JournalEntryRepository : IJournalEntryRepository
             EntryDetails = lines
         });
 
-        // the balance of the customer / supplier account is changed by the caller, the other accounts here
         var accountIds = lines.Where(a => a.AccountId != partnerAccountId).Select(a => a.AccountId).ToList();
         var accounts = await _context.Accounts.Where(a => accountIds.Contains(a.Id)).ToListAsync();
         foreach (var line in lines.Where(a => a.AccountId != partnerAccountId))
@@ -270,6 +265,8 @@ public class JournalEntryRepository : IJournalEntryRepository
             var account = accounts.First(a => a.Id == line.AccountId);
             account.Adjust(account.BalanceType == AccountBalanceType.Debit ? line.Debit - line.Credit : line.Credit - line.Debit);
         }
+
+        return true;
     }
 
     public async Task RemoveSourceEntriesAsync(JournalSourceType sourceType, int sourceId)

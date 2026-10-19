@@ -344,7 +344,12 @@ public class BillRepository : IBillRepository
                     return new ResultMessage { Success = false, Message = "BillAlreadyPosted" };
                 }
 
-                await _orderLedger.PostEntryAsync(pos);
+                if (!await _orderLedger.PostEntryAsync(pos))
+                {
+                    await transaction.RollbackAsync();
+                    return new ResultMessage { Success = false, Message = "BillSettingAccountsMissing" };
+                }
+
                 pos.Bill.IsEntryPosted = true;
                 pos.Bill.UpdatedAt = DateTime.Now;
                 await _context.SaveChangesAsync();

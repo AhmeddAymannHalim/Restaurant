@@ -1,4 +1,4 @@
-@model ReportViewModel
+﻿@model ReportViewModel
 @{
     ViewBag.Title = L["Report_" + Model.Report].Value;
     var isArabic = LanguageHelper.IsArabic();
@@ -112,7 +112,7 @@
             </div>
         }
 
-        @await Html.PartialAsync("_ExportToolbar", "Report-table")
+        @await Html.PartialAsync("_TableExportToolbar", "Report-table")
 
         <div class="ad-table-wrap">
             <table id="Report-table" class="ad-table">

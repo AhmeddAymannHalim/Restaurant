@@ -1,4 +1,4 @@
-@model PaginatedResult<UserViewModel>
+﻿@model PaginatedResult<UserViewModel>
 @{
     ViewBag.Title = L["Users"].Value;
 }
@@ -19,7 +19,7 @@
             <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
         </form>
 
-@await Html.PartialAsync("_ExportToolbar", "User-table")
+@await Html.PartialAsync("_TableExportToolbar", "User-table")
         <div class="ad-table-wrap">
         <table id="User-table" class="ad-table">
     <thead>

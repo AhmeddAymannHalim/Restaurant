@@ -1,4 +1,4 @@
-@model PaginatedResult<TableReservationViewModel>
+﻿@model PaginatedResult<TableReservationViewModel>
 @{
     ViewBag.Title = L["Reservations"].Value;
 }
@@ -29,7 +29,7 @@
             <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
         </form>
 
-        <partial name="_ExportToolbar" model='"Reservation-table"' />
+        <partial name="_TableExportToolbar" model='"Reservation-table"' />
 
         <div class="ad-table-wrap">
             <table id="Reservation-table" class="ad-table">
@@ -81,7 +81,16 @@
     </div>
 </div>
 
-<partial name="_ReservationTexts" />
+<div id="reservationTexts" hidden
+     data-pending="@L["Enum.ReservationStatus.Pending"]"
+     data-confirmed="@L["Enum.ReservationStatus.Confirmed"]"
+     data-rejected="@L["Enum.ReservationStatus.Rejected"]"
+     data-cancelled="@L["Enum.ReservationStatus.Cancelled"]"
+     data-seated="@L["Enum.ReservationStatus.Seated"]"
+     data-reject-title="@L["Reservation.RejectReason"]"
+     data-reject="@L["Reservation.Reject"]"
+     data-back="@L["Back"]"
+     data-error="@L["SomethingWentError"]"></div>
 
 @section Scripts {
     <script src="~/js/reservation-actions.js" asp-append-version="true"></script>

@@ -1,4 +1,4 @@
-@model PaginatedResult<CurrencyViewModel>
+﻿@model PaginatedResult<CurrencyViewModel>
 @{
     ViewBag.Title = L["Currencies"].Value;
     bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
@@ -20,7 +20,7 @@
             <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
         </form>
 
-@await Html.PartialAsync("_ExportToolbar", "Currency-table")
+@await Html.PartialAsync("_TableExportToolbar", "Currency-table")
         <div class="ad-table-wrap">
         <table id="Currency-table" class="ad-table">
     <thead>

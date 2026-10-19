@@ -1,4 +1,4 @@
-@using System.Globalization
+﻿@using System.Globalization
 @{
     var isAr = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar";
 }
@@ -8,8 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"]</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/fonts/cairo.css" />
     <link href="~/css/site.css" rel="stylesheet" asp-append-version="true" />
 </head>
 <body class="auth-body">
@@ -24,7 +23,6 @@
     </main>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <partial name="_Loader" />
     <script>
         document.querySelectorAll('.toggle-pass').forEach(function (b) {
             b.addEventListener('click', function () {

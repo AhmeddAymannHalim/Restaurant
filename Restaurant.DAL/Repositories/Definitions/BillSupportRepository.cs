@@ -120,7 +120,7 @@ public class BillSupportRepository : IBillSupportRepository
 
     public IQueryable<BillMaster> OfKind(IQueryable<BillMaster> query, params string[] kinds)
     {
-        var wantOrders = kinds.Contains(OrderKind);
+        var wantOrders = kinds.Contains(OrderKind) || kinds.Contains("SAL");
 
         var billTypes = new List<BillType>();
         foreach (var kind in kinds)

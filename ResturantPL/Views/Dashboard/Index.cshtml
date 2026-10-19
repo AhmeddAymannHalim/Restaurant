@@ -1,4 +1,4 @@
-@model DashboardViewModel
+﻿@model DashboardViewModel
 @{
     ViewBag.Title = L["Dashboard"].Value;
 }
@@ -14,7 +14,16 @@
     </div>
 </div>
 
-<partial name="_ReservationTexts" />
+<div id="reservationTexts" hidden
+     data-pending="@L["Enum.ReservationStatus.Pending"]"
+     data-confirmed="@L["Enum.ReservationStatus.Confirmed"]"
+     data-rejected="@L["Enum.ReservationStatus.Rejected"]"
+     data-cancelled="@L["Enum.ReservationStatus.Cancelled"]"
+     data-seated="@L["Enum.ReservationStatus.Seated"]"
+     data-reject-title="@L["Reservation.RejectReason"]"
+     data-reject="@L["Reservation.Reject"]"
+     data-back="@L["Back"]"
+     data-error="@L["SomethingWentError"]"></div>
 
 @section Scripts {
     <script src="~/js/reservation-actions.js" asp-append-version="true"></script>

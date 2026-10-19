@@ -1,0 +1,78 @@
+﻿@using System.Globalization
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var isArabic = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar";
+    var title = string.IsNullOrWhiteSpace(ViewBag.Title as string) ? L["Dashboard"].Value : (string)ViewBag.Title;
+}
+<!DOCTYPE html>
+<html lang="@(isArabic ? "ar" : "en")" dir="@(isArabic ? "rtl" : "ltr")">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@title - Restaurant</title>
+    <link rel="icon" href="~/favicon.ico" />
+    <link rel="stylesheet" href="~/lib/fonts/cairo.css" />
+    <link rel="stylesheet" href="~/lib/fontawesome/css/all.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/toastr/toastr.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="dash">
+    <script>
+        try { if (localStorage.getItem("dashSideShut") === "1") { document.body.classList.add("side-shut"); } } catch (e) { }
+    </script>
+
+    <partial name="_Sidebar" />
+
+    <main class="dash-main">
+        <header class="dash-bar">
+            <button type="button" class="dash-burger" data-side-toggle aria-controls="dashSide" aria-label="@L["Menu"]">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+            <div class="dash-crumb">
+                <a asp-controller="Dashboard" asp-action="Index">@L["Dashboard"]</a>
+                <i class="fas fa-chevron-@(isArabic ? "left" : "right")" aria-hidden="true"></i>
+                <span>@title</span>
+            </div>
+            <div class="dash-tools">
+                <a class="dash-lang" asp-controller="SetLanguage" asp-action="SetLanguage" asp-route-culture="@(isArabic ? "en" : "ar")" asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)">@(isArabic ? "English" : "العربية")</a>
+                <span class="dash-user" title="@User.Identity.Name"><i class="fas fa-circle-user" aria-hidden="true"></i><span>@User.Identity.Name</span></span>
+            </div>
+        </header>
+
+        <div class="bo-page">
+            @RenderBody()
+        </div>
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/toastr/toastr.min.js"></script>
+    <script src="~/lib/sweetalert2/sweetalert2.all.min.js"></script>
+    <script>
+        window.csrfToken = "@Antiforgery.GetAndStoreTokens(Context).RequestToken";
+        jQuery.ajaxPrefilter(function (options, original, xhr) {
+            if (!options.crossDomain && !/^(GET|HEAD|OPTIONS|TRACE)$/i.test(options.type || "GET")) {
+                xhr.setRequestHeader("RequestVerificationToken", window.csrfToken);
+            }
+        });
+
+        window.deleteText = {
+            title: @Html.Raw(Json.Serialize(L["AreYouSure"].Value)),
+            warning: @Html.Raw(Json.Serialize(L["DeleteWarning"].Value)),
+            cancel: @Html.Raw(Json.Serialize(L["Cancel"].Value)),
+            confirm: @Html.Raw(Json.Serialize(L["Delete"].Value)),
+            done: @Html.Raw(Json.Serialize(L["DeletedSuccessfully"].Value)),
+            failed: @Html.Raw(Json.Serialize(L["OperationFailed"].Value)),
+            error: @Html.Raw(Json.Serialize(L["DeleteError"].Value)),
+            aborted: @Html.Raw(Json.Serialize(L["DeleteAborted"].Value))
+        };
+    </script>
+    <script src="~/js/confirm-dialogs.js" asp-append-version="true"></script>
+    <partial name="_NotificationPartial" />
+    <script src="~/js/dates.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+    <script src="~/js/layout.js" asp-append-version="true"></script>
+</body>
+</html>

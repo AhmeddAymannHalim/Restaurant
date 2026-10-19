@@ -1,5 +1,5 @@
 // Shared dialogs. Every delete button on the site calls Delete('/Controller/Delete/5').
-// The texts come from the localization files (see Views/Shared/_DeleteText.cshtml).
+// The texts come from the localization files (see window.deleteText in Views/Shared/_Layout.cshtml).
 
 function Delete(url, redirectUrl) {
     var text = window.deleteText;
@@ -40,8 +40,6 @@ function deleteDone(redirectUrl) {
     }).then(function () {
         if (redirectUrl) {
             window.location.href = redirectUrl;
-        } else if (window.appAjax) {
-            window.appAjax.reload();
         } else {
             location.reload();
         }

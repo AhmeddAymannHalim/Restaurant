@@ -552,8 +552,7 @@ public class OrderRepository : IOrderRepository
             {
                 if (billSetting.EntryGenerate == EntryGenerate.AutomaticEntryCreated)
                 {
-                    await _orderLedger.PostEntryAsync(entity);
-                    entity.Bill.IsEntryPosted = true;
+                    entity.Bill.IsEntryPosted = await _orderLedger.PostEntryAsync(entity);
                 }
 
                 await _context.SaveChangesAsync();
@@ -637,8 +636,7 @@ public class OrderRepository : IOrderRepository
             var billSetting = await _orderLedger.GetSettingAsync();
             if (billSetting.EntryGenerate == EntryGenerate.AutomaticEntryCreated)
             {
-                await _orderLedger.PostEntryAsync(order);
-                order.Bill.IsEntryPosted = true;
+                order.Bill.IsEntryPosted = await _orderLedger.PostEntryAsync(order);
             }
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();

@@ -1,4 +1,4 @@
-@model PaginatedResult<StoreConvertViewModel>
+﻿@model PaginatedResult<StoreConvertViewModel>
 @{
     ViewBag.Title = L["StoreConverts"].Value;
     var isArabic = LanguageHelper.IsArabic();
@@ -22,7 +22,7 @@
             <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
         </form>
 
-        @await Html.PartialAsync("_ExportToolbar", "StoreConvert-table")
+        @await Html.PartialAsync("_TableExportToolbar", "StoreConvert-table")
         <div class="ad-table-wrap">
             <table id="StoreConvert-table" class="ad-table">
                 <thead>

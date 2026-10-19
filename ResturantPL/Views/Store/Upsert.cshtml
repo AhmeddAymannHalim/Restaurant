@@ -1,4 +1,4 @@
-@model StoreViewModel
+﻿@model StoreViewModel
 @{
     var isNew = Model.Id == 0;
     ViewBag.Title = isNew ? L["NewStore"].Value : L["UpdateStore"].Value;
@@ -33,7 +33,33 @@
                 <input asp-for="PhoneNumber" class="form-control" />
                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
-            <partial name="_Phones" model="Model.Phones" />
+            <fieldset class="form-group ad-full ad-phones" data-row-list data-prefix="Phones">
+                <legend class="control-label">@L["Emp.MoreMobiles"]</legend>
+                <div class="ad-phone-grid" data-rows>
+                    @for (var i = 0; i < Model.Phones.Count; i++)
+                    {
+                        <div class="ad-phone" data-row>
+                            <input type="hidden" name="Phones[@i].Id" value="@Model.Phones[i].Id" />
+                            <div class="input-group">
+                                <input type="text" name="Phones[@i].PhoneNumber" value="@Model.Phones[i].PhoneNumber" class="form-control" maxlength="20" />
+                                <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                            </div>
+                            @Html.ValidationMessage($"Phones[{i}].PhoneNumber", new { @class = "text-danger" })
+                        </div>
+                    }
+                </div>
+                @Html.ValidationMessage("Phones", new { @class = "text-danger d-block" })
+                <button type="button" class="btn-ad btn-ad-ghost" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["Emp.AddMobile"]</button>
+                <template data-row-template>
+                    <div class="ad-phone" data-row>
+                        <input type="hidden" name="Phones[__i__].Id" value="0" />
+                        <div class="input-group">
+                            <input type="text" name="Phones[__i__].PhoneNumber" class="form-control" maxlength="20" />
+                            <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                </template>
+            </fieldset>
             <div class="form-group">
                 <label asp-for="StorekeeperId" class="control-label">@L["Storekeeper"]</label>
                 <select asp-for="StorekeeperId" class="form-control">

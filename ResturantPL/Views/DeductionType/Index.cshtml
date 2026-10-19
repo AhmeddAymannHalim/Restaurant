@@ -1,4 +1,4 @@
-@model PaginatedResult<DeductionTypeViewModel>
+﻿@model PaginatedResult<DeductionTypeViewModel>
 @{
     ViewBag.Title = L["DeductionTypes"].Value;
     bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
@@ -20,7 +20,7 @@
             <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
         </form>
 
-@await Html.PartialAsync("_ExportToolbar", "DeductionType-table")
+@await Html.PartialAsync("_TableExportToolbar", "DeductionType-table")
         <div class="ad-table-wrap">
         <table id="DeductionType-table" class="ad-table">
     <thead>

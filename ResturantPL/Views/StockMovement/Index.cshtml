@@ -1,4 +1,4 @@
-@model StockMovementIndexViewModel
+﻿@model StockMovementIndexViewModel
 @{
     ViewBag.Title = L["StockMovements"].Value;
     var isArabic = LanguageHelper.IsArabic();
@@ -44,7 +44,7 @@
             <span class="ad-meta">@L["TotalRecords"]: @result.TotalRecords</span>
         </form>
 
-        @await Html.PartialAsync("_ExportToolbar", "StockMovement-table")
+        @await Html.PartialAsync("_TableExportToolbar", "StockMovement-table")
         <div class="ad-table-wrap">
             <table id="StockMovement-table" class="ad-table">
                 <thead>

@@ -1,4 +1,4 @@
-@model PaginatedResult<SalaryViewModel>
+﻿@model PaginatedResult<SalaryViewModel>
 @{
     ViewBag.Title = L["Salaries"].Value;
     bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
@@ -20,7 +20,7 @@
             <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
         </form>
 
-@await Html.PartialAsync("_ExportToolbar", "Salary-table")
+@await Html.PartialAsync("_TableExportToolbar", "Salary-table")
         <div class="ad-table-wrap">
         <table id="Salary-table" class="ad-table">
     <thead>

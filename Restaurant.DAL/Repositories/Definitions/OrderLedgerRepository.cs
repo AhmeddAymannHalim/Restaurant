@@ -42,8 +42,7 @@ public class OrderLedgerRepository : IOrderLedgerRepository
         return item.Id;
     }
 
-    // a paid order is a sales bill: cash account takes the money, an order on account goes to the customer account
-    public async Task PostEntryAsync(Order order)
+    public async Task<bool> PostEntryAsync(Order order)
     {
         await RemoveEntryAsync(order.Id);
 
@@ -60,7 +59,7 @@ public class OrderLedgerRepository : IOrderLedgerRepository
         }
 
         var entrySetting = await _billSupport.GetEntrySettingAsync(EntryType.JournalSales, "مبيعات يومية", "Daily sales");
-        await new JournalEntryRepository(_context).PostBillEntryAsync(order.Bill, InvoiceType.Sales, paid, total - paid, customerAccountId, entrySetting);
+        return await new JournalEntryRepository(_context).PostBillEntryAsync(order.Bill, InvoiceType.Sales, paid, total - paid, customerAccountId, entrySetting);
     }
 
     public async Task RemoveEntryAsync(int billId)

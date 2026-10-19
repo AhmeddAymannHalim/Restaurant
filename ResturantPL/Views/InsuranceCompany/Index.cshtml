@@ -1,4 +1,4 @@
-@model PaginatedResult<InsuranceCompanyViewModel>
+﻿@model PaginatedResult<InsuranceCompanyViewModel>
 @{
     ViewBag.Title = L["InsuranceCompanies"].Value;
     bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
@@ -20,7 +20,7 @@
             <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
         </form>
 
-@await Html.PartialAsync("_ExportToolbar", "InsuranceCompany-table")
+@await Html.PartialAsync("_TableExportToolbar", "InsuranceCompany-table")
         <div class="ad-table-wrap">
         <table id="InsuranceCompany-table" class="ad-table">
     <thead>

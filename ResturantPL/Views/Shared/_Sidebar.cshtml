@@ -1,6 +1,5 @@
 @{
     var isManager = User.IsInRole("Admin") || User.IsInRole("Manager");
-    var isArabicCulture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar";
 }
 
 <div class="dash-scrim" data-side-close></div>
@@ -63,26 +62,26 @@
             </button>
             <div class="side-children" id="side-invoices">
                 <div class="side-children-inner">
-                    <a class="dash-side-link" asp-controller="Bill" asp-action="Index" asp-route-Type="PUR" title="@(isArabicCulture ? "فاتورة مشتريات" : "Purchase invoice")">
-                        <i class="fas fa-cart-shopping" aria-hidden="true"></i><span>@(isArabicCulture ? "فاتورة مشتريات" : "Purchase invoice")</span>
+                    <a class="dash-side-link" asp-controller="Bill" asp-action="Index" asp-route-Type="PUR" title="@L["PurchaseInvoice"]">
+                        <i class="fas fa-cart-shopping" aria-hidden="true"></i><span>@L["PurchaseInvoice"]</span>
                     </a>
-                    <a class="dash-side-link" asp-controller="Bill" asp-action="Index" asp-route-Type="SAL" title="@(isArabicCulture ? "فاتورة مبيعات" : "Sales invoice")">
-                        <i class="fas fa-bag-shopping" aria-hidden="true"></i><span>@(isArabicCulture ? "فاتورة مبيعات" : "Sales invoice")</span>
+                    <a class="dash-side-link" asp-controller="Bill" asp-action="Index" asp-route-Type="SAL" title="@L["SalesInvoice"]">
+                        <i class="fas fa-bag-shopping" aria-hidden="true"></i><span>@L["SalesInvoice"]</span>
                     </a>
-                    <a class="dash-side-link" asp-controller="Bill" asp-action="Index" asp-route-Type="PRET" title="@(isArabicCulture ? "فاتورة مرتجع مشتريات" : "Purchase return invoice")">
-                        <i class="fas fa-rotate-left" aria-hidden="true"></i><span>@(isArabicCulture ? "فاتورة مرتجع مشتريات" : "Purchase return invoice")</span>
+                    <a class="dash-side-link" asp-controller="Bill" asp-action="Index" asp-route-Type="PRET" title="@L["PurchaseReturnInvoice"]">
+                        <i class="fas fa-rotate-left" aria-hidden="true"></i><span>@L["PurchaseReturnInvoice"]</span>
                     </a>
-                    <a class="dash-side-link" asp-controller="Bill" asp-action="Index" asp-route-Type="SRET" title="@(isArabicCulture ? "فاتورة مرتجع مبيعات" : "Sales return invoice")">
-                        <i class="fas fa-rotate-left" aria-hidden="true"></i><span>@(isArabicCulture ? "فاتورة مرتجع مبيعات" : "Sales return invoice")</span>
+                    <a class="dash-side-link" asp-controller="Bill" asp-action="Index" asp-route-Type="SRET" title="@L["SalesReturnInvoice"]">
+                        <i class="fas fa-rotate-left" aria-hidden="true"></i><span>@L["SalesReturnInvoice"]</span>
                     </a>
                 </div>
             </div>
         </section>
 
         <section class="side-group">
-            <button type="button" class="side-parent" aria-expanded="false" aria-controls="side-entries" title="@(isArabicCulture ? "السندات" : "Entries")">
+            <button type="button" class="side-parent" aria-expanded="false" aria-controls="side-entries" title="@L["GroupEntries"]">
                 <i class="fas fa-book" aria-hidden="true"></i>
-                <span>@(isArabicCulture ? "السندات" : "Entries")</span>
+                <span>@L["GroupEntries"]</span>
                 <i class="fas fa-chevron-down side-chevron" aria-hidden="true"></i>
             </button>
             <div class="side-children" id="side-entries">

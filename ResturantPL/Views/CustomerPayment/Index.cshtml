@@ -1,4 +1,4 @@
-@model PaginatedResult<PaymentViewModel>
+﻿@model PaginatedResult<PaymentViewModel>
 @{
     ViewBag.Title = L["CustomerPayments"].Value;
     var isArabic = LanguageHelper.IsArabic();
@@ -22,7 +22,7 @@
             <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
         </form>
 
-        @await Html.PartialAsync("_ExportToolbar", "CustomerPayment-table")
+        @await Html.PartialAsync("_TableExportToolbar", "CustomerPayment-table")
         <div class="ad-table-wrap">
             <table id="CustomerPayment-table" class="ad-table">
                 <thead>

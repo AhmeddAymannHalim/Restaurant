@@ -1,4 +1,4 @@
-@model PaginatedResult<EntryViewModel>
+﻿@model PaginatedResult<EntryViewModel>
 @{
     ViewBag.Title = L["Bill.Entries"].Value;
     var isArabic = LanguageHelper.IsArabic();
@@ -33,7 +33,7 @@
             <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
         </form>
 
-        @await Html.PartialAsync("_ExportToolbar", "Entry-table")
+        @await Html.PartialAsync("_TableExportToolbar", "Entry-table")
         <div class="ad-table-wrap">
             <table id="Entry-table" class="ad-table">
                 <thead>
