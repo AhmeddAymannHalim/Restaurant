@@ -686,6 +686,9 @@ body.dash { font-family: "Cairo", "Open Sans", system-ui, sans-serif; }
 
 .side-children-inner > .dash-side-link:first-child { margin-top: .2rem; }
 
+body.side-init .side-children,
+body.side-init .side-chevron { transition: none; }
+
 .dash-side .dash-side-link.is-exit { margin-top: 0; }
 
 body.side-shut .dash-side:not(:hover) .side-search { display: none; }

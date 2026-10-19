@@ -14,6 +14,10 @@
         <form id="menuForm" asp-action="Upsert" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="Code" class="control-label">@L["Code"]</label>
+                <input asp-for="Code" class="form-control" readonly />
+            </div>
             <input type="hidden" asp-for="ImageUrl" />
 
             <section class="menu-step">

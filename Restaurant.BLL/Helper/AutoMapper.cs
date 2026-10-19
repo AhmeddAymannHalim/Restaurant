@@ -13,12 +13,16 @@ public class AutoMapper : Profile
     {
         #region Definitions
 
-        CreateMap<CompanyBranch, BranchViewModel>()
+        CreateMap<Branch, BranchViewModel>()
+            .ForMember(dest => dest.CompanyArName, opt => opt.MapFrom(src => src.Company.ArName))
+            .ForMember(dest => dest.CompanyEnName, opt => opt.MapFrom(src => src.Company.EnName))
+            .ForMember(dest => dest.CurrencyArName, opt => opt.MapFrom(src => src.Currency.ArName))
+            .ForMember(dest => dest.CurrencyEnName, opt => opt.MapFrom(src => src.Currency.EnName))
             .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.ArAddress))
             .ForMember(dest => dest.Phone1, opt => opt.MapFrom(src => src.PhoneNumber1))
             .ForMember(dest => dest.Phone2, opt => opt.MapFrom(src => src.PhoneNumber2))
             .ForMember(dest => dest.Mobile1, opt => opt.MapFrom(src => src.PhoneNumber3));
-        CreateMap<BranchViewModel, CompanyBranch>()
+        CreateMap<BranchViewModel, Branch>()
             .ForMember(dest => dest.Code, opt => opt.Ignore())
             .ForMember(dest => dest.Company, opt => opt.Ignore())
             .ForMember(dest => dest.Currency, opt => opt.Ignore())
@@ -28,7 +32,9 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.PhoneNumber2, opt => opt.MapFrom(src => src.Phone2))
             .ForMember(dest => dest.PhoneNumber3, opt => opt.MapFrom(src => src.Mobile1));
 
-        CreateMap<Job, JobViewModel>();
+        CreateMap<Job, JobViewModel>()
+            .ForMember(dest => dest.JobTypeArName, opt => opt.MapFrom(src => src.JobType.ArName))
+            .ForMember(dest => dest.JobTypeEnName, opt => opt.MapFrom(src => src.JobType.EnName));
         CreateMap<JobViewModel, Job>()
             .ForMember(dest => dest.Code, opt => opt.Ignore())
             .ForMember(dest => dest.JobType, opt => opt.Ignore())
@@ -77,6 +83,8 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Stocks, opt => opt.Ignore());
 
         CreateMap<Store, StoreViewModel>()
+            .ForMember(dest => dest.BranchArName, opt => opt.MapFrom(src => src.Branch.ArName))
+            .ForMember(dest => dest.BranchEnName, opt => opt.MapFrom(src => src.Branch.EnName))
             .ForMember(dest => dest.GovernorateId, opt => opt.MapFrom(src => src.GovId ?? src.Town.GovernorateId))
             .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.CountryId ?? src.Town.Governorate.CountryId))
             .ForMember(dest => dest.Stores, opt => opt.Ignore())
@@ -292,7 +300,7 @@ public class AutoMapper : Profile
                 DebitBalance = src.Debit
             }))
             .ForMember(dest => dest.LastBalance, opt => opt.Ignore())
-            .ForMember(dest => dest.CompanyBranch, opt => opt.Ignore())
+            .ForMember(dest => dest.Branch, opt => opt.Ignore())
             .ForMember(dest => dest.CostCenter, opt => opt.Ignore())
             .ForMember(dest => dest.Employee, opt => opt.Ignore())
             .ForMember(dest => dest.Country, opt => opt.Ignore())
@@ -329,7 +337,7 @@ public class AutoMapper : Profile
                 DebitBalance = src.Debit,
                 CreditBalance = src.Credit
             }))
-            .ForMember(dest => dest.CompanyBranch, opt => opt.Ignore())
+            .ForMember(dest => dest.Branch, opt => opt.Ignore())
             .ForMember(dest => dest.SellType, opt => opt.Ignore())
             .ForMember(dest => dest.CostCenter, opt => opt.Ignore())
             .ForMember(dest => dest.Employee, opt => opt.Ignore())
@@ -348,6 +356,8 @@ public class AutoMapper : Profile
         CreateMap<SellTypeViewModel, SellType>();
 
         CreateMap<CostCenter, CostCenterViewModel>()
+            .ForMember(dest => dest.ParentArName, opt => opt.MapFrom(src => src.Parent.ArName))
+            .ForMember(dest => dest.ParentEnName, opt => opt.MapFrom(src => src.Parent.EnName))
             .ForMember(dest => dest.Parents, opt => opt.Ignore());
         CreateMap<CostCenterViewModel, CostCenter>()
             .ForMember(dest => dest.Code, opt => opt.Ignore())
@@ -361,6 +371,8 @@ public class AutoMapper : Profile
         CreateMap<CustomerTierViewModel, CustomerTier>();
 
         CreateMap<Specialization, SpecializationViewModel>()
+            .ForMember(dest => dest.ParentArName, opt => opt.MapFrom(src => src.Parent.ArName))
+            .ForMember(dest => dest.ParentEnName, opt => opt.MapFrom(src => src.Parent.EnName))
             .ForMember(dest => dest.Parents, opt => opt.Ignore());
         CreateMap<SpecializationViewModel, Specialization>()
             .ForMember(dest => dest.Code, opt => opt.Ignore())
@@ -392,6 +404,8 @@ public class AutoMapper : Profile
         CreateMap<LeaveTypeViewModel, LeaveType>();
 
         CreateMap<Company, CompanyViewModel>()
+            .ForMember(dest => dest.CurrencyArName, opt => opt.MapFrom(src => src.Currency.ArName))
+            .ForMember(dest => dest.CurrencyEnName, opt => opt.MapFrom(src => src.Currency.EnName))
             .ForMember(dest => dest.Currencies, opt => opt.Ignore());
         CreateMap<CompanyViewModel, Company>()
             .ForMember(dest => dest.Currency, opt => opt.Ignore());
@@ -400,7 +414,7 @@ public class AutoMapper : Profile
         CreateMap<CurrencyViewModel, Currency>()
             .ForMember(dest => dest.Code, opt => opt.Ignore())
             .ForMember(dest => dest.Companies, opt => opt.Ignore())
-            .ForMember(dest => dest.CompanyBranches, opt => opt.Ignore())
+            .ForMember(dest => dest.Branches, opt => opt.Ignore())
             .ForMember(dest => dest.Accounts, opt => opt.Ignore());
 
         CreateMap<Kitchen, KitchenViewModel>();

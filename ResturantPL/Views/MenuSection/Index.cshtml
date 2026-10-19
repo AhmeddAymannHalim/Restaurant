@@ -1,4 +1,4 @@
-﻿@model PaginatedResult<MenuSectionViewModel>
+@model PaginatedResult<MenuSectionViewModel>
 @{
     ViewBag.Title = L["MenuSections"].Value;
     bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
@@ -26,6 +26,7 @@
     <thead>
         <tr>
             <th>#</th>
+            <th>@L["Code"]</th>
             <th>@L["Name"]</th>
             <th>@L["Kitchen"]</th>
             <th></th>
@@ -39,6 +40,7 @@
             {
                 <tr>
                     <td>@counter</td>
+                    <td>@item.Code</td>
                     <td>@(isArabic ? item.ArName : item.EnName)</td>
                     <td>@(isArabic ? item.KitchenArName : item.KitchenEnName)</td>
                     <td class="ad-row-actions">
@@ -52,7 +54,7 @@
         else
         {
             <tr>
-                <td colspan="4" class="ad-empty">@L["NoData"]</td>
+                <td colspan="5" class="ad-empty">@L["NoData"]</td>
             </tr>
         }
     </tbody>

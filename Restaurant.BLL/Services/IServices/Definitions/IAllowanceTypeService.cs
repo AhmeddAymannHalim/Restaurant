@@ -9,4 +9,5 @@ public interface IAllowanceTypeService
     Task<AllowanceTypeViewModel> GetAllowanceTypeByIdAsync(int id);
     Task<ResultMessage> UpsertAllowanceTypeAsync(AllowanceTypeViewModel model);
     Task<ResultMessage> DeleteAllowanceTypeAsync(int id);
+    Task<string> NewAllowanceTypeCodeAsync();
 }

@@ -62,6 +62,10 @@ namespace ResturantPL.Controllers.Definitions
                         return RedirectToAction(nameof(Index));
                     }
                 }
+                else
+                {
+                    model.Code = await _service.NewProductCodeAsync();
+                }
 
                 await PopulateData(model);
                 model.Stocks = model.Stocks.Where(a => a.Quantity > 0).ToList();

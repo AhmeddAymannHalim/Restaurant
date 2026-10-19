@@ -45,4 +45,9 @@ public class StoreService : IStoreService
     {
         return await _unitOfWork.Stores.DeleteStoreAsync(id);
     }
+
+    public async Task<string> NewStoreCodeAsync()
+    {
+        return await _unitOfWork.Stores.NewStoreCodeAsync();
+    }
 }

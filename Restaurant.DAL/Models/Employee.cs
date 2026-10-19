@@ -86,7 +86,7 @@ public class Employee : BaseEntity
 
     public virtual ContractType ContractType { get; set; }
     public virtual Account Account { get; set; }
-    public virtual CompanyBranch Branch { get; set; }
+    public virtual Branch Branch { get; set; }
     public virtual Department Department { get; set; }
 
     public DateTime? HireDate { get; set; }

@@ -16,13 +16,15 @@ public class CustomerRepository : ICustomerRepository
     private const string ImagesFolder = "Customer Images";
 
     private readonly ApplicationDbContext _context;
+    private readonly IHttpContextAccessor _httpContext;
     private readonly IAccountProvisionRepository _accountProvision;
     private readonly IPhoneRepository _phones;
     private readonly ILocationRepository _location;
 
-    public CustomerRepository(ApplicationDbContext context)
+    public CustomerRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
     {
         _context = context;
+        _httpContext = httpContext;
         _accountProvision = new AccountProvisionRepository(context);
         _phones = new PhoneRepository(context);
         _location = new LocationRepository(context);
@@ -111,6 +113,7 @@ public class CustomerRepository : ICustomerRepository
                 openingAccount = entity.Account;
                 openingDelta = form.DebitBalance - form.CreditBalance;
                 entity.CreatedAt = DateTime.Now;
+                entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 entity.ImageUrl = imageFile is null ? null : DocumentSetting.UploadFile(imageFile, ImagesFolder);
 
                 _phones.SyncCustomerPhones(entity.Phones, phones);
@@ -138,6 +141,7 @@ public class CustomerRepository : ICustomerRepository
                 entity.CreatedAt = existing.CreatedAt;
                 entity.CreatedById = existing.CreatedById;
                 entity.UpdatedAt = DateTime.Now;
+                entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
 
                 existing.Account.ArName = form.ArName;
                 existing.Account.EnName = form.EnName;

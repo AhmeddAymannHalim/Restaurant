@@ -4,6 +4,8 @@ namespace Shared.ViewModels.Definitions;
 
 public class SpecializationViewModel
 {
+    public string ParentArName { get; set; }
+    public string ParentEnName { get; set; }
     public int Id { get; set; }
     public string Code { get; set; }
     public string ArName { get; set; }

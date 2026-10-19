@@ -1,54 +1,57 @@
-using Restaurant.DAL.Models;
-using Restaurant.DAL.Repositories;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Restaurant.DAL;
 using Restaurant.DAL.IRepositories;
 using Restaurant.DAL.IRepositories.Commons;
-using Restaurant.DAL.Repositories.Commons;
 using Restaurant.DAL.IRepositories.Definitions;
+using Restaurant.DAL.Models;
+using Restaurant.DAL.Repositories;
+using Restaurant.DAL.Repositories.Commons;
 using Restaurant.DAL.Repositories.Definitions;
-using Restaurant.DAL;
-using Microsoft.AspNetCore.Identity;
 
 namespace Restaurant.DAL.UnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly ApplicationDbContext _context;
+        private readonly IHttpContextAccessor _httpContext;
 
-        public UnitOfWork(ApplicationDbContext context)
+        public UnitOfWork(ApplicationDbContext context, IHttpContextAccessor httpContext)
         {
-            this._context = context;
+            _context = context;
+            _httpContext = httpContext;
 
             Journals = new JournalEntryRepository(_context);
 
-            Branches = new BranchRepository(_context);
-            Jobs = new JobRepository(_context);
-            UnitPrices = new UnitPriceRepository(_context);
-            ProductCategories = new ProductCategoryRepository(_context);
-            MenuSections = new MenuSectionRepository(_context);
-            Products = new ProductRepository(_context);
-            Kitchens = new KitchenRepository(_context);
-            Currencies = new CurrencyRepository(_context);
-            Companies = new CompanyRepository(_context);
-            LeaveTypes = new LeaveTypeRepository(_context);
-            InsuranceCompanies = new InsuranceCompanyRepository(_context);
-            AllowanceTypes = new AllowanceTypeRepository(_context);
-            DeductionTypes = new DeductionTypeRepository(_context);
-            InsuranceCategories = new InsuranceCategoryRepository(_context);
-            JobTypes = new JobTypeRepository(_context);
-            Departments = new DepartmentRepository(_context);
-            ContractTypes = new ContractTypeRepository(_context);
-            Specializations = new SpecializationRepository(_context);
-            CustomerTiers = new CustomerTierRepository(_context);
-            Classifications = new ClassificationRepository(_context);
-            CostCenters = new CostCenterRepository(_context);
-            SellTypes = new SellTypeRepository(_context);
-            DeliveryZones = new DeliveryZoneRepository(_context);
-            Expenses = new ExpenseRepository(_context);
-            Tables = new TableRepository(_context);
+            Branches = new BranchRepository(_context, _httpContext);
+            Jobs = new JobRepository(_context, _httpContext);
+            UnitPrices = new UnitPriceRepository(_context, _httpContext);
+            ProductCategories = new ProductCategoryRepository(_context, _httpContext);
+            MenuSections = new MenuSectionRepository(_context, _httpContext);
+            Products = new ProductRepository(_context, _httpContext);
+            Kitchens = new KitchenRepository(_context, _httpContext);
+            Currencies = new CurrencyRepository(_context, _httpContext);
+            Companies = new CompanyRepository(_context, _httpContext);
+            LeaveTypes = new LeaveTypeRepository(_context, _httpContext);
+            InsuranceCompanies = new InsuranceCompanyRepository(_context, _httpContext);
+            AllowanceTypes = new AllowanceTypeRepository(_context, _httpContext);
+            DeductionTypes = new DeductionTypeRepository(_context, _httpContext);
+            InsuranceCategories = new InsuranceCategoryRepository(_context, _httpContext);
+            JobTypes = new JobTypeRepository(_context, _httpContext);
+            Departments = new DepartmentRepository(_context, _httpContext);
+            ContractTypes = new ContractTypeRepository(_context, _httpContext);
+            Specializations = new SpecializationRepository(_context, _httpContext);
+            CustomerTiers = new CustomerTierRepository(_context, _httpContext);
+            Classifications = new ClassificationRepository(_context, _httpContext);
+            CostCenters = new CostCenterRepository(_context, _httpContext);
+            SellTypes = new SellTypeRepository(_context, _httpContext);
+            DeliveryZones = new DeliveryZoneRepository(_context, _httpContext);
+            Expenses = new ExpenseRepository(_context, _httpContext);
+            Tables = new TableRepository(_context, _httpContext);
             TableReservations = new TableReservationRepository(_context);
-            MenuItems = new MenuItemRepository(_context);
-            Stores = new StoreRepository(_context);
-            Suppliers = new SupplierRepository(_context);
+            MenuItems = new MenuItemRepository(_context, _httpContext);
+            Stores = new StoreRepository(_context, _httpContext);
+            Suppliers = new SupplierRepository(_context, _httpContext);
             Invoices = new InvoiceRepository(_context, Journals);
             StockMovements = new StockMovementRepository(_context);
             Orders = new OrderRepository(_context);
@@ -59,8 +62,8 @@ namespace Restaurant.DAL.UnitOfWork
             StoreConverts = new StoreConvertRepository(_context);
             SupplierPayments = new SupplierPaymentRepository(_context, Journals);
             CustomerPayments = new CustomerPaymentRepository(_context, Journals);
-            Customers = new CustomerRepository(_context);
-            Employees = new EmployeeRepository(_context);
+            Customers = new CustomerRepository(_context, _httpContext);
+            Employees = new EmployeeRepository(_context, _httpContext);
             Dashboard = new DashboardRepository(_context);
             Deposits = new DepositRepository(_context, Journals);
             ExitExpenses = new ExitExpenseRepository(_context, Journals);

@@ -9,5 +9,6 @@ public interface IInsuranceCompanyRepository
     Task<PaginatedResult<InsuranceCompany>> GetPagedInsuranceCompaniesAsync(PageRequest request);
     Task<InsuranceCompany> GetInsuranceCompanyByIdAsync(int id);
     Task<ResultMessage> UpsertInsuranceCompanyAsync(InsuranceCompany entity);
+    Task<string> NewInsuranceCompanyCodeAsync();
     Task<ResultMessage> DeleteInsuranceCompanyAsync(int id);
 }

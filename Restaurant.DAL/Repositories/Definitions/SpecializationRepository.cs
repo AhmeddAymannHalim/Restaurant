@@ -1,4 +1,5 @@
 using Shared.Helpers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -11,15 +12,17 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class SpecializationRepository : ISpecializationRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IHttpContextAccessor _httpContext;
 
-    public SpecializationRepository(ApplicationDbContext context)
+    public SpecializationRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
     {
         _context = context;
+        _httpContext = httpContext;
     }
 
     public async Task<PaginatedResult<Specialization>> GetPagedSpecializationsAsync(PageRequest request)
     {
-        var query = _context.Specializations.AsNoTracking().AsQueryable();
+        var query = _context.Specializations.AsNoTracking().Include(a => a.Parent).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
@@ -69,6 +72,7 @@ public class SpecializationRepository : ISpecializationRepository
                 }
 
                 entity.CreatedAt = DateTime.Now;
+                entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 await _context.Specializations.AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
@@ -89,6 +93,7 @@ public class SpecializationRepository : ISpecializationRepository
                 entity.CreatedAt = existing.CreatedAt;
                 entity.CreatedById = existing.CreatedById;
                 entity.UpdatedAt = DateTime.Now;
+                entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 _context.Entry(existing).CurrentValues.SetValues(entity);
                 await _context.SaveChangesAsync();
             }

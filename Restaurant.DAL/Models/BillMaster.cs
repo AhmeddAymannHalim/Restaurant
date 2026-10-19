@@ -79,12 +79,12 @@ public class BillMaster : BaseEntity
     public int? AccountPayId { get; set; }
     public int? AccountDiscountId { get; set; }
     public int? AccountExtraId { get; set; }
-    public int? CompanyBranchId { get; set; }
+    public int? BranchId { get; set; }
 
     public virtual BillSetting BillSetting { get; set; }
     public virtual CostCenter CostCenter { get; set; }
     public virtual Employee Employee { get; set; }
-    public virtual CompanyBranch CompanyBranch { get; set; }
+    public virtual Branch Branch { get; set; }
     public virtual SellType SellType { get; set; }
     public virtual Currency Currency { get; set; }
     public virtual Store Store { get; set; }

@@ -10,7 +10,7 @@ public class BranchVmValidator : AbstractValidator<BranchViewModel>
 {
     public BranchVmValidator(
         IStringLocalizer<SharedResource> localizer,
-        IValidatorService<Restaurant.DAL.Models.CompanyBranch> validator)
+        IValidatorService<Restaurant.DAL.Models.Branch> validator)
     {
         var required = localizer["Val.RequiredField"].Value;
         string MaxLength(int length) => string.Format(localizer["Val.MaxLength"].Value, length);

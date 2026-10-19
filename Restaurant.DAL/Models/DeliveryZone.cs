@@ -1,8 +1,8 @@
 namespace Restaurant.DAL.Models;
 
-public class DeliveryZone
+public class DeliveryZone : BaseEntity
 {
-    public int Id { get; set; }
+    public string Code { get; set; }
     public string ArName { get; set; }
     public string EnName { get; set; }
     public decimal Fee { get; set; }

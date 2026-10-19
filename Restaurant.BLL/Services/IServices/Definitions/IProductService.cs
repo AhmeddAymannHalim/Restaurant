@@ -9,4 +9,5 @@ public interface IProductService
     Task<ProductViewModel> GetProductByIdAsync(int id);
     Task<ResultMessage> UpsertProductAsync(ProductViewModel model);
     Task<ResultMessage> DeleteProductAsync(int id);
+    Task<string> NewProductCodeAsync();
 }

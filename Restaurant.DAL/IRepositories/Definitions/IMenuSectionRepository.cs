@@ -9,5 +9,6 @@ public interface IMenuSectionRepository
     Task<PaginatedResult<MenuSection>> GetPagedMenuSectionsAsync(PageRequest request);
     Task<MenuSection> GetMenuSectionByIdAsync(int id);
     Task<ResultMessage> UpsertMenuSectionAsync(MenuSection entity);
+    Task<string> NewMenuSectionCodeAsync();
     Task<ResultMessage> DeleteMenuSectionAsync(int id);
 }

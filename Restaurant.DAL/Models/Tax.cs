@@ -10,5 +10,5 @@ public class Tax : BaseEntity
     public double? Value { get; set; }
 
     public virtual ICollection<Company> Companies { get; set; } = new List<Company>();
-    public virtual ICollection<CompanyBranch> CompanyBranches { get; set; } = new List<CompanyBranch>();
+    public virtual ICollection<Branch> Branches { get; set; } = new List<Branch>();
 }

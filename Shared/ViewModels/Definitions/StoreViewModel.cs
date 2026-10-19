@@ -4,6 +4,8 @@ namespace Shared.ViewModels.Definitions;
 
 public class StoreViewModel
 {
+    public string BranchArName { get; set; }
+    public string BranchEnName { get; set; }
     public int Id { get; set; }
     public string ArName { get; set; }
     public string EnName { get; set; }

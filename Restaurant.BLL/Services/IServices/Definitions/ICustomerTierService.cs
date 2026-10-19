@@ -9,4 +9,5 @@ public interface ICustomerTierService
     Task<CustomerTierViewModel> GetCustomerTierByIdAsync(int id);
     Task<ResultMessage> UpsertCustomerTierAsync(CustomerTierViewModel model);
     Task<ResultMessage> DeleteCustomerTierAsync(int id);
+    Task<string> NewCustomerTierCodeAsync();
 }

@@ -1,4 +1,5 @@
 using Shared.Helpers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -11,10 +12,12 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class ContractTypeRepository : IContractTypeRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IHttpContextAccessor _httpContext;
 
-    public ContractTypeRepository(ApplicationDbContext context)
+    public ContractTypeRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
     {
         _context = context;
+        _httpContext = httpContext;
     }
 
     public async Task<PaginatedResult<ContractType>> GetPagedContractTypesAsync(PageRequest request)
@@ -24,7 +27,7 @@ public class ContractTypeRepository : IContractTypeRepository
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search));
+            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search) || a.Code.ToLower().Contains(search));
         }
 
         var total = await query.CountAsync();
@@ -42,13 +45,28 @@ public class ContractTypeRepository : IContractTypeRepository
         return await _context.ContractTypes.FindAsync(id);
     }
 
+    public async Task<string> NewContractTypeCodeAsync()
+    {
+        var codes = await _context.ContractTypes.AsNoTracking().Select(a => a.Code).ToListAsync();
+
+        var nextCode = codes
+            .Where(code => int.TryParse(code, out _))
+            .Select(int.Parse)
+            .DefaultIfEmpty(0)
+            .Max() + 1;
+
+        return nextCode.ToString();
+    }
+
     public async Task<ResultMessage> UpsertContractTypeAsync(ContractType entity)
     {
         try
         {
             if (entity.Id == 0)
             {
+                entity.Code = await NewContractTypeCodeAsync();
                 entity.CreatedAt = DateTime.Now;
+                entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 await _context.ContractTypes.AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
@@ -64,10 +82,12 @@ public class ContractTypeRepository : IContractTypeRepository
                     };
                 }
 
+                entity.Code = existing.Code;
                 entity.State = existing.State;
                 entity.CreatedAt = existing.CreatedAt;
                 entity.CreatedById = existing.CreatedById;
                 entity.UpdatedAt = DateTime.Now;
+                entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 _context.Entry(existing).CurrentValues.SetValues(entity);
                 await _context.SaveChangesAsync();
             }

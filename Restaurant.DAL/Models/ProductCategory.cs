@@ -1,8 +1,8 @@
 namespace Restaurant.DAL.Models;
 
-public class ProductCategory
+public class ProductCategory : BaseEntity
 {
-    public int Id { get; set; }
+    public string Code { get; set; }
     public string ArName { get; set; }
     public string EnName { get; set; }
 

@@ -10,4 +10,5 @@ public interface IStoreRepository
     Task<Store> GetStoreByIdAsync(int id);
     Task<ResultMessage> UpsertStoreAsync(Store entity);
     Task<ResultMessage> DeleteStoreAsync(int id);
+    Task<string> NewStoreCodeAsync();
 }

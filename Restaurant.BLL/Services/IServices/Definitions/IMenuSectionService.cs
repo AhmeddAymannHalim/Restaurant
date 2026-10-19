@@ -9,4 +9,5 @@ public interface IMenuSectionService
     Task<MenuSectionViewModel> GetMenuSectionByIdAsync(int id);
     Task<ResultMessage> UpsertMenuSectionAsync(MenuSectionViewModel model);
     Task<ResultMessage> DeleteMenuSectionAsync(int id);
+    Task<string> NewMenuSectionCodeAsync();
 }

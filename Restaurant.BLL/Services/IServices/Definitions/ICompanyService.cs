@@ -9,4 +9,5 @@ public interface ICompanyService
     Task<CompanyViewModel> GetCompanyByIdAsync(int id);
     Task<ResultMessage> UpsertCompanyAsync(CompanyViewModel model);
     Task<ResultMessage> DeleteCompanyAsync(int id);
+    Task<string> NewCompanyCodeAsync();
 }

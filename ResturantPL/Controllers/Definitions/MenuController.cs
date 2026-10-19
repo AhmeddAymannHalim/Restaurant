@@ -62,6 +62,10 @@ namespace ResturantPL.Controllers.Definitions
                     _toastr.Error(_localizer["RecordNotFound"].Value);
                     return RedirectToAction(nameof(Index));
                 }
+                else
+                {
+                    model.Code = await _service.NewMenuItemCodeAsync();
+                }
 
                 await PopulateData(model);
 

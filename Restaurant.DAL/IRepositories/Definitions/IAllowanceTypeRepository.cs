@@ -9,5 +9,6 @@ public interface IAllowanceTypeRepository
     Task<PaginatedResult<AllowanceType>> GetPagedAllowanceTypesAsync(PageRequest request);
     Task<AllowanceType> GetAllowanceTypeByIdAsync(int id);
     Task<ResultMessage> UpsertAllowanceTypeAsync(AllowanceType entity);
+    Task<string> NewAllowanceTypeCodeAsync();
     Task<ResultMessage> DeleteAllowanceTypeAsync(int id);
 }

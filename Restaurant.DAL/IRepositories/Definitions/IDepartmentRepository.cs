@@ -9,5 +9,6 @@ public interface IDepartmentRepository
     Task<PaginatedResult<Department>> GetPagedDepartmentsAsync(PageRequest request);
     Task<Department> GetDepartmentByIdAsync(int id);
     Task<ResultMessage> UpsertDepartmentAsync(Department entity);
+    Task<string> NewDepartmentCodeAsync();
     Task<ResultMessage> DeleteDepartmentAsync(int id);
 }

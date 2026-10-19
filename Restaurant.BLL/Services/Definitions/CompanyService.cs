@@ -45,4 +45,9 @@ public class CompanyService : ICompanyService
     {
         return await _unitOfWork.Companies.DeleteCompanyAsync(id);
     }
+
+    public async Task<string> NewCompanyCodeAsync()
+    {
+        return await _unitOfWork.Companies.NewCompanyCodeAsync();
+    }
 }

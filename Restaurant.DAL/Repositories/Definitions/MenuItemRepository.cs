@@ -13,10 +13,12 @@ public class MenuItemRepository : IMenuItemRepository
     private const string ImagesFolder = "Menu Images";
 
     private readonly ApplicationDbContext _context;
+    private readonly IHttpContextAccessor _httpContext;
 
-    public MenuItemRepository(ApplicationDbContext context)
+    public MenuItemRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
     {
         _context = context;
+        _httpContext = httpContext;
     }
 
     public async Task<PaginatedResult<MenuItem>> GetPagedMenuItemsAsync(PageRequest request)
@@ -31,7 +33,7 @@ public class MenuItemRepository : IMenuItemRepository
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search));
+            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search) || a.Code.ToLower().Contains(search));
         }
 
         var total = await query.CountAsync();
@@ -53,6 +55,19 @@ public class MenuItemRepository : IMenuItemRepository
                 .ThenInclude(a => a.Product)
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == id);
+    }
+
+    public async Task<string> NewMenuItemCodeAsync()
+    {
+        var codes = await _context.MenuItems.AsNoTracking().Select(a => a.Code).ToListAsync();
+
+        var nextCode = codes
+            .Where(code => int.TryParse(code, out _))
+            .Select(int.Parse)
+            .DefaultIfEmpty(0)
+            .Max() + 1;
+
+        return nextCode.ToString();
     }
 
     public async Task<ResultMessage> UpsertMenuItemAsync(MenuItem entity, IFormFile imageFile)
@@ -109,11 +124,14 @@ public class MenuItemRepository : IMenuItemRepository
                     entity.ImageUrl = DocumentSetting.UploadFile(imageFile, ImagesFolder);
                 }
 
+                entity.Code = await NewMenuItemCodeAsync();
+                entity.CreatedAt = DateTime.Now;
+                entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 await _context.MenuItems.AddAsync(entity);
             }
             else
             {
-                var existing = await _context.MenuItems.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
+                var existing = await _context.MenuItems.FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
                     return new ResultMessage
@@ -123,6 +141,12 @@ public class MenuItemRepository : IMenuItemRepository
                     };
                 }
 
+                entity.Code = existing.Code;
+                entity.State = existing.State;
+                entity.CreatedAt = existing.CreatedAt;
+                entity.CreatedById = existing.CreatedById;
+                entity.UpdatedAt = DateTime.Now;
+                entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 entity.ImageUrl = existing.ImageUrl;
 
                 if (imageFile != null)
@@ -136,7 +160,8 @@ public class MenuItemRepository : IMenuItemRepository
                 }
 
                 _context.MenuItemComponents.RemoveRange(_context.MenuItemComponents.Where(a => a.MenuItemId == entity.Id));
-                _context.MenuItems.Update(entity);
+                _context.Entry(existing).CurrentValues.SetValues(entity);
+                existing.Components = entity.Components;
             }
 
             await _context.SaveChangesAsync();

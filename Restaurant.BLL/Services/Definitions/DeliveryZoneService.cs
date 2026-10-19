@@ -50,4 +50,9 @@ public class DeliveryZoneService : IDeliveryZoneService
     {
         return await _unitOfWork.DeliveryZones.DeleteDeliveryZoneAsync(id);
     }
+
+    public async Task<string> NewDeliveryZoneCodeAsync()
+    {
+        return await _unitOfWork.DeliveryZones.NewDeliveryZoneCodeAsync();
+    }
 }

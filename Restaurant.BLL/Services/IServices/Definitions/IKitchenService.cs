@@ -9,4 +9,5 @@ public interface IKitchenService
     Task<KitchenViewModel> GetKitchenByIdAsync(int id);
     Task<ResultMessage> UpsertKitchenAsync(KitchenViewModel model);
     Task<ResultMessage> DeleteKitchenAsync(int id);
+    Task<string> NewKitchenCodeAsync();
 }

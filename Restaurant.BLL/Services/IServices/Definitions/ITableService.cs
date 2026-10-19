@@ -9,4 +9,5 @@ public interface ITableService
     Task<TableViewModel> GetTableByIdAsync(int id);
     Task<ResultMessage> UpsertTableAsync(TableViewModel model);
     Task<ResultMessage> DeleteTableAsync(int id);
+    Task<string> NewTableCodeAsync();
 }

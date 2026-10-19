@@ -39,7 +39,7 @@ public class Customer : BaseEntity
 
     public int? CenterId { get; set; }
     public int? AccountId { get; set; }
-    public int? CompanyBranchId { get; set; }
+    public int? BranchId { get; set; }
     public int? SellTypeId { get; set; }
     public int? CostCenterId { get; set; }
     public int? EmployeeId { get; set; }
@@ -52,7 +52,7 @@ public class Customer : BaseEntity
     public int? SpecializationId { get; set; }
 
     public virtual Account Account { get; set; }
-    public virtual CompanyBranch CompanyBranch { get; set; }
+    public virtual Branch Branch { get; set; }
     public virtual SellType SellType { get; set; }
     public virtual CostCenter CostCenter { get; set; }
     public virtual Employee Employee { get; set; }

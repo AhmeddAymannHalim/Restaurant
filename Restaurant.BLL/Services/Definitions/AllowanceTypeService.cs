@@ -45,4 +45,9 @@ public class AllowanceTypeService : IAllowanceTypeService
     {
         return await _unitOfWork.AllowanceTypes.DeleteAllowanceTypeAsync(id);
     }
+
+    public async Task<string> NewAllowanceTypeCodeAsync()
+    {
+        return await _unitOfWork.AllowanceTypes.NewAllowanceTypeCodeAsync();
+    }
 }

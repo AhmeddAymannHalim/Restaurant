@@ -86,7 +86,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<AccountDetails> AccountDetails { get; set; }
     public DbSet<Currency> Currencies { get; set; }
     public DbSet<Company> Companies { get; set; }
-    public DbSet<CompanyBranch> CompanyBranches { get; set; }
+    public DbSet<Branch> Branches { get; set; }
 
     public DbSet<SellType> SellTypes { get; set; }
     public DbSet<CostCenter> CostCenters { get; set; }

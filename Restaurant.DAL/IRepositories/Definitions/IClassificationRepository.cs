@@ -9,5 +9,6 @@ public interface IClassificationRepository
     Task<PaginatedResult<Classification>> GetPagedClassificationsAsync(PageRequest request);
     Task<Classification> GetClassificationByIdAsync(int id);
     Task<ResultMessage> UpsertClassificationAsync(Classification entity);
+    Task<string> NewClassificationCodeAsync();
     Task<ResultMessage> DeleteClassificationAsync(int id);
 }

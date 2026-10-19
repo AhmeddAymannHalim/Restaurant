@@ -47,4 +47,9 @@ public class ProductService : IProductService
     {
         return await _unitOfWork.Products.DeleteProductAsync(id);
     }
+
+    public async Task<string> NewProductCodeAsync()
+    {
+        return await _unitOfWork.Products.NewProductCodeAsync();
+    }
 }

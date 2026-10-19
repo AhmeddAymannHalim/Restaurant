@@ -9,4 +9,5 @@ public interface IInsuranceCompanyService
     Task<InsuranceCompanyViewModel> GetInsuranceCompanyByIdAsync(int id);
     Task<ResultMessage> UpsertInsuranceCompanyAsync(InsuranceCompanyViewModel model);
     Task<ResultMessage> DeleteInsuranceCompanyAsync(int id);
+    Task<string> NewInsuranceCompanyCodeAsync();
 }

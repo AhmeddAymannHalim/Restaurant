@@ -9,5 +9,6 @@ public interface IDeductionTypeRepository
     Task<PaginatedResult<DeductionType>> GetPagedDeductionTypesAsync(PageRequest request);
     Task<DeductionType> GetDeductionTypeByIdAsync(int id);
     Task<ResultMessage> UpsertDeductionTypeAsync(DeductionType entity);
+    Task<string> NewDeductionTypeCodeAsync();
     Task<ResultMessage> DeleteDeductionTypeAsync(int id);
 }

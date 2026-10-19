@@ -9,4 +9,5 @@ public interface ILeaveTypeService
     Task<LeaveTypeViewModel> GetLeaveTypeByIdAsync(int id);
     Task<ResultMessage> UpsertLeaveTypeAsync(LeaveTypeViewModel model);
     Task<ResultMessage> DeleteLeaveTypeAsync(int id);
+    Task<string> NewLeaveTypeCodeAsync();
 }

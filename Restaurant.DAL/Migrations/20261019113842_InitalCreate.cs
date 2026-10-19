@@ -6,11 +6,33 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Restaurant.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitalCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "AllowanceTypes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ArName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EnName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    State = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpdatedById = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DeletedById = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AllowanceTypes", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "ApplicationSettings",
                 columns: table => new
@@ -66,22 +88,6 @@ namespace Restaurant.DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Brands", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ChefItem",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ArName = table.Column<string>(type: "nvarchar(30)", nullable: true),
-                    EnName = table.Column<string>(type: "nvarchar(30)", nullable: true),
-                    Jop = table.Column<string>(type: "nvarchar(40)", nullable: true),
-                    ImageUrl = table.Column<string>(type: "nvarchar(100)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ChefItem", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -230,6 +236,28 @@ namespace Restaurant.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DeductionTypes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ArName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EnName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    State = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpdatedById = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DeletedById = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DeductionTypes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "DeliveryZones",
                 columns: table => new
                 {
@@ -281,19 +309,6 @@ namespace Restaurant.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "GalleryItem",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PictureUrl = table.Column<string>(type: "nvarchar(60)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_GalleryItem", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Groups",
                 columns: table => new
                 {
@@ -327,32 +342,6 @@ namespace Restaurant.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "IndexSettings",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ArName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    EnName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Description = table.Column<string>(type: "nvarchar(800)", maxLength: 800, nullable: true),
-                    EnDescription = table.Column<string>(type: "nvarchar(800)", maxLength: 800, nullable: true),
-                    Phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    StartDay = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    EndDay = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    StartHour = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    EndHour = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    VedioUrl = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    ImageUrl = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Locaion = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    EnLocation = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_IndexSettings", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "InsuranceCategories",
                 columns: table => new
                 {
@@ -360,6 +349,10 @@ namespace Restaurant.DAL.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ArName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     EnName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    BasicWage = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    AllowancesAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    EmployeePercent = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    CompanyPercent = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     State = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -1146,50 +1139,6 @@ namespace Restaurant.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "OnlineOrders",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CustomerId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CustomerName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(11)", maxLength: 11, nullable: true),
-                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsPending = table.Column<bool>(type: "bit", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    RejectionReason = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
-                    TableId = table.Column<int>(type: "int", nullable: true),
-                    DeliveryZoneId = table.Column<int>(type: "int", nullable: true),
-                    DeliveryFee = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Tax = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Service = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OnlineOrders", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_OnlineOrders_AspNetUsers_CustomerId",
-                        column: x => x.CustomerId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_OnlineOrders_DeliveryZones_DeliveryZoneId",
-                        column: x => x.DeliveryZoneId,
-                        principalTable: "DeliveryZones",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_OnlineOrders_Tables_TableId",
-                        column: x => x.TableId,
-                        principalTable: "Tables",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ShiftCloseReports",
                 columns: table => new
                 {
@@ -1213,7 +1162,42 @@ namespace Restaurant.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CompanyBranches",
+                name: "TableReservations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TableId = table.Column<int>(type: "int", nullable: false),
+                    CustomerId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CustomerName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
+                    GuestCount = table.Column<byte>(type: "tinyint", nullable: false),
+                    ReservationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    RejectionReason = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TableReservations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TableReservations_AspNetUsers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_TableReservations_Tables_TableId",
+                        column: x => x.TableId,
+                        principalTable: "Tables",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Branches",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -1255,51 +1239,51 @@ namespace Restaurant.DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CompanyBranches", x => x.Id);
+                    table.PrimaryKey("PK_Branches", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_CompanyBranches_Companies_CompanyId",
+                        name: "FK_Branches_Branches_ParentId",
+                        column: x => x.ParentId,
+                        principalTable: "Branches",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Branches_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_CompanyBranches_CompanyBranches_ParentId",
-                        column: x => x.ParentId,
-                        principalTable: "CompanyBranches",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CompanyBranches_CostCenters_CostCenterId",
+                        name: "FK_Branches_CostCenters_CostCenterId",
                         column: x => x.CostCenterId,
                         principalTable: "CostCenters",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_CompanyBranches_Countries_CountryId",
+                        name: "FK_Branches_Countries_CountryId",
                         column: x => x.CountryId,
                         principalTable: "Countries",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_CompanyBranches_Currencies_CurrencyId",
+                        name: "FK_Branches_Currencies_CurrencyId",
                         column: x => x.CurrencyId,
                         principalTable: "Currencies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_CompanyBranches_Governorates_GovId",
+                        name: "FK_Branches_Governorates_GovId",
                         column: x => x.GovId,
                         principalTable: "Governorates",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_CompanyBranches_Taxes_TaxId",
+                        name: "FK_Branches_Taxes_TaxId",
                         column: x => x.TaxId,
                         principalTable: "Taxes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_CompanyBranches_Towns_TownId",
+                        name: "FK_Branches_Towns_TownId",
                         column: x => x.TownId,
                         principalTable: "Towns",
                         principalColumn: "Id",
@@ -1476,8 +1460,6 @@ namespace Restaurant.DAL.Migrations
                     Address = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
                     PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     IDNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Salary = table.Column<double>(type: "float(18)", precision: 18, scale: 2, nullable: true),
-                    SalaryType = table.Column<int>(type: "int", nullable: true),
                     Religion = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NationalityId = table.Column<int>(type: "int", nullable: true),
                     CountryId = table.Column<int>(type: "int", nullable: true),
@@ -1524,13 +1506,12 @@ namespace Restaurant.DAL.Migrations
                     EndTime = table.Column<TimeSpan>(type: "time", nullable: true),
                     DailyRate = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     HourlyRate = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
-                    MinuteRate = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    MinuteRate = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: true),
                     SalaryNotes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ContractTypeId = table.Column<int>(type: "int", nullable: true),
                     AccountId = table.Column<int>(type: "int", nullable: true),
                     BranchId = table.Column<int>(type: "int", nullable: true),
                     DepartmentId = table.Column<int>(type: "int", nullable: true),
-                    Administration = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     HireDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ContractDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ContractEndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -1550,8 +1531,6 @@ namespace Restaurant.DAL.Migrations
                     InsuranceCardNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IssueDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    InsuranceAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
-                    InsurancePercent = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     OverrideDelayRule = table.Column<bool>(type: "bit", nullable: false),
                     GracePeriodMinutesOverride = table.Column<int>(type: "int", nullable: true),
@@ -1601,9 +1580,9 @@ namespace Restaurant.DAL.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Employees_CompanyBranches_BranchId",
+                        name: "FK_Employees_Branches_BranchId",
                         column: x => x.BranchId,
-                        principalTable: "CompanyBranches",
+                        principalTable: "Branches",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -1842,7 +1821,7 @@ namespace Restaurant.DAL.Migrations
                     SecondBusinessId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CenterId = table.Column<int>(type: "int", nullable: true),
                     AccountId = table.Column<int>(type: "int", nullable: true),
-                    CompanyBranchId = table.Column<int>(type: "int", nullable: true),
+                    BranchId = table.Column<int>(type: "int", nullable: true),
                     SellTypeId = table.Column<int>(type: "int", nullable: true),
                     CostCenterId = table.Column<int>(type: "int", nullable: true),
                     EmployeeId = table.Column<int>(type: "int", nullable: true),
@@ -1871,15 +1850,15 @@ namespace Restaurant.DAL.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Customers_Classifications_ClassificationId",
-                        column: x => x.ClassificationId,
-                        principalTable: "Classifications",
+                        name: "FK_Customers_Branches_BranchId",
+                        column: x => x.BranchId,
+                        principalTable: "Branches",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Customers_CompanyBranches_CompanyBranchId",
-                        column: x => x.CompanyBranchId,
-                        principalTable: "CompanyBranches",
+                        name: "FK_Customers_Classifications_ClassificationId",
+                        column: x => x.ClassificationId,
+                        principalTable: "Classifications",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -1948,6 +1927,7 @@ namespace Restaurant.DAL.Migrations
                     EnName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     EmployeeId = table.Column<int>(type: "int", nullable: false),
+                    AllowanceTypeId = table.Column<int>(type: "int", nullable: true),
                     State = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -1959,6 +1939,12 @@ namespace Restaurant.DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_EmployeeAllowances", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EmployeeAllowances_AllowanceTypes_AllowanceTypeId",
+                        column: x => x.AllowanceTypeId,
+                        principalTable: "AllowanceTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_EmployeeAllowances_Employees_EmployeeId",
                         column: x => x.EmployeeId,
@@ -2035,6 +2021,7 @@ namespace Restaurant.DAL.Migrations
                     EnName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     EmployeeId = table.Column<int>(type: "int", nullable: false),
+                    DeductionTypeId = table.Column<int>(type: "int", nullable: true),
                     State = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -2046,6 +2033,12 @@ namespace Restaurant.DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_EmployeeFixedDeductions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EmployeeFixedDeductions_DeductionTypes_DeductionTypeId",
+                        column: x => x.DeductionTypeId,
+                        principalTable: "DeductionTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_EmployeeFixedDeductions_Employees_EmployeeId",
                         column: x => x.EmployeeId,
@@ -2321,9 +2314,9 @@ namespace Restaurant.DAL.Migrations
                 {
                     table.PrimaryKey("PK_Stores", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Stores_CompanyBranches_BranchId",
+                        name: "FK_Stores_Branches_BranchId",
                         column: x => x.BranchId,
-                        principalTable: "CompanyBranches",
+                        principalTable: "Branches",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -2379,7 +2372,7 @@ namespace Restaurant.DAL.Migrations
                     CreditDurationInDays = table.Column<int>(type: "int", nullable: true),
                     BillPayType = table.Column<int>(type: "int", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: true),
-                    CompanyBranchId = table.Column<int>(type: "int", nullable: true),
+                    BranchId = table.Column<int>(type: "int", nullable: true),
                     CostCenterId = table.Column<int>(type: "int", nullable: true),
                     EmployeeId = table.Column<int>(type: "int", nullable: true),
                     CountryId = table.Column<int>(type: "int", nullable: true),
@@ -2404,9 +2397,9 @@ namespace Restaurant.DAL.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Suppliers_CompanyBranches_CompanyBranchId",
-                        column: x => x.CompanyBranchId,
-                        principalTable: "CompanyBranches",
+                        name: "FK_Suppliers_Branches_BranchId",
+                        column: x => x.BranchId,
+                        principalTable: "Branches",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -2595,29 +2588,6 @@ namespace Restaurant.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PaymentInvoiceCustomer",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CustomerId = table.Column<int>(type: "int", nullable: false),
-                    ProcessCode = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Paid = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PaymentInvoiceCustomer", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PaymentInvoiceCustomer_Customers_CustomerId",
-                        column: x => x.CustomerId,
-                        principalTable: "Customers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "BillSettings",
                 columns: table => new
                 {
@@ -2792,7 +2762,6 @@ namespace Restaurant.DAL.Migrations
                     ImageUrl = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     StoreId = table.Column<int>(type: "int", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    IsReady = table.Column<bool>(type: "bit", nullable: false),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     Size = table.Column<int>(type: "int", nullable: true)
                 },
@@ -2943,29 +2912,6 @@ namespace Restaurant.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PaymentInvoiceSupplier",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    SupplierId = table.Column<int>(type: "int", nullable: false),
-                    ProcessCode = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Paid = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PaymentInvoiceSupplier", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PaymentInvoiceSupplier_Suppliers_SupplierId",
-                        column: x => x.SupplierId,
-                        principalTable: "Suppliers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "SupplierPhones",
                 columns: table => new
                 {
@@ -3022,6 +2968,7 @@ namespace Restaurant.DAL.Migrations
                     IsCostingApplied = table.Column<bool>(type: "bit", nullable: false),
                     BillDailyNo = table.Column<int>(type: "int", nullable: false),
                     AmountPaided = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    InitialPaidAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     CasherCurrentPaidedAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     CasherDifferenceAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     CasherRemainingAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
@@ -3052,7 +2999,7 @@ namespace Restaurant.DAL.Migrations
                     AccountPayId = table.Column<int>(type: "int", nullable: true),
                     AccountDiscountId = table.Column<int>(type: "int", nullable: true),
                     AccountExtraId = table.Column<int>(type: "int", nullable: true),
-                    CompanyBranchId = table.Column<int>(type: "int", nullable: true),
+                    BranchId = table.Column<int>(type: "int", nullable: true),
                     State = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -3095,9 +3042,9 @@ namespace Restaurant.DAL.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_BillMasters_CompanyBranches_CompanyBranchId",
-                        column: x => x.CompanyBranchId,
-                        principalTable: "CompanyBranches",
+                        name: "FK_BillMasters_Branches_BranchId",
+                        column: x => x.BranchId,
+                        principalTable: "Branches",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -3166,35 +3113,6 @@ namespace Restaurant.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "OnlineOrderMenuItems",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    OnlineOrderId = table.Column<int>(type: "int", nullable: false),
-                    MenuItemId = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<decimal>(type: "decimal(18,3)", precision: 18, scale: 3, nullable: false),
-                    PriceForUnit = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OnlineOrderMenuItems", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_OnlineOrderMenuItems_MenuItems_MenuItemId",
-                        column: x => x.MenuItemId,
-                        principalTable: "MenuItems",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_OnlineOrderMenuItems_OnlineOrders_OnlineOrderId",
-                        column: x => x.OnlineOrderId,
-                        principalTable: "OnlineOrders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "StoreConvertProducts",
                 columns: table => new
                 {
@@ -3219,51 +3137,6 @@ namespace Restaurant.DAL.Migrations
                         principalTable: "StoreConverts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PaymentRefunds",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    OriginalPaymentId = table.Column<int>(type: "int", nullable: true),
-                    SupplierPaymentId = table.Column<int>(type: "int", nullable: true),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Reason = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
-                    RequestedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ApprovedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    RequestedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ApprovedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PaymentRefunds", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PaymentRefunds_AspNetUsers_ApprovedByUserId",
-                        column: x => x.ApprovedByUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PaymentRefunds_AspNetUsers_RequestedByUserId",
-                        column: x => x.RequestedByUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PaymentRefunds_PaymentInvoiceCustomer_OriginalPaymentId",
-                        column: x => x.OriginalPaymentId,
-                        principalTable: "PaymentInvoiceCustomer",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PaymentRefunds_PaymentInvoiceSupplier_SupplierPaymentId",
-                        column: x => x.SupplierPaymentId,
-                        principalTable: "PaymentInvoiceSupplier",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -3501,6 +3374,66 @@ namespace Restaurant.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PaymentInvoiceCustomer",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CustomerId = table.Column<int>(type: "int", nullable: false),
+                    BillMasterId = table.Column<int>(type: "int", nullable: true),
+                    ProcessCode = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Paid = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentInvoiceCustomer", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PaymentInvoiceCustomer_BillMasters_BillMasterId",
+                        column: x => x.BillMasterId,
+                        principalTable: "BillMasters",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PaymentInvoiceCustomer_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PaymentInvoiceSupplier",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SupplierId = table.Column<int>(type: "int", nullable: false),
+                    BillMasterId = table.Column<int>(type: "int", nullable: true),
+                    ProcessCode = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Paid = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentInvoiceSupplier", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PaymentInvoiceSupplier_BillMasters_BillMasterId",
+                        column: x => x.BillMasterId,
+                        principalTable: "BillMasters",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PaymentInvoiceSupplier_Suppliers_SupplierId",
+                        column: x => x.SupplierId,
+                        principalTable: "Suppliers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PaymentMethods",
                 columns: table => new
                 {
@@ -3607,6 +3540,51 @@ namespace Restaurant.DAL.Migrations
                         column: x => x.OrderId,
                         principalTable: "Orders",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PaymentRefunds",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OriginalPaymentId = table.Column<int>(type: "int", nullable: true),
+                    SupplierPaymentId = table.Column<int>(type: "int", nullable: true),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Reason = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
+                    RequestedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ApprovedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    RequestedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ApprovedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentRefunds", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PaymentRefunds_AspNetUsers_ApprovedByUserId",
+                        column: x => x.ApprovedByUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PaymentRefunds_AspNetUsers_RequestedByUserId",
+                        column: x => x.RequestedByUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PaymentRefunds_PaymentInvoiceCustomer_OriginalPaymentId",
+                        column: x => x.OriginalPaymentId,
+                        principalTable: "PaymentInvoiceCustomer",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PaymentRefunds_PaymentInvoiceSupplier_SupplierPaymentId",
+                        column: x => x.SupplierPaymentId,
+                        principalTable: "PaymentInvoiceSupplier",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -3801,9 +3779,9 @@ namespace Restaurant.DAL.Migrations
                 column: "BillSettingId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BillMasters_CompanyBranchId",
+                name: "IX_BillMasters_BranchId",
                 table: "BillMasters",
-                column: "CompanyBranchId");
+                column: "BranchId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BillMasters_CostCenterId",
@@ -3901,6 +3879,58 @@ namespace Restaurant.DAL.Migrations
                 column: "ToStoreId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Branches_ArName",
+                table: "Branches",
+                column: "ArName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Branches_CompanyId",
+                table: "Branches",
+                column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Branches_CostCenterId",
+                table: "Branches",
+                column: "CostCenterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Branches_CountryId",
+                table: "Branches",
+                column: "CountryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Branches_CurrencyId",
+                table: "Branches",
+                column: "CurrencyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Branches_EnName",
+                table: "Branches",
+                column: "EnName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Branches_GovId",
+                table: "Branches",
+                column: "GovId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Branches_ParentId",
+                table: "Branches",
+                column: "ParentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Branches_TaxId",
+                table: "Branches",
+                column: "TaxId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Branches_TownId",
+                table: "Branches",
+                column: "TownId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Companies_CountryId",
                 table: "Companies",
                 column: "CountryId");
@@ -3926,58 +3956,6 @@ namespace Restaurant.DAL.Migrations
                 column: "TownId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CompanyBranches_ArName",
-                table: "CompanyBranches",
-                column: "ArName",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CompanyBranches_CompanyId",
-                table: "CompanyBranches",
-                column: "CompanyId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CompanyBranches_CostCenterId",
-                table: "CompanyBranches",
-                column: "CostCenterId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CompanyBranches_CountryId",
-                table: "CompanyBranches",
-                column: "CountryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CompanyBranches_CurrencyId",
-                table: "CompanyBranches",
-                column: "CurrencyId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CompanyBranches_EnName",
-                table: "CompanyBranches",
-                column: "EnName",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CompanyBranches_GovId",
-                table: "CompanyBranches",
-                column: "GovId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CompanyBranches_ParentId",
-                table: "CompanyBranches",
-                column: "ParentId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CompanyBranches_TaxId",
-                table: "CompanyBranches",
-                column: "TaxId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CompanyBranches_TownId",
-                table: "CompanyBranches",
-                column: "TownId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_CostCenters_ParentId",
                 table: "CostCenters",
                 column: "ParentId");
@@ -3995,14 +3973,14 @@ namespace Restaurant.DAL.Migrations
                 filter: "[AccountId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Customers_BranchId",
+                table: "Customers",
+                column: "BranchId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Customers_ClassificationId",
                 table: "Customers",
                 column: "ClassificationId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Customers_CompanyBranchId",
-                table: "Customers",
-                column: "CompanyBranchId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_CostCenterId",
@@ -4077,6 +4055,11 @@ namespace Restaurant.DAL.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_EmployeeAllowances_AllowanceTypeId",
+                table: "EmployeeAllowances",
+                column: "AllowanceTypeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_EmployeeAllowances_EmployeeId",
                 table: "EmployeeAllowances",
                 column: "EmployeeId");
@@ -4090,6 +4073,11 @@ namespace Restaurant.DAL.Migrations
                 name: "IX_EmployeeDocuments_EmployeeId",
                 table: "EmployeeDocuments",
                 column: "EmployeeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmployeeFixedDeductions_DeductionTypeId",
+                table: "EmployeeFixedDeductions",
+                column: "DeductionTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_EmployeeFixedDeductions_EmployeeId",
@@ -4428,31 +4416,6 @@ namespace Restaurant.DAL.Migrations
                 column: "KitchenId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OnlineOrderMenuItems_MenuItemId",
-                table: "OnlineOrderMenuItems",
-                column: "MenuItemId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OnlineOrderMenuItems_OnlineOrderId",
-                table: "OnlineOrderMenuItems",
-                column: "OnlineOrderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OnlineOrders_CustomerId",
-                table: "OnlineOrders",
-                column: "CustomerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OnlineOrders_DeliveryZoneId",
-                table: "OnlineOrders",
-                column: "DeliveryZoneId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OnlineOrders_TableId",
-                table: "OnlineOrders",
-                column: "TableId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_OrderIngredients_OrderMenuItemId",
                 table: "OrderIngredients",
                 column: "OrderMenuItemId");
@@ -4519,6 +4482,11 @@ namespace Restaurant.DAL.Migrations
                 column: "TableId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PaymentInvoiceCustomer_BillMasterId",
+                table: "PaymentInvoiceCustomer",
+                column: "BillMasterId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PaymentInvoiceCustomer_CustomerId",
                 table: "PaymentInvoiceCustomer",
                 column: "CustomerId");
@@ -4533,6 +4501,11 @@ namespace Restaurant.DAL.Migrations
                 table: "PaymentInvoiceCustomer",
                 column: "ProcessCode",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PaymentInvoiceSupplier_BillMasterId",
+                table: "PaymentInvoiceSupplier",
+                column: "BillMasterId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PaymentInvoiceSupplier_Date",
@@ -4780,9 +4753,9 @@ namespace Restaurant.DAL.Migrations
                 filter: "[AccountId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Suppliers_CompanyBranchId",
+                name: "IX_Suppliers_BranchId",
                 table: "Suppliers",
-                column: "CompanyBranchId");
+                column: "BranchId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Suppliers_CostCenterId",
@@ -4808,6 +4781,16 @@ namespace Restaurant.DAL.Migrations
                 name: "IX_Suppliers_TownId",
                 table: "Suppliers",
                 column: "TownId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TableReservations_CustomerId",
+                table: "TableReservations",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TableReservations_TableId_ReservationDate",
+                table: "TableReservations",
+                columns: new[] { "TableId", "ReservationDate" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tables_ArName",
@@ -4915,9 +4898,6 @@ namespace Restaurant.DAL.Migrations
                 name: "AttendanceInOuts");
 
             migrationBuilder.DropTable(
-                name: "ChefItem");
-
-            migrationBuilder.DropTable(
                 name: "CustomerPhones");
 
             migrationBuilder.DropTable(
@@ -4954,12 +4934,6 @@ namespace Restaurant.DAL.Migrations
                 name: "ExitExpenses");
 
             migrationBuilder.DropTable(
-                name: "GalleryItem");
-
-            migrationBuilder.DropTable(
-                name: "IndexSettings");
-
-            migrationBuilder.DropTable(
                 name: "ItemBarcodes");
 
             migrationBuilder.DropTable(
@@ -4976,9 +4950,6 @@ namespace Restaurant.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "MenuItemComponents");
-
-            migrationBuilder.DropTable(
-                name: "OnlineOrderMenuItems");
 
             migrationBuilder.DropTable(
                 name: "OrderIngredients");
@@ -5017,6 +4988,9 @@ namespace Restaurant.DAL.Migrations
                 name: "SupplierPhones");
 
             migrationBuilder.DropTable(
+                name: "TableReservations");
+
+            migrationBuilder.DropTable(
                 name: "Technicians");
 
             migrationBuilder.DropTable(
@@ -5029,13 +5003,16 @@ namespace Restaurant.DAL.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
+                name: "AllowanceTypes");
+
+            migrationBuilder.DropTable(
+                name: "DeductionTypes");
+
+            migrationBuilder.DropTable(
                 name: "EntryMasters");
 
             migrationBuilder.DropTable(
                 name: "Expenses");
-
-            migrationBuilder.DropTable(
-                name: "OnlineOrders");
 
             migrationBuilder.DropTable(
                 name: "OrderMenuItems");
@@ -5134,7 +5111,7 @@ namespace Restaurant.DAL.Migrations
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "CompanyBranches");
+                name: "Branches");
 
             migrationBuilder.DropTable(
                 name: "ContractTypes");

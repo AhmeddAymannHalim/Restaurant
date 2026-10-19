@@ -1,4 +1,5 @@
 using Shared.Helpers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Definitions;
@@ -13,13 +14,15 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class SupplierRepository : ISupplierRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IHttpContextAccessor _httpContext;
     private readonly IAccountProvisionRepository _accountProvision;
     private readonly IPhoneRepository _phones;
     private readonly ILocationRepository _location;
 
-    public SupplierRepository(ApplicationDbContext context)
+    public SupplierRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
     {
         _context = context;
+        _httpContext = httpContext;
         _accountProvision = new AccountProvisionRepository(context);
         _phones = new PhoneRepository(context);
         _location = new LocationRepository(context);
@@ -99,6 +102,7 @@ public class SupplierRepository : ISupplierRepository
                 openingDelta = form.CreditBalance - form.DebitBalance;
                 entity.LastBalance = openingDelta;
                 entity.CreatedAt = DateTime.Now;
+                entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
 
                 _phones.SyncSupplierPhones(entity.Phones, phones);
                 await _context.Suppliers.AddAsync(entity);
@@ -124,6 +128,7 @@ public class SupplierRepository : ISupplierRepository
                 entity.CreatedAt = existing.CreatedAt;
                 entity.CreatedById = existing.CreatedById;
                 entity.UpdatedAt = DateTime.Now;
+                entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
 
                 existing.Account.ArName = form.ArName;
                 existing.Account.EnName = form.EnName;

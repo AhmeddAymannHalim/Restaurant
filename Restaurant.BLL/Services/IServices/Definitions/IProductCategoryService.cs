@@ -9,4 +9,5 @@ public interface IProductCategoryService
     Task<ProductCategoryViewModel> GetProductCategoryByIdAsync(int id);
     Task<ResultMessage> UpsertProductCategoryAsync(ProductCategoryViewModel model);
     Task<ResultMessage> DeleteProductCategoryAsync(int id);
+    Task<string> NewProductCategoryCodeAsync();
 }

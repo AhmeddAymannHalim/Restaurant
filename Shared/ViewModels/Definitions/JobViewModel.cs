@@ -3,6 +3,8 @@ namespace Shared.ViewModels.Definitions;
 
 public class JobViewModel
 {
+    public string JobTypeArName { get; set; }
+    public string JobTypeEnName { get; set; }
     public int Id { get; set; }
     public string Code { get; set; }
     public string ArName { get; set; }

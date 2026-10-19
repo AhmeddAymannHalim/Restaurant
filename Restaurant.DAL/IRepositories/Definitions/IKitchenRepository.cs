@@ -9,5 +9,6 @@ public interface IKitchenRepository
     Task<PaginatedResult<Kitchen>> GetPagedKitchensAsync(PageRequest request);
     Task<Kitchen> GetKitchenByIdAsync(int id);
     Task<ResultMessage> UpsertKitchenAsync(Kitchen entity);
+    Task<string> NewKitchenCodeAsync();
     Task<ResultMessage> DeleteKitchenAsync(int id);
 }

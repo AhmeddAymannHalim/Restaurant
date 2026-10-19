@@ -45,4 +45,9 @@ public class CustomerTierService : ICustomerTierService
     {
         return await _unitOfWork.CustomerTiers.DeleteCustomerTierAsync(id);
     }
+
+    public async Task<string> NewCustomerTierCodeAsync()
+    {
+        return await _unitOfWork.CustomerTiers.NewCustomerTierCodeAsync();
+    }
 }

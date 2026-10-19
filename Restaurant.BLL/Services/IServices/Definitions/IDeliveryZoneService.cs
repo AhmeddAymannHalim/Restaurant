@@ -10,4 +10,5 @@ public interface IDeliveryZoneService
     Task<DeliveryZoneViewModel> GetDeliveryZoneByIdAsync(int id);
     Task<ResultMessage> UpsertDeliveryZoneAsync(DeliveryZoneViewModel model);
     Task<ResultMessage> DeleteDeliveryZoneAsync(int id);
+    Task<string> NewDeliveryZoneCodeAsync();
 }

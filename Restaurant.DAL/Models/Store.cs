@@ -26,7 +26,7 @@ public class Store : BaseEntity
     public int? TownId { get; set; }
 
     public virtual Store Parent { get; set; }
-    public virtual CompanyBranch Branch { get; set; }
+    public virtual Branch Branch { get; set; }
     public virtual Employee Employee { get; set; }
     public virtual Country Country { get; set; }
     public virtual Governorate Gov { get; set; }

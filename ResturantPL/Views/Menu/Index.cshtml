@@ -1,4 +1,4 @@
-﻿@model PaginatedResult<MenuItemViewModel>
+@model PaginatedResult<MenuItemViewModel>
 @{
     ViewBag.Title = L["MenuItems"].Value;
     bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
@@ -26,6 +26,7 @@
     <thead>
         <tr>
             <th>#</th>
+            <th>@L["Code"]</th>
             <th>@L["Image"]</th>
             <th>@L["Name"]</th>
             <th>@L["MenuSection"]</th>
@@ -46,6 +47,7 @@
             {
                 <tr>
                     <td>@counter</td>
+                    <td>@item.Code</td>
                     <td>
                         @if (!string.IsNullOrEmpty(item.ImageUrl))
                         {
@@ -71,7 +73,7 @@
         else
         {
             <tr>
-                <td colspan="11" class="ad-empty">@L["NoData"]</td>
+                <td colspan="12" class="ad-empty">@L["NoData"]</td>
             </tr>
         }
     </tbody>

@@ -1,4 +1,4 @@
-﻿@model PaginatedResult<SupplierViewModel>
+@model PaginatedResult<SupplierViewModel>
 @{
     ViewBag.Title = L["Suppliers"].Value;
     bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
@@ -26,6 +26,7 @@
     <thead>
         <tr>
             <th>#</th>
+            <th>@L["Code"]</th>
             <th>@L["Name"]</th>
             <th>@L["Address"]</th>
             <th>@L["Phone"]</th>
@@ -42,6 +43,7 @@
             {
                 <tr>
                     <td>@counter</td>
+                    <td>@item.Code</td>
                     <td>@(isArabic ? item.ArName : item.EnName)</td>
                     <td>@item.Address</td>
                     <td>@item.PhoneNumber</td>
@@ -58,7 +60,7 @@
         else
         {
             <tr>
-                <td colspan="7" class="ad-empty">@L["NoData"]</td>
+                <td colspan="8" class="ad-empty">@L["NoData"]</td>
             </tr>
         }
     </tbody>

@@ -9,4 +9,5 @@ public interface IDepartmentService
     Task<DepartmentViewModel> GetDepartmentByIdAsync(int id);
     Task<ResultMessage> UpsertDepartmentAsync(DepartmentViewModel model);
     Task<ResultMessage> DeleteDepartmentAsync(int id);
+    Task<string> NewDepartmentCodeAsync();
 }

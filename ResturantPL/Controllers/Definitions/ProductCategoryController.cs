@@ -57,6 +57,10 @@ namespace ResturantPL.Controllers.Definitions
                         return RedirectToAction(nameof(Index));
                     }
                 }
+                else
+                {
+                    model.Code = await _service.NewProductCategoryCodeAsync();
+                }
 
                 await PopulateData(model);
 

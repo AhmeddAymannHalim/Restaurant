@@ -45,4 +45,9 @@ public class UnitPriceService : IUnitPriceService
     {
         return await _unitOfWork.UnitPrices.DeleteUnitPriceAsync(id);
     }
+
+    public async Task<string> NewUnitPriceCodeAsync()
+    {
+        return await _unitOfWork.UnitPrices.NewUnitPriceCodeAsync();
+    }
 }

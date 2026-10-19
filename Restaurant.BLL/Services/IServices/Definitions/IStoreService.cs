@@ -9,4 +9,5 @@ public interface IStoreService
     Task<StoreViewModel> GetStoreByIdAsync(int id);
     Task<ResultMessage> UpsertStoreAsync(StoreViewModel model);
     Task<ResultMessage> DeleteStoreAsync(int id);
+    Task<string> NewStoreCodeAsync();
 }

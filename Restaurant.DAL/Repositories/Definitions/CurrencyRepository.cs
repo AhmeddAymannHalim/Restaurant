@@ -1,4 +1,5 @@
 using Shared.Helpers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -11,10 +12,12 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class CurrencyRepository : ICurrencyRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IHttpContextAccessor _httpContext;
 
-    public CurrencyRepository(ApplicationDbContext context)
+    public CurrencyRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
     {
         _context = context;
+        _httpContext = httpContext;
     }
 
     public async Task<PaginatedResult<Currency>> GetPagedCurrenciesAsync(PageRequest request)
@@ -69,6 +72,7 @@ public class CurrencyRepository : ICurrencyRepository
                 }
 
                 entity.CreatedAt = DateTime.Now;
+                entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 await _context.Currencies.AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
@@ -89,6 +93,7 @@ public class CurrencyRepository : ICurrencyRepository
                 entity.CreatedAt = existing.CreatedAt;
                 entity.CreatedById = existing.CreatedById;
                 entity.UpdatedAt = DateTime.Now;
+                entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 _context.Entry(existing).CurrentValues.SetValues(entity);
                 await _context.SaveChangesAsync();
             }

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Restaurant.DAL.Models
 {
-    public class MenuSection
+    public class MenuSection : BaseEntity
     {
-        public int Id { get; set; }
+        public string Code { get; set; }
         public string ArName { get; set; }
         public string EnName { get; set; }
         public int? KitchenId { get; set; } = null;

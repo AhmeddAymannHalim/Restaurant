@@ -45,4 +45,9 @@ public class ClassificationService : IClassificationService
     {
         return await _unitOfWork.Classifications.DeleteClassificationAsync(id);
     }
+
+    public async Task<string> NewClassificationCodeAsync()
+    {
+        return await _unitOfWork.Classifications.NewClassificationCodeAsync();
+    }
 }

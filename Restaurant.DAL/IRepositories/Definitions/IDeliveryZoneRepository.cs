@@ -10,5 +10,6 @@ public interface IDeliveryZoneRepository
     Task<List<DeliveryZone>> GetAllDeliveryZonesAsync();
     Task<DeliveryZone> GetDeliveryZoneByIdAsync(int id);
     Task<ResultMessage> UpsertDeliveryZoneAsync(DeliveryZone entity);
+    Task<string> NewDeliveryZoneCodeAsync();
     Task<ResultMessage> DeleteDeliveryZoneAsync(int id);
 }

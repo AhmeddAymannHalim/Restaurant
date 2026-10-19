@@ -45,4 +45,9 @@ public class DeductionTypeService : IDeductionTypeService
     {
         return await _unitOfWork.DeductionTypes.DeleteDeductionTypeAsync(id);
     }
+
+    public async Task<string> NewDeductionTypeCodeAsync()
+    {
+        return await _unitOfWork.DeductionTypes.NewDeductionTypeCodeAsync();
+    }
 }

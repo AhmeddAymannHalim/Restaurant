@@ -9,4 +9,5 @@ public interface IInsuranceCategoryService
     Task<InsuranceCategoryViewModel> GetInsuranceCategoryByIdAsync(int id);
     Task<ResultMessage> UpsertInsuranceCategoryAsync(InsuranceCategoryViewModel model);
     Task<ResultMessage> DeleteInsuranceCategoryAsync(int id);
+    Task<string> NewInsuranceCategoryCodeAsync();
 }

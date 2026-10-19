@@ -9,4 +9,5 @@ public interface IMenuItemService
     Task<MenuItemViewModel> GetMenuItemByIdAsync(int id);
     Task<ResultMessage> UpsertMenuItemAsync(MenuItemViewModel model);
     Task<ResultMessage> DeleteMenuItemAsync(int id);
+    Task<string> NewMenuItemCodeAsync();
 }

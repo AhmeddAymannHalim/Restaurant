@@ -1,4 +1,4 @@
-﻿@model PaginatedResult<BranchViewModel>
+@model PaginatedResult<BranchViewModel>
 @{
     ViewBag.Title = L["Branches"].Value;
     bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
@@ -28,6 +28,8 @@
             <th>#</th>
             <th>@L["Code"]</th>
             <th>@L["Name"]</th>
+            <th>@L["Bra.CompanyId"]</th>
+            <th>@L["Bra.CurrencyId"]</th>
             <th>@L["Address"]</th>
             <th>@L["Phone"]</th>
             <th>@L["Mobile"]</th>
@@ -44,6 +46,8 @@
                     <td>@counter</td>
                     <td>@item.Code</td>
                     <td>@(isArabic ? item.ArName : item.EnName)</td>
+                    <td>@(isArabic ? item.CompanyArName : item.CompanyEnName)</td>
+                    <td>@(isArabic ? item.CurrencyArName : item.CurrencyEnName)</td>
                     <td>@item.Address</td>
                     <td>@item.Phone1</td>
                     <td>@item.Mobile1</td>
@@ -58,7 +62,7 @@
         else
         {
             <tr>
-                <td colspan="7" class="ad-empty">@L["NoData"]</td>
+                <td colspan="9" class="ad-empty">@L["NoData"]</td>
             </tr>
         }
     </tbody>

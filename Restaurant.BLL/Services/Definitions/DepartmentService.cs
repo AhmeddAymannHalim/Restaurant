@@ -45,4 +45,9 @@ public class DepartmentService : IDepartmentService
     {
         return await _unitOfWork.Departments.DeleteDepartmentAsync(id);
     }
+
+    public async Task<string> NewDepartmentCodeAsync()
+    {
+        return await _unitOfWork.Departments.NewDepartmentCodeAsync();
+    }
 }

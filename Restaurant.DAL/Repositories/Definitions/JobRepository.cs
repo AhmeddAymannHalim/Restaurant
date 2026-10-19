@@ -1,4 +1,5 @@
 using Shared.Helpers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -11,15 +12,17 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class JobRepository : IJobRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IHttpContextAccessor _httpContext;
 
-    public JobRepository(ApplicationDbContext context)
+    public JobRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
     {
         _context = context;
+        _httpContext = httpContext;
     }
 
     public async Task<PaginatedResult<Job>> GetPagedJobsAsync(PageRequest request)
     {
-        var query = _context.Jobs.AsNoTracking().AsQueryable();
+        var query = _context.Jobs.AsNoTracking().Include(a => a.JobType).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
@@ -64,12 +67,14 @@ public class JobRepository : IJobRepository
             if (entity.Id == 0)
             {
                 entity.Code = await NewJobCodeAsync();
+                entity.CreatedAt = DateTime.Now;
+                entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 await _context.Jobs.AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
             else
             {
-                var existing = await _context.Jobs.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
+                var existing = await _context.Jobs.FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
                     return new ResultMessage
@@ -84,7 +89,8 @@ public class JobRepository : IJobRepository
                 entity.CreatedAt = existing.CreatedAt;
                 entity.CreatedById = existing.CreatedById;
                 entity.UpdatedAt = DateTime.Now;
-                _context.Jobs.Update(entity);
+                entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
+                _context.Entry(existing).CurrentValues.SetValues(entity);
                 await _context.SaveChangesAsync();
             }
 

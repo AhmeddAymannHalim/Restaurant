@@ -9,4 +9,5 @@ public interface IJobTypeService
     Task<JobTypeViewModel> GetJobTypeByIdAsync(int id);
     Task<ResultMessage> UpsertJobTypeAsync(JobTypeViewModel model);
     Task<ResultMessage> DeleteJobTypeAsync(int id);
+    Task<string> NewJobTypeCodeAsync();
 }

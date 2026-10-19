@@ -1,4 +1,4 @@
-﻿@model PaginatedResult<CostCenterViewModel>
+@model PaginatedResult<CostCenterViewModel>
 @{
     ViewBag.Title = L["CostCenters"].Value;
     bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
@@ -28,6 +28,7 @@
             <th>#</th>
             <th>@L["Code"]</th>
             <th>@L["Name"]</th>
+            <th>@L["CostCenter.ParentId"]</th>
             <th></th>
         </tr>
     </thead>
@@ -41,6 +42,7 @@
                     <td>@counter</td>
                     <td>@item.Code</td>
                     <td>@(isArabic ? item.ArName : item.EnName)</td>
+                    <td>@(isArabic ? item.ParentArName : item.ParentEnName)</td>
                     <td class="ad-row-actions">
                         <a asp-action="Upsert" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Edit"]" aria-label="@L["Edit"]"><i class="fas fa-pen" aria-hidden="true"></i></a>
                         <button type="button" onclick="Delete('/CostCenter/Delete/@item.Id')" class="btn-ad btn-ad-danger btn-icon" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button>
@@ -52,7 +54,7 @@
         else
         {
             <tr>
-                <td colspan="4" class="ad-empty">@L["NoData"]</td>
+                <td colspan="5" class="ad-empty">@L["NoData"]</td>
             </tr>
         }
     </tbody>

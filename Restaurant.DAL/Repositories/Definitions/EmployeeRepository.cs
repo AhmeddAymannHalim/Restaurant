@@ -14,13 +14,15 @@ public class EmployeeRepository : IEmployeeRepository
     private const string ImagesFolder = "Employee Images";
 
     private readonly ApplicationDbContext _context;
+    private readonly IHttpContextAccessor _httpContext;
     private readonly IEmployeeChildrenRepository _employeeChildren;
     private readonly IAccountProvisionRepository _accountProvision;
     private readonly ILocationRepository _location;
 
-    public EmployeeRepository(ApplicationDbContext context)
+    public EmployeeRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
     {
         _context = context;
+        _httpContext = httpContext;
         _employeeChildren = new EmployeeChildrenRepository(context);
         _accountProvision = new AccountProvisionRepository(context);
         _location = new LocationRepository(context);
@@ -203,6 +205,7 @@ public class EmployeeRepository : IEmployeeRepository
 
                 entity.Code = await NewEmployeeCodeAsync();
                 entity.CreatedAt = DateTime.Now;
+                entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
 
                 var newNumbers = new List<string>();
                 if (!string.IsNullOrWhiteSpace(entity.PhoneNumber))
@@ -276,6 +279,7 @@ public class EmployeeRepository : IEmployeeRepository
             entity.CreatedAt = existing.CreatedAt;
             entity.CreatedById = existing.CreatedById;
             entity.UpdatedAt = DateTime.Now;
+                entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
 
             if (imageFile != null)
             {

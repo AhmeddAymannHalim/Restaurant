@@ -45,4 +45,9 @@ public class KitchenService : IKitchenService
     {
         return await _unitOfWork.Kitchens.DeleteKitchenAsync(id);
     }
+
+    public async Task<string> NewKitchenCodeAsync()
+    {
+        return await _unitOfWork.Kitchens.NewKitchenCodeAsync();
+    }
 }

@@ -45,4 +45,9 @@ public class ContractTypeService : IContractTypeService
     {
         return await _unitOfWork.ContractTypes.DeleteContractTypeAsync(id);
     }
+
+    public async Task<string> NewContractTypeCodeAsync()
+    {
+        return await _unitOfWork.ContractTypes.NewContractTypeCodeAsync();
+    }
 }

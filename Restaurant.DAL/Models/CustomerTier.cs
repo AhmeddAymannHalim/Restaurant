@@ -5,6 +5,7 @@ namespace Restaurant.DAL.Models;
 
 public class CustomerTier : BaseEntity
 {
+    public string Code { get; set; }
     public string ArName { get; set; }
     public string EnName { get; set; }
     public decimal? MinimumTotalAmount { get; set; }

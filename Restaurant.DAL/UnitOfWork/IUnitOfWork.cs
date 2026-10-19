@@ -1,9 +1,5 @@
-using Microsoft.AspNetCore.Identity;
-using Restaurant.DAL.Models;
-using Restaurant.DAL.IRepositories;
 using Restaurant.DAL.IRepositories.Commons;
 using Restaurant.DAL.IRepositories.Definitions;
-using Restaurant.DAL.Repositories.Definitions;
 
 namespace Restaurant.DAL.UnitOfWork
 {

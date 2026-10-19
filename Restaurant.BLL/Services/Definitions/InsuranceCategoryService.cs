@@ -45,4 +45,9 @@ public class InsuranceCategoryService : IInsuranceCategoryService
     {
         return await _unitOfWork.InsuranceCategories.DeleteInsuranceCategoryAsync(id);
     }
+
+    public async Task<string> NewInsuranceCategoryCodeAsync()
+    {
+        return await _unitOfWork.InsuranceCategories.NewInsuranceCategoryCodeAsync();
+    }
 }

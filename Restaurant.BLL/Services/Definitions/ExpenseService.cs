@@ -45,4 +45,9 @@ public class ExpenseService : IExpenseService
     {
         return await _unitOfWork.Expenses.DeleteExpenseAsync(id);
     }
+
+    public async Task<string> NewExpenseCodeAsync()
+    {
+        return await _unitOfWork.Expenses.NewExpenseCodeAsync();
+    }
 }

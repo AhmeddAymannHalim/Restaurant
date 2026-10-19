@@ -28,7 +28,7 @@ public class SupplierViewModel
     public PayType BillPayType { get; set; } = PayType.Cash;
     public decimal? CreditLimit { get; set; }
     public int? CreditDurationInDays { get; set; }
-    public int? CompanyBranchId { get; set; }
+    public int? BranchId { get; set; }
     public int? EmployeeId { get; set; }
     public string Remark { get; set; }
     public int? TownId { get; set; }

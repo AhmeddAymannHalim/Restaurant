@@ -9,5 +9,6 @@ public interface IExpenseRepository
     Task<PaginatedResult<Expense>> GetPagedExpensesAsync(PageRequest request);
     Task<Expense> GetExpenseByIdAsync(int id);
     Task<ResultMessage> UpsertExpenseAsync(Expense entity);
+    Task<string> NewExpenseCodeAsync();
     Task<ResultMessage> DeleteExpenseAsync(int id);
 }

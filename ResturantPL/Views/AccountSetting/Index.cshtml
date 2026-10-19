@@ -1,0 +1,119 @@
+﻿@model AccountSettingViewModel
+@{
+    ViewBag.Title = L["AccSet_Title"].Value;
+    var accounts = new SelectList(Model.Accounts, "Id", LanguageHelper.IsArabic() ? "ArName" : "EnName", null);
+}
+
+<div class="ad-card">
+    <div class="ad-card-head">
+        <span class="ad-icon"><i class="fas fa-sliders" aria-hidden="true"></i></span>
+        <h1>@L["AccSet_Title"]</h1>
+    </div>
+    <div class="ad-card-body">
+        <p>@L["AccSet_Help"]</p>
+        <form asp-action="Index" method="post" class="ad-form">
+            <input type="hidden" asp-for="Id" />
+
+            <fieldset class="ad-full">
+                <legend class="control-label">@L["AccSet_Parents"]</legend>
+            </fieldset>
+            <div class="form-group">
+                <label asp-for="ParentCustomerId" class="control-label">@L["AccSet_ParentCustomer"]</label>
+                <select asp-for="ParentCustomerId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="ParentSupplierId" class="control-label">@L["AccSet_ParentSupplier"]</label>
+                <select asp-for="ParentSupplierId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="ParentEmployeeId" class="control-label">@L["AccSet_ParentEmployee"]</label>
+                <select asp-for="ParentEmployeeId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="ParentExpensesId" class="control-label">@L["AccSet_ParentExpenses"]</label>
+                <select asp-for="ParentExpensesId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="ParentBankId" class="control-label">@L["AccSet_ParentBank"]</label>
+                <select asp-for="ParentBankId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="ParentBoxId" class="control-label">@L["AccSet_ParentBox"]</label>
+                <select asp-for="ParentBoxId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="ParentFixedAssetsId" class="control-label">@L["AccSet_ParentAssets"]</label>
+                <select asp-for="ParentFixedAssetsId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+
+            <fieldset class="ad-full">
+                <legend class="control-label">@L["AccSet_Invoices"]</legend>
+            </fieldset>
+            <div class="form-group">
+                <label asp-for="SalesItemAccountId" class="control-label">@L["AccSet_SalesItem"]</label>
+                <select asp-for="SalesItemAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="SalesPayAccountId" class="control-label">@L["AccSet_SalesPay"]</label>
+                <select asp-for="SalesPayAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="SalesReturnItemAccountId" class="control-label">@L["AccSet_SalesReturnItem"]</label>
+                <select asp-for="SalesReturnItemAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="SalesReturnPayAccountId" class="control-label">@L["AccSet_SalesReturnPay"]</label>
+                <select asp-for="SalesReturnPayAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="PurchasesItemAccountId" class="control-label">@L["AccSet_PurchasesItem"]</label>
+                <select asp-for="PurchasesItemAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="PurchasesPayAccountId" class="control-label">@L["AccSet_PurchasesPay"]</label>
+                <select asp-for="PurchasesPayAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="PurchaseReturnItemAccountId" class="control-label">@L["AccSet_PurchaseReturnItem"]</label>
+                <select asp-for="PurchaseReturnItemAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="PurchaseReturnPayAccountId" class="control-label">@L["AccSet_PurchaseReturnPay"]</label>
+                <select asp-for="PurchaseReturnPayAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+
+            <fieldset class="ad-full">
+                <legend class="control-label">@L["AccSet_Vouchers"]</legend>
+            </fieldset>
+            <div class="form-group">
+                <label asp-for="CustomerPaymentAccountId" class="control-label">@L["AccSet_CustomerPayment"]</label>
+                <select asp-for="CustomerPaymentAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="SupplierPaymentAccountId" class="control-label">@L["AccSet_SupplierPayment"]</label>
+                <select asp-for="SupplierPaymentAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="CustomerRefundAccountId" class="control-label">@L["AccSet_CustomerRefund"]</label>
+                <select asp-for="CustomerRefundAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="SupplierRefundAccountId" class="control-label">@L["AccSet_SupplierRefund"]</label>
+                <select asp-for="SupplierRefundAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="CustomerOpeningBalanceAccountId" class="control-label">@L["AccSet_CustomerOpening"]</label>
+                <select asp-for="CustomerOpeningBalanceAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="SupplierOpeningBalanceAccountId" class="control-label">@L["AccSet_SupplierOpening"]</label>
+                <select asp-for="SupplierOpeningBalanceAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+
+            <div class="ad-form-actions">
+                <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Setting_Update"]</button>
+                <a asp-controller="ApplicationSetting" asp-action="Index" class="btn-ad btn-ad-ghost">@L["Setting_Back"]</a>
+            </div>
+        </form>
+    </div>
+</div>

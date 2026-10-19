@@ -45,4 +45,9 @@ public class LeaveTypeService : ILeaveTypeService
     {
         return await _unitOfWork.LeaveTypes.DeleteLeaveTypeAsync(id);
     }
+
+    public async Task<string> NewLeaveTypeCodeAsync()
+    {
+        return await _unitOfWork.LeaveTypes.NewLeaveTypeCodeAsync();
+    }
 }

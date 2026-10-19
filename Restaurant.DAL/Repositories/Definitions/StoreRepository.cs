@@ -1,5 +1,6 @@
 using Shared.Helpers;
 using Restaurant.DAL.Helpers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -12,19 +13,21 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class StoreRepository : IStoreRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IHttpContextAccessor _httpContext;
     private readonly IPhoneRepository _phones;
     private readonly ILocationRepository _location;
 
-    public StoreRepository(ApplicationDbContext context)
+    public StoreRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
     {
         _context = context;
+        _httpContext = httpContext;
         _phones = new PhoneRepository(context);
         _location = new LocationRepository(context);
     }
 
     public async Task<PaginatedResult<Store>> GetPagedStoresAsync(PageRequest request)
     {
-        var query = _context.Stores.AsNoTracking().Include(a => a.Employee).AsQueryable();
+        var query = _context.Stores.AsNoTracking().Include(a => a.Branch).Include(a => a.Employee).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
@@ -50,6 +53,19 @@ public class StoreRepository : IStoreRepository
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
+    public async Task<string> NewStoreCodeAsync()
+    {
+        var codes = await _context.Stores.AsNoTracking().Select(a => a.Code).ToListAsync();
+
+        var nextCode = codes
+            .Where(code => int.TryParse(code, out _))
+            .Select(int.Parse)
+            .DefaultIfEmpty(0)
+            .Max() + 1;
+
+        return nextCode.ToString();
+    }
+
     public async Task<ResultMessage> UpsertStoreAsync(Store entity)
     {
         try
@@ -64,13 +80,9 @@ public class StoreRepository : IStoreRepository
 
             if (entity.Id == 0)
             {
-                if (string.IsNullOrWhiteSpace(entity.Code))
-                {
-                    var codes = await _context.Stores.AsNoTracking().Select(a => a.Code).ToListAsync();
-                    entity.Code = (codes.Where(code => int.TryParse(code, out _)).Select(int.Parse).DefaultIfEmpty(0).Max() + 1).ToString();
-                }
-
+                entity.Code = await NewStoreCodeAsync();
                 entity.CreatedAt = DateTime.Now;
+                entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 _phones.SyncStorePhones(entity.Phones, phones);
                 await _context.Stores.AddAsync(entity);
             }
@@ -86,11 +98,12 @@ public class StoreRepository : IStoreRepository
                     };
                 }
 
-                entity.Code = string.IsNullOrWhiteSpace(entity.Code) ? existing.Code : entity.Code;
+                entity.Code = existing.Code;
                 entity.State = existing.State;
                 entity.CreatedAt = existing.CreatedAt;
                 entity.CreatedById = existing.CreatedById;
                 entity.UpdatedAt = DateTime.Now;
+                entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 _context.Entry(existing).CurrentValues.SetValues(entity);
                 _phones.SyncStorePhones(existing.Phones, phones);
             }

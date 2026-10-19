@@ -20,6 +20,7 @@ using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
 using Restaurant.DAL.Repositories.Commons;
 using Restaurant.DAL.Repositories.Definitions;
+using Restaurant.DAL.SeedData;
 using Restaurant.DAL.UnitOfWork;
 using ResturantPL.Filters;
 using ResturantPL.Services;
@@ -181,6 +182,8 @@ services.AddScoped<IEmployeeAccountRepository, EmployeeAccountRepository>();
 services.AddScoped<IEmployeeAccountService, EmployeeAccountService>();
 services.AddScoped<ISettingRepository, SettingRepository>();
 services.AddScoped<ISettingService, SettingService>();
+services.AddScoped<IAccountSettingRepository, AccountSettingRepository>();
+services.AddScoped<IAccountSettingService, AccountSettingService>();
 services.AddScoped<IAccountRepository, AccountRepository>();
 services.AddScoped<IAccountService, AccountService>();
 services.AddScoped<ICustomerService, CustomerService>();
@@ -234,6 +237,18 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await dbContext.Database.MigrateAsync();
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var defaultPassword = configuration["Database:DefaultPassword"] ?? (app.Environment.IsDevelopment() ? "@Qwe12" : null);
+
+    await DataSeeder.SeedCountries(dbContext);
+    await DataSeeder.SeedGovs(dbContext);
+    await DataSeeder.SeedTowns(dbContext);
+    await DataSeeder.SeedUnitPrices(dbContext);
+    await DataSeeder.SeedApplicationSettings(dbContext, defaultPassword);
+    await DataSeeder.SeedPrinterSettings(dbContext);
+    await DataSeeder.SeedAdminRoleAndUsers(userManager, roleManager, defaultPassword != null, defaultPassword);
 }
 
 app.Run();

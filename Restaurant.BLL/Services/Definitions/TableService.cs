@@ -45,4 +45,9 @@ public class TableService : ITableService
     {
         return await _unitOfWork.Tables.DeleteTableAsync(id);
     }
+
+    public async Task<string> NewTableCodeAsync()
+    {
+        return await _unitOfWork.Tables.NewTableCodeAsync();
+    }
 }

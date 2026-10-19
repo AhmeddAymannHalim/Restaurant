@@ -45,4 +45,9 @@ public class InsuranceCompanyService : IInsuranceCompanyService
     {
         return await _unitOfWork.InsuranceCompanies.DeleteInsuranceCompanyAsync(id);
     }
+
+    public async Task<string> NewInsuranceCompanyCodeAsync()
+    {
+        return await _unitOfWork.InsuranceCompanies.NewInsuranceCompanyCodeAsync();
+    }
 }

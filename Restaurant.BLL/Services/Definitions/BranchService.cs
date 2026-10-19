@@ -36,7 +36,7 @@ public class BranchService : IBranchService
 
     public async Task<ResultMessage> UpsertBranchAsync(BranchViewModel model)
     {
-        var entity = _mapper.Map<CompanyBranch>(model);
+        var entity = _mapper.Map<Branch>(model);
 
         return await _unitOfWork.Branches.UpsertBranchAsync(entity);
     }

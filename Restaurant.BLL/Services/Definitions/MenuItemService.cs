@@ -45,4 +45,9 @@ public class MenuItemService : IMenuItemService
     {
         return await _unitOfWork.MenuItems.DeleteMenuItemAsync(id);
     }
+
+    public async Task<string> NewMenuItemCodeAsync()
+    {
+        return await _unitOfWork.MenuItems.NewMenuItemCodeAsync();
+    }
 }

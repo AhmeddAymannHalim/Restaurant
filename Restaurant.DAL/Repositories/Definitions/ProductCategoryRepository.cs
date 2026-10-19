@@ -1,4 +1,5 @@
 using Shared.Helpers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -11,10 +12,12 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class ProductCategoryRepository : IProductCategoryRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IHttpContextAccessor _httpContext;
 
-    public ProductCategoryRepository(ApplicationDbContext context)
+    public ProductCategoryRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
     {
         _context = context;
+        _httpContext = httpContext;
     }
 
     public async Task<PaginatedResult<ProductCategory>> GetPagedProductCategoriesAsync(PageRequest request)
@@ -24,7 +27,7 @@ public class ProductCategoryRepository : IProductCategoryRepository
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search));
+            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search) || a.Code.ToLower().Contains(search));
         }
 
         var total = await query.CountAsync();
@@ -42,18 +45,34 @@ public class ProductCategoryRepository : IProductCategoryRepository
         return await _context.ProductCategories.FindAsync(id);
     }
 
+    public async Task<string> NewProductCategoryCodeAsync()
+    {
+        var codes = await _context.ProductCategories.AsNoTracking().Select(a => a.Code).ToListAsync();
+
+        var nextCode = codes
+            .Where(code => int.TryParse(code, out _))
+            .Select(int.Parse)
+            .DefaultIfEmpty(0)
+            .Max() + 1;
+
+        return nextCode.ToString();
+    }
+
     public async Task<ResultMessage> UpsertProductCategoryAsync(ProductCategory entity)
     {
         try
         {
             if (entity.Id == 0)
             {
+                entity.Code = await NewProductCategoryCodeAsync();
+                entity.CreatedAt = DateTime.Now;
+                entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 await _context.ProductCategories.AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
             else
             {
-                var existing = await _context.ProductCategories.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
+                var existing = await _context.ProductCategories.FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
                     return new ResultMessage
@@ -63,7 +82,13 @@ public class ProductCategoryRepository : IProductCategoryRepository
                     };
                 }
 
-                _context.ProductCategories.Update(entity);
+                entity.Code = existing.Code;
+                entity.State = existing.State;
+                entity.CreatedAt = existing.CreatedAt;
+                entity.CreatedById = existing.CreatedById;
+                entity.UpdatedAt = DateTime.Now;
+                entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
+                _context.Entry(existing).CurrentValues.SetValues(entity);
                 await _context.SaveChangesAsync();
             }
 

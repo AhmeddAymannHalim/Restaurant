@@ -9,5 +9,6 @@ public interface ICompanyRepository
     Task<PaginatedResult<Company>> GetPagedCompaniesAsync(PageRequest request);
     Task<Company> GetCompanyByIdAsync(int id);
     Task<ResultMessage> UpsertCompanyAsync(Company entity);
+    Task<string> NewCompanyCodeAsync();
     Task<ResultMessage> DeleteCompanyAsync(int id);
 }

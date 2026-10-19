@@ -45,4 +45,9 @@ public class ProductCategoryService : IProductCategoryService
     {
         return await _unitOfWork.ProductCategories.DeleteProductCategoryAsync(id);
     }
+
+    public async Task<string> NewProductCategoryCodeAsync()
+    {
+        return await _unitOfWork.ProductCategories.NewProductCategoryCodeAsync();
+    }
 }

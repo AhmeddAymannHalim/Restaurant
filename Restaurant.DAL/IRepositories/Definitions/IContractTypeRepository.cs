@@ -9,5 +9,6 @@ public interface IContractTypeRepository
     Task<PaginatedResult<ContractType>> GetPagedContractTypesAsync(PageRequest request);
     Task<ContractType> GetContractTypeByIdAsync(int id);
     Task<ResultMessage> UpsertContractTypeAsync(ContractType entity);
+    Task<string> NewContractTypeCodeAsync();
     Task<ResultMessage> DeleteContractTypeAsync(int id);
 }

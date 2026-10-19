@@ -5,26 +5,29 @@ using Restaurant.DAL.Models;
 using Shared.Enums;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
+using Microsoft.AspNetCore.Http;
 
 namespace Restaurant.DAL.Repositories.Definitions;
 
 public class CompanyRepository : ICompanyRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IHttpContextAccessor _httpContext;
 
-    public CompanyRepository(ApplicationDbContext context)
+    public CompanyRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
     {
         _context = context;
+        _httpContext = httpContext;
     }
 
     public async Task<PaginatedResult<Company>> GetPagedCompaniesAsync(PageRequest request)
     {
-        var query = _context.Companies.AsNoTracking().AsQueryable();
+        var query = _context.Companies.AsNoTracking().Include(a => a.Currency).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search));
+            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search) || a.Code.ToLower().Contains(search));
         }
 
         var total = await query.CountAsync();
@@ -42,13 +45,28 @@ public class CompanyRepository : ICompanyRepository
         return await _context.Companies.FindAsync(id);
     }
 
+    public async Task<string> NewCompanyCodeAsync()
+    {
+        var codes = await _context.Companies.AsNoTracking().Select(a => a.Code).ToListAsync();
+
+        var nextCode = codes
+            .Where(code => int.TryParse(code, out _))
+            .Select(int.Parse)
+            .DefaultIfEmpty(0)
+            .Max() + 1;
+
+        return nextCode.ToString();
+    }
+
     public async Task<ResultMessage> UpsertCompanyAsync(Company entity)
     {
         try
         {
             if (entity.Id == 0)
             {
+                entity.Code = await NewCompanyCodeAsync();
                 entity.CreatedAt = DateTime.Now;
+                entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 await _context.Companies.AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
@@ -64,10 +82,12 @@ public class CompanyRepository : ICompanyRepository
                     };
                 }
 
+                entity.Code = existing.Code;
                 entity.State = existing.State;
                 entity.CreatedAt = existing.CreatedAt;
                 entity.CreatedById = existing.CreatedById;
                 entity.UpdatedAt = DateTime.Now;
+                entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 _context.Entry(existing).CurrentValues.SetValues(entity);
                 await _context.SaveChangesAsync();
             }

@@ -45,4 +45,9 @@ public class JobTypeService : IJobTypeService
     {
         return await _unitOfWork.JobTypes.DeleteJobTypeAsync(id);
     }
+
+    public async Task<string> NewJobTypeCodeAsync()
+    {
+        return await _unitOfWork.JobTypes.NewJobTypeCodeAsync();
+    }
 }

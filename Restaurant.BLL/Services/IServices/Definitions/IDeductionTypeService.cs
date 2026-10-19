@@ -9,4 +9,5 @@ public interface IDeductionTypeService
     Task<DeductionTypeViewModel> GetDeductionTypeByIdAsync(int id);
     Task<ResultMessage> UpsertDeductionTypeAsync(DeductionTypeViewModel model);
     Task<ResultMessage> DeleteDeductionTypeAsync(int id);
+    Task<string> NewDeductionTypeCodeAsync();
 }

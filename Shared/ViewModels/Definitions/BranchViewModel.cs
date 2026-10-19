@@ -3,6 +3,10 @@ namespace Shared.ViewModels.Definitions;
 
 public class BranchViewModel
 {
+    public string CompanyArName { get; set; }
+    public string CompanyEnName { get; set; }
+    public string CurrencyArName { get; set; }
+    public string CurrencyEnName { get; set; }
     public int Id { get; set; }
     public string Code { get; set; }
     public string ArName { get; set; }

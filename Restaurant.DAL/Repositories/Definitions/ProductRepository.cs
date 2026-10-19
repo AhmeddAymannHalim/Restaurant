@@ -1,5 +1,6 @@
 using Shared.Helpers;
 using Restaurant.DAL.Helpers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
@@ -12,11 +13,13 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class ProductRepository : IProductRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IHttpContextAccessor _httpContext;
     private readonly IStockRepository _stock;
 
-    public ProductRepository(ApplicationDbContext context)
+    public ProductRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
     {
         _context = context;
+        _httpContext = httpContext;
         _stock = new StockRepository(context);
     }
 
@@ -29,7 +32,7 @@ public class ProductRepository : IProductRepository
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search));
+            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search) || a.Code.ToLower().Contains(search));
         }
 
         var total = await query.CountAsync();
@@ -76,6 +79,19 @@ public class ProductRepository : IProductRepository
         return product;
     }
 
+    public async Task<string> NewProductCodeAsync()
+    {
+        var codes = await _context.Products.AsNoTracking().Select(a => a.Code).ToListAsync();
+
+        var nextCode = codes
+            .Where(code => int.TryParse(code, out _))
+            .Select(int.Parse)
+            .DefaultIfEmpty(0)
+            .Max() + 1;
+
+        return nextCode.ToString();
+    }
+
     public async Task<ResultMessage> UpsertProductAsync(Product entity, IEnumerable<ProductStock> stocks)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -84,12 +100,16 @@ public class ProductRepository : IProductRepository
         {
             if (entity.Id == 0)
             {
+                entity.Code = await NewProductCodeAsync();
+                entity.CreatedAt = DateTime.Now;
+                entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 await _context.Products.AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
             else
             {
-                if (!await _context.Products.AnyAsync(a => a.Id == entity.Id))
+                var existing = await _context.Products.FirstOrDefaultAsync(a => a.Id == entity.Id);
+                if (existing is null)
                 {
                     return new ResultMessage
                     {
@@ -98,7 +118,13 @@ public class ProductRepository : IProductRepository
                     };
                 }
 
-                _context.Products.Update(entity);
+                entity.Code = existing.Code;
+                entity.State = existing.State;
+                entity.CreatedAt = existing.CreatedAt;
+                entity.CreatedById = existing.CreatedById;
+                entity.UpdatedAt = DateTime.Now;
+                entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
+                _context.Entry(existing).CurrentValues.SetValues(entity);
                 await _context.SaveChangesAsync();
             }
 

@@ -9,4 +9,5 @@ public interface IUnitPriceService
     Task<UnitPriceViewModel> GetUnitPriceByIdAsync(int id);
     Task<ResultMessage> UpsertUnitPriceAsync(UnitPriceViewModel model);
     Task<ResultMessage> DeleteUnitPriceAsync(int id);
+    Task<string> NewUnitPriceCodeAsync();
 }

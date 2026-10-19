@@ -45,4 +45,9 @@ public class SellTypeService : ISellTypeService
     {
         return await _unitOfWork.SellTypes.DeleteSellTypeAsync(id);
     }
+
+    public async Task<string> NewSellTypeCodeAsync()
+    {
+        return await _unitOfWork.SellTypes.NewSellTypeCodeAsync();
+    }
 }

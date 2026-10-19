@@ -9,4 +9,5 @@ public interface IContractTypeService
     Task<ContractTypeViewModel> GetContractTypeByIdAsync(int id);
     Task<ResultMessage> UpsertContractTypeAsync(ContractTypeViewModel model);
     Task<ResultMessage> DeleteContractTypeAsync(int id);
+    Task<string> NewContractTypeCodeAsync();
 }

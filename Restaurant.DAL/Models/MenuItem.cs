@@ -2,9 +2,9 @@ using Shared.Enums;
 
 namespace Restaurant.DAL.Models;
 
-public class MenuItem
+public class MenuItem : BaseEntity
 {
-    public int Id { get; set; }
+    public string Code { get; set; }
     public string ArName { get; set; }
     public string EnName { get; set; }
     public int MenuSectionId { get; set; }

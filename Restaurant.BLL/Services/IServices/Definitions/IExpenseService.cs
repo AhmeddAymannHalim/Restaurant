@@ -9,4 +9,5 @@ public interface IExpenseService
     Task<ExpenseViewModel> GetExpenseByIdAsync(int id);
     Task<ResultMessage> UpsertExpenseAsync(ExpenseViewModel model);
     Task<ResultMessage> DeleteExpenseAsync(int id);
+    Task<string> NewExpenseCodeAsync();
 }

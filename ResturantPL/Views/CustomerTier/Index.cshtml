@@ -1,4 +1,4 @@
-﻿@model PaginatedResult<CustomerTierViewModel>
+@model PaginatedResult<CustomerTierViewModel>
 @{
     ViewBag.Title = L["CustomerTiers"].Value;
     bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
@@ -26,6 +26,7 @@
     <thead>
         <tr>
             <th>#</th>
+            <th>@L["Code"]</th>
             <th>@L["Name"]</th>
             <th></th>
         </tr>
@@ -38,6 +39,7 @@
             {
                 <tr>
                     <td>@counter</td>
+                    <td>@item.Code</td>
                     <td>@(isArabic ? item.ArName : item.EnName)</td>
                     <td class="ad-row-actions">
                         <a asp-action="Upsert" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Edit"]" aria-label="@L["Edit"]"><i class="fas fa-pen" aria-hidden="true"></i></a>
@@ -50,7 +52,7 @@
         else
         {
             <tr>
-                <td colspan="3" class="ad-empty">@L["NoData"]</td>
+                <td colspan="4" class="ad-empty">@L["NoData"]</td>
             </tr>
         }
     </tbody>
