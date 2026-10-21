@@ -1,6 +1,3 @@
-using Shared.Enums;
-using Shared.Enums.Others;
-
 namespace Restaurant.DAL.Models;
 
 public class CustomerTierDiscount : BaseEntity

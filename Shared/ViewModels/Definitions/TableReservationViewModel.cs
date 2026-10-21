@@ -15,6 +15,7 @@ public class TableReservationViewModel
     public string Email { get; set; }
     public byte GuestCount { get; set; } = 2;
     public DateTime ReservationDate { get; set; } = DateTime.Today.AddDays(1).AddHours(20);
+    public int DurationMinutes { get; set; } = 60;
     public string Notes { get; set; }
     public ReservationStatus Status { get; set; }
     public string RejectionReason { get; set; }

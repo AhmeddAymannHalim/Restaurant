@@ -1305,7 +1305,8 @@ a.shift-tile {
     text-decoration: none;
 }
 
-a.shift-tile:hover {
+a.shift-tile:hover,
+button.shift-tile:hover {
     border-color: var(--ad-accent, #cda45e);
 }
 
@@ -1509,7 +1510,8 @@ a.shift-tile:hover {
     margin-bottom: .1rem;
 }
 
-a.shift-tile:hover .shift-tile-icon {
+a.shift-tile:hover .shift-tile-icon,
+button.shift-tile:hover .shift-tile-icon {
     opacity: .85;
 }
 
@@ -1853,6 +1855,7 @@ body.dash .ad-switch input:checked ~ .ad-switch-text { color: #7ff0c4; }
 .res-Confirmed { background: rgba(63, 154, 80, .18); color: #3f9a50; }
 .res-Seated { background: rgba(60, 120, 200, .18); color: #3c78c8; }
 .res-Rejected { background: rgba(214, 69, 58, .18); color: #d6453a; }
+.res-Completed { background: rgba(40, 167, 100, .18); color: #28a764; }
 .res-Cancelled { background: rgba(140, 140, 160, .2); color: #8c8ca0; }
 
 .res-note {
@@ -1979,6 +1982,28 @@ body.dash .ad-switch input:checked ~ .ad-switch-text { color: #7ff0c4; }
 @media (max-width: 991px) {
     .floor { grid-template-columns: 1fr; }
 }
+
+/* the floor opens in a modal from the "Tables" tile */
+button.shift-tile {
+    background: transparent;
+    width: 100%;
+    font: inherit;
+    color: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.floor-modal .modal-content {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: inherit;
+}
+
+.floor-modal .modal-header,
+.floor-modal .modal-body { border-color: var(--line); }
+.floor-modal .modal-title { display: flex; align-items: center; gap: .5rem; }
+.floor-modal .floor { margin: 0; }
+html[dir="rtl"] .floor-modal .btn-close { margin: 0 auto 0 0; }
 
 
 /* the card shows only the part that matches its state */

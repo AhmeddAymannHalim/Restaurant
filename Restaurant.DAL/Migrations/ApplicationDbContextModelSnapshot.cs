@@ -5843,6 +5843,9 @@ namespace Restaurant.DAL.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
@@ -5990,9 +5993,6 @@ namespace Restaurant.DAL.Migrations
 
                     b.Property<string>("UpdatedById")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("jopType")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

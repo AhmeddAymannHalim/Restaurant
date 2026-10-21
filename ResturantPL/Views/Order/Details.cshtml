@@ -54,7 +54,7 @@
             {
                 <dt>@L["Table"]</dt><dd>@(isArabic ? Model.TableArName : Model.TableEnName)</dd>
             }
-            @if (Model.Type is OrderType.Delivery or OrderType.Delivery_Online)
+            @if (Model.Type is OrderType.Delivery)
             {
                 @if (!string.IsNullOrEmpty(Model.EmployeeName))
                 {

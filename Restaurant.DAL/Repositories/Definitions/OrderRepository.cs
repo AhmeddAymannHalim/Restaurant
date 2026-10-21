@@ -35,7 +35,7 @@ public class OrderRepository : IOrderRepository
 
         var model = new ShiftDashboardViewModel();
 
-        var paidTypes = new[] { OrderType.Hall, OrderType.Delivery, OrderType.Delivery_Online, OrderType.TakeAway };
+        var paidTypes = new[] { OrderType.Hall, OrderType.Delivery, OrderType.TakeAway };
         foreach (var type in paidTypes)
         {
             var paid = openOrders.Where(a => a.Type == type
@@ -51,8 +51,7 @@ public class OrderRepository : IOrderRepository
             });
         }
 
-        // orders still waiting for payment, mine and the other cashiers'
-        var unpaidTypes = new[] { OrderType.Hall, OrderType.Delivery, OrderType.Delivery_Online };
+        var unpaidTypes = new[] { OrderType.Hall, OrderType.Delivery };
         foreach (var type in unpaidTypes)
         {
             var mine = openOrders.Where(a => a.Type == type && !a.Cash && a.SellerId == userId);
@@ -393,7 +392,7 @@ public class OrderRepository : IOrderRepository
             // 4. delivery zone and fee
             int? deliveryZoneId = null;
             decimal deliveryFee = 0;
-            if (order.Type is OrderType.Delivery or OrderType.Delivery_Online)
+            if (order.Type is OrderType.Delivery)
             {
                 var zones = await _context.DeliveryZones.AsNoTracking().ToListAsync();
                 if (zones.Count > 0)
@@ -604,6 +603,11 @@ public class OrderRepository : IOrderRepository
                 {
                     freedTable.IsPending = false;
                 }
+
+                var seated = await _context.TableReservations
+                    .Where(a => a.TableId == order.TableId.Value && a.Status == ReservationStatus.Seated)
+                    .ToListAsync();
+                seated.ForEach(a => a.Status = ReservationStatus.Completed);
             }
 
             order.Cash = true;

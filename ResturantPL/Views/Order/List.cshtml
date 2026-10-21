@@ -4,7 +4,7 @@
     ViewBag.Title = status == "pending" ? L["PendingOrders"].Value : status == "history" ? L["OrdersHistory"].Value : L["ShiftOrders"].Value;
     var isArabic = LanguageHelper.IsArabic();
     var isManager = User.IsInRole("Admin") || User.IsInRole("Manager");
-    var types = new[] { OrderType.Hall, OrderType.TakeAway, OrderType.Delivery, OrderType.Delivery_Online };
+    var types = new[] { OrderType.Hall, OrderType.TakeAway, OrderType.Delivery };
 }
 
 <div class="ad-card">
@@ -78,12 +78,6 @@
                                     @if (!item.Cash)
                                     {
                                         <form asp-action="Pay" asp-route-id="@item.Id" method="post" class="d-inline-flex gap-1 align-items-center">
-                                            <select name="method" class="form-select form-select-sm" style="width:auto" aria-label="@L["PaymentMethod"]">
-                                                @foreach (var method in Enum.GetValues<PaymentMethod>())
-                                                {
-                                                    <option value="@method">@L["Pay." + method]</option>
-                                                }
-                                            </select>
                                             <button type="submit" class="btn-ad btn-ad-primary btn-icon" title="@L["PayOrder"]" aria-label="@L["PayOrder"]"><i class="fas fa-money-bill-wave" aria-hidden="true"></i></button>
                                         </form>
                                         @if (item.Type == OrderType.Hall)

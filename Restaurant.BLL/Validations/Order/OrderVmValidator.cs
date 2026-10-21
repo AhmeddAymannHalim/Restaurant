@@ -40,12 +40,12 @@ public class OrderVmValidator : AbstractValidator<OrderViewModel>
 
         RuleFor(x => x.EmployeeId)
             .NotNull()
-            .When(x => x.Type is OrderType.Delivery or OrderType.Delivery_Online && !x.Cash)
+            .When(x => x.Type is OrderType.Delivery && !x.Cash)
             .WithMessage(localizer["DeliveryDriverRequired"].Value);
 
         RuleFor(x => x.Address)
             .NotEmpty()
-            .When(x => x.Type is OrderType.Delivery or OrderType.Delivery_Online)
+            .When(x => x.Type is OrderType.Delivery)
             .WithMessage(localizer["Val.RequiredField"].Value)
             .MaximumLength(250)
             .WithMessage(string.Format(localizer["Val.MaxLength"].Value, 250));

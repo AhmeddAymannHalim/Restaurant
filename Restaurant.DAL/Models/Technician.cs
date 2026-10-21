@@ -13,7 +13,6 @@ public class Technician:BaseEntity
     public string PhoneNumber { get; set; }
     public string ImageUrl { get; set; }
     public GenderType? Gender { get; set; }
-    public JopType? jopType { get; set; }
     public int? SpecializationId { get; set; }
     public virtual Specialization Specialization { get; set; }
     public int? CountryId { get; set; }

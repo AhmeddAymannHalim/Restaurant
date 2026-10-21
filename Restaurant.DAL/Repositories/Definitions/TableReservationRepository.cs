@@ -9,9 +9,6 @@ namespace Restaurant.DAL.Repositories.Definitions;
 
 public class TableReservationRepository : ITableReservationRepository
 {
-    // a table is taken for 2 hours around the reservation time
-    private const int SlotMinutes = 120;
-
     private readonly ApplicationDbContext _context;
 
     public TableReservationRepository(ApplicationDbContext context)
@@ -99,16 +96,15 @@ public class TableReservationRepository : ITableReservationRepository
                 return new ResultMessage { Success = false, Message = "Reservation.Error.TooManyGuests" };
             }
 
-            // the same table can not have another open reservation around this time
-            if (entity.Status == ReservationStatus.Pending || entity.Status == ReservationStatus.Confirmed)
+            if (entity.Status == ReservationStatus.Pending || entity.Status == ReservationStatus.Confirmed || entity.Status == ReservationStatus.Seated)
             {
-                var from = entity.ReservationDate.AddMinutes(-SlotMinutes);
-                var to = entity.ReservationDate.AddMinutes(SlotMinutes);
+                var from = entity.ReservationDate;
+                var to = entity.ReservationDate.AddMinutes(entity.DurationMinutes);
                 var tableTaken = await _context.TableReservations.AsNoTracking().AnyAsync(a => a.TableId == entity.TableId
                     && a.Id != entity.Id
-                    && (a.Status == ReservationStatus.Pending || a.Status == ReservationStatus.Confirmed)
-                    && a.ReservationDate > from
-                    && a.ReservationDate < to);
+                    && (a.Status == ReservationStatus.Confirmed || a.Status == ReservationStatus.Seated)
+                    && a.ReservationDate < to
+                    && a.ReservationDate.AddMinutes(a.DurationMinutes) > from);
                 if (tableTaken)
                 {
                     return new ResultMessage { Success = false, Message = "Reservation.Error.TableTaken" };
@@ -158,15 +154,15 @@ public class TableReservationRepository : ITableReservationRepository
                 return new ResultMessage { Success = false, Message = "RecordNotFound" };
             }
 
-            if (status == ReservationStatus.Confirmed && entity.Status != ReservationStatus.Confirmed)
+            if ((status == ReservationStatus.Confirmed || status == ReservationStatus.Seated) && entity.Status != status)
             {
-                var from = entity.ReservationDate.AddMinutes(-SlotMinutes);
-                var to = entity.ReservationDate.AddMinutes(SlotMinutes);
+                var from = entity.ReservationDate;
+                var to = entity.ReservationDate.AddMinutes(entity.DurationMinutes);
                 var tableTaken = await _context.TableReservations.AsNoTracking().AnyAsync(a => a.TableId == entity.TableId
                     && a.Id != entity.Id
-                    && (a.Status == ReservationStatus.Pending || a.Status == ReservationStatus.Confirmed)
-                    && a.ReservationDate > from
-                    && a.ReservationDate < to);
+                    && (a.Status == ReservationStatus.Confirmed || a.Status == ReservationStatus.Seated)
+                    && a.ReservationDate < to
+                    && a.ReservationDate.AddMinutes(a.DurationMinutes) > from);
                 if (tableTaken)
                 {
                     return new ResultMessage { Success = false, Message = "Reservation.Error.TableTaken" };
@@ -195,6 +191,18 @@ public class TableReservationRepository : ITableReservationRepository
             if (entity == null)
             {
                 return new ResultMessage { Success = false, Message = "RecordNotFound" };
+            }
+
+            var from = entity.ReservationDate;
+            var to = entity.ReservationDate.AddMinutes(entity.DurationMinutes);
+            var tableTaken = await _context.TableReservations.AsNoTracking().AnyAsync(a => a.TableId == entity.TableId
+                && a.Id != entity.Id
+                && (a.Status == ReservationStatus.Confirmed || a.Status == ReservationStatus.Seated)
+                && a.ReservationDate < to
+                && a.ReservationDate.AddMinutes(a.DurationMinutes) > from);
+            if (tableTaken)
+            {
+                return new ResultMessage { Success = false, Message = "Reservation.Error.TableTaken" };
             }
 
             entity.Status = ReservationStatus.Seated;

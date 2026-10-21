@@ -80,7 +80,7 @@
                         <label class="control-label" for="CustomerName">@L["CustomerName"]</label>
                         <input id="CustomerName" name="CustomerName" value="@Model.CustomerName" class="form-control" maxlength="100" />
                     </div>
-                    <div class="form-group" data-for="Delivery Delivery_Online">
+                    <div class="form-group" data-for="Delivery">
                         <label class="control-label" for="EmployeeId">@L["DeliveryDriver"]</label>
                         <select id="EmployeeId" name="EmployeeId" class="form-select">
                             <option value="">@L["Select"]</option>
@@ -90,7 +90,7 @@
                             }
                         </select>
                     </div>
-                    <div class="form-group" data-for="Delivery Delivery_Online">
+                    <div class="form-group" data-for="Delivery">
                         <label class="control-label" for="DeliveryZoneId">@L["DeliveryZone"]</label>
                         <select id="DeliveryZoneId" name="DeliveryZoneId" class="form-select">
                             <option value="" data-fee="0">@L["Select"]</option>
@@ -101,11 +101,11 @@
                         </select>
                         
                     </div>
-                    <div class="form-group" data-for="Delivery Delivery_Online">
+                    <div class="form-group" data-for="Delivery">
                         <label class="control-label" for="Address">@L["Address"]</label>
                         <input id="Address" name="Address" value="@Model.Address" class="form-control" maxlength="250" />
                     </div>
-                    <div class="form-group" data-for="Delivery Delivery_Online">
+                    <div class="form-group" data-for="Delivery">
                         <label class="control-label" for="PhoneNumber">@L["PhoneNumber"]</label>
                         <input id="PhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber" class="form-control" maxlength="11" />
                     </div>
@@ -441,7 +441,7 @@
                 var tax = Math.round(sub * taxPercent) / 100;
                 var service = $('#orderType').val() === 'TakeAway' ? 0 : defaultService;
                 var type = $('#orderType').val();
-                var isDelivery = type === 'Delivery' || type === 'Delivery_Online';
+                var isDelivery = type === 'Delivery';
                 var zone = $('#DeliveryZoneId');
                 var fee = isDelivery ? number(zone.is('select') ? zone.find('option:selected').data('fee') : zone.data('fee')) : 0;
                 var gross = sub + tax + service + fee;

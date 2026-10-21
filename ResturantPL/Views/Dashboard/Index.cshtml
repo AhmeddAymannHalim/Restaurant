@@ -14,12 +14,25 @@
     </div>
 </div>
 
+<div class="modal fade floor-modal" id="floorModal" tabindex="-1" aria-labelledby="floorModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="floorModalTitle"><i class="fas fa-chair" aria-hidden="true"></i> @L["Tables"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@L["Back"]"></button>
+            </div>
+            <div class="modal-body" id="floorBody"></div>
+        </div>
+    </div>
+</div>
+
 <div id="reservationTexts" hidden
      data-pending="@L["Enum.ReservationStatus.Pending"]"
      data-confirmed="@L["Enum.ReservationStatus.Confirmed"]"
      data-rejected="@L["Enum.ReservationStatus.Rejected"]"
      data-cancelled="@L["Enum.ReservationStatus.Cancelled"]"
      data-seated="@L["Enum.ReservationStatus.Seated"]"
+     data-completed="@L["Enum.ReservationStatus.Completed"]"
      data-reject-title="@L["Reservation.RejectReason"]"
      data-reject="@L["Reservation.Reject"]"
      data-back="@L["Back"]"
@@ -37,6 +50,15 @@
 
             function setLive(state) {
                 live.attr('data-state', state).find('b').text(state === 'off' ? offlineText : liveText);
+            }
+
+            // the board is replaced on every refresh, so the floor is moved into the open-or-closed modal each time
+            function placeFloor() {
+                var source = $('#floorSource');
+                if (source.length) {
+                    $('#floorBody').html(source.html());
+                    source.remove();
+                }
             }
 
             function markWaitingTile() {
@@ -60,6 +82,7 @@
                     })
                     .then(function (html) {
                         board.html(html);
+                        placeFloor();
                         fillReservationStatuses();
                         countFloorTables();
                         markWaitingTile();
@@ -88,6 +111,9 @@
 
             document.addEventListener('visibilitychange', refresh);
 
+            placeFloor();
+            fillReservationStatuses();
+            countFloorTables();
             markWaitingTile();
             setLive('on');
 

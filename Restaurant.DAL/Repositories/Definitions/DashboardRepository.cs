@@ -67,7 +67,7 @@ public class DashboardRepository : IDashboardRepository
             })
             .ToListAsync();
 
-        var types = new[] { OrderType.Hall, OrderType.TakeAway, OrderType.Delivery, OrderType.Delivery_Online };
+        var types = new[] { OrderType.Hall, OrderType.TakeAway, OrderType.Delivery };
         model.ByType = types.Select(type => new DashboardTypeRow
         {
             Type = type,

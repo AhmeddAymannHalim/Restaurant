@@ -6,5 +6,6 @@ public enum ReservationStatus
     Confirmed,
     Rejected,
     Cancelled,
-    Seated
+    Seated,
+    Completed
 }

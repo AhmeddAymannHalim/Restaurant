@@ -15,6 +15,7 @@
             <a asp-action="Index" asp-route-status="Pending">@L["Enum.ReservationStatus.Pending"]</a>
             <a asp-action="Index" asp-route-status="Confirmed">@L["Enum.ReservationStatus.Confirmed"]</a>
             <a asp-action="Index" asp-route-status="Seated">@L["Enum.ReservationStatus.Seated"]</a>
+            <a asp-action="Index" asp-route-status="Completed">@L["Enum.ReservationStatus.Completed"]</a>
             <a asp-action="Index" asp-route-status="Rejected">@L["Enum.ReservationStatus.Rejected"]</a>
             <a asp-action="Index" asp-route-status="Cancelled">@L["Enum.ReservationStatus.Cancelled"]</a>
         </nav>
@@ -87,6 +88,7 @@
      data-rejected="@L["Enum.ReservationStatus.Rejected"]"
      data-cancelled="@L["Enum.ReservationStatus.Cancelled"]"
      data-seated="@L["Enum.ReservationStatus.Seated"]"
+     data-completed="@L["Enum.ReservationStatus.Completed"]"
      data-reject-title="@L["Reservation.RejectReason"]"
      data-reject="@L["Reservation.Reject"]"
      data-back="@L["Back"]"
