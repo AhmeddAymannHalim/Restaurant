@@ -2028,3 +2028,8 @@ html[dir="rtl"] .floor-modal .btn-close { margin: 0 auto 0 0; }
 /* Arabic and English names are both in the page; the page language picks one */
 html[lang="ar"] .lang-en { display: none; }
 html[lang="en"] .lang-ar { display: none; }
+
+/* keyboard users jump past the menu to the page content */
+.skip-link { position: absolute; top: -48px; inset-inline-start: 8px; z-index: 2000; padding: 8px 16px; border-radius: 8px; background: #fff; color: #111; font-weight: 600; text-decoration: none; transition: top .15s; }
+.skip-link:focus { top: 8px; outline: 3px solid #4f9cff; }
+#content:focus { outline: none; }

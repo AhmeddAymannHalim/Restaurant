@@ -63,7 +63,7 @@ namespace ResturantPL.Controllers.Definitions
                     }
                 }
 
-                await PopulateData(model);
+                model.Employees = await _lookup.EmployeeLookupAsync();
 
                 return View(model);
             }
@@ -83,7 +83,7 @@ namespace ResturantPL.Controllers.Definitions
 
                 if (!ModelState.IsValid)
                 {
-                    await PopulateData(model);
+                    model.Employees = await _lookup.EmployeeLookupAsync();
                     _toastr.Error(_localizer["ValidationError"].Value);
                     return View("Upsert", model);
                 }
@@ -95,7 +95,7 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index), new { searchString = (string)null });
                 }
 
-                await PopulateData(model);
+                model.Employees = await _lookup.EmployeeLookupAsync();
                 _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
                 return View("Upsert", model);
             }
@@ -130,11 +130,6 @@ namespace ResturantPL.Controllers.Definitions
                     errorMessage = _localizer["SomethingWentError"].Value
                 });
             }
-        }
-
-        private async Task PopulateData(ScroungeViewModel model)
-        {
-            model.Employees = await _lookup.EmployeeLookupAsync();
         }
     }
 }

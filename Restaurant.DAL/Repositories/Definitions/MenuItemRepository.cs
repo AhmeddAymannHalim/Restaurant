@@ -74,6 +74,11 @@ public class MenuItemRepository : IMenuItemRepository
     {
         try
         {
+            if (!DocumentSetting.IsAllowedImage(imageFile))
+            {
+                return new ResultMessage { Success = false, Message = "InvalidFile" };
+            }
+
             entity.Components = (entity.Components ?? new List<MenuItemComponent>())
                 .Where(a => a.ProductId > 0 && a.Quantity > 0)
                 .GroupBy(a => a.ProductId)
@@ -106,7 +111,7 @@ public class MenuItemRepository : IMenuItemRepository
             entity.Size = entity.Size == Size.regular ? null : entity.Size;
 
             var duplicate = await _context.MenuItems.AnyAsync(a => a.Id != entity.Id
-                && a.ArName == entity.ArName
+                && (a.ArName == entity.ArName || a.EnName == entity.EnName)
                 && a.Size == entity.Size);
             if (duplicate)
             {

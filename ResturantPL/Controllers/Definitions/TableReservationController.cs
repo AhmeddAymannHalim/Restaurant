@@ -62,7 +62,7 @@ namespace ResturantPL.Controllers.Definitions
                     }
                 }
 
-                await PopulateData(model);
+                model.Tables = (await _lookup.TableLookupAsync()).ToList();
 
                 return View(model);
             }
@@ -86,7 +86,7 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index));
                 }
 
-                await PopulateData(model);
+                model.Tables = (await _lookup.TableLookupAsync()).ToList();
                 _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
                 return View("Upsert", model);
             }
@@ -158,11 +158,6 @@ namespace ResturantPL.Controllers.Definitions
             {
                 return Json(new { success = false, errorMessage = _localizer["SomethingWentError"].Value });
             }
-        }
-
-        private async Task PopulateData(TableReservationViewModel model)
-        {
-            model.Tables = (await _lookup.TableLookupAsync()).ToList();
         }
     }
 }

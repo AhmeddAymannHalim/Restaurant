@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
+using Restaurant.DAL.Models;
 using Shared.ViewModels.Commons;
 
 namespace Restaurant.DAL.Repositories.Definitions;
@@ -8,10 +9,12 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class RoleRepository : IRoleRepository
 {
     private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public RoleRepository(RoleManager<IdentityRole> roleManager)
+    public RoleRepository(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
     {
         _roleManager = roleManager;
+        _userManager = userManager;
     }
 
     public async Task<PaginatedResult<IdentityRole>> GetPagedRolesAsync(PageRequest request)
@@ -82,6 +85,16 @@ public class RoleRepository : IRoleRepository
 
             existing.Name = entity.Name;
             result = await _roleManager.UpdateAsync(existing);
+
+            // every user keeps the name of his role in UserType, so it follows the rename
+            if (result.Succeeded)
+            {
+                foreach (var user in await _userManager.GetUsersInRoleAsync(existing.Name))
+                {
+                    user.UserType = existing.Name;
+                    await _userManager.UpdateAsync(user);
+                }
+            }
         }
 
         return new ResultMessage { Success = result.Succeeded, Message = result.Succeeded ? null : "Identity." + result.Errors.First().Code };
@@ -105,6 +118,15 @@ public class RoleRepository : IRoleRepository
             {
                 Success = false,
                 Message = "SystemRoleLocked"
+            };
+        }
+
+        if ((await _userManager.GetUsersInRoleAsync(entity.Name)).Count > 0)
+        {
+            return new ResultMessage
+            {
+                Success = false,
+                Message = "CannotDeleteLinkedRecord"
             };
         }
 

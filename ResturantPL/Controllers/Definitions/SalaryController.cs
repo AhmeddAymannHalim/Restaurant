@@ -67,7 +67,7 @@ namespace ResturantPL.Controllers.Definitions
                     model.SalaryCode = await _service.NewSalaryCodeAsync();
                 }
 
-                await PopulateData(model);
+                model.Employees = await _lookup.EmployeeLookupAsync();
 
                 return View(model);
             }
@@ -87,7 +87,7 @@ namespace ResturantPL.Controllers.Definitions
 
                 if (!ModelState.IsValid)
                 {
-                    await PopulateData(model);
+                    model.Employees = await _lookup.EmployeeLookupAsync();
                     _toastr.Error(_localizer["ValidationError"].Value);
                     return View("Upsert", model);
                 }
@@ -99,7 +99,7 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index), new { searchString = model.SalaryCode });
                 }
 
-                await PopulateData(model);
+                model.Employees = await _lookup.EmployeeLookupAsync();
                 _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
                 return View("Upsert", model);
             }
@@ -148,11 +148,6 @@ namespace ResturantPL.Controllers.Definitions
             expenses.SalaryType = _localizer["Enum.SalaryPaymentMethod." + expenses.SalaryType].Value;
 
             return Json(expenses);
-        }
-
-        private async Task PopulateData(SalaryViewModel model)
-        {
-            model.Employees = await _lookup.EmployeeLookupAsync();
         }
     }
 }

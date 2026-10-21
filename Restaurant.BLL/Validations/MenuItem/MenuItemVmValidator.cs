@@ -8,20 +8,12 @@ namespace Restaurant.BLL.Validations.MenuItem;
 
 public class MenuItemVmValidator : AbstractValidator<MenuItemViewModel>
 {
-    public MenuItemVmValidator(IStringLocalizer<SharedResource> localizer, IValidatorService<Restaurant.DAL.Models.MenuItem> validator)
+    public MenuItemVmValidator(IStringLocalizer<SharedResource> localizer)
     {
         var required = localizer["Val.RequiredField"].Value;
         string MaxLength(int length) => string.Format(localizer["Val.MaxLength"].Value, length);
 
-        RuleFor(x => x.ArName)
-            .Must((model, value) => !validator.IsArNameExist(model.Id, value))
-            .When(x => !string.IsNullOrWhiteSpace(x.ArName))
-            .WithMessage(localizer["Val.NameAlreadyExist"].Value);
-
-        RuleFor(x => x.EnName)
-            .Must((model, value) => !validator.IsEnNameExist(model.Id, value))
-            .When(x => !string.IsNullOrWhiteSpace(x.EnName))
-            .WithMessage(localizer["Val.NameAlreadyExist"].Value);
+        // the same name in another size is allowed, so the repository checks name + size (MenuItemSizeExists)
 
         RuleFor(x => x.ArName)
             .NotEmpty()

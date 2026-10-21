@@ -353,7 +353,8 @@ public class InvoiceRepository : IInvoiceRepository
             bill.IsStorageEffected = model.AutoStock;
             bill.IsEntryPosted = model.AutoPost;
             bill.BillCost = cost;
-            bill.BillProfit = cost.HasValue ? total - cost : null;
+            // a sales return takes back the profit of the sale
+            bill.BillProfit = cost.HasValue ? (model.InvoiceType == InvoiceType.SalesReturn ? cost - total : total - cost) : null;
             bill.BillDetails = details;
 
             var applySign = (model.InvoiceType is InvoiceType.Purchases or InvoiceType.SalesReturn or InvoiceType.Surplus or InvoiceType.OpeningInventory ? 1 : -1);

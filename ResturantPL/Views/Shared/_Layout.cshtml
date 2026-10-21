@@ -19,6 +19,7 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="dash">
+    <a class="skip-link" href="#content">@L["SkipToContent"]</a>
     <script>
         try { if (localStorage.getItem("dashSideShut") === "1") { document.body.classList.add("side-shut"); } } catch (e) { }
     </script>
@@ -42,7 +43,7 @@
             </div>
         </header>
 
-        <div class="bo-page">
+        <div class="bo-page" id="content" tabindex="-1">
             @RenderBody()
         </div>
     </main>

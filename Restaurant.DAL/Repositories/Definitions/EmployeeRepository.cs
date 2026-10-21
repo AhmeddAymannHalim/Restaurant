@@ -120,6 +120,16 @@ public class EmployeeRepository : IEmployeeRepository
     {
         try
         {
+            if (!DocumentSetting.IsAllowedImage(imageFile))
+            {
+                return new ResultMessage { Success = false, Message = "InvalidFile" };
+            }
+
+            if (documentFiles != null && documentFiles.Any(a => !DocumentSetting.IsAllowedDocument(a)))
+            {
+                return new ResultMessage { Success = false, Message = "InvalidFile" };
+            }
+
             var job = await _context.Jobs.FindAsync(entity.JobId);
             if (job is null)
             {

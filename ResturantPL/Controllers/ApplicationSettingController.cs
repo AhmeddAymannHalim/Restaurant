@@ -59,7 +59,14 @@ namespace ResturantPL.Controllers
 
                 var result = await _service.UpdateApplicationSettingAsync(model);
 
-                return Saved(result, nameof(ApplicationSetting), model);
+                if (!result.Success)
+                {
+                    _toastr.Error(_localizer[result.Message ?? "ErrorWhileUpdating"].Value);
+                    return View(nameof(ApplicationSetting), model);
+                }
+
+                _toastr.Success(_localizer["UpdatedSuccessfully"].Value);
+                return RedirectToAction(nameof(ApplicationSetting));
             }
             catch (Exception ex)
             {
@@ -72,7 +79,19 @@ namespace ResturantPL.Controllers
             try
             {
                 var model = await _service.GetPrinterSettingAsync();
-                PopulatePrinters(model);
+                var printers = new List<LookupItem_String>();
+                if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
+                {
+                    printers.AddRange(PrinterSettings.InstalledPrinters.Cast<string>()
+                        .Select(a => new LookupItem_String
+                            {
+                                Id = a,
+                                ArName = a,
+                                EnName = a
+                            }));
+                }
+
+                model.Printers = printers;
 
                 return View(model);
             }
@@ -89,7 +108,19 @@ namespace ResturantPL.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    PopulatePrinters(model);
+                    var printers = new List<LookupItem_String>();
+                    if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
+                    {
+                        printers.AddRange(PrinterSettings.InstalledPrinters.Cast<string>()
+                            .Select(a => new LookupItem_String
+                                {
+                                    Id = a,
+                                    ArName = a,
+                                    EnName = a
+                                }));
+                    }
+
+                    model.Printers = printers;
                     _toastr.Error(_localizer["ValidationError"].Value);
                     return View(model);
                 }
@@ -97,44 +128,30 @@ namespace ResturantPL.Controllers
                 var result = await _service.UpdatePrinterSettingAsync(model);
                 if (!result.Success)
                 {
-                    PopulatePrinters(model);
+                    var printers = new List<LookupItem_String>();
+                    if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
+                    {
+                        printers.AddRange(PrinterSettings.InstalledPrinters.Cast<string>()
+                            .Select(a => new LookupItem_String
+                                {
+                                    Id = a,
+                                    ArName = a,
+                                    EnName = a
+                                }));
+                    }
+
+                    model.Printers = printers;
+                    _toastr.Error(_localizer[result.Message ?? "ErrorWhileUpdating"].Value);
+                    return View(nameof(PrinterSetting), model);
                 }
 
-                return Saved(result, nameof(PrinterSetting), model);
+                _toastr.Success(_localizer["UpdatedSuccessfully"].Value);
+                return RedirectToAction(nameof(PrinterSetting));
             }
             catch (Exception ex)
             {
                 return ErrorHandler.ErrorView(ex);
             }
-        }
-
-        private IActionResult Saved(ResultMessage result, string action, object model)
-        {
-            if (result.Success)
-            {
-                _toastr.Success(_localizer["UpdatedSuccessfully"].Value);
-                return RedirectToAction(action);
-            }
-
-            _toastr.Error(_localizer[result.Message ?? "ErrorWhileUpdating"].Value);
-            return View(action, model);
-        }
-
-        private static void PopulatePrinters(PrinterSettingViewModel model)
-        {
-            var printers = new List<LookupItem_String>();
-            if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
-            {
-                printers.AddRange(PrinterSettings.InstalledPrinters.Cast<string>()
-                    .Select(a => new LookupItem_String
-                        {
-                            Id = a,
-                            ArName = a,
-                            EnName = a
-                        }));
-            }
-
-            model.Printers = printers;
         }
     }
 }

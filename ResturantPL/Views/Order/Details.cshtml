@@ -29,6 +29,8 @@
         .actions { max-width: 420px; margin: 12px auto 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
         .actions a, .actions button { padding: 8px 14px; border: 1px solid #112233; background: #112233; color: #fff; border-radius: 6px; text-decoration: none; cursor: pointer; font: inherit; }
         .actions a.alt { background: #fff; color: #112233; }
+        .actions form { display: flex; gap: 8px; width: 100%; justify-content: center; }
+        .actions select { padding: 8px; border: 1px solid #112233; border-radius: 6px; font: inherit; }
         .unpaid-flag { margin: 0 0 12px; padding: 6px 10px; border-radius: 6px; background: #fdecea; border: 1px solid #c0564e; color: #a5342b; text-align: center; font-weight: 700; font-size: 13px; }
         @@media print { body { background: #fff; padding: 0; } .receipt { border: 0; } .actions { display: none; } }
     </style>
@@ -112,6 +114,19 @@
     @if (!isPdf)
     {
         <div class="actions">
+            @if (!Model.Cash && !Model.OnAccount)
+            {
+                @* the check is on screen: the cashier confirms the items, then takes the payment *@
+                <form asp-action="Pay" asp-route-id="@Model.Id" method="post">
+                    <select name="method" aria-label="@L["PaymentMethod"]">
+                        @foreach (var method in Enum.GetValues<PaymentMethod>())
+                        {
+                            <option value="@method">@L["Pay." + method]</option>
+                        }
+                    </select>
+                    <button type="submit">@L["PayOrder"]</button>
+                </form>
+            }
             <button type="button" onclick="printCopies()">@L["Print"]</button>
             <a href="@Url.Action("Pdf", new { id = Model.Id })">PDF</a>
             <a class="alt" href="@Url.Action("Upsert")">@L["NewOrder"]</a>

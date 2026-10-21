@@ -63,7 +63,10 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index));
                 }
 
-                await PopulateData(model);
+                if (string.IsNullOrEmpty(model.Id) && model.EmployeeId == 0)
+                {
+                    model.Employees = await _service.GetEmployeesWithoutAccountAsync();
+                }
 
                 return View(model);
             }
@@ -82,7 +85,10 @@ namespace ResturantPL.Controllers.Definitions
 
                 if (!ModelState.IsValid)
                 {
-                    await PopulateData(model);
+                    if (string.IsNullOrEmpty(model.Id) && model.EmployeeId == 0)
+                    {
+                        model.Employees = await _service.GetEmployeesWithoutAccountAsync();
+                    }
                     _toastr.Error(_localizer["ValidationError"].Value);
                     return View("Upsert", model);
                 }
@@ -94,21 +100,16 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index), new { searchString = model.UserName });
                 }
 
-                await PopulateData(model);
+                if (string.IsNullOrEmpty(model.Id) && model.EmployeeId == 0)
+                {
+                    model.Employees = await _service.GetEmployeesWithoutAccountAsync();
+                }
                 _toastr.Error(_localizer[result.Message ?? "ErrorWhileSaving"].Value);
                 return View("Upsert", model);
             }
             catch (Exception ex)
             {
                 return ErrorHandler.ErrorView(ex);
-            }
-        }
-
-        private async Task PopulateData(EmployeeAccountViewModel model)
-        {
-            if (string.IsNullOrEmpty(model.Id) && model.EmployeeId == 0)
-            {
-                model.Employees = await _service.GetEmployeesWithoutAccountAsync();
             }
         }
     }

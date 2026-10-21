@@ -538,6 +538,8 @@
   //result and error messages
   "RecordNotFound": "Record not found",
   "ValidationError": "Please review the entered data",
+  "InvalidFile": "The file is not allowed: use an image (jpg, png, gif, webp) or a document (pdf, word, excel) up to 5 MB",
+  "SkipToContent": "Skip to main content",
   "SavedSuccessfully": "Saved successfully",
   "UpdatedSuccessfully": "Updated successfully",
   "ErrorWhileSaving": "Error while saving",
@@ -876,6 +878,7 @@
   "PaymentApproved": "Payment approved",
   "ConfirmPayment": "Confirm payment",
   "PayOrder": "Pay order",
+  "RequestCheck": "Request the check",
   "SaveUnpaid": "Save without paying",
   "DeliveryDriver": "Driver",
   "Seller": "Seller",

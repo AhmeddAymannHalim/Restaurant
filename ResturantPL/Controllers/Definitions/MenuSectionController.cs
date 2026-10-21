@@ -67,7 +67,7 @@ namespace ResturantPL.Controllers.Definitions
                     model.Code = await _service.NewMenuSectionCodeAsync();
                 }
 
-                await PopulateData(model);
+                model.Kitchens = await _lookup.KitchenLookupAsync();
 
                 return View(model);
             }
@@ -86,7 +86,7 @@ namespace ResturantPL.Controllers.Definitions
 
                 if (!ModelState.IsValid)
                 {
-                    await PopulateData(model);
+                    model.Kitchens = await _lookup.KitchenLookupAsync();
                     _toastr.Error(_localizer["ValidationError"].Value);
                     return View("Upsert", model);
                 }
@@ -98,7 +98,7 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index), new { searchString = model.ArName });
                 }
 
-                await PopulateData(model);
+                model.Kitchens = await _lookup.KitchenLookupAsync();
                 _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
                 return View("Upsert", model);
             }
@@ -133,11 +133,6 @@ namespace ResturantPL.Controllers.Definitions
                     errorMessage = _localizer["SomethingWentError"].Value
                 });
             }
-        }
-
-        private async Task PopulateData(MenuSectionViewModel model)
-        {
-            model.Kitchens = await _lookup.KitchenLookupAsync();
         }
     }
 }

@@ -62,7 +62,7 @@ namespace ResturantPL.Controllers.Definitions
                     }
                 }
 
-                await PopulateData(model);
+                model.Roles = await _lookup.RoleLookupAsync();
 
                 return View(model);
             }
@@ -81,7 +81,7 @@ namespace ResturantPL.Controllers.Definitions
 
                 if (!ModelState.IsValid)
                 {
-                    await PopulateData(model);
+                    model.Roles = await _lookup.RoleLookupAsync();
                     _toastr.Error(_localizer["ValidationError"].Value);
                     return View("Upsert", model);
                 }
@@ -93,7 +93,7 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index), new { searchString = model.Email });
                 }
 
-                await PopulateData(model);
+                model.Roles = await _lookup.RoleLookupAsync();
                 _toastr.Error(_localizer[result.Message ?? "ErrorWhileSaving"].Value);
                 return View("Upsert", model);
             }
@@ -128,11 +128,6 @@ namespace ResturantPL.Controllers.Definitions
                     errorMessage = _localizer["SomethingWentError"].Value
                 });
             }
-        }
-
-        private async Task PopulateData(UserViewModel model)
-        {
-            model.Roles = await _lookup.RoleLookupAsync();
         }
     }
 }

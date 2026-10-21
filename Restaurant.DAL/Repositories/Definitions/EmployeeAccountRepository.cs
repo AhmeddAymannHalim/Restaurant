@@ -94,6 +94,25 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
                 };
             }
 
+            // the role of the login is the job of the employee
+            if (string.IsNullOrEmpty(employee.Job?.ArName))
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RoleNotFound"
+                };
+            }
+
+            if (await _userManager.Users.AnyAsync(a => a.Code == employee.Code))
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "Val.AlreadyExist"
+                };
+            }
+
             var user = new ApplicationUser
             {
                 UserName = entity.UserName,

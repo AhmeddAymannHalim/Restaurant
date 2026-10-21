@@ -19,13 +19,17 @@ namespace ResturantPL.Controllers
         [HttpPost]
         public IActionResult Excel([FromBody] TableExportRequest request)
         {
-            if (!IsValid(request))
+            if (request is null
+                || request.Headings.Count is not (> 0 and <= MaxColumns)
+                || request.Rows.Count > MaxRows)
             {
                 return BadRequest();
             }
 
             using var workbook = new XLWorkbook();
-            var sheet = workbook.Worksheets.Add(SheetName(request.Title));
+            var sheetName = new string((request.Title ?? "Sheet").Where(c => !"[]:*?/\\".Contains(c)).ToArray());
+            sheetName = string.IsNullOrWhiteSpace(sheetName) ? "Sheet" : sheetName[..Math.Min(sheetName.Length, 31)];
+            var sheet = workbook.Worksheets.Add(sheetName);
             sheet.RightToLeft = request.IsRightToLeft;
 
             for (var column = 0; column < request.Headings.Count; column++)
@@ -41,7 +45,20 @@ namespace ResturantPL.Controllers
             {
                 for (var column = 0; column < request.Headings.Count && column < request.Rows[row].Count; column++)
                 {
-                    WriteCell(sheet.Cell(row + 2, column + 1), request.Rows[row][column]);
+                    var text = request.Rows[row][column];
+                    var plain = (text ?? string.Empty).Replace(",", string.Empty).Trim();
+                    var isNumber = decimal.TryParse(plain, NumberStyles.Number, CultureInfo.InvariantCulture, out var number)
+                        && !Regex.IsMatch(plain, @"^0\d");
+
+                    // numbers stay numbers in Excel, except codes with a leading zero
+                    if (isNumber)
+                    {
+                        sheet.Cell(row + 2, column + 1).Value = number;
+                    }
+                    else
+                    {
+                        sheet.Cell(row + 2, column + 1).Value = text ?? string.Empty;
+                    }
                 }
             }
 
@@ -51,59 +68,28 @@ namespace ResturantPL.Controllers
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);
 
-            return File(stream.ToArray(), ExcelType, FileName(request, ".xlsx"));
+            var excelName = string.IsNullOrWhiteSpace(request.FileName) ? request.Title : request.FileName;
+
+            return File(stream.ToArray(), ExcelType, $"{excelName}-{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
         }
 
         [HttpPost]
         public IActionResult Pdf([FromBody] TableExportRequest request)
         {
-            if (!IsValid(request))
+            if (request is null
+                || request.Headings.Count is not (> 0 and <= MaxColumns)
+                || request.Rows.Count > MaxRows)
             {
                 return BadRequest();
             }
 
+            var pdfName = string.IsNullOrWhiteSpace(request.FileName) ? request.Title : request.FileName;
+
             return new ViewAsPdf("Pdf", request)
             {
-                FileName = Uri.EscapeDataString(FileName(request, ".pdf")),
+                FileName = Uri.EscapeDataString($"{pdfName}-{DateTime.Now:yyyyMMdd-HHmm}.pdf"),
                 PageOrientation = Rotativa.AspNetCore.Options.Orientation.Landscape
             };
-        }
-
-        private static bool IsValid(TableExportRequest request)
-        {
-            return request is not null
-                && request.Headings.Count is > 0 and <= MaxColumns
-                && request.Rows.Count <= MaxRows;
-        }
-
-        private static void WriteCell(IXLCell cell, string text)
-        {
-            var plain = (text ?? string.Empty).Replace(",", string.Empty).Trim();
-            var isNumber = decimal.TryParse(plain, NumberStyles.Number, CultureInfo.InvariantCulture, out var number)
-                && !Regex.IsMatch(plain, @"^0\d");
-
-            if (isNumber)
-            {
-                cell.Value = number;
-            }
-            else
-            {
-                cell.Value = text ?? string.Empty;
-            }
-        }
-
-        private static string SheetName(string title)
-        {
-            var name = new string((title ?? "Sheet").Where(c => !"[]:*?/\\".Contains(c)).ToArray());
-
-            return string.IsNullOrWhiteSpace(name) ? "Sheet" : name[..Math.Min(name.Length, 31)];
-        }
-
-        private static string FileName(TableExportRequest request, string extension)
-        {
-            var name = string.IsNullOrWhiteSpace(request.FileName) ? request.Title : request.FileName;
-
-            return $"{name}-{DateTime.Now:yyyyMMdd-HHmm}{extension}";
         }
     }
 }

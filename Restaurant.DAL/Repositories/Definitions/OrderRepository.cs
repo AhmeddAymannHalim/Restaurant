@@ -322,6 +322,12 @@ public class OrderRepository : IOrderRepository
                 return new ResultMessage { Success = false, Message = "AtLeastOneItem" };
             }
 
+            // a zero or negative quantity would put ingredients back into the stock and make a negative bill
+            if (order.Lines.Any(a => a.Quantity <= 0))
+            {
+                return new ResultMessage { Success = false, Message = "Val.GreaterThanZero" };
+            }
+
             var menu = await _context.MenuItems
                 .Include(a => a.Components).ThenInclude(a => a.Product)
                 .Where(a => menuItemIds.Contains(a.Id))

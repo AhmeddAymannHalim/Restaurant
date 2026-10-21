@@ -94,7 +94,6 @@ namespace ResturantPL.Controllers.Definitions
                 }
 
                 await PopulateData(model);
-
                 return View(model);
             }
             catch (Exception ex)
@@ -110,8 +109,27 @@ namespace ResturantPL.Controllers.Definitions
             {
                 if (!ModelState.IsValid)
                 {
-                    await Reload(model);
-                    _toastr.Error(_localizer["ValidationError"].Value);
+                    var latest = await _service.GetNewOrderAsync();
+                    model.OrderCode = latest?.OrderCode;
+                    model.TaxPercent = latest?.TaxPercent ?? 0;
+                    model.DefaultService = latest?.DefaultService ?? 0;
+                    model.Menu = latest?.Menu ?? new();
+                    foreach (var item in model.Items.ToList())
+                    {
+                        var dish = model.Menu.FirstOrDefault(m => m.Id == item.MenuItemId);
+                        if (dish is null)
+                        {
+                            model.Items.Remove(item);
+                            continue;
+                        }
+
+                        item.MenuItemArName = dish.ArName;
+                        item.MenuItemEnName = dish.EnName;
+                        item.PriceForUnit = dish.Price;
+                        item.Price = dish.Price * item.Quantity;
+                    }
+
+                    await PopulateData(model);                    _toastr.Error(_localizer["ValidationError"].Value);
                     return View("Upsert", model);
                 }
 
@@ -121,8 +139,27 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Details), new { id = int.Parse(result.Data) });
                 }
 
-                await Reload(model);
-                _toastr.Error(_localizer[result.Message ?? "ErrorWhileSaving"].Value);
+                var fresh = await _service.GetNewOrderAsync();
+                model.OrderCode = fresh?.OrderCode;
+                model.TaxPercent = fresh?.TaxPercent ?? 0;
+                model.DefaultService = fresh?.DefaultService ?? 0;
+                model.Menu = fresh?.Menu ?? new();
+                foreach (var item in model.Items.ToList())
+                {
+                    var dish = model.Menu.FirstOrDefault(m => m.Id == item.MenuItemId);
+                    if (dish is null)
+                    {
+                        model.Items.Remove(item);
+                        continue;
+                    }
+
+                    item.MenuItemArName = dish.ArName;
+                    item.MenuItemEnName = dish.EnName;
+                    item.PriceForUnit = dish.Price;
+                    item.Price = dish.Price * item.Quantity;
+                }
+
+                await PopulateData(model);                _toastr.Error(_localizer[result.Message ?? "ErrorWhileSaving"].Value);
                 return View("Upsert", model);
             }
             catch (Exception ex)
@@ -188,24 +225,86 @@ namespace ResturantPL.Controllers.Definitions
 
         public async Task<IActionResult> Move(int id)
         {
-            return await ShowMove(id);
+            try
+            {
+                var model = await _service.GetOrderByIdAsync(id);
+                if (model == null || model.Cash || model.TableId == null)
+                {
+                    _toastr.Error(_localizer["RecordNotFound"].Value);
+                    return RedirectToAction(nameof(List), new { status = "pending" });
+                }
+
+                ViewBag.Tables = await _service.GetPendingTablesAsync(model.TableId.Value);
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex);
+            }
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Move(OrderMoveViewModel model)
         {
-            return await RunMove(model, await _service.MoveItemAsync(model));
+            try
+            {
+                var result = await _service.MoveItemAsync(model);
+                if (result.Success)
+                {
+                    _toastr.Success(_localizer["UpdatedSuccessfully"].Value);
+                    return RedirectToAction(nameof(List), new { status = "pending" });
+                }
+
+                _toastr.Error(_localizer[result.Message ?? "ErrorWhileUpdating"].Value);
+                return RedirectToAction(nameof(List), new { status = "pending" });
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex);
+            }
         }
 
         public async Task<IActionResult> Merge(int id)
         {
-            return await ShowMove(id);
+            try
+            {
+                var model = await _service.GetOrderByIdAsync(id);
+                if (model == null || model.Cash || model.TableId == null)
+                {
+                    _toastr.Error(_localizer["RecordNotFound"].Value);
+                    return RedirectToAction(nameof(List), new { status = "pending" });
+                }
+
+                ViewBag.Tables = await _service.GetPendingTablesAsync(model.TableId.Value);
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex);
+            }
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Merge(OrderMoveViewModel model)
         {
-            return await RunMove(model, await _service.MergeOrderAsync(model));
+            try
+            {
+                var result = await _service.MergeOrderAsync(model);
+                if (result.Success)
+                {
+                    _toastr.Success(_localizer["UpdatedSuccessfully"].Value);
+                    return RedirectToAction(nameof(List), new { status = "pending" });
+                }
+
+                _toastr.Error(_localizer[result.Message ?? "ErrorWhileUpdating"].Value);
+                return RedirectToAction(nameof(List), new { status = "pending" });
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex);
+            }
         }
 
         [HttpPost]
@@ -254,77 +353,12 @@ namespace ResturantPL.Controllers.Definitions
             });
         }
 
-        private async Task<IActionResult> ShowMove(int id)
-        {
-            try
-            {
-                var model = await _service.GetOrderByIdAsync(id);
-                if (model == null || model.Cash || model.TableId == null)
-                {
-                    _toastr.Error(_localizer["RecordNotFound"].Value);
-                    return RedirectToAction(nameof(List), new { status = "pending" });
-                }
-
-                ViewBag.Tables = await _service.GetPendingTablesAsync(model.TableId.Value);
-
-                return View(model);
-            }
-            catch (Exception ex)
-            {
-                return ErrorHandler.ErrorView(ex);
-            }
-        }
-
-        private async Task<IActionResult> RunMove(OrderMoveViewModel model, ResultMessage result)
-        {
-            try
-            {
-                if (result.Success)
-                {
-                    _toastr.Success(_localizer["UpdatedSuccessfully"].Value);
-                    return RedirectToAction(nameof(List), new { status = "pending" });
-                }
-
-                _toastr.Error(_localizer[result.Message ?? "ErrorWhileUpdating"].Value);
-                return RedirectToAction(nameof(List), new { status = "pending" });
-            }
-            catch (Exception ex)
-            {
-                return ErrorHandler.ErrorView(ex);
-            }
-        }
-
         private async Task PopulateData(OrderViewModel model)
         {
             model.Customers = await _lookup.CustomerLookupAsync();
             model.Tables = await _lookup.FreeTableLookupAsync();
             model.DeliveryDrivers = await _lookup.DeliveryDriverLookupAsync();
             model.DeliveryZones = await _lookup.DeliveryZoneLookupAsync();
-        }
-
-        private async Task Reload(OrderViewModel model)
-        {
-            var fresh = await _service.GetNewOrderAsync();
-            model.OrderCode = fresh?.OrderCode;
-            model.TaxPercent = fresh?.TaxPercent ?? 0;
-            model.DefaultService = fresh?.DefaultService ?? 0;
-            model.Menu = fresh?.Menu ?? new();
-            foreach (var item in model.Items.ToList())
-            {
-                var dish = model.Menu.FirstOrDefault(m => m.Id == item.MenuItemId);
-                if (dish is null)
-                {
-                    model.Items.Remove(item);
-                    continue;
-                }
-
-                item.MenuItemArName = dish.ArName;
-                item.MenuItemEnName = dish.EnName;
-                item.PriceForUnit = dish.Price;
-                item.Price = dish.Price * item.Quantity;
-            }
-
-            await PopulateData(model);
         }
     }
 }

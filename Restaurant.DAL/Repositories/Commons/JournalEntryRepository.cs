@@ -63,15 +63,21 @@ public class JournalEntryRepository : IJournalEntryRepository
         IEnumerable<JournalLineRequest> lines,
         bool saveChanges = true)
     {
-        var requested = (lines ?? Enumerable.Empty<JournalLineRequest>())
-            .Where(a => a.Debit > 0 || a.Credit > 0)
-            .ToList();
+        var all = (lines ?? Enumerable.Empty<JournalLineRequest>()).ToList();
+
+        // a negative amount must fail, not be dropped with the empty lines
+        if (all.Any(a => a.Debit < 0 || a.Credit < 0))
+        {
+            return new ResultMessage { Success = false, Message = "JournalLineInvalid" };
+        }
+
+        var requested = all.Where(a => a.Debit > 0 || a.Credit > 0).ToList();
         if (requested.Count == 0)
         {
             return new ResultMessage { Success = true };
         }
 
-        if (requested.Any(a => (a.Debit > 0) == (a.Credit > 0) || a.Debit < 0 || a.Credit < 0))
+        if (requested.Any(a => (a.Debit > 0) == (a.Credit > 0)))
         {
             return new ResultMessage { Success = false, Message = "JournalLineInvalid" };
         }

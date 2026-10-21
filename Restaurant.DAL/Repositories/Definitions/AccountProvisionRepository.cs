@@ -48,10 +48,25 @@ public class AccountProvisionRepository : IAccountProvisionRepository
         if (parent == null)
         {
             // no parent in AccountSetting: the account is a main account with the next free number
-            var codes = await _context.Accounts.AsNoTracking().Select(a => a.Code).ToListAsync();
-            var lastNumber = codes.Where(code => int.TryParse(code, out _)).Select(int.Parse).DefaultIfEmpty(0).Max();
+            // only main accounts count, a child code like 30001 must not push the next main number
+            var rootCodes = await _context.Accounts.AsNoTracking()
+                                                   .Where(a => a.ParentAccountId == null)
+                                                   .Select(a => a.Code)
+                                                   .ToListAsync();
 
-            account.Code = (lastNumber + 1).ToString();
+            var nextRoot = rootCodes.Where(code => int.TryParse(code, out _))
+                                    .Select(int.Parse)
+                                    .DefaultIfEmpty(0)
+                                    .Max() + 1;
+
+            while (await _context.Accounts.AsNoTracking()
+                                          .AnyAsync(a => a.Code == nextRoot
+                                          .ToString()))
+            {
+                nextRoot++;
+            }
+
+            account.Code = nextRoot.ToString();
             account.Level = 1;
         }
         else

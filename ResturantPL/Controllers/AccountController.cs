@@ -81,7 +81,28 @@ namespace ResturantPL.Controllers
                 return View(model);
             }
 
-            await SignInCookieAsync(result.Data, model.RememberMe);
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, result.Data.Id),
+                new(ClaimTypes.Name, result.Data.UserName),
+                new(ClaimTypes.Email, result.Data.Email),
+            };
+            claims.AddRange(result.Data.Roles
+                  .Select(role => new Claim(ClaimTypes.Role, role)));
+
+            if (!string.IsNullOrEmpty(result.Data.Image))
+            {
+                claims.Add(new Claim("Image", result.Data.Image));
+            }
+
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal,
+                new AuthenticationProperties
+                {
+                    IsPersistent = model.RememberMe
+                });
 
             return Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl) : RedirectToAction("Index", "Dashboard");
         }
@@ -138,7 +159,18 @@ namespace ResturantPL.Controllers
             var token = await _service.GetConfirmationTokenAsync(email);
             if (token is not null)
             {
-                await SendConfirmationEmailAsync(token);
+                var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token.Token));
+                var confirmLink = Url.Action(nameof(ConfirmEmail), "Account", new
+                {
+                    userId = token.UserId,
+                    token = encodedToken
+                }, Request.Scheme);
+                var confirmText = $"Hi {token.FirstName}, welcome! Please confirm your email address to activate your account.";
+
+                await _email.SendAsync(token.Email, "Confirm your email",
+                    $@"<p style=""color:#c9cfe4"">{confirmText}</p>
+<p><a href=""{confirmLink}"" style=""display:inline-block;background:#b85c68;color:#fff;text-decoration:none;padding:12px 28px;border-radius:999px;font-weight:600"">Confirm Email</a></p>
+<p style=""color:#8b93ad;font-size:12px"">If you didn't request this, you can ignore this email.</p>");
             }
 
             return RedirectToAction(nameof(CheckYourInbox), new { type = "confirm" });
@@ -167,7 +199,9 @@ namespace ResturantPL.Controllers
                 }, Request.Scheme);
                 await _email.SendAsync(token.Email,
                     "Reset your password",
-                    BuildEmailBody("Click the button below to choose a new password.", "Reset Password", link));
+                    $@"<p style=""color:#c9cfe4"">Click the button below to choose a new password.</p>
+<p><a href=""{link}"" style=""display:inline-block;background:#b85c68;color:#fff;text-decoration:none;padding:12px 28px;border-radius:999px;font-weight:600"">Reset Password</a></p>
+<p style=""color:#8b93ad;font-size:12px"">If you didn't request this, you can ignore this email.</p>");
             }
 
             return RedirectToAction(nameof(CheckYourInbox), new { type = "reset" });
@@ -199,46 +233,5 @@ namespace ResturantPL.Controllers
 
             return RedirectToAction(nameof(SignIn));
         }
-
-        private async Task SignInCookieAsync(AccountIdentity identity, bool rememberMe)
-        {
-            var claims = new List<Claim>
-            {
-                new(ClaimTypes.NameIdentifier, identity.Id),
-                new(ClaimTypes.Name, identity.UserName),
-                new(ClaimTypes.Email, identity.Email),
-            };
-            claims.AddRange(identity.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
-            if (!string.IsNullOrEmpty(identity.Image))
-            {
-                claims.Add(new Claim("Image", identity.Image));
-            }
-
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                principal,
-                new AuthenticationProperties { IsPersistent = rememberMe });
-        }
-
-        private async Task SendConfirmationEmailAsync(AccountToken account)
-        {
-            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(account.Token));
-            var link = Url.Action(nameof(ConfirmEmail), "Account", new
-            {
-                userId = account.UserId,
-                token = encodedToken
-            }, Request.Scheme);
-
-            await _email.SendAsync(account.Email, "Confirm your email",
-                BuildEmailBody($"Hi {account.FirstName}, welcome! Please confirm your email address to activate your account.",
-                    "Confirm Email",
-                    link));
-        }
-
-        private static string BuildEmailBody(string text, string buttonLabel, string link) =>
-            $@"<p style=""color:#c9cfe4"">{text}</p>
-<p><a href=""{link}"" style=""display:inline-block;background:#b85c68;color:#fff;text-decoration:none;padding:12px 28px;border-radius:999px;font-weight:600"">{buttonLabel}</a></p>
-<p style=""color:#8b93ad;font-size:12px"">If you didn't request this, you can ignore this email.</p>";
     }
 }

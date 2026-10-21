@@ -126,7 +126,15 @@ public class EntryRepository : IEntryRepository
     {
         try
         {
-            var lines = (model.Lines ?? new List<EntryLineViewModel>())
+            var allLines = model.Lines ?? new List<EntryLineViewModel>();
+
+            // a negative amount must fail, not be dropped with the empty lines
+            if (allLines.Any(a => a.Debit < 0 || a.Credit < 0))
+            {
+                return new ResultMessage { Success = false, Message = "JournalLineInvalid" };
+            }
+
+            var lines = allLines
                 .Where(a => a.AccountId > 0 && (a.Debit.GetValueOrDefault() > 0 || a.Credit.GetValueOrDefault() > 0))
                 .ToList();
             if (lines.Count < 2)
@@ -169,9 +177,13 @@ public class EntryRepository : IEntryRepository
                 return new ResultMessage { Success = false, Message = "JournalNotBalanced" };
             }
 
-            var ids = lines.Select(a => a.AccountId).Distinct().ToList();
-            var matchingAccountCount = await _context.Accounts.CountAsync(a => ids.Contains(a.Id) && a.AccountType != AccountType.Collective);
-            if (matchingAccountCount != ids.Count)
+            var ids = lines.Select(a => a.AccountId)
+                           .Distinct()
+                           .ToList();
+
+            var accounts = await _context.Accounts.Where(a => ids.Contains(a.Id) && a.AccountType != AccountType.Collective)
+                                                  .ToListAsync();
+            if (accounts.Count != ids.Count)
             {
                 return new ResultMessage { Success = false, Message = "RecordNotFound" };
             }
@@ -229,6 +241,16 @@ public class EntryRepository : IEntryRepository
                     CreatedAt = DateTime.Now
                 }).ToList()
             });
+
+            // the balance of every account in the entry moves, like in every other posting
+            foreach (var line in lines)
+            {
+                var account = accounts.First(a => a.Id == line.AccountId);
+                var debit = Math.Round(line.Debit.GetValueOrDefault(), 2);
+                var credit = Math.Round(line.Credit.GetValueOrDefault(), 2);
+                account.Adjust(account.BalanceType == AccountBalanceType.Debit ? debit - credit : credit - debit);
+            }
+
             await _context.SaveChangesAsync();
 
             return new ResultMessage { Success = true, Data = number };
@@ -244,7 +266,7 @@ public class EntryRepository : IEntryRepository
         try
         {
             var entry = await _context.EntryMasters
-                .Include(a => a.EntryDetails)
+                .Include(a => a.EntryDetails).ThenInclude(a => a.Account)
                 .FirstOrDefaultAsync(a => a.Id == id);
             if (entry is null)
             {
@@ -254,6 +276,12 @@ public class EntryRepository : IEntryRepository
             if (entry.CollectEntryCode is null || !entry.CollectEntryCode.StartsWith("Manual:"))
             {
                 return new ResultMessage { Success = false, Message = "EntryBelongsToDocument" };
+            }
+
+            // give back what the entry did to the balances
+            foreach (var detail in entry.EntryDetails.Where(a => a.Account is not null))
+            {
+                detail.Account.Adjust(detail.Account.BalanceType == AccountBalanceType.Debit ? detail.Credit - detail.Debit : detail.Debit - detail.Credit);
             }
 
             _context.EntryDetails.RemoveRange(entry.EntryDetails);

@@ -538,6 +538,8 @@
   //result and error messages
   "RecordNotFound": "السجل غير موجود",
   "ValidationError": "برجاء مراجعة البيانات المدخلة",
+  "InvalidFile": "الملف غير مسموح: استخدم صورة (jpg, png, gif, webp) أو مستند (pdf, word, excel) بحجم أقصى 5 ميجا",
+  "SkipToContent": "تخطي إلى المحتوى الرئيسي",
   "SavedSuccessfully": "تم الحفظ بنجاح",
   "UpdatedSuccessfully": "تم التعديل بنجاح",
   "ErrorWhileSaving": "حدث خطأ اثناء الحفظ",
@@ -876,6 +878,7 @@
   "PaymentApproved": "تمت الموافقة على الدفع",
   "ConfirmPayment": "تأكيد الدفع",
   "PayOrder": "دفع الطلب",
+  "RequestCheck": "طلب الحساب",
   "SaveUnpaid": "حفظ بدون دفع",
   "DeliveryDriver": "الطيار",
   "Seller": "البائع",

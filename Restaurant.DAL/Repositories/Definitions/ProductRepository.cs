@@ -137,7 +137,16 @@ public class ProductRepository : IProductRepository
                 }
 
                 var row = await _stock.RowAsync(stock.StoreId, entity.Id);
+                var before = row.Quantity ?? 0;
                 row.Quantity = stock.Quantity;
+                await _context.StoreProductMovements.AddAsync(new StoreProductMovement
+                {
+                    StoreId = stock.StoreId,
+                    ProductId = entity.Id,
+                    QuantityDelta = stock.Quantity - before,
+                    Source = StockMovementSource.OpeningBalance,
+                    ReferenceCode = entity.Code
+                });
             }
 
             // a store taken off the list no longer holds this product
@@ -150,6 +159,14 @@ public class ProductRepository : IProductRepository
                 {
                     var row = await _stock.RowAsync(old.StoreId, entity.Id);
                     row.Quantity = 0;
+                    await _context.StoreProductMovements.AddAsync(new StoreProductMovement
+                    {
+                        StoreId = old.StoreId,
+                        ProductId = entity.Id,
+                        QuantityDelta = -old.Quantity,
+                        Source = StockMovementSource.OpeningBalance,
+                        ReferenceCode = entity.Code
+                    });
                 }
             }
 

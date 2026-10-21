@@ -58,7 +58,7 @@ public class ReportRepository : IReportRepository
                 var supplierReturns = await _context.BillMasters
                     .AsNoTracking()
                     .Where(a => a.BillSetting.BillType == BillType.PurchaseReturn && a.Date >= from && a.Date < end)
-                    .SumAsync(a => (decimal?)a.AmountPaided) ?? 0;
+                    .SumAsync(a => (decimal?)a.InitialPaidAmount) ?? 0;
 
                 var customerPayments = await _context.PaymentInvoiceCustomer
                     .AsNoTracking()
@@ -68,7 +68,7 @@ public class ReportRepository : IReportRepository
                 var purchases = await _context.BillMasters
                     .AsNoTracking()
                     .Where(a => a.BillSetting.BillType == BillType.Purchases && a.Date >= from && a.Date < end)
-                    .SumAsync(a => (decimal?)a.AmountPaided) ?? 0;
+                    .SumAsync(a => (decimal?)a.InitialPaidAmount) ?? 0;
 
                 var expenses = await _context.ExitExpenses
                     .AsNoTracking()
@@ -386,9 +386,10 @@ public class ReportRepository : IReportRepository
                     .AsNoTracking()
                     .Where(a => statementAccountId != null && a.CustomerOrSupplierAccountId == statementAccountId
                         && (a.BillSetting.BillType == BillType.Purchases || a.BillSetting.BillType == BillType.PurchaseReturn)
+                        && a.IsEntryPosted
                         && !_context.Orders.Any(p => p.Id == a.Id))
                     .Where(a => a.Date < from)
-                    .Select(a => new { a.BillSetting.BillType, Remaining = a.CasherRemainingAmount })
+                    .Select(a => new { a.BillSetting.BillType, Remaining = a.TotalBillAmountAfterDiscountAndExtra - a.InitialPaidAmount })
                     .ToListAsync();
 
                 decimal beforeInvoiceDebit = 0;
@@ -417,9 +418,10 @@ public class ReportRepository : IReportRepository
                     .AsNoTracking()
                     .Where(a => statementAccountId != null && a.CustomerOrSupplierAccountId == statementAccountId
                         && (a.BillSetting.BillType == BillType.Purchases || a.BillSetting.BillType == BillType.PurchaseReturn)
+                        && a.IsEntryPosted
                         && !_context.Orders.Any(p => p.Id == a.Id))
                     .Where(a => a.Date >= from && a.Date < end)
-                    .Select(a => new { a.Date, a.Code, a.BillSetting.BillType, Remaining = a.CasherRemainingAmount })
+                    .Select(a => new { a.Date, a.Code, a.BillSetting.BillType, Remaining = a.TotalBillAmountAfterDiscountAndExtra - a.InitialPaidAmount })
                     .ToListAsync();
 
                 var invoiceMovements = inPeriodInvoiceRows.Select(invoice =>
@@ -554,6 +556,24 @@ public class ReportRepository : IReportRepository
                     })
                     .ToListAsync();
 
+                // back office sales invoices move the balance too: what was not paid at once
+                var custInvoices = await _context.BillMasters
+                    .AsNoTracking()
+                    .Where(a => customer.AccountId != null && a.CustomerOrSupplierAccountId == customer.AccountId
+                        && a.IsEntryPosted
+                        && (a.BillSetting.BillType == BillType.Sales || a.BillSetting.BillType == BillType.SalesReturn)
+                        && !_context.Orders.Any(p => p.Id == a.Id)
+                        && a.Date >= from)
+                    .Select(a => new
+                    {
+                        Date = a.Date,
+                        Info = a.BillSetting.BillType == BillType.Sales ? "Sales" : "SalesReturn",
+                        Code = a.Code,
+                        Debit = a.BillSetting.BillType == BillType.Sales ? a.TotalBillAmountAfterDiscountAndExtra - a.InitialPaidAmount : 0m,
+                        Credit = a.BillSetting.BillType == BillType.SalesReturn ? a.TotalBillAmountAfterDiscountAndExtra - a.InitialPaidAmount : 0m
+                    })
+                    .ToListAsync();
+
                 var custPayments = await _context.PaymentInvoiceCustomer
                     .AsNoTracking()
                     .Where(a => a.CustomerId == customerId && a.Date >= from)
@@ -582,7 +602,7 @@ public class ReportRepository : IReportRepository
                     })
                     .ToListAsync();
 
-                var all = custOrders.Concat(custPayments).Concat(custRefunds).ToList();
+                var all = custOrders.Concat(custInvoices).Concat(custPayments).Concat(custRefunds).ToList();
                 var custOpening = customer.Account.BalanceValue - all.Sum(a => a.Debit - a.Credit);
                 var custInPeriod = all
                     .Where(a => a.Date < end)
@@ -659,9 +679,10 @@ public class ReportRepository : IReportRepository
                         .AsNoTracking()
                         .Where(a => balanceAccountId != null && a.CustomerOrSupplierAccountId == balanceAccountId
                             && (a.BillSetting.BillType == BillType.Purchases || a.BillSetting.BillType == BillType.PurchaseReturn)
+                            && a.IsEntryPosted
                             && !_context.Orders.Any(p => p.Id == a.Id))
                         .Where(a => a.Date < from)
-                        .Select(a => new { a.BillSetting.BillType, Remaining = a.CasherRemainingAmount })
+                        .Select(a => new { a.BillSetting.BillType, Remaining = a.TotalBillAmountAfterDiscountAndExtra - a.InitialPaidAmount })
                         .ToListAsync();
 
                     decimal beforeInvoiceDebit = 0;
@@ -688,9 +709,10 @@ public class ReportRepository : IReportRepository
                         .AsNoTracking()
                         .Where(a => balanceAccountId != null && a.CustomerOrSupplierAccountId == balanceAccountId
                             && (a.BillSetting.BillType == BillType.Purchases || a.BillSetting.BillType == BillType.PurchaseReturn)
+                            && a.IsEntryPosted
                             && !_context.Orders.Any(p => p.Id == a.Id))
                         .Where(a => a.Date >= from && a.Date < end)
-                        .Select(a => new { a.BillSetting.BillType, Remaining = a.CasherRemainingAmount })
+                        .Select(a => new { a.BillSetting.BillType, Remaining = a.TotalBillAmountAfterDiscountAndExtra - a.InitialPaidAmount })
                         .ToListAsync();
 
                     decimal inPeriodInvoiceDebit = 0;

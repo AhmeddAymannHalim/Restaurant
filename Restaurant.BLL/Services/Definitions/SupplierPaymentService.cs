@@ -79,6 +79,9 @@ public class SupplierPaymentService : ISupplierPaymentService
     {
         var entity = _mapper.Map<PaymentRefund>(model);
 
+        entity.SupplierPaymentId = model.OriginalPaymentId;
+        entity.OriginalPaymentId = null;
+
         return await _unitOfWork.SupplierPayments.RequestRefundAsync(entity, requestedByUserId);
     }
 

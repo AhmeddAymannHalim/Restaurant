@@ -87,6 +87,11 @@ public class CustomerRepository : ICustomerRepository
     {
         try
         {
+            if (!DocumentSetting.IsAllowedImage(imageFile))
+            {
+                return new ResultMessage { Success = false, Message = "InvalidFile" };
+            }
+
             var form = entity.Account;
             if (form.DebitBalance < 0 || form.CreditBalance < 0)
             {

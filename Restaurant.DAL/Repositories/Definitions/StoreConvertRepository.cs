@@ -90,6 +90,17 @@ public class StoreConvertRepository : IStoreConvertRepository
                 };
             }
 
+            if (convert.StoreConvertProducts is null || convert.StoreConvertProducts.Count == 0)
+            {
+                return new ResultMessage { Success = false, Message = "AtLeastOneItem" };
+            }
+
+            // a negative quantity would add stock to the source store out of nothing
+            if (convert.StoreConvertProducts.Any(a => a.Quantity <= 0))
+            {
+                return new ResultMessage { Success = false, Message = "Val.GreaterThanZero" };
+            }
+
             var wanted = convert.StoreConvertProducts
                 .GroupBy(a => a.ProductId)
                 .Select(g => new
