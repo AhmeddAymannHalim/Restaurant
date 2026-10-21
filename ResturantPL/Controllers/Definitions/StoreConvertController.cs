@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Restaurant.DAL.Models;
 using Microsoft.Extensions.Localization;
 using Restaurant.BLL.Services.IServices.Commons;
 using Restaurant.BLL.Services.IServices.Definitions;
@@ -149,8 +150,8 @@ namespace ResturantPL.Controllers.Definitions
 
         private async Task PopulateData(StoreConvertViewModel model)
         {
-            model.Stores = await _lookup.StoreLookupAsync();
-            model.Categories = await _lookup.ProductCategoryLookupAsync();
+            model.Stores = await _lookup.NamedLookupAsync<Store>();
+            model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
 
             if (model.Items.Count > 0)
             {

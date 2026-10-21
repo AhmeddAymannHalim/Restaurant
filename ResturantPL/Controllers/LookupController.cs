@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Restaurant.DAL.Models;
 using Restaurant.BLL.Services.IServices.Commons;
 
 namespace ResturantPL.Controllers
@@ -17,19 +18,19 @@ namespace ResturantPL.Controllers
         [HttpGet]
         public async Task<IActionResult> Branches()
         {
-            return Json(await _service.BranchLookupAsync());
+            return Json(await _service.NamedLookupAsync<CompanyBranch>());
         }
 
         [HttpGet]
         public async Task<IActionResult> Jobs()
         {
-            return Json(await _service.JobLookupAsync());
+            return Json(await _service.NamedLookupAsync<Job>());
         }
 
         [HttpGet]
         public async Task<IActionResult> Employees()
         {
-            return Json(await _service.EmployeeLookupAsync());
+            return Json(await _service.NamedLookupAsync<Employee>());
         }
 
         [HttpGet]
@@ -47,49 +48,49 @@ namespace ResturantPL.Controllers
         [HttpGet]
         public async Task<IActionResult> Kitchens()
         {
-            return Json(await _service.KitchenLookupAsync());
+            return Json(await _service.NamedLookupAsync<Kitchen>());
         }
 
         [HttpGet]
         public async Task<IActionResult> MenuSections()
         {
-            return Json(await _service.MenuSectionLookupAsync());
+            return Json(await _service.NamedLookupAsync<MenuSection>());
         }
 
         [HttpGet]
         public async Task<IActionResult> ReadyMenuSections()
         {
-            return Json(await _service.ReadyMenuSectionLookupAsync());
+            return Json(await _service.NamedLookupAsync<MenuSection>());
         }
 
         [HttpGet]
         public async Task<IActionResult> Tables()
         {
-            return Json(await _service.TableLookupAsync());
+            return Json(await _service.NamedLookupAsync<Restaurant.DAL.Models.Table>());
         }
 
         [HttpGet]
         public async Task<IActionResult> Stores()
         {
-            return Json(await _service.StoreLookupAsync());
+            return Json(await _service.NamedLookupAsync<Store>());
         }
 
         [HttpGet]
         public async Task<IActionResult> Products()
         {
-            return Json(await _service.ProductLookupAsync());
+            return Json(await _service.NamedLookupAsync<Product>());
         }
 
         [HttpGet]
         public async Task<IActionResult> ProductCategories()
         {
-            return Json(await _service.ProductCategoryLookupAsync());
+            return Json(await _service.NamedLookupAsync<ProductCategory>());
         }
 
         [HttpGet]
         public async Task<IActionResult> Units()
         {
-            return Json(await _service.UnitPriceLookupAsync());
+            return Json(await _service.NamedLookupAsync<UnitPrice>());
         }
 
         [HttpGet]
@@ -113,7 +114,7 @@ namespace ResturantPL.Controllers
         [HttpGet]
         public async Task<IActionResult> Expenses()
         {
-            return Json(await _service.ExpenseLookupAsync());
+            return Json(await _service.NamedLookupAsync<Expense>());
         }
 
         [HttpGet]
@@ -125,7 +126,7 @@ namespace ResturantPL.Controllers
         [HttpGet]
         public async Task<IActionResult> Countries()
         {
-            return Json(await _service.CountryLookupAsync());
+            return Json(await _service.NamedLookupAsync<Country>());
         }
 
         [HttpGet]

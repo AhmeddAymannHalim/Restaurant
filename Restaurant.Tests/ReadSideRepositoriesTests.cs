@@ -64,20 +64,20 @@ public class ReadSideRepositoriesTests : IDisposable
         _db.Context.UnitPrices.Add(new UnitPrice { Code = "1", ArName = "كيلو", EnName = "Kg" });
         await _db.Context.SaveChangesAsync();
 
-        var list = (await sut.KitchenLookupAsync()).ToList();
+        var list = (await sut.NamedLookupAsync<Kitchen>()).ToList();
         Assert.Equal(new[] { "B", "A" }, list.Select(a => a.EnName));
-        Assert.Single(await sut.StoreLookupAsync());
-        Assert.Equal(2, (await sut.TableLookupAsync()).Count());
+        Assert.Single(await sut.NamedLookupAsync<Store>());
+        Assert.Equal(2, (await sut.NamedLookupAsync<Restaurant.DAL.Models.Table>()).Count());
         Assert.Equal("T2", Assert.Single(await sut.FreeTableLookupAsync()).EnName);
-        Assert.Single(await sut.ExpenseLookupAsync());
-        Assert.Single(await sut.JobLookupAsync());
-        Assert.Single(await sut.UnitPriceLookupAsync());
-        Assert.Empty(await sut.ProductLookupAsync());
-        Assert.Empty(await sut.MenuSectionLookupAsync());
-        Assert.Empty(await sut.ReadyMenuSectionLookupAsync());
-        Assert.Empty(await sut.BranchLookupAsync());
-        Assert.Empty(await sut.ProductCategoryLookupAsync());
-        Assert.Empty(await sut.EmployeeLookupAsync());
+        Assert.Single(await sut.NamedLookupAsync<Expense>());
+        Assert.Single(await sut.NamedLookupAsync<Job>());
+        Assert.Single(await sut.NamedLookupAsync<UnitPrice>());
+        Assert.Empty(await sut.NamedLookupAsync<Product>());
+        Assert.Empty(await sut.NamedLookupAsync<MenuSection>());
+        Assert.Empty(await sut.NamedLookupAsync<MenuSection>());
+        Assert.Empty(await sut.NamedLookupAsync<CompanyBranch>());
+        Assert.Empty(await sut.NamedLookupAsync<ProductCategory>());
+        Assert.Empty(await sut.NamedLookupAsync<Employee>());
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class ReadSideRepositoriesTests : IDisposable
 
         Assert.Equal("Driver1", Assert.Single(await sut.DeliveryDriverLookupAsync()).EnName);
         Assert.Equal("Keeper1", Assert.Single(await sut.StorekeeperLookupAsync()).EnName);
-        Assert.Equal(3, (await sut.EmployeeLookupAsync()).Count());
+        Assert.Equal(3, (await sut.NamedLookupAsync<Employee>()).Count());
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public class ReadSideRepositoriesTests : IDisposable
         _db.Context.Governorates.Add(otherGov);
         await _db.Context.SaveChangesAsync();
 
-        Assert.Single(await sut.CountryLookupAsync());
+        Assert.Single(await sut.NamedLookupAsync<Country>());
         Assert.Equal(2, (await sut.GovernorateLookupAsync(country.Id)).Count());
         Assert.Empty(await sut.GovernorateLookupAsync(999));
         Assert.Equal("Town", Assert.Single(await sut.CityLookupAsync(gov.Id)).EnName);

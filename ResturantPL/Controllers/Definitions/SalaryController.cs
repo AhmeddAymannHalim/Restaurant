@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Restaurant.DAL.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using Microsoft.Extensions.Localization;
@@ -67,7 +68,7 @@ namespace ResturantPL.Controllers.Definitions
                     model.SalaryCode = await _service.NewSalaryCodeAsync();
                 }
 
-                model.Employees = await _lookup.EmployeeLookupAsync();
+                model.Employees = await _lookup.NamedLookupAsync<Employee>();
 
                 return View(model);
             }
@@ -87,7 +88,7 @@ namespace ResturantPL.Controllers.Definitions
 
                 if (!ModelState.IsValid)
                 {
-                    model.Employees = await _lookup.EmployeeLookupAsync();
+                    model.Employees = await _lookup.NamedLookupAsync<Employee>();
                     _toastr.Error(_localizer["ValidationError"].Value);
                     return View("Upsert", model);
                 }
@@ -99,7 +100,7 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index), new { searchString = model.SalaryCode });
                 }
 
-                model.Employees = await _lookup.EmployeeLookupAsync();
+                model.Employees = await _lookup.NamedLookupAsync<Employee>();
                 _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
                 return View("Upsert", model);
             }

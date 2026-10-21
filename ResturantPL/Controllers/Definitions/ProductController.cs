@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Restaurant.DAL.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using Microsoft.Extensions.Localization;
@@ -67,7 +68,10 @@ namespace ResturantPL.Controllers.Definitions
                     model.Code = await _service.NewProductCodeAsync();
                 }
 
-                await PopulateData(model);                model.Stocks = model.Stocks.Where(a => a.Quantity > 0).ToList();
+                model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
+
+                model.Stores = await _lookup.NamedLookupAsync<Store>();
+                model.Stocks = model.Stocks.Where(a => a.Quantity > 0).ToList();
 
                 return View(model);
             }
@@ -86,7 +90,10 @@ namespace ResturantPL.Controllers.Definitions
 
                 if (!ModelState.IsValid)
                 {
-                    await PopulateData(model);                    _toastr.Error(_localizer["ValidationError"].Value);
+                    model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
+
+                    model.Stores = await _lookup.NamedLookupAsync<Store>();
+                    _toastr.Error(_localizer["ValidationError"].Value);
                     return View("Upsert", model);
                 }
 
@@ -97,7 +104,10 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index), new { searchString = model.ArName });
                 }
 
-                await PopulateData(model);                _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
+
+                model.Stores = await _lookup.NamedLookupAsync<Store>();
+                _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
                 return View("Upsert", model);
             }
             catch (Exception ex)
@@ -131,13 +141,6 @@ namespace ResturantPL.Controllers.Definitions
                     errorMessage = _localizer["SomethingWentError"].Value
                 });
             }
-        }
-
-        private async Task PopulateData(ProductViewModel model)
-        {
-            model.Categories = await _lookup.ProductCategoryLookupAsync();
-
-            model.Stores = await _lookup.StoreLookupAsync();
         }
     }
 }

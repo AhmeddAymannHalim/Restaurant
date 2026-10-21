@@ -257,11 +257,11 @@ namespace ResturantPL.Controllers.Definitions
 
             model.Suppliers = await _lookup.SupplierLookupAsync();
             model.Customers = await _lookup.CustomerLookupAsync();
-            model.Stores = await _lookup.StoreLookupAsync();
+            model.Stores = await _lookup.NamedLookupAsync<Store>();
             model.CostCenters = await _lookup.NamedLookupAsync<CostCenter>();
             model.Currencies = await _lookup.NamedLookupAsync<Currency>();
-            model.Units = await _lookup.UnitPriceLookupAsync();
-            model.Categories = await _lookup.ProductCategoryLookupAsync();
+            model.Units = await _lookup.NamedLookupAsync<UnitPrice>();
+            model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
 
             if (model.Items.Count > 0)
             {

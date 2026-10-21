@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Restaurant.DAL.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Localization;
 using Restaurant.BLL.Services.IServices.Commons;
@@ -140,10 +141,10 @@ namespace ResturantPL.Controllers.Definitions
 
         private async Task PopulateData(MenuItemViewModel model)
         {
-            model.MenuSections = await _lookup.MenuSectionLookupAsync();
-            model.Stores = await _lookup.StoreLookupAsync();
-            model.Products = await _lookup.ProductLookupAsync();
-            model.Categories = await _lookup.ProductCategoryLookupAsync();
+            model.MenuSections = await _lookup.NamedLookupAsync<MenuSection>();
+            model.Stores = await _lookup.NamedLookupAsync<Store>();
+            model.Products = await _lookup.NamedLookupAsync<Product>();
+            model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
         }
     }
 }

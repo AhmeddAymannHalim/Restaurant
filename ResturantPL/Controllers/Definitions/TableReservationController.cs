@@ -62,7 +62,7 @@ namespace ResturantPL.Controllers.Definitions
                     }
                 }
 
-                model.Tables = (await _lookup.TableLookupAsync()).ToList();
+                model.Tables = (await _lookup.NamedLookupAsync<Restaurant.DAL.Models.Table>()).ToList();
 
                 return View(model);
             }
@@ -86,7 +86,7 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index));
                 }
 
-                model.Tables = (await _lookup.TableLookupAsync()).ToList();
+                model.Tables = (await _lookup.NamedLookupAsync<Restaurant.DAL.Models.Table>()).ToList();
                 _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
                 return View("Upsert", model);
             }

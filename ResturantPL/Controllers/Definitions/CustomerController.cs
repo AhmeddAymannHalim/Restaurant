@@ -143,9 +143,9 @@ namespace ResturantPL.Controllers.Definitions
             model.Classifications = await _lookup.NamedLookupAsync<Classification>();
             model.CustomerTiers = await _lookup.NamedLookupAsync<CustomerTier>();
             model.Specializations = await _lookup.NamedLookupAsync<Specialization>();
-            model.Nationalities = await _lookup.CountryLookupAsync();
-            model.Branches = await _lookup.BranchLookupAsync();
-            model.Employees = await _lookup.EmployeeLookupAsync();
+            model.Nationalities = await _lookup.NamedLookupAsync<Country>();
+            model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
+            model.Employees = await _lookup.NamedLookupAsync<Employee>();
         }
     }
 }

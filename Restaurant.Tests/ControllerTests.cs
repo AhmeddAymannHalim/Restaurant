@@ -186,7 +186,7 @@ public class ControllerTests
         Assert.IsType<JsonResult>(result).Value.GetType().GetProperty(name).GetValue(((JsonResult)result).Value);
 }
 
-// senior-halim rule: every method of a repository, service or controller is public and reads top to bottom on its own (controllers may keep PopulateData when they load 2+ lookups)
+// senior-halim rule: every method of a repository, service or controller is public and reads top to bottom on its own (controllers may keep PopulateData when they load 3+ lookups)
 public class FlatCodeRuleTests
 {
     public static IEnumerable<object[]> Types()
@@ -213,7 +213,7 @@ public class FlatCodeRuleTests
     {
         var privateMethods = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Where(m => !m.IsSpecialName && !m.Name.Contains("<") && m.GetCustomAttribute<System.Runtime.CompilerServices.CompilerGeneratedAttribute>() == null)
-            // the one allowed exception: a controller that loads two or more lookups for its form keeps them in PopulateData
+            // the one allowed exception: a controller that loads three or more lookups for its form keeps them in PopulateData
             .Where(m => !(type.Name.EndsWith("Controller") && m.Name == "PopulateData"))
             .Select(m => m.Name)
             .ToList();

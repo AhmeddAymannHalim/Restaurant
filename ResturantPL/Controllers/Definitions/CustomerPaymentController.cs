@@ -69,7 +69,11 @@ namespace ResturantPL.Controllers.Definitions
                     model.Description = _localizer["DefaultPaymentDescription"].Value;
                 }
 
-                await PopulateData(model);
+                model.Partners = await _lookup.CustomerLookupAsync();
+                model.OpenInvoices = model.PartnerId > 0
+                    ? await _service.GetOpenInvoicesForPartnerAsync(model.PartnerId.GetValueOrDefault())
+                    : Enumerable.Empty<LookupItem>();
+
                 return View(model);
             }
             catch (Exception ex)
@@ -87,7 +91,11 @@ namespace ResturantPL.Controllers.Definitions
 
                 if (!ModelState.IsValid)
                 {
-                    await PopulateData(model);                    _toastr.Error(_localizer["ValidationError"].Value);
+                    model.Partners = await _lookup.CustomerLookupAsync();
+                    model.OpenInvoices = model.PartnerId > 0
+                        ? await _service.GetOpenInvoicesForPartnerAsync(model.PartnerId.GetValueOrDefault())
+                        : Enumerable.Empty<LookupItem>();
+                    _toastr.Error(_localizer["ValidationError"].Value);
                     return View("Upsert", model);
                 }
 
@@ -98,7 +106,11 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index), new { searchString = result.Data });
                 }
 
-                await PopulateData(model);                _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                model.Partners = await _lookup.CustomerLookupAsync();
+                model.OpenInvoices = model.PartnerId > 0
+                    ? await _service.GetOpenInvoicesForPartnerAsync(model.PartnerId.GetValueOrDefault())
+                    : Enumerable.Empty<LookupItem>();
+                _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
                 return View("Upsert", model);
             }
             catch (Exception ex)
@@ -254,14 +266,6 @@ namespace ResturantPL.Controllers.Definitions
             {
                 return ErrorHandler.ErrorView(ex);
             }
-        }
-
-        private async Task PopulateData(PaymentViewModel model)
-        {
-            model.Partners = await _lookup.CustomerLookupAsync();
-            model.OpenInvoices = model.PartnerId > 0
-                ? await _service.GetOpenInvoicesForPartnerAsync(model.PartnerId.GetValueOrDefault())
-                : Enumerable.Empty<LookupItem>();
         }
     }
 }

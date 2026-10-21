@@ -64,7 +64,9 @@ namespace ResturantPL.Controllers.Definitions
                     model.Code = await _service.NewBranchCodeAsync();
                 }
 
-                await PopulateData(model);
+                model.Companies = await _lookup.NamedLookupAsync<Company>();
+                model.Currencies = await _lookup.NamedLookupAsync<Currency>();
+
                 return View(model);
             }
             catch (Exception ex)
@@ -82,7 +84,9 @@ namespace ResturantPL.Controllers.Definitions
 
                 if (!ModelState.IsValid)
                 {
-                    await PopulateData(model);                    _toastr.Error(_localizer["ValidationError"].Value);
+                    model.Companies = await _lookup.NamedLookupAsync<Company>();
+                    model.Currencies = await _lookup.NamedLookupAsync<Currency>();
+                    _toastr.Error(_localizer["ValidationError"].Value);
                     return View("Upsert", model);
                 }
 
@@ -93,7 +97,9 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index), new { searchString = model.ArName });
                 }
 
-                await PopulateData(model);                _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                model.Companies = await _lookup.NamedLookupAsync<Company>();
+                model.Currencies = await _lookup.NamedLookupAsync<Currency>();
+                _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
                 return View("Upsert", model);
             }
             catch (Exception ex)
@@ -127,12 +133,6 @@ namespace ResturantPL.Controllers.Definitions
                     errorMessage = _localizer["SomethingWentError"].Value
                 });
             }
-        }
-
-        private async Task PopulateData(BranchViewModel model)
-        {
-            model.Companies = await _lookup.NamedLookupAsync<Company>();
-            model.Currencies = await _lookup.NamedLookupAsync<Currency>();
         }
     }
 }

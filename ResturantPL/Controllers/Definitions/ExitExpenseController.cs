@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Restaurant.DAL.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using Microsoft.Extensions.Localization;
@@ -63,7 +64,7 @@ namespace ResturantPL.Controllers.Definitions
                     }
                 }
 
-                model.Expenses = await _lookup.ExpenseLookupAsync();
+                model.Expenses = await _lookup.NamedLookupAsync<Expense>();
 
                 return View(model);
             }
@@ -83,7 +84,7 @@ namespace ResturantPL.Controllers.Definitions
 
                 if (!ModelState.IsValid)
                 {
-                    model.Expenses = await _lookup.ExpenseLookupAsync();
+                    model.Expenses = await _lookup.NamedLookupAsync<Expense>();
                     _toastr.Error(_localizer["ValidationError"].Value);
                     return View("Upsert", model);
                 }
@@ -95,7 +96,7 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index), new { searchString = (string)null });
                 }
 
-                model.Expenses = await _lookup.ExpenseLookupAsync();
+                model.Expenses = await _lookup.NamedLookupAsync<Expense>();
                 _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
                 return View("Upsert", model);
             }

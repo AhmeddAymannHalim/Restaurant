@@ -128,8 +128,8 @@ namespace ResturantPL.Controllers.Definitions
         private async Task PopulateData(SupplierViewModel model)
         {
             model.CostCenters = await _lookup.NamedLookupAsync<CostCenter>();
-            model.Branches = await _lookup.BranchLookupAsync();
-            model.Employees = await _lookup.EmployeeLookupAsync();
+            model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
+            model.Employees = await _lookup.NamedLookupAsync<Employee>();
         }
     }
 }

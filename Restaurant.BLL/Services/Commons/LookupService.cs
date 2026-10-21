@@ -14,15 +14,7 @@ public class LookupService : ILookupService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<IEnumerable<LookupItem>> BranchLookupAsync()
-    {
-        return await _unitOfWork.Lookups.BranchLookupAsync();
-    }
 
-    public async Task<IEnumerable<LookupItem>> JobLookupAsync()
-    {
-        return await _unitOfWork.Lookups.JobLookupAsync();
-    }
 
     public async Task<IEnumerable<DeductionTypeViewModel>> DeductionTypeLookupAsync()
     {
@@ -44,10 +36,6 @@ public class LookupService : ILookupService
         return await _unitOfWork.Lookups.InsuranceCategoryLookupAsync();
     }
 
-    public async Task<IEnumerable<LookupItem>> EmployeeLookupAsync()
-    {
-        return await _unitOfWork.Lookups.EmployeeLookupAsync();
-    }
 
     public async Task<IEnumerable<LookupItem>> DeliveryDriverLookupAsync()
     {
@@ -64,25 +52,9 @@ public class LookupService : ILookupService
         return await _unitOfWork.Lookups.StorekeeperLookupAsync();
     }
 
-    public async Task<IEnumerable<LookupItem>> KitchenLookupAsync()
-    {
-        return await _unitOfWork.Lookups.KitchenLookupAsync();
-    }
 
-    public async Task<IEnumerable<LookupItem>> MenuSectionLookupAsync()
-    {
-        return await _unitOfWork.Lookups.MenuSectionLookupAsync();
-    }
 
-    public async Task<IEnumerable<LookupItem>> ReadyMenuSectionLookupAsync()
-    {
-        return await _unitOfWork.Lookups.ReadyMenuSectionLookupAsync();
-    }
 
-    public async Task<IEnumerable<LookupItem>> TableLookupAsync()
-    {
-        return await _unitOfWork.Lookups.TableLookupAsync();
-    }
 
     public async Task<IEnumerable<DeliveryZoneViewModel>> DeliveryZoneLookupAsync()
     {
@@ -97,25 +69,9 @@ public class LookupService : ILookupService
         }).ToList();
     }
 
-    public async Task<IEnumerable<LookupItem>> StoreLookupAsync()
-    {
-        return await _unitOfWork.Lookups.StoreLookupAsync();
-    }
 
-    public async Task<IEnumerable<LookupItem>> ProductLookupAsync()
-    {
-        return await _unitOfWork.Lookups.ProductLookupAsync();
-    }
 
-    public async Task<IEnumerable<LookupItem>> ProductCategoryLookupAsync()
-    {
-        return await _unitOfWork.Lookups.ProductCategoryLookupAsync();
-    }
 
-    public async Task<IEnumerable<LookupItem>> UnitPriceLookupAsync()
-    {
-        return await _unitOfWork.Lookups.UnitPriceLookupAsync();
-    }
 
     public async Task<IEnumerable<LookupItem>> SupplierLookupAsync()
     {
@@ -132,20 +88,12 @@ public class LookupService : ILookupService
         return await _unitOfWork.Lookups.StoreProductLookupByStoreIdAsync(storeId);
     }
 
-    public async Task<IEnumerable<LookupItem>> ExpenseLookupAsync()
-    {
-        return await _unitOfWork.Lookups.ExpenseLookupAsync();
-    }
 
     public async Task<IEnumerable<LookupItem_String>> RoleLookupAsync()
     {
         return await _unitOfWork.Lookups.RoleLookupAsync();
     }
 
-    public async Task<IEnumerable<LookupItem>> CountryLookupAsync()
-    {
-        return await _unitOfWork.Lookups.CountryLookupAsync();
-    }
 
     public async Task<IEnumerable<LookupItem>> GovernorateLookupAsync(int countryId)
     {

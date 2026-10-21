@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Restaurant.DAL.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using Microsoft.Extensions.Localization;
@@ -135,8 +136,8 @@ namespace ResturantPL.Controllers.Definitions
         private async Task PopulateData(StoreViewModel model)
         {
             model.Storekeepers = await _lookup.StorekeeperLookupAsync();
-            model.Stores = await _lookup.StoreLookupAsync();
-            model.Branches = await _lookup.BranchLookupAsync();
+            model.Stores = await _lookup.NamedLookupAsync<Store>();
+            model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
         }
     }
 }

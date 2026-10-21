@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Restaurant.DAL.Models;
 using Restaurant.BLL.Services.IServices.Commons;
 using Restaurant.BLL.Services.IServices.Definitions;
 using ResturantPL.Helper;
@@ -31,8 +32,8 @@ namespace ResturantPL.Controllers.Definitions
                     Result = await _service.GetPagedAsync(request, storeId, productId),
                     StoreId = storeId,
                     ProductId = productId,
-                    Stores = await _lookup.StoreLookupAsync(),
-                    Products = await _lookup.ProductLookupAsync()
+                    Stores = await _lookup.NamedLookupAsync<Store>(),
+                    Products = await _lookup.NamedLookupAsync<Product>()
                 };
 
                 return View(model);
