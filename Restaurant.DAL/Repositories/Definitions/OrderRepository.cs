@@ -242,8 +242,9 @@ public class OrderRepository : IOrderRepository
 
     public async Task<ApplicationSetting> GetSettingsAsync()
     {
-        return await _context.ApplicationSettings.AsNoTracking().OrderByDescending(a => a.Id).FirstOrDefaultAsync()
-            ?? new ApplicationSetting();
+        return await _context.ApplicationSettings.AsNoTracking()
+                                                 .OrderByDescending(a => a.Id)
+                                                 .FirstOrDefaultAsync() ?? new ApplicationSetting();
     }
 
     public async Task<IEnumerable<Table>> GetPendingTablesAsync(int exceptTableId)

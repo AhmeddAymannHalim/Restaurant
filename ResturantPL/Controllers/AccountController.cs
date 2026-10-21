@@ -147,7 +147,16 @@ namespace ResturantPL.Controllers
 
         public async Task<IActionResult> ConfirmEmail(string userId, string token)
         {
-            var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token ?? string.Empty));
+            string decodedToken;
+            try
+            {
+                decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token ?? string.Empty));
+            }
+            catch (FormatException)
+            {
+                return View(false);
+            }
+
             var result = await _service.ConfirmEmailAsync(userId, decodedToken);
 
             return View(result.Success);
