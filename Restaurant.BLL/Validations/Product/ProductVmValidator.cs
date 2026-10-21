@@ -33,6 +33,8 @@ public class ProductVmValidator : AbstractValidator<ProductViewModel>
 
         RuleFor(x => x.ProductCategoryId)
             .NotNull()
+            .WithMessage(required)
+            .GreaterThan(0)
             .WithMessage(required);
 
         RuleForEach(x => x.Stocks)

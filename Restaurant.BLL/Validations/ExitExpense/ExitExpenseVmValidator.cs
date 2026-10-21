@@ -16,6 +16,8 @@ public class ExitExpenseVmValidator : AbstractValidator<ExitExpenseViewModel>
 
         RuleFor(x => x.ExpenseId)
             .NotNull()
+            .WithMessage(required)
+            .GreaterThan(0)
             .WithMessage(required);
 
         RuleFor(x => x.Price)

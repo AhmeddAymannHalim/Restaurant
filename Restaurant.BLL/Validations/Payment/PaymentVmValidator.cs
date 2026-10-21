@@ -11,10 +11,14 @@ public class PaymentVmValidator : AbstractValidator<PaymentViewModel>
     {
         RuleFor(x => x.PartnerId)
             .NotNull()
+            .WithMessage(localizer["Val.RequiredField"].Value)
+            .GreaterThan(0)
             .WithMessage(localizer["Val.RequiredField"].Value);
 
         RuleFor(x => x.BillMasterId)
             .NotNull()
+            .WithMessage(localizer["Val.RequiredField"].Value)
+            .GreaterThan(0)
             .WithMessage(localizer["Val.RequiredField"].Value);
 
         RuleFor(x => x.Paid)

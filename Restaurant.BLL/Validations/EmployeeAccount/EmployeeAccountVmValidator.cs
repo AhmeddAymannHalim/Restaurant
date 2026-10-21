@@ -17,6 +17,9 @@ public class EmployeeAccountVmValidator : AbstractValidator<EmployeeAccountViewM
         RuleFor(x => x.EmployeeId)
             .NotNull()
             .When(x => string.IsNullOrEmpty(x.Id))
+            .WithMessage(required)
+            .GreaterThan(0)
+            .When(x => string.IsNullOrEmpty(x.Id))
             .WithMessage(required);
 
         RuleFor(x => x.UserName)

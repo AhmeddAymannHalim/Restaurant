@@ -11,12 +11,17 @@ public class StoreConvertVmValidator : AbstractValidator<StoreConvertViewModel>
     {
         RuleFor(x => x.FromStoreId)
             .NotNull()
+            .WithMessage(localizer["Val.RequiredField"].Value)
+            .GreaterThan(0)
             .WithMessage(localizer["Val.RequiredField"].Value);
 
         RuleFor(x => x.ToStoreId)
             .NotNull()
             .WithMessage(localizer["Val.RequiredField"].Value)
+            .GreaterThan(0)
+            .WithMessage(localizer["Val.RequiredField"].Value)
             .NotEqual(x => x.FromStoreId)
+            .When(x => x.FromStoreId.HasValue)
             .WithMessage(localizer["SameStore"].Value);
 
         RuleFor(x => x.Items)

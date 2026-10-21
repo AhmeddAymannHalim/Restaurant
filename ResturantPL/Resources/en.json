@@ -150,6 +150,7 @@
   "Identity.DefaultError": "An unknown error occurred.",
   "Identity.ConcurrencyFailure": "The data was modified by another user, try again.",
   "Identity.PasswordMismatch": "Incorrect password.",
+  "Identity.RecoveryCodeRedemptionFailed": "Recovery code was not accepted.",
   "Identity.InvalidToken": "Invalid token.",
   "Identity.LoginAlreadyAssociated": "This login is already linked to another user.",
   "Identity.InvalidUserName": "The user name is invalid, it can only contain letters or digits.",

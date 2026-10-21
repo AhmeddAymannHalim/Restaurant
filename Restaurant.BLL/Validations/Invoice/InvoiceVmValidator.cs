@@ -23,6 +23,8 @@ public class InvoiceVmValidator : AbstractValidator<InvoiceViewModel>
 
         RuleFor(x => x.StoreId)
             .NotNull()
+            .WithMessage(required)
+            .GreaterThan(0)
             .WithMessage(required);
 
         RuleFor(x => x.Items)

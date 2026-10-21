@@ -37,10 +37,14 @@ public class MenuItemVmValidator : AbstractValidator<MenuItemViewModel>
 
         RuleFor(x => x.MenuSectionId)
             .NotNull()
+            .WithMessage(required)
+            .GreaterThan(0)
             .WithMessage(required);
 
         RuleFor(x => x.StoreId)
             .NotNull()
+            .WithMessage(required)
+            .GreaterThan(0)
             .WithMessage(required);
 
         RuleFor(x => x.ArDescription)

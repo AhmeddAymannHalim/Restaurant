@@ -17,6 +17,8 @@ public class ScroungeVmValidator : AbstractValidator<ScroungeViewModel>
 
         RuleFor(x => x.EmployeeId)
             .NotNull()
+            .WithMessage(required)
+            .GreaterThan(0)
             .WithMessage(required);
 
         RuleFor(x => x.Amount)

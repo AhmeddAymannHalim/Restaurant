@@ -58,6 +58,8 @@ public class EmployeeVmValidator : AbstractValidator<EmployeeViewModel>
 
         RuleFor(x => x.TownId)
             .NotNull()
+            .WithMessage(required)
+            .GreaterThan(0)
             .WithMessage(required);
 
         RuleFor(x => x.Address)
@@ -200,10 +202,14 @@ public class EmployeeVmValidator : AbstractValidator<EmployeeViewModel>
 
         RuleFor(x => x.BranchId)
             .NotNull()
+            .WithMessage(required)
+            .GreaterThan(0)
             .WithMessage(required);
 
         RuleFor(x => x.JobId)
             .NotNull()
+            .WithMessage(required)
+            .GreaterThan(0)
             .WithMessage(required);
     }
 }

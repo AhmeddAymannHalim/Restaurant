@@ -150,6 +150,7 @@
   "Identity.DefaultError": "حدث خطأ غير معروف.",
   "Identity.ConcurrencyFailure": "تم تعديل البيانات من مستخدم آخر، حاول مرة أخرى.",
   "Identity.PasswordMismatch": "كلمة المرور غير صحيحة.",
+  "Identity.RecoveryCodeRedemptionFailed": "رمز الاسترداد غير مقبول.",
   "Identity.InvalidToken": "الرمز غير صالح.",
   "Identity.LoginAlreadyAssociated": "هذا الحساب مرتبط بمستخدم آخر.",
   "Identity.InvalidUserName": "اسم المستخدم غير صالح، يجب أن يحتوي على حروف أو أرقام فقط.",
