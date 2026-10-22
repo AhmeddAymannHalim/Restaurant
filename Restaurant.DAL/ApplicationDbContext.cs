@@ -119,7 +119,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderMenuItem> OrderMenuItems { get; set; }
     public DbSet<OrderIngredient> OrderIngredients { get; set; }
-    public DbSet<ShiftCloseReport> ShiftCloseReports { get; set; }
 
     public DbSet<Expense> Expenses { get; set; }
     public DbSet<ExitExpense> ExitExpenses { get; set; }

@@ -1,7 +1,7 @@
 ﻿@model PaginatedResult<OrderViewModel>
 @{
-    var status = Model.Status ?? "shift";
-    ViewBag.Title = status == "pending" ? L["PendingOrders"].Value : status == "history" ? L["OrdersHistory"].Value : L["ShiftOrders"].Value;
+    var status = Model.Status ?? "paid";
+    ViewBag.Title = status == "pending" ? L["PendingOrders"].Value : L["Paid"].Value;
     var isArabic = LanguageHelper.IsArabic();
     var isManager = User.IsInRole("Admin") || User.IsInRole("Manager");
     var types = new[] { OrderType.Hall, OrderType.TakeAway, OrderType.Delivery };
@@ -15,9 +15,8 @@
     </div>
     <div class="ad-card-body">
         <div class="ad-tabs">
-            <a asp-action="List" asp-route-status="shift" class="@(status == "shift" ? "is-active" : "")">@L["ShiftOrders"]</a>
+            <a asp-action="List" asp-route-status="paid" class="@(status == "paid" ? "is-active" : "")">@L["Paid"]</a>
             <a asp-action="List" asp-route-status="pending" class="@(status == "pending" ? "is-active" : "")">@L["PendingOrders"]</a>
-            <a asp-action="List" asp-route-status="history" class="@(status == "history" ? "is-active" : "")">@L["OrdersHistory"]</a>
         </div>
 
         <form asp-action="List" method="get" class="ad-filters">
@@ -90,7 +89,7 @@
                                             </form>
                                         }
                                     }
-                                    @if (isManager && !item.FinishShift)
+                                    @if (isManager)
                                     {
                                         <button type="button" onclick="Delete('/Order/Delete/@item.Id')" class="btn-ad btn-ad-danger btn-icon" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button>
                                     }

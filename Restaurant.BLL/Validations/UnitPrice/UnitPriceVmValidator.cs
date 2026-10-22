@@ -30,5 +30,11 @@ public class UnitPriceVmValidator : AbstractValidator<UnitPriceViewModel>
             .WithMessage(MaxLength(100))
             .Must((model, enName) => !validator.IsEnNameExist(model.Id, enName))
             .WithMessage(localizer["Val.NameAlreadyExist"].Value);
+
+        // optional: empty is allowed, a given value must not be negative
+        RuleFor(x => x.Value)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.Value.HasValue)
+            .WithMessage(localizer["Val.NotNegative"].Value);
     }
 }

@@ -20,11 +20,6 @@ public class OrderService : IOrderService
         _mapper = mapper;
     }
 
-    public async Task<ShiftDashboardViewModel> GetShiftDashboardAsync(string userId)
-    {
-        return await _unitOfWork.Orders.GetShiftDashboardAsync(userId);
-    }
-
     public async Task<PaginatedResult<OrderViewModel>> GetPagedOrdersAsync(PageRequest request, string userId)
     {
         var result = await _unitOfWork.Orders.GetPagedOrdersAsync(request, userId);
@@ -99,16 +94,6 @@ public class OrderService : IOrderService
         return await _unitOfWork.Orders.DeleteOrderAsync(id);
     }
 
-    public async Task<IEnumerable<IncompleteCashOrderViewModel>> GetIncompleteCashOrdersAsync(string userId)
-    {
-        return _mapper.Map<List<IncompleteCashOrderViewModel>>(await _unitOfWork.Orders.GetIncompleteCashOrdersAsync(userId));
-    }
-
-    public async Task<ResultMessage> FinishShiftAsync(string userId, decimal countedCash)
-    {
-        return await _unitOfWork.Orders.FinishShiftAsync(userId, countedCash);
-    }
-
     public async Task<IEnumerable<OrderViewModel>> GetKitchenOrdersAsync()
     {
         return _mapper.Map<List<OrderViewModel>>(await _unitOfWork.Orders.GetKitchenOrdersAsync());
@@ -119,8 +104,4 @@ public class OrderService : IOrderService
         return await _unitOfWork.Orders.CompleteOrderAsync(id);
     }
 
-    public async Task<bool> VerifyShiftPasswordAsync(string password)
-    {
-        return await _unitOfWork.Orders.VerifyShiftPasswordAsync(password);
-    }
 }

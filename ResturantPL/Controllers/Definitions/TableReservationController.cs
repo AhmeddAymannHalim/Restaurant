@@ -120,11 +120,6 @@ namespace ResturantPL.Controllers.Definitions
         {
             try
             {
-                if (HttpContext.Session.GetString("IsAuthenticated") != "true")
-                {
-                    return Json(new { success = false, errorMessage = _localizer["ShiftNotStarted"].Value });
-                }
-
                 var result = await _service.ArriveAsync(id);
                 if (!result.Success)
                 {

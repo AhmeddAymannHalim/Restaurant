@@ -13,7 +13,6 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class OrderRepository : IOrderRepository
 {
     private readonly ApplicationDbContext _context;
-    private readonly IShiftPasswordRepository _shiftPassword;
     private readonly IOrderLedgerRepository _orderLedger;
     private readonly IStockRepository _stock;
     private readonly IBillSupportRepository _billSupport;
@@ -21,150 +20,9 @@ public class OrderRepository : IOrderRepository
     public OrderRepository(ApplicationDbContext context)
     {
         _context = context;
-        _shiftPassword = new ShiftPasswordRepository();
         _orderLedger = new OrderLedgerRepository(context);
         _stock = new StockRepository(context);
         _billSupport = new BillSupportRepository(context);
-    }
-
-    // ---------------------------------------------------------------- shift
-
-    public async Task<ShiftDashboardViewModel> GetShiftDashboardAsync(string userId)
-    {
-        var openOrders = _context.Orders.AsNoTracking().Where(a => !a.FinishShift);
-
-        var model = new ShiftDashboardViewModel();
-
-        var paidTypes = new[] { OrderType.Hall, OrderType.Delivery, OrderType.TakeAway };
-        foreach (var type in paidTypes)
-        {
-            var paid = openOrders.Where(a => a.Type == type
-                && a.Cash
-                && !a.OnAccount
-                && a.SellerId == userId
-                && a.ReceiverId == userId);
-            model.Collected.Add(new ShiftRowViewModel
-            {
-                Type = type,
-                Count = await paid.CountAsync(),
-                Amount = await paid.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0
-            });
-        }
-
-        var unpaidTypes = new[] { OrderType.Hall, OrderType.Delivery };
-        foreach (var type in unpaidTypes)
-        {
-            var mine = openOrders.Where(a => a.Type == type && !a.Cash && a.SellerId == userId);
-            model.PendingMine.Add(new ShiftRowViewModel
-            {
-                Type = type,
-                Count = await mine.CountAsync(),
-                Amount = await mine.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0
-            });
-
-            var others = openOrders.Where(a => a.Type == type && !a.Cash && a.SellerId != userId);
-            model.PendingOthers.Add(new ShiftRowViewModel
-            {
-                Type = type,
-                Count = await others.CountAsync(),
-                Amount = await others.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0
-            });
-        }
-
-        var fromOthers = openOrders.Where(a => a.Cash && !a.OnAccount && a.SellerId != userId && a.ReceiverId == userId);
-        model.CollectedFromOthers.Count = await fromOthers.CountAsync();
-        model.CollectedFromOthers.Amount = await fromOthers.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0;
-
-        var electronic = openOrders.Where(a => a.Cash
-            && !a.OnAccount
-            && a.PaymentMethod != null
-            && a.PaymentMethod != PaymentMethod.Cash
-            && a.ReceiverId == userId);
-        model.Electronic.Count = await electronic.CountAsync();
-        model.Electronic.Amount = await electronic.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0;
-
-        var onAccount = openOrders.Where(a => a.OnAccount && (a.SellerId == userId || a.ReceiverId == userId));
-        model.OnAccount.Count = await onAccount.CountAsync();
-        model.OnAccount.Amount = await onAccount.SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0;
-
-        model.LastShiftReport = await _context.ShiftCloseReports.AsNoTracking()
-            .Where(a => a.UserId == userId)
-            .OrderByDescending(a => a.Id)
-            .Select(a => new ShiftCloseReportViewModel
-            {
-                ClosedAt = a.ClosedAt,
-                ExpectedCash = a.ExpectedCash,
-                CountedCash = a.CountedCash,
-                Variance = a.Variance,
-                HadIncompleteOrders = a.HadIncompleteOrders
-            })
-            .FirstOrDefaultAsync();
-
-        return model;
-    }
-
-    public async Task<ResultMessage> FinishShiftAsync(string userId, decimal countedCash)
-    {
-        try
-        {
-            if (countedCash < 0)
-            {
-                return new ResultMessage { Success = false, Message = "CountedCashInvalid" };
-            }
-
-            var hadIncompleteOrders = await _context.Orders.AnyAsync(a => a.Cash && !a.FinishShift && a.ReceiverId == userId && !a.Complete);
-            var expectedCash = (await GetShiftDashboardAsync(userId)).MoneyInDrawer;
-
-            var orders = await _context.Orders.Where(a => a.Cash && !a.FinishShift && a.ReceiverId == userId).ToListAsync();
-            foreach (var order in orders)
-            {
-                order.FinishShift = true;
-            }
-
-            await _context.ShiftCloseReports.AddAsync(new ShiftCloseReport
-            {
-                UserId = userId,
-                ExpectedCash = expectedCash,
-                CountedCash = countedCash,
-                Variance = countedCash - expectedCash,
-                HadIncompleteOrders = hadIncompleteOrders
-            });
-
-            await _context.SaveChangesAsync();
-
-            return new ResultMessage { Success = true };
-        }
-        catch (Exception ex)
-        {
-            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
-        }
-    }
-
-    public async Task<bool> VerifyShiftPasswordAsync(string password)
-    {
-        var setting = await _context.ApplicationSettings.OrderByDescending(a => a.Id).FirstOrDefaultAsync();
-        if (setting is null || !_shiftPassword.Verify(setting.Password, password, out var needsRehash))
-        {
-            return false;
-        }
-
-        if (needsRehash)
-        {
-            setting.Password = _shiftPassword.Hash(password);
-            await _context.SaveChangesAsync();
-        }
-
-        return true;
-    }
-
-    public async Task<IEnumerable<Order>> GetIncompleteCashOrdersAsync(string userId)
-    {
-        return await _context.Orders.AsNoTracking()
-            .Include(a => a.Bill)
-            .Include(a => a.Table)
-            .Where(a => a.Cash && !a.FinishShift && a.ReceiverId == userId && !a.Complete)
-            .OrderBy(a => a.Bill.Date)
-            .ToListAsync();
     }
 
     // ---------------------------------------------------------------- read
@@ -183,8 +41,7 @@ public class OrderRepository : IOrderRepository
         query = request.Status switch
         {
             "pending" => query.Where(a => !a.Cash),
-            "history" => query.Where(a => a.Cash && a.FinishShift),
-            _ => query.Where(a => a.Cash && !a.FinishShift && a.SellerId == userId)
+            _ => query.Where(a => a.Cash)
         };
 
         if (Enum.TryParse<OrderType>(request.Type, out var type))
@@ -847,11 +704,6 @@ public class OrderRepository : IOrderRepository
             if (order is null)
             {
                 return new ResultMessage { Success = true };
-            }
-
-            if (order.FinishShift)
-            {
-                return new ResultMessage { Success = false, Message = "ShiftClosed" };
             }
 
             // give the ingredients back to the stock

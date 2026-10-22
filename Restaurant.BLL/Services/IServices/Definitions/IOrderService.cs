@@ -6,7 +6,6 @@ namespace Restaurant.BLL.Services.IServices.Definitions;
 
 public interface IOrderService
 {
-    Task<ShiftDashboardViewModel> GetShiftDashboardAsync(string userId);
     Task<PaginatedResult<OrderViewModel>> GetPagedOrdersAsync(PageRequest request, string userId);
     Task<OrderViewModel> GetOrderByIdAsync(int id);
     Task<OrderViewModel> GetNewOrderAsync();
@@ -18,9 +17,6 @@ public interface IOrderService
     Task<ResultMessage> MoveItemAsync(OrderMoveViewModel model);
     Task<ResultMessage> MergeOrderAsync(OrderMoveViewModel model);
     Task<ResultMessage> DeleteOrderAsync(int id);
-    Task<IEnumerable<IncompleteCashOrderViewModel>> GetIncompleteCashOrdersAsync(string userId);
-    Task<ResultMessage> FinishShiftAsync(string userId, decimal countedCash);
-    Task<bool> VerifyShiftPasswordAsync(string password);
     Task<IEnumerable<OrderViewModel>> GetKitchenOrdersAsync();
     Task<ResultMessage> CompleteOrderAsync(int id);
 

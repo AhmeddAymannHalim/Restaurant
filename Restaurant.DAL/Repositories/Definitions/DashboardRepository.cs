@@ -30,26 +30,31 @@ public class DashboardRepository : IDashboardRepository
             })
             .FirstOrDefaultAsync();
 
-        var shift = await _context.Orders
+        var unpaid = await _context.Orders
             .AsNoTracking()
-            .Where(a => !a.FinishShift)
+            .Where(a => !a.Cash)
             .Select(a => new
             {
                 a.Type,
-                a.Cash,
-                a.Complete,
                 TotalPrice = a.Bill.TotalBillAmountAfterDiscountAndExtra
             })
             .ToListAsync();
 
-        var unpaid = shift.Where(a => !a.Cash).ToList();
+        var paidByType = await _context.Orders
+            .AsNoTracking()
+            .Where(a => a.Cash)
+            .GroupBy(a => a.Type)
+            .Select(a => new
+            {
+                Type = a.Key,
+                Count = a.Count()
+            })
+            .ToListAsync();
 
         var model = new DashboardViewModel
         {
             UserName = user == null ? string.Empty : (user.FirstName + " " + user.LastName).Trim(),
             UserImage = user?.Image,
-            ShiftOrders = shift.Count,
-            ShiftSales = shift.Where(a => a.Cash).Sum(a => a.TotalPrice),
             InKitchen = await _context.Orders.AsNoTracking().CountAsync(a => !a.Complete),
             AwaitingPayment = unpaid.Count,
             AwaitingPaymentAmount = unpaid.Sum(a => a.TotalPrice),
@@ -73,7 +78,7 @@ public class DashboardRepository : IDashboardRepository
             Type = type,
             InKitchen = inKitchenByType.Where(a => a.Type == type).Sum(a => a.Count),
             Unpaid = unpaid.Count(a => a.Type == type),
-            Paid = shift.Count(a => a.Cash && a.Type == type)
+            Paid = paidByType.Where(a => a.Type == type).Sum(a => a.Count)
         }).ToList();
 
         model.Kitchen = await _context.Orders
@@ -100,7 +105,7 @@ public class DashboardRepository : IDashboardRepository
 
         model.Unpaid = await _context.Orders
             .AsNoTracking()
-            .Where(a => !a.Cash && !a.FinishShift)
+            .Where(a => !a.Cash)
             .OrderBy(a => a.Bill.Date)
             .Take(ListLimit)
             .Select(a => new DashboardUnpaidItem
@@ -143,7 +148,7 @@ public class DashboardRepository : IDashboardRepository
 
         var openHallOrders = await _context.Orders
             .AsNoTracking()
-            .Where(a => a.Type == OrderType.Hall && a.TableId != null && !a.Cash && !a.FinishShift)
+            .Where(a => a.Type == OrderType.Hall && a.TableId != null && !a.Cash)
             .OrderBy(a => a.Id)
             .Select(a => new { TableId = a.TableId.Value, OrderId = a.Id })
             .ToListAsync();

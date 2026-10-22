@@ -16,7 +16,6 @@ public class Order
     public Shared.Enums.PaymentMethod? PaymentMethod { get; set; }
     public bool OnAccount { get; set; }
     public bool Complete { get; set; }
-    public bool FinishShift { get; set; }
     public string CustomerName { get; set; } = "عميل نقدي";
 
     public int? TableId { get; set; }

@@ -398,19 +398,6 @@ public class OrderRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task Delete_AfterShiftClosed_IsBlocked()
-    {
-        await Seed();
-        var id = await Create(NewOrder(OrderType.TakeAway));
-        await _sut.FinishShiftAsync(_user, 110);
-
-        var result = await _sut.DeleteOrderAsync(id);
-
-        Assert.Equal("ShiftClosed", result.Message);
-        Assert.Single(_db.Context.Orders);
-    }
-
-    [Fact]
     public async Task Delete_Unknown_IsSuccess()
     {
         Assert.True((await _sut.DeleteOrderAsync(404)).Success);
@@ -501,64 +488,6 @@ public class OrderRepositoryTests : IDisposable
     public async Task MoveItem_UnknownLine_ReturnsRecordNotFound()
     {
         Assert.Equal("RecordNotFound", (await _sut.MoveItemAsync(404, 1)).Message);
-    }
-
-    [Fact]
-    public async Task FinishShift_ClosesMyPaidOrdersAndStoresTheReport()
-    {
-        await Seed();
-        await Create(NewOrder(OrderType.TakeAway));
-        await Create(NewOrder(OrderType.TakeAway));
-        await Create(NewOrder(OrderType.Hall));
-
-        var result = await _sut.FinishShiftAsync(_user, 200);
-
-        Assert.True(result.Success, result.Message);
-        var report = await _db.Context.ShiftCloseReports.AsNoTracking().SingleAsync();
-        Assert.Equal(220, report.ExpectedCash);
-        Assert.Equal(200, report.CountedCash);
-        Assert.Equal(-20, report.Variance);
-        Assert.Equal(2, await _db.Context.Orders.CountAsync(a => a.FinishShift));
-        Assert.False((await _db.Context.Orders.AsNoTracking().SingleAsync(a => a.Type == OrderType.Hall)).FinishShift);
-    }
-
-    [Fact]
-    public async Task FinishShift_NegativeCash_IsRejected()
-    {
-        await Seed();
-
-        Assert.Equal("CountedCashInvalid", (await _sut.FinishShiftAsync(_user, -1)).Message);
-        Assert.Empty(_db.Context.ShiftCloseReports);
-    }
-
-    [Fact]
-    public async Task FinishShift_ElectronicPaymentsAreNotCountedAsCashInDrawer()
-    {
-        await Seed();
-        var order = NewOrder(OrderType.TakeAway);
-        order.PaymentMethod = PaymentMethod.Visa;
-        await Create(order);
-        await Create(NewOrder(OrderType.TakeAway));
-
-        await _sut.FinishShiftAsync(_user, 110);
-
-        Assert.Equal(110, (await _db.Context.ShiftCloseReports.AsNoTracking().SingleAsync()).ExpectedCash);
-    }
-
-    [Fact]
-    public async Task ShiftDashboard_ShowsCollectedPendingAndOthers()
-    {
-        await Seed();
-        await Create(NewOrder(OrderType.TakeAway));
-        await Create(NewOrder(OrderType.Hall));
-        var otherPaid = await _sut.CreateOrderAsync(NewOrder(OrderType.TakeAway), _otherUser);
-        Assert.True(otherPaid.Success);
-
-        var mine = await _sut.GetShiftDashboardAsync(_user);
-
-        Assert.Equal(110, mine.CollectedTotal);
-        Assert.Equal(115, mine.PendingMineTotal);
-        Assert.Equal(110, mine.MoneyInDrawer);
     }
 
     [Fact]

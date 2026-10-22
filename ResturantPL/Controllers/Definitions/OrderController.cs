@@ -38,26 +38,14 @@ namespace ResturantPL.Controllers.Definitions
 
         private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        public async Task<IActionResult> Index()
-        {
-            try
-            {
-                return View(await _service.GetShiftDashboardAsync(UserId));
-            }
-            catch (Exception ex)
-            {
-                return ErrorHandler.ErrorView(ex);
-            }
-        }
-
         public async Task<IActionResult> List([FromQuery] PageRequest request)
         {
             try
             {
                 request ??= new PageRequest();
-                if (request.Status is not ("pending" or "history"))
+                if (request.Status != "pending")
                 {
-                    request.Status = "shift";
+                    request.Status = "paid";
                 }
 
                 return View(await _service.GetPagedOrdersAsync(request, UserId));
@@ -72,11 +60,6 @@ namespace ResturantPL.Controllers.Definitions
         {
             try
             {
-                if (HttpContext.Session.GetString("IsAuthenticated") != "true")
-                {
-                    return RedirectToAction("Login", "Shift");
-                }
-
                 OrderViewModel model;
                 if (tableId.HasValue)
                 {

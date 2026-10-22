@@ -277,8 +277,6 @@ public class ReadSideRepositoriesTests : IDisposable
         var model = await new DashboardRepository(_db.Context).GetDashboardAsync(user.Id);
 
         Assert.Equal("Ali Omar", model.UserName);
-        Assert.Equal(2, model.ShiftOrders);
-        Assert.Equal(40, model.ShiftSales);
         Assert.Equal(1, model.AwaitingPayment);
         Assert.Equal(80, model.AwaitingPaymentAmount);
         Assert.Equal(2, model.InKitchen);
@@ -298,7 +296,6 @@ public class ReadSideRepositoriesTests : IDisposable
         var model = await new DashboardRepository(_db.Context).GetDashboardAsync("nobody");
 
         Assert.Equal(string.Empty, model.UserName);
-        Assert.Equal(0, model.ShiftOrders);
         Assert.Empty(model.Tables);
     }
 }

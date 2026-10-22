@@ -696,6 +696,7 @@
   //inventory: stores, products, units
   "UnitPrices": "Units",
   "NewUnitPrice": "New Unit",
+  "UnitValue": "Value",
   "UpdateUnitPrice": "Update Unit",
   "ProductCategories": "Raw material categories",
   "NewProductCategory": "New raw material category",

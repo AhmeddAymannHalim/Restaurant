@@ -17,7 +17,7 @@ public class OrderConfig : IEntityTypeConfiguration<Order>
         builder.Property(a => a.Tax).HasPrecision(18, 2);
         builder.Property(a => a.DeliveryFee).HasPrecision(18, 2);
         builder.HasIndex(a => a.OrderCode).IsUnique();
-        builder.HasIndex(a => new { a.Cash, a.FinishShift });
+        builder.HasIndex(a => a.Cash);
 
         builder.HasOne(a => a.Bill).WithOne().HasForeignKey<Order>(a => a.Id).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(a => a.Seller).WithMany().HasForeignKey(a => a.SellerId).OnDelete(DeleteBehavior.Restrict);

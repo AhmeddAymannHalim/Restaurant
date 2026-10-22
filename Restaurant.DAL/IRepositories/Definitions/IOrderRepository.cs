@@ -8,7 +8,6 @@ namespace Restaurant.DAL.IRepositories.Definitions;
 
 public interface IOrderRepository
 {
-    Task<ShiftDashboardViewModel> GetShiftDashboardAsync(string userId);
     Task<PaginatedResult<Order>> GetPagedOrdersAsync(PageRequest request, string userId);
     Task<Order> GetOrderByIdAsync(int id);
     Task<string> GetNextCodeAsync();
@@ -22,9 +21,6 @@ public interface IOrderRepository
     Task<ResultMessage> MoveItemAsync(int orderMenuItemId, int targetTableId);
     Task<ResultMessage> MergeOrderAsync(int id, int targetTableId);
     Task<ResultMessage> DeleteOrderAsync(int id);
-    Task<IEnumerable<Order>> GetIncompleteCashOrdersAsync(string userId);
-    Task<ResultMessage> FinishShiftAsync(string userId, decimal countedCash);
-    Task<bool> VerifyShiftPasswordAsync(string password);
 
     Task<IEnumerable<Order>> GetKitchenOrdersAsync();
     Task<ResultMessage> CompleteOrderAsync(int id);

@@ -51,7 +51,7 @@ public class ReportRepository : IReportRepository
 
                 var sales = await _context.Orders
                     .AsNoTracking()
-                    .Where(a => a.Cash && a.FinishShift && a.Bill.Date >= from && a.Bill.Date < end)
+                    .Where(a => a.Cash && a.Bill.Date >= from && a.Bill.Date < end)
                     .Where(a => !a.OnAccount)
                     .SumAsync(a => (decimal?)a.Bill.TotalBillAmountAfterDiscountAndExtra) ?? 0;
 
@@ -127,7 +127,6 @@ public class ReportRepository : IReportRepository
                 var lines = await _context.OrderMenuItems
                     .AsNoTracking()
                     .Where(a => a.Order.Cash
-                        && a.Order.FinishShift
                         && a.Order.Bill.Date >= from
                         && a.Order.Bill.Date < end)
                     .Select(a => new
@@ -139,7 +138,7 @@ public class ReportRepository : IReportRepository
 
                 var profitOrders = await _context.Orders
                     .AsNoTracking()
-                    .Where(a => a.Cash && a.FinishShift && a.Bill.Date >= from && a.Bill.Date < end)
+                    .Where(a => a.Cash && a.Bill.Date >= from && a.Bill.Date < end)
                     .Select(a => new
                     {
                         Discount = a.Bill.BillDiscountValue,
@@ -195,7 +194,7 @@ public class ReportRepository : IReportRepository
 
                 var query = _context.Orders
                     .AsNoTracking()
-                    .Where(a => a.Cash && a.FinishShift && a.Bill.Date >= from && a.Bill.Date < end)
+                    .Where(a => a.Cash && a.Bill.Date >= from && a.Bill.Date < end)
                     .Include(a => a.Seller)
                     .Include(a => a.Employee)
                     .AsQueryable();

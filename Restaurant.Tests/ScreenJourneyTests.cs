@@ -339,10 +339,8 @@ public class ScreenJourneyTests : IDisposable
         await Db.SaveChangesAsync();
         Db.ChangeTracker.Clear();
         var orders = _host.Controller<OrderController>();
-        orders.HttpContext.Session.SetString("IsAuthenticated", "true");
 
         Assert.IsType<ViewResult>(await orders.Upsert((int?)null, null));
-        Assert.IsType<ViewResult>(await orders.Index());
 
         OrderViewModel New(OrderType type, int? table, bool cash) => new() { Type = type, Cash = cash, TableId = table, Items = { new OrderItemViewModel { MenuItemId = dish.Id, Quantity = 1, Price = 60 } } };
         Redirects<RedirectToActionResult>(await orders.Upsert(New(OrderType.TakeAway, null, true)));

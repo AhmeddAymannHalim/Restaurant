@@ -696,6 +696,7 @@
   //inventory: stores, products, units
   "UnitPrices": "الوحدات",
   "NewUnitPrice": "اضافة وحدة جديدة",
+  "UnitValue": "القيمة",
   "UpdateUnitPrice": "تعديل وحدة",
   "ProductCategories": "تصنيفات المواد الخام",
   "NewProductCategory": "إضافة تصنيف مواد خام",

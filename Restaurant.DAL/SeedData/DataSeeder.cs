@@ -219,58 +219,6 @@ namespace Restaurant.DAL.SeedData
 
         }
 
-        public static async Task SeedUnitPrices(ApplicationDbContext context)
-        {
-            if (!context.UnitPrices.Any())
-            {
-                var units = new[]
-                {
-                    new UnitPrice
-                    {
-                        ArName = "كيلو",
-                        EnName = "Kilogram"
-                    },
-                    new UnitPrice
-                    {
-                        ArName = "جرام",
-                        EnName = "Gram"
-                    },
-                    new UnitPrice
-                    {
-                        ArName = "طن",
-                        EnName = "Ton"
-                    },
-                    new UnitPrice
-                    {
-                        ArName = "علبة",
-                        EnName = "Box"
-                    },
-                    new UnitPrice
-                    {
-                        ArName = "لتر",
-                        EnName = "Liter"
-                    },
-                    new UnitPrice
-                    {
-                        ArName = "كيس",
-                        EnName = "Bag"
-                    },
-                    new UnitPrice
-                    {
-                        ArName = "قطعة",
-                        EnName = "Piece"
-                    },
-                    new UnitPrice
-                    {
-                        ArName = "زجاجة",
-                        EnName = "Bottle"
-                    },
-                };
-                context.UnitPrices.AddRange(units);
-                await context.SaveChangesAsync();
-            }
-        }
-
         public static async Task SeedApplicationSettings(ApplicationDbContext context, string defaultPassword)
         {
             if (!context.ApplicationSettings.Any())

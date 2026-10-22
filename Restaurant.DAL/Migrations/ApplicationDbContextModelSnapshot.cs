@@ -4509,9 +4509,6 @@ namespace Restaurant.DAL.Migrations
                     b.Property<int?>("EmployeeId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("FinishShift")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("OnAccount")
                         .HasColumnType("bit");
 
@@ -4549,6 +4546,8 @@ namespace Restaurant.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Cash");
+
                     b.HasIndex("CustomerId");
 
                     b.HasIndex("DeliveryZoneId");
@@ -4563,8 +4562,6 @@ namespace Restaurant.DAL.Migrations
                     b.HasIndex("SellerId");
 
                     b.HasIndex("TableId");
-
-                    b.HasIndex("Cash", "FinishShift");
 
                     b.ToTable("Orders");
                 });
@@ -5193,44 +5190,6 @@ namespace Restaurant.DAL.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SellTypes");
-                });
-
-            modelBuilder.Entity("Restaurant.DAL.Models.ShiftCloseReport", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("ClosedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("CountedCash")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("ExpectedCash")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("HadIncompleteOrders")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<decimal>("Variance")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClosedAt");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ShiftCloseReports");
                 });
 
             modelBuilder.Entity("Restaurant.DAL.Models.Specialization", b =>
@@ -6143,6 +6102,10 @@ namespace Restaurant.DAL.Migrations
 
                     b.Property<string>("UpdatedById")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Value")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.HasKey("Id");
 
@@ -7545,15 +7508,6 @@ namespace Restaurant.DAL.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("Employee");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Restaurant.DAL.Models.ShiftCloseReport", b =>
-                {
-                    b.HasOne("Restaurant.DAL.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });

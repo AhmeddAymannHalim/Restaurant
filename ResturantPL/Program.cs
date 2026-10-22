@@ -245,7 +245,6 @@ using (var scope = app.Services.CreateScope())
     await DataSeeder.SeedCountries(dbContext);
     await DataSeeder.SeedGovs(dbContext);
     await DataSeeder.SeedTowns(dbContext);
-    await DataSeeder.SeedUnitPrices(dbContext);
     await DataSeeder.SeedApplicationSettings(dbContext, defaultPassword);
     await DataSeeder.SeedPrinterSettings(dbContext);
     await DataSeeder.SeedAdminRoleAndUsers(userManager, roleManager, defaultPassword != null, defaultPassword);

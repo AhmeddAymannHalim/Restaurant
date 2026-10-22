@@ -1,7 +1,6 @@
 @model DashboardViewModel
 @{
     var isArabic = LanguageHelper.IsArabic();
-    var shiftStarted = Context.Session.GetString("IsAuthenticated") == "true";
 
     string Age(DateTime from)
     {
@@ -26,30 +25,12 @@
 }
 
 <section class="ops-bar">
-    <span class="ops-shift @(shiftStarted ? "is-open" : "")">
-        <i aria-hidden="true"></i>
-        @L[shiftStarted ? "ShiftOpen" : "ShiftNotStarted"]
-    </span>
     <div class="ops-actions">
-        @if (shiftStarted)
-        {
-            <a class="btn-ad btn-ad-primary" asp-controller="Order" asp-action="Upsert"><i class="fas fa-plus" aria-hidden="true"></i> @L["NewOrder"]</a>
-            <a class="btn-ad btn-ad-ghost" asp-controller="Order" asp-action="Index"><i class="fas fa-flag-checkered" aria-hidden="true"></i> @L["ShiftSummary"]</a>
-        }
-        else
-        {
-            <a class="btn-ad btn-ad-primary" asp-controller="Shift" asp-action="Login"><i class="fas fa-play" aria-hidden="true"></i> @L["StartShift"]</a>
-        }
+        <a class="btn-ad btn-ad-primary" asp-controller="Order" asp-action="Upsert"><i class="fas fa-plus" aria-hidden="true"></i> @L["NewOrder"]</a>
     </div>
 </section>
 
 <div class="shift-totals">
-    <div class="shift-tile">
-        <i class="fas fa-sack-dollar shift-tile-icon" aria-hidden="true"></i>
-        <span>@L["ShiftSales"]</span>
-        <strong>@Model.ShiftSales.ToString("N2")</strong>
-        <small>@Model.ShiftOrders @L["Orders"]</small>
-    </div>
     <a class="shift-tile @(Model.InKitchen > 0 ? "shift-tile-warn" : "")" asp-controller="KitchenOrder" asp-action="Index">
         <i class="fas fa-fire-burner shift-tile-icon" aria-hidden="true"></i>
         <span>@L["KitchenQueue"]</span>

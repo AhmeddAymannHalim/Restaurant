@@ -282,20 +282,6 @@ public class CatalogRepositoriesTests : IDisposable
     }
 
     [Fact]
-    public async Task Orders_VerifyShiftPassword_UpgradesAPlainPassword()
-    {
-        _db.Context.ApplicationSettings.Add(new ApplicationSetting { Password = "1234" });
-        await _db.Context.SaveChangesAsync();
-        var orders = new OrderRepository(_db.Context);
-
-        Assert.False(await orders.VerifyShiftPasswordAsync("0000"));
-        Assert.True(await orders.VerifyShiftPasswordAsync("1234"));
-        _db.Context.ChangeTracker.Clear();
-        Assert.NotEqual("1234", (await _db.Context.ApplicationSettings.AsNoTracking().SingleAsync()).Password);
-        Assert.True(await orders.VerifyShiftPasswordAsync("1234"));
-    }
-
-    [Fact]
     public async Task PrinterSetting_SavesAndLoads()
     {
         var sut = new SettingRepository(_db.Context);

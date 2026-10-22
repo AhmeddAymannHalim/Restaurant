@@ -5,8 +5,6 @@ public class DashboardViewModel
     public string UserName { get; set; }
     public string UserImage { get; set; }
 
-    public int ShiftOrders { get; set; }
-    public decimal ShiftSales { get; set; }
     public int InKitchen { get; set; }
     public int AwaitingPayment { get; set; }
     public decimal AwaitingPaymentAmount { get; set; }

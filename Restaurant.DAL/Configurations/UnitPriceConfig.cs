@@ -13,5 +13,6 @@ public class UnitPriceConfig : IEntityTypeConfiguration<UnitPrice>
 
         builder.Property(a => a.ArName).IsRequired().HasMaxLength(100);
         builder.Property(a => a.EnName).IsRequired().HasMaxLength(100);
+        builder.Property(a => a.Value).HasPrecision(18, 4);
     }
 }

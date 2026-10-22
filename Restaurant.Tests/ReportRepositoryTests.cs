@@ -205,7 +205,7 @@ public class ReportRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task MoneySafe_SalesCountOnlyClosedShiftsAndNotOnAccountOrders()
+    public async Task MoneySafe_SalesCountPaidOrders()
     {
         var user = new ApplicationUser { UserName = "u", Email = "u@test.com" };
         var store = new Store { Code = "1", ArName = "S", EnName = "S" };
@@ -222,11 +222,6 @@ public class ReportRepositoryTests : IDisposable
         var request = Request("MoneySafe");
         request.FromDate = DateTime.Today;
         request.ToDate = DateTime.Today;
-
-        Assert.Equal(0, Row(await _sut.BuildAsync(request), "Sales"));
-
-        await orders.FinishShiftAsync(user.Id, 40);
-        await orders.CreateOrderAsync(Take(), user.Id);
         _db.Context.ChangeTracker.Clear();
 
         Assert.Equal(40, Row(await _sut.BuildAsync(request), "Sales"));
@@ -254,7 +249,6 @@ public class ReportRepositoryTests : IDisposable
         _db.Context.ChangeTracker.Clear();
         var orders = new OrderRepository(_db.Context);
         await orders.CreateOrderAsync(new Order { Type = OrderType.Hall, Cash = true, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 2 } } } }, user.Id);
-        await orders.FinishShiftAsync(user.Id, 0);
         _db.Context.ExitExpenses.Add(new ExitExpense { ExpenseId = expense.Id, Price = 30, Date = DateTime.Now, UserId = user.Id });
         await _db.Context.SaveChangesAsync();
         var request = Request("Profit");

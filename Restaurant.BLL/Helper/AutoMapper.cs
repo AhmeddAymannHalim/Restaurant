@@ -231,10 +231,6 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Product, opt => opt.Ignore())
             .ForMember(dest => dest.StoreConvert, opt => opt.Ignore());
 
-        CreateMap<Order, IncompleteCashOrderViewModel>()
-            .ForMember(dest => dest.TableArName, opt => opt.MapFrom(src => src.Table.ArName))
-            .ForMember(dest => dest.TableEnName, opt => opt.MapFrom(src => src.Table.EnName));
-
         CreateMap<Order, OrderViewModel>()
             .ForMember(dest => dest.SellerName, opt => opt.MapFrom(src => src.Seller.FullName))
             .ForMember(dest => dest.ReceiverName, opt => opt.MapFrom(src => src.Receiver.FullName))
