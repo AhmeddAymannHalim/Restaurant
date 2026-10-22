@@ -151,7 +151,7 @@
                     <button type="button" id="payNow" class="btn-ad btn-ad-primary"><i class="fas fa-money-bill-wave" aria-hidden="true"></i> @L["PayOrder"]</button>
                     <button type="submit" id="payLater" class="btn-ad btn-ad-ghost"><i class="fas fa-clock" aria-hidden="true"></i> @L["SaveUnpaid"]</button>
                     <button type="submit" id="payOnAccount" class="btn-ad btn-ad-ghost" hidden><i class="fas fa-user-tag" aria-hidden="true"></i> @L["ChargeToAccount"]</button>
-                    <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
+                    <a asp-controller="Dashboard" asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
                 </div>
             </section>
         </form>

@@ -10,7 +10,7 @@ using Shared.ViewModels.Definitions;
 
 namespace ResturantPL.Controllers
 {
-    [Authorize(Policy = "Management")]
+    [Authorize(Policy = "Admin")]
     public class AccountSettingController : Controller
     {
         private readonly IAccountSettingService _service;

@@ -12,7 +12,7 @@ using System.Drawing.Printing;
 
 namespace ResturantPL.Controllers
 {
-    [Authorize(Policy = "Management")]
+    [Authorize(Policy = "Admin")]
     public class ApplicationSettingController : Controller
     {
         private readonly ISettingService _service;

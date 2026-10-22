@@ -6103,10 +6103,6 @@ namespace Restaurant.DAL.Migrations
                     b.Property<string>("UpdatedById")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("Value")
-                        .HasPrecision(18, 4)
-                        .HasColumnType("decimal(18,4)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ArName")

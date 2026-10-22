@@ -280,6 +280,24 @@ namespace Restaurant.DAL.SeedData
                 await roleManager.CreateAsync(new IdentityRole("كاشير"));
             }
 
+            // sign-in is by e-mail, so the manager account is manager@gmail.com (Identity user names cannot hold Arabic letters)
+            if (await userManager.FindByEmailAsync("manager@gmail.com") == null)
+            {
+                var manager = new ApplicationUser
+                {
+                    FirstName = "المدير",
+                    LastName = "",
+                    UserName = "Manager",
+                    Email = "manager@gmail.com",
+                    UserType = "Admin",
+                    EmailConfirmed = true
+                };
+                if ((await userManager.CreateAsync(manager, "0")).Succeeded)
+                {
+                    await userManager.AddToRoleAsync(manager, "Admin");
+                }
+            }
+
             if (!seedDefaultUsers || string.IsNullOrEmpty(defaultPassword))
             {
                 return;

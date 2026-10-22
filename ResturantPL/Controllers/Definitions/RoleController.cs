@@ -10,7 +10,7 @@ using Shared.ViewModels.Definitions;
 
 namespace ResturantPL.Controllers.Definitions
 {
-    [Authorize(Policy = "Management")]
+    [Authorize(Policy = "Admin")]
     public class RoleController : Controller
     {
         private readonly IRoleService _service;

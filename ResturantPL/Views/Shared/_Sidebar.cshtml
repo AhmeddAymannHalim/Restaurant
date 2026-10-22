@@ -1,6 +1,7 @@
-@* @{
-    // var isManager = User.IsInRole("Admin") || User.IsInRole("Manager");
-} *@
+@{
+    var isManager = User.IsInRole("Admin") || User.IsInRole("Manager");
+    var isAdmin = User.IsInRole("Admin");
+}
 
 <div class="dash-scrim" data-side-close></div>
 
@@ -105,8 +106,8 @@
             </div>
         </section>
 
-   @*      @if (isManager)
-        { *@
+        @if (isManager)
+        {
             <section class="side-group">
                 <button type="button" class="side-parent" aria-expanded="false" aria-controls="side-reports" title="@L["GroupReports"]">
                     <i class="fas fa-chart-column" aria-hidden="true"></i>
@@ -160,7 +161,7 @@
                     </div>
                 </div>
             </section>
-        @* } *@
+        }
 
         <div class="side-section">@L["SectionDefinitions"]</div>
 
@@ -181,8 +182,8 @@
                     <a class="dash-side-link" asp-controller="Employee" asp-action="Index" title="@L["Employees"]">
                         <i class="fas fa-users" aria-hidden="true"></i><span>@L["Employees"]</span>
                     </a>
-                  @*   @if (isManager)
-                    { *@
+                    @if (isAdmin)
+                    {
                         <a class="dash-side-link" asp-controller="EmployeeAccount" asp-action="Index" title="@L["EmployeeAccounts"]">
                             <i class="fas fa-user-lock" aria-hidden="true"></i><span>@L["EmployeeAccounts"]</span>
                         </a>
@@ -192,7 +193,7 @@
                         <a class="dash-side-link" asp-controller="Role" asp-action="Index" title="@L["Roles"]">
                             <i class="fas fa-user-shield" aria-hidden="true"></i><span>@L["Roles"]</span>
                         </a>
-                    @* } *@
+                    }
                     <a class="dash-side-link" asp-controller="Specialization" asp-action="Index" title="@L["Specializations"]">
                         <i class="fas fa-user-graduate" aria-hidden="true"></i><span>@L["Specializations"]</span>
                     </a>
@@ -277,28 +278,31 @@
                     <a class="dash-side-link" asp-controller="Currency" asp-action="Index" title="@L["Currencies"]">
                         <i class="fas fa-money-bill" aria-hidden="true"></i><span>@L["Currencies"]</span>
                     </a>
-                @*     @if (isManager)
-                    { *@
+                    @if (isManager)
+                    {
                         <a class="dash-side-link" asp-controller="ChartAccount" asp-action="Index" title="@L["ChartOfAccounts"]">
                             <i class="fas fa-sitemap" aria-hidden="true"></i><span>@L["ChartOfAccounts"]</span>
-                        </a>
-                        <a class="dash-side-link" asp-controller="AccountSetting" asp-action="Index" title="@L["AccountSettings"]">
-                            <i class="fas fa-sliders" aria-hidden="true"></i><span>@L["AccountSettings"]</span>
                         </a>
                         <a class="dash-side-link" asp-controller="Asset" asp-action="Index" title="@L["Assets"]">
                             <i class="fas fa-building-columns" aria-hidden="true"></i><span>@L["Assets"]</span>
                         </a>
-                    @* } *@
+                    }
+                    @if (isAdmin)
+                    {
+                        <a class="dash-side-link" asp-controller="AccountSetting" asp-action="Index" title="@L["AccountSettings"]">
+                            <i class="fas fa-sliders" aria-hidden="true"></i><span>@L["AccountSettings"]</span>
+                        </a>
+                    }
                 </div>
             </div>
         </section>
 
-     @*    @if (isManager)
-        { *@
+        @if (isAdmin)
+        {
             <a class="dash-side-link" asp-controller="ApplicationSetting" asp-action="Index" title="@L["Settings"]">
                 <i class="fas fa-gear" aria-hidden="true"></i><span>@L["Settings"]</span>
             </a>
-        @* } *@
+        }
         <a class="dash-side-link is-exit" asp-controller="Account" asp-action="SignOut" title="@L["SignOut"]">
             <i class="fas fa-right-from-bracket" aria-hidden="true"></i><span>@L["SignOut"]</span>
         </a>

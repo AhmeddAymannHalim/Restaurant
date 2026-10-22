@@ -27,11 +27,6 @@
                 <input asp-for="EnName" class="form-control" />
                 <span asp-validation-for="EnName" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Value" class="control-label">@L["UnitValue"]</label>
-                <input asp-for="Value" type="number" step="any" min="0" class="form-control" />
-                <span asp-validation-for="Value" class="text-danger"></span>
-            </div>
 
             <div class="ad-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
