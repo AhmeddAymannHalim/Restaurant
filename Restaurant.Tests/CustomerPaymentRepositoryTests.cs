@@ -196,6 +196,47 @@ public class CustomerPaymentRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task Upsert_Edit_MovingThePaymentToAnotherInvoice_FreesTheFirstInvoice()
+    {
+        var (customer, first) = await Seed();
+        var second = new BillMaster { Code = "B2", Date = DateTime.Today, TotalBillAmountAfterDiscountAndExtra = 400, CasherRemainingAmount = 400, CustomerOrSupplierAccount = customer.Account };
+        _db.Context.BillMasters.Add(second);
+        await _db.Context.SaveChangesAsync();
+        var payment = Payment(customer, first, 200);
+        await _sut.UpsertPaymentAsync(payment);
+        _db.Context.ChangeTracker.Clear();
+
+        var edit = Payment(customer, second, 200);
+        edit.Id = payment.Id;
+        var result = await _sut.UpsertPaymentAsync(edit);
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(0, (await Bill(first)).AmountPaided);
+        Assert.Equal(500, (await Bill(first)).CasherRemainingAmount);
+        Assert.Equal(200, (await Bill(second)).AmountPaided);
+        Assert.Equal(200, (await Bill(second)).CasherRemainingAmount);
+        Assert.Equal(800, await Balance(customer));
+    }
+
+    [Fact]
+    public async Task GetRefundsForPayment_ListsOnlyThatPaymentsRefunds()
+    {
+        var userId = await SeedUser();
+        var (customer, bill) = await Seed();
+        var first = Payment(customer, bill, 200);
+        var other = Payment(customer, bill, 100);
+        await _sut.UpsertPaymentAsync(first);
+        await _sut.UpsertPaymentAsync(other);
+        await _sut.RequestRefundAsync(new PaymentRefund { Reason = "r", OriginalPaymentId = first.Id, Amount = 50 }, userId);
+        await _sut.RequestRefundAsync(new PaymentRefund { Reason = "r", OriginalPaymentId = other.Id, Amount = 10 }, userId);
+
+        var refunds = (await _sut.GetRefundsForPaymentAsync(first.Id)).ToList();
+
+        Assert.Equal(50, Assert.Single(refunds).Amount);
+        Assert.Empty(await _sut.GetRefundsForPaymentAsync(999));
+    }
+
+    [Fact]
     public async Task Delete_Unknown_IsSuccess()
     {
         Assert.True((await _sut.DeletePaymentAsync(404)).Success);
