@@ -86,6 +86,25 @@ public class InvoiceRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task SecondUnitOfTheSameProduct_IsNotAnotherDefaultUnit()
+    {
+        await Seed();
+        var secondUnit = new UnitPrice { Code = "2", ArName = "Box", EnName = "Box" };
+        _db.Context.Add(secondUnit);
+        await _db.Context.SaveChangesAsync();
+
+        await _sut.UpsertInvoiceAsync(Invoice(InvoiceType.Purchases, 10, 7, paid: 70));
+        var second = Invoice(InvoiceType.Purchases, 5, 7, paid: 35);
+        second.Items[0].UnitPriceId = secondUnit.Id;
+        var result = await _sut.UpsertInvoiceAsync(second);
+
+        Assert.True(result.Success, result.Message);
+        var itemUnits = await _db.Context.ItemUnits.AsNoTracking().ToListAsync();
+        Assert.True(itemUnits.Count >= 2);
+        Assert.Single(itemUnits, a => a.IsDefault);
+    }
+
+    [Fact]
     public async Task Purchase_OnCredit_IncreasesWhatWeOweTheSupplier()
     {
         await Seed();

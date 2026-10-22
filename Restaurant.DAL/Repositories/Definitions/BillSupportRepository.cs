@@ -296,7 +296,10 @@ public class BillSupportRepository : IBillSupportRepository
             || _context.ItemUnits.Local.Any(a => a.ItemId == itemId && a.UnitId == unitId);
         if (!hasUnit)
         {
-            await _context.ItemUnits.AddAsync(new ItemUnit { ItemId = itemId, UnitId = unitId, TransRate = 1, IsDefault = true, CreatedAt = DateTime.Now });
+            // only the first unit of an item is its default
+            var hasAnyUnit = await _context.ItemUnits.AnyAsync(a => a.ItemId == itemId)
+                || _context.ItemUnits.Local.Any(a => a.ItemId == itemId);
+            await _context.ItemUnits.AddAsync(new ItemUnit { ItemId = itemId, UnitId = unitId, TransRate = 1, IsDefault = !hasAnyUnit, CreatedAt = DateTime.Now });
         }
     }
 
