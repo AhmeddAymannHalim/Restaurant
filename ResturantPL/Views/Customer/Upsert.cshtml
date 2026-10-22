@@ -4,23 +4,23 @@
     ViewBag.Title = isNew ? L["NewCustomer"].Value : L["UpdateCustomer"].Value;
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-user-tag" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-user-tag" aria-hidden="true"></i></span>
         <h1>@ViewBag.Title</h1>
     </div>
-    <div class="ad-card-body">
-        <form asp-action="Upsert" method="post" enctype="multipart/form-data" class="ad-form">
+    <div class="bo-card-body">
+        <form asp-action="Upsert" method="post" enctype="multipart/form-data" class="bo-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="AccountId" />
-            <ul class="nav emp-tabs ad-full" role="tablist">
+            <ul class="nav emp-tabs bo-full" role="tablist">
                 <li class="nav-item" role="presentation"><button type="button" class="emp-tab active" id="tab-Basic" data-bs-toggle="tab" data-bs-target="#pane-Basic" role="tab" aria-controls="pane-Basic" aria-selected="true"><i class="fas fa-id-card" aria-hidden="true"></i> @L["Cus.Tab.Basic"]</button></li>
                 <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Identity" data-bs-toggle="tab" data-bs-target="#pane-Identity" role="tab" aria-controls="pane-Identity" aria-selected="false"><i class="fas fa-passport" aria-hidden="true"></i> @L["Cus.Tab.Identity"]</button></li>
                 <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Credit" data-bs-toggle="tab" data-bs-target="#pane-Credit" role="tab" aria-controls="pane-Credit" aria-selected="false"><i class="fas fa-credit-card" aria-hidden="true"></i> @L["Cus.Tab.Credit"]</button></li>
                 <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Org" data-bs-toggle="tab" data-bs-target="#pane-Org" role="tab" aria-controls="pane-Org" aria-selected="false"><i class="fas fa-sitemap" aria-hidden="true"></i> @L["Cus.Tab.Org"]</button></li>
             </ul>
-            <div class="tab-content ad-full">
+            <div class="tab-content bo-full">
             <div class="tab-pane fade show active emp-pane" id="pane-Basic" role="tabpanel" aria-labelledby="tab-Basic" tabindex="0">
             <div class="form-group">
                 <label asp-for="ArName" class="control-label">@L["ArabicName"]</label>
@@ -65,12 +65,12 @@
                 <input asp-for="PhoneNumber" class="form-control" />
                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
-            <fieldset class="form-group ad-full ad-phones" data-row-list data-prefix="Phones">
+            <fieldset class="form-group bo-full bo-phones" data-row-list data-prefix="Phones">
                 <legend class="control-label">@L["Emp.MoreMobiles"]</legend>
-                <div class="ad-phone-grid" data-rows>
+                <div class="bo-phone-grid" data-rows>
                     @for (var i = 0; i < Model.Phones.Count; i++)
                     {
-                        <div class="ad-phone" data-row>
+                        <div class="bo-phone" data-row>
                             <input type="hidden" name="Phones[@i].Id" value="@Model.Phones[i].Id" />
                             <div class="input-group">
                                 <input type="text" name="Phones[@i].PhoneNumber" value="@Model.Phones[i].PhoneNumber" class="form-control" maxlength="20" />
@@ -83,7 +83,7 @@
                 @Html.ValidationMessage("Phones", new { @class = "text-danger d-block" })
                 <button type="button" class="btn-ad btn-ad-ghost" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["Emp.AddMobile"]</button>
                 <template data-row-template>
-                    <div class="ad-phone" data-row>
+                    <div class="bo-phone" data-row>
                         <input type="hidden" name="Phones[__i__].Id" value="0" />
                         <div class="input-group">
                             <input type="text" name="Phones[__i__].PhoneNumber" class="form-control" maxlength="20" />
@@ -94,7 +94,7 @@
             </fieldset>
             @if (!isNew && Model.InvoiceCount > 0)
             {
-                <div class="alert alert-warning ad-full" role="alert"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> @string.Format(L["BalanceHasInvoices"].Value, Model.InvoiceCount)</div>
+                <div class="alert alert-warning bo-full" role="alert"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> @string.Format(L["BalanceHasInvoices"].Value, Model.InvoiceCount)</div>
             }
             <div class="form-group">
                 <label asp-for="Debit" class="control-label">@L["Debit"]</label>
@@ -107,9 +107,9 @@
                 <span asp-validation-for="Credit" class="text-danger"></span>
             </div>
 
-            <div class="ad-section ad-full">
-                <h2 class="ad-section-title">@L["Cus.Section.Contact"]</h2>
-                <div class="ad-section-grid">
+            <div class="bo-section bo-full">
+                <h2 class="bo-section-title">@L["Cus.Section.Contact"]</h2>
+                <div class="bo-section-grid">
                 <div class="form-group">
                     <label asp-for="Email" class="control-label">@L["Cus.Email"]</label>
                     <input asp-for="Email" class="form-control" />
@@ -155,9 +155,9 @@
             </div>
             <div class="tab-pane fade emp-pane" id="pane-Identity" role="tabpanel" aria-labelledby="tab-Identity" tabindex="0">
 
-            <div class="ad-section ad-full">
-                <h2 class="ad-section-title">@L["Cus.Section.Identity"]</h2>
-                <div class="ad-section-grid">
+            <div class="bo-section bo-full">
+                <h2 class="bo-section-title">@L["Cus.Section.Identity"]</h2>
+                <div class="bo-section-grid">
                 <div class="form-group">
                     <label asp-for="IDNumber" class="control-label">@L["Cus.IDNumber"]</label>
                     <input asp-for="IDNumber" class="form-control" />
@@ -204,9 +204,9 @@
                 </div>
             </div>
 
-            <div class="ad-section ad-full">
-                <h2 class="ad-section-title">@L["Cus.Section.Other"]</h2>
-                <div class="ad-section-grid">
+            <div class="bo-section bo-full">
+                <h2 class="bo-section-title">@L["Cus.Section.Other"]</h2>
+                <div class="bo-section-grid">
                 <div class="form-group">
                     <label asp-for="ImageFile" class="control-label">@L["Cus.ImageUrl"]</label>
                     <input type="hidden" asp-for="ImageUrl" />
@@ -227,9 +227,9 @@
             </div>
             <div class="tab-pane fade emp-pane" id="pane-Credit" role="tabpanel" aria-labelledby="tab-Credit" tabindex="0">
 
-            <div class="ad-section ad-full">
-                <h2 class="ad-section-title">@L["Cus.Section.Credit"]</h2>
-                <div class="ad-section-grid">
+            <div class="bo-section bo-full">
+                <h2 class="bo-section-title">@L["Cus.Section.Credit"]</h2>
+                <div class="bo-section-grid">
                 <div class="form-group">
                     <label asp-for="CustomerType" class="control-label">@L["Cus.CustomerType"]</label>
                     <select asp-for="CustomerType" asp-items="Html.GetLocalizedEnumSelectList<CustomerType>(L)" class="form-control"></select>
@@ -285,9 +285,9 @@
                 </div>
             </div>
 
-            <div class="ad-section ad-full">
-                <h2 class="ad-section-title">@L["Cus.Section.Loyalty"]</h2>
-                <div class="ad-section-grid">
+            <div class="bo-section bo-full">
+                <h2 class="bo-section-title">@L["Cus.Section.Loyalty"]</h2>
+                <div class="bo-section-grid">
                 <div class="form-group">
                     <label asp-for="BarCodeNumeric" class="control-label">@L["Cus.BarCodeNumeric"]</label>
                     <input asp-for="BarCodeNumeric" class="form-control" />
@@ -308,9 +308,9 @@
             </div>
             <div class="tab-pane fade emp-pane" id="pane-Org" role="tabpanel" aria-labelledby="tab-Org" tabindex="0">
 
-            <div class="ad-section ad-full" data-fk-selects>
-                <h2 class="ad-section-title">@L["Cus.Section.Org"]</h2>
-                <div class="ad-section-grid">
+            <div class="bo-section bo-full" data-fk-selects>
+                <h2 class="bo-section-title">@L["Cus.Section.Org"]</h2>
+                <div class="bo-section-grid">
                 <div class="form-group">
                     <label asp-for="SellTypeId" class="control-label">@L["Cus.SellTypeId"]</label>
                     <select asp-for="SellTypeId" class="form-control">
@@ -371,7 +371,7 @@
             </div>
             </div>
 
-            <div class="ad-form-actions">
+            <div class="bo-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
                 <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
             @if (!isNew && !Model.HasBalance)

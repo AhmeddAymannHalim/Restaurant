@@ -161,7 +161,7 @@
 .pay.is-busy .pay-foot, .pay.is-busy .pay-methods, .pay.is-busy .pay-x { opacity: .35; pointer-events: none; }
 
 /* leaving the screen after a successful payment */
-.ad-card.is-leaving { animation: payLeave .38s ease-in forwards; }
+.bo-card.is-leaving { animation: payLeave .38s ease-in forwards; }
 
 @keyframes payDown { from { opacity: 0; transform: translateY(calc(-100% - 2rem)); } to { opacity: 1; transform: none; } }
 @keyframes payUp { to { opacity: 0; transform: translateY(calc(-100% - 2rem)); } }
@@ -173,14 +173,14 @@
 @keyframes payLeave { to { opacity: 0; transform: translateX(-48px) scale(.98); } }
 
 @media (prefers-reduced-motion: reduce) {
-    .pay, .pay.is-closing, .pay-pane, .ad-card.is-leaving, .pay-check { animation-duration: .01s !important; }
+    .pay, .pay.is-closing, .pay-pane, .bo-card.is-leaving, .pay-check { animation-duration: .01s !important; }
     .pay-spin { animation-duration: 1.6s; }
 }
 
 /* In Arabic the menu rail is on the right, so the drawer opens beside it instead of on top of it. */
 [dir="rtl"] .pay { inset-inline-start: calc(var(--rail-open, 264px) + 1rem); }
 [dir="rtl"] body.side-shut .pay, body.side-shut[dir="rtl"] .pay, [dir="rtl"] .side-shut .pay { inset-inline-start: calc(var(--rail-shut, 76px) + 1rem); }
-[dir="rtl"] .ad-card.is-leaving { animation-name: payLeaveRtl; }
+[dir="rtl"] .bo-card.is-leaving { animation-name: payLeaveRtl; }
 @keyframes payLeaveRtl { to { opacity: 0; transform: translateX(48px) scale(.98); } }
 
 @media (max-width: 900px) {

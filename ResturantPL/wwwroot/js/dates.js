@@ -24,14 +24,14 @@
         input.dataset.dateUpgraded = "1";
 
         var wrap = document.createElement("span");
-        wrap.className = "ad-date" + (input.classList.contains("w-auto") ? " w-auto" : "");
+        wrap.className = "bo-date" + (input.classList.contains("w-auto") ? " w-auto" : "");
         var label = document.createElement("span");
-        label.className = "ad-date-text form-control";
+        label.className = "bo-date-text form-control";
         label.setAttribute("aria-hidden", "true");
         input.parentNode.insertBefore(wrap, input);
         wrap.appendChild(label);
         wrap.appendChild(input);
-        input.classList.add("ad-date-input");
+        input.classList.add("bo-date-input");
 
         var refresh = function () { render(input, label); };
         input.addEventListener("input", refresh);

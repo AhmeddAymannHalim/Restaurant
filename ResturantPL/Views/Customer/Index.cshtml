@@ -4,25 +4,25 @@
     bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-user-tag" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-user-tag" aria-hidden="true"></i></span>
         <h1>@L["Customers"]</h1>
         <a asp-action="Upsert" class="btn-ad btn-ad-primary"><i class="fas fa-plus" aria-hidden="true"></i> @L["NewCustomer"]</a>
     </div>
-    <div class="ad-card-body">
-        <form asp-action="Index" method="get" class="ad-filters">
-            <div class="ad-search">
+    <div class="bo-card-body">
+        <form asp-action="Index" method="get" class="bo-filters">
+            <div class="bo-search">
                 <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
                 <input id="Customer-search" type="search" class="form-control" name="searchString" value="@Model.SearchString" placeholder="@L["SearchHere"]" />
             </div>
             <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-magnifying-glass" aria-hidden="true"></i> @L["Search"]</button>
-            <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
+            <span class="bo-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
         </form>
 
 @await Html.PartialAsync("_TableExportToolbar", "Customer-table")
-        <div class="ad-table-wrap">
-        <table id="Customer-table" class="ad-table">
+        <div class="bo-table-wrap">
+        <table id="Customer-table" class="bo-table">
     <thead>
         <tr>
             <th>#</th>
@@ -49,7 +49,7 @@
                     <td>@item.PhoneNumber</td>
                     <td class="num">@(item.Debit == 0 ? "-" : item.Debit.ToString("N2"))</td>
                     <td class="num">@(item.Credit == 0 ? "-" : item.Credit.ToString("N2"))</td>
-                    <td class="ad-row-actions">
+                    <td class="bo-row-actions">
                         <a asp-action="Upsert" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Edit"]" aria-label="@L["Edit"]"><i class="fas fa-pen" aria-hidden="true"></i></a>
                         <button type="button" onclick="Delete('/Customer/Delete/@item.Id')" class="btn-ad btn-ad-danger btn-icon" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button>
                     </td>
@@ -60,7 +60,7 @@
         else
         {
             <tr>
-                <td colspan="8" class="ad-empty">@L["NoData"]</td>
+                <td colspan="8" class="bo-empty">@L["NoData"]</td>
             </tr>
         }
     </tbody>

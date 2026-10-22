@@ -4,9 +4,9 @@
     var isArabic = LanguageHelper.IsArabic();
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-book" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-book" aria-hidden="true"></i></span>
         <h1>@L["Bill.Entry"] #@Model.Code</h1>
         @if (Model.BillId.HasValue)
         {
@@ -18,20 +18,20 @@
         }
         <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
     </div>
-    <div class="ad-card-body">
-        <div class="ad-form">
+    <div class="bo-card-body">
+        <div class="bo-form">
             <div class="form-group"><label>@L["Bill.EntryType"]</label><div class="form-control">@(isArabic ? Model.SettingArName : Model.SettingEnName)</div></div>
             <div class="form-group"><label>@L["InvoiceDate"]</label><div class="form-control">@Model.EntryDate.ToString("yyyy-MM-dd HH:mm")</div></div>
             <div class="form-group"><label>@L["Bill.Total"]</label><div class="form-control">@Model.Total.ToString("N2")</div></div>
             <div class="form-group"><label>@L["Bill.Entry"]</label><div class="form-control">@(Model.IsPosted ? L["Bill.Posted"] : L["Bill.NotPosted"])</div></div>
             @if (!string.IsNullOrEmpty(Model.Remarks))
             {
-                <div class="form-group ad-full"><label>@L["Bill.Remarks"]</label><div class="form-control">@Model.Remarks</div></div>
+                <div class="form-group bo-full"><label>@L["Bill.Remarks"]</label><div class="form-control">@Model.Remarks</div></div>
             }
         </div>
 
-        <div class="ad-table-wrap">
-            <table class="ad-table">
+        <div class="bo-table-wrap">
+            <table class="bo-table">
                 <thead>
                     <tr>
                         <th>#</th>

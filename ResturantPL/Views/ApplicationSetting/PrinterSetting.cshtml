@@ -3,13 +3,13 @@
     ViewBag.Title = L["Setting_PrinterTitle"].Value;
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-print" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-print" aria-hidden="true"></i></span>
         <h1>@L["Setting_PrinterTitle"]</h1>
     </div>
-    <div class="ad-card-body">
-<form asp-action="PrinterSetting" method="post" class="ad-form">
+    <div class="bo-card-body">
+<form asp-action="PrinterSetting" method="post" class="bo-form">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <input type="hidden" asp-for="Id" />
 
@@ -47,7 +47,7 @@
         <span asp-validation-for="PrinterForEachSection" class="text-danger"></span>
     </div>
 
-    <div class="ad-form-actions">
+    <div class="bo-form-actions">
         <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
         <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Setting_Back"]</a>
     </div>

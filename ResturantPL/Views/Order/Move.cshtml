@@ -5,13 +5,13 @@
     var tables = (IEnumerable<LookupItem>)ViewBag.Tables;
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-right-left" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-right-left" aria-hidden="true"></i></span>
         <h1>@ViewBag.Title <small>@Model.OrderCode</small></h1>
     </div>
-    <div class="ad-card-body">
-        <form asp-action="Move" method="post" class="ad-form">
+    <div class="bo-card-body">
+        <form asp-action="Move" method="post" class="bo-form">
             <input type="hidden" name="Id" value="@Model.Id" />
 
             <div class="form-group">
@@ -35,7 +35,7 @@
                 </select>
             </div>
 
-            <div class="ad-form-actions">
+            <div class="bo-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
                 <a asp-action="List" asp-route-status="pending" class="btn-ad btn-ad-ghost">@L["Back"]</a>
             </div>

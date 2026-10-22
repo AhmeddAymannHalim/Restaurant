@@ -5,13 +5,13 @@
     var invariant = CultureInfo.InvariantCulture;
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-rotate-left" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-rotate-left" aria-hidden="true"></i></span>
         <h1>@L["SupplierRefunds"] <small>@Model.OriginalPaymentCode</small></h1>
         <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
     </div>
-    <div class="ad-card-body">
+    <div class="bo-card-body">
         <div class="shift-totals">
             <div class="shift-tile">
                 <span>@L["Paid"]</span>
@@ -23,8 +23,8 @@
             </div>
         </div>
 
-        <div class="ad-table-wrap">
-            <table class="ad-table">
+        <div class="bo-table-wrap">
+            <table class="bo-table">
                 <thead>
                     <tr>
                         <th>@L["Amount"]</th>
@@ -43,7 +43,7 @@
                     @if (!Model.Refunds.Any())
                     {
                         <tr>
-                            <td colspan="7" class="ad-empty">@L["NoData"]</td>
+                            <td colspan="7" class="bo-empty">@L["NoData"]</td>
                         </tr>
                     }
                     else
@@ -59,7 +59,7 @@
                                 <td>@L["RefundStatus." + refund.Status]</td>
                                 @if (isManager)
                                 {
-                                    <td class="ad-row-actions">
+                                    <td class="bo-row-actions">
                                         @if (refund.Status == RefundStatus.Pending)
                                         {
                                             <form asp-action="ApproveRefund" method="post" class="d-inline">
@@ -85,7 +85,7 @@
         @if (Model.RemainingRefundable > 0)
         {
             <h2 class="mt-3">@L["RequestRefund"]</h2>
-            <form asp-action="RequestRefund" method="post" class="ad-form">
+            <form asp-action="RequestRefund" method="post" class="bo-form">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <input type="hidden" asp-for="OriginalPaymentId" />
 
@@ -94,13 +94,13 @@
                     <input asp-for="Amount" type="number" step="any" min="0.01" max="@Model.RemainingRefundable.ToString(invariant)" class="form-control" />
                     <span asp-validation-for="Amount" class="text-danger"></span>
                 </div>
-                <div class="form-group ad-full">
+                <div class="form-group bo-full">
                     <label asp-for="Reason" class="control-label">@L["Reason"]</label>
                     <input asp-for="Reason" class="form-control" />
                     <span asp-validation-for="Reason" class="text-danger"></span>
                 </div>
 
-                <div class="ad-form-actions">
+                <div class="bo-form-actions">
                     <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
                 </div>
             </form>

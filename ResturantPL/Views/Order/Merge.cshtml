@@ -5,13 +5,13 @@
     var tables = (IEnumerable<LookupItem>)ViewBag.Tables;
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-code-merge" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-code-merge" aria-hidden="true"></i></span>
         <h1>@ViewBag.Title <small>@Model.OrderCode</small></h1>
     </div>
-    <div class="ad-card-body">
-        <form asp-action="Merge" method="post" class="ad-form">
+    <div class="bo-card-body">
+        <form asp-action="Merge" method="post" class="bo-form">
             <input type="hidden" name="Id" value="@Model.Id" />
 
             <div class="form-group">
@@ -25,9 +25,9 @@
                 </select>
             </div>
 
-            <div class="ad-full">
-                <div class="ad-table-wrap">
-                    <table class="ad-table">
+            <div class="bo-full">
+                <div class="bo-table-wrap">
+                    <table class="bo-table">
                         <thead>
                             <tr><th>@L["Product"]</th><th>@L["Quantity"]</th><th>@L["Price"]</th></tr>
                         </thead>
@@ -45,7 +45,7 @@
                 </div>
             </div>
 
-            <div class="ad-form-actions">
+            <div class="bo-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-code-merge" aria-hidden="true"></i> @L["MergeOrder"]</button>
                 <a asp-action="List" asp-route-status="pending" class="btn-ad btn-ad-ghost">@L["Back"]</a>
             </div>

@@ -6,14 +6,14 @@
     var invariant = CultureInfo.InvariantCulture;
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-arrow-right-arrow-left" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-arrow-right-arrow-left" aria-hidden="true"></i></span>
         <h1>@L["StockMovements"]</h1>
     </div>
-    <div class="ad-card-body">
-        <form asp-action="Index" method="get" class="ad-filters">
-            <div class="ad-search">
+    <div class="bo-card-body">
+        <form asp-action="Index" method="get" class="bo-filters">
+            <div class="bo-search">
                 <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
                 <input id="StockMovement-search" type="search" class="form-control" name="searchString" value="@result.SearchString" placeholder="@L["SearchHere"]" />
             </div>
@@ -41,12 +41,12 @@
             <input type="date" name="fromDate" class="form-control w-auto" value="@result.FromDate?.ToString("yyyy-MM-dd")" aria-label="@L["From"]" title="@L["From"]" />
             <input type="date" name="toDate" class="form-control w-auto" value="@result.ToDate?.ToString("yyyy-MM-dd")" aria-label="@L["To"]" title="@L["To"]" />
             <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-magnifying-glass" aria-hidden="true"></i> @L["Search"]</button>
-            <span class="ad-meta">@L["TotalRecords"]: @result.TotalRecords</span>
+            <span class="bo-meta">@L["TotalRecords"]: @result.TotalRecords</span>
         </form>
 
         @await Html.PartialAsync("_TableExportToolbar", "StockMovement-table")
-        <div class="ad-table-wrap">
-            <table id="StockMovement-table" class="ad-table">
+        <div class="bo-table-wrap">
+            <table id="StockMovement-table" class="bo-table">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -79,7 +79,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="7" class="ad-empty">@L["NoData"]</td>
+                            <td colspan="7" class="bo-empty">@L["NoData"]</td>
                         </tr>
                     }
                 </tbody>

@@ -6,17 +6,17 @@
     var invariant = CultureInfo.InvariantCulture;
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-right-left" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-right-left" aria-hidden="true"></i></span>
         <h1>@ViewBag.Title <small>@Model.ConvertCode</small></h1>
         @if (!isNew)
         {
             <a asp-action="Pdf" asp-route-id="@Model.Id" data-no-loader class="btn-ad btn-ad-ghost"><i class="fas fa-print" aria-hidden="true"></i> @L["Print"]</a>
         }
     </div>
-    <div class="ad-card-body">
-        <form id="convertForm" asp-action="Upsert" method="post" class="ad-form">
+    <div class="bo-card-body">
+        <form id="convertForm" asp-action="Upsert" method="post" class="bo-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
 
@@ -49,7 +49,7 @@
 
             @if (isNew)
             {
-                <div class="ad-full ad-lines-picker">
+                <div class="bo-full bo-lines-picker">
                     <div class="form-group">
                         <label class="control-label">@L["ProductCategory"]</label>
                         <select id="categoryList" class="form-select">
@@ -79,9 +79,9 @@
                 </div>
             }
 
-            <div class="ad-full">
-                <div class="ad-table-wrap">
-                    <table id="linesTable" class="ad-table">
+            <div class="bo-full">
+                <div class="bo-table-wrap">
+                    <table id="linesTable" class="bo-table">
                         <thead>
                             <tr>
                                 <th>@L["Product"]</th>
@@ -106,7 +106,7 @@
                 <span asp-validation-for="Items" class="text-danger"></span>
             </div>
 
-            <div class="ad-form-actions">
+            <div class="bo-form-actions">
                 @if (isNew)
                 {
                     <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
@@ -194,7 +194,7 @@
                         $('<tr>').attr({ 'data-product': productId, 'data-qty': qty })
                             .append($('<td>').text($('#productList option:selected').text()))
                             .append($('<td class="num">').text(qty))
-                            .append($('<td class="ad-row-actions">').append($('<button type="button" class="btn-ad btn-ad-danger btn-icon removeLine"><i class="fas fa-trash" aria-hidden="true"></i></button>'))));
+                            .append($('<td class="bo-row-actions">').append($('<button type="button" class="btn-ad btn-ad-danger btn-icon removeLine"><i class="fas fa-trash" aria-hidden="true"></i></button>'))));
                     $('#productList').trigger('change');
                 });
 

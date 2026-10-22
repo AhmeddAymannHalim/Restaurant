@@ -3,13 +3,13 @@
     ViewBag.Title = L["Dashboard"].Value;
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-gauge-high" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-gauge-high" aria-hidden="true"></i></span>
         <h1>@L["Welcome"] @Model.UserName</h1>
         <span class="dash-live" id="dashLive" data-state="connecting"><i aria-hidden="true"></i><b>@L["Live"]</b></span>
     </div>
-    <div class="ad-card-body" id="board">
+    <div class="bo-card-body" id="board">
         <partial name="_Board" model="Model" />
     </div>
 </div>

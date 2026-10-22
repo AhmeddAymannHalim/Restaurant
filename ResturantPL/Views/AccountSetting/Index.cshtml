@@ -4,17 +4,17 @@
     var accounts = new SelectList(Model.Accounts, "Id", LanguageHelper.IsArabic() ? "ArName" : "EnName", null);
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-sliders" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-sliders" aria-hidden="true"></i></span>
         <h1>@L["AccSet_Title"]</h1>
     </div>
-    <div class="ad-card-body">
+    <div class="bo-card-body">
         <p>@L["AccSet_Help"]</p>
-        <form asp-action="Index" method="post" class="ad-form">
+        <form asp-action="Index" method="post" class="bo-form">
             <input type="hidden" asp-for="Id" />
 
-            <fieldset class="ad-full">
+            <fieldset class="bo-full">
                 <legend class="control-label">@L["AccSet_Parents"]</legend>
             </fieldset>
             <div class="form-group">
@@ -46,7 +46,7 @@
                 <select asp-for="ParentFixedAssetsId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
             </div>
 
-            <fieldset class="ad-full">
+            <fieldset class="bo-full">
                 <legend class="control-label">@L["AccSet_Invoices"]</legend>
             </fieldset>
             <div class="form-group">
@@ -82,7 +82,7 @@
                 <select asp-for="PurchaseReturnPayAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
             </div>
 
-            <fieldset class="ad-full">
+            <fieldset class="bo-full">
                 <legend class="control-label">@L["AccSet_Vouchers"]</legend>
             </fieldset>
             <div class="form-group">
@@ -110,7 +110,7 @@
                 <select asp-for="SupplierOpeningBalanceAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
             </div>
 
-            <div class="ad-form-actions">
+            <div class="bo-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Setting_Update"]</button>
                 <a asp-controller="ApplicationSetting" asp-action="Index" class="btn-ad btn-ad-ghost">@L["Setting_Back"]</a>
             </div>

@@ -5,9 +5,9 @@
     var invariant = CultureInfo.InvariantCulture;
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-file-invoice" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-file-invoice" aria-hidden="true"></i></span>
         <h1>@ViewBag.Title <small>@Model.InvoiceCode</small></h1>
         <a asp-action="Index" asp-route-unpaidOnly="true" class="btn-ad btn-ad-ghost"><i class="fas fa-hourglass-half" aria-hidden="true"></i> @L["UnpaidInvoices"]</a>
         @if (!isNew)
@@ -15,8 +15,8 @@
             <a asp-action="Pdf" asp-route-id="@Model.Id" data-no-loader class="btn-ad btn-ad-ghost"><i class="fas fa-print" aria-hidden="true"></i> @L["Print"]</a>
         }
     </div>
-    <div class="ad-card-body">
-        <form id="invoiceForm" asp-action="Upsert" method="post" class="ad-form">
+    <div class="bo-card-body">
+        <form id="invoiceForm" asp-action="Upsert" method="post" class="bo-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
 
@@ -112,7 +112,7 @@
                 <span asp-validation-for="CurrencyRate" class="text-danger"></span>
             </div>
 
-            <div class="ad-full ad-lines-picker">
+            <div class="bo-full bo-lines-picker">
                 <div class="form-group">
                     <label class="control-label">@L["ProductCategory"]</label>
                     <select id="categoryList" class="form-select">
@@ -158,9 +158,9 @@
                 </div>
             </div>
 
-            <div class="ad-full">
-                <div class="ad-table-wrap">
-                    <table id="linesTable" class="ad-table">
+            <div class="bo-full">
+                <div class="bo-table-wrap">
+                    <table id="linesTable" class="bo-table">
                         <thead>
                             <tr>
                                 <th>@L["Product"]</th>
@@ -180,7 +180,7 @@
                                     <td class="num">@item.Quantity.ToString("0.###", invariant)</td>
                                     <td class="num">@item.Price.ToString("N2")</td>
                                     <td class="num">@item.Total.ToString("N2")</td>
-                                    <td class="ad-row-actions"><button type="button" class="btn-ad btn-ad-danger btn-icon removeLine" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button></td>
+                                    <td class="bo-row-actions"><button type="button" class="btn-ad btn-ad-danger btn-icon removeLine" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button></td>
                                 </tr>
                             }
                         </tbody>
@@ -216,22 +216,22 @@
             </div>
             <div class="form-group">
                 <label class="control-label" for="AutoPost">@L["Bill.Entry"]</label>
-                <label class="ad-switch" for="AutoPost">
+                <label class="bo-switch" for="AutoPost">
                     <input asp-for="AutoPost" type="checkbox" />
-                    <span class="ad-switch-track" aria-hidden="true"></span>
-                    <span class="ad-switch-text">@L["Bill.AutoPost"]</span>
+                    <span class="bo-switch-track" aria-hidden="true"></span>
+                    <span class="bo-switch-text">@L["Bill.AutoPost"]</span>
                 </label>
             </div>
             <div class="form-group">
                 <label class="control-label" for="AutoStock">@L["Bill.Storage"]</label>
-                <label class="ad-switch" for="AutoStock">
+                <label class="bo-switch" for="AutoStock">
                     <input asp-for="AutoStock" type="checkbox" />
-                    <span class="ad-switch-track" aria-hidden="true"></span>
-                    <span class="ad-switch-text">@L["Bill.AutoStock"]</span>
+                    <span class="bo-switch-track" aria-hidden="true"></span>
+                    <span class="bo-switch-text">@L["Bill.AutoStock"]</span>
                 </label>
             </div>
 
-            <div class="ad-form-actions">
+            <div class="bo-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
                 <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
                 @if (!isNew)
@@ -398,7 +398,7 @@
                         .append($('<td class="num">').text(qty))
                         .append($('<td class="num">').text(money(price)))
                         .append($('<td class="num">').text(money(qty * price)))
-                        .append($('<td class="ad-row-actions">').append($('<button type="button" class="btn-ad btn-ad-danger btn-icon removeLine"><i class="fas fa-trash" aria-hidden="true"></i></button>'))));
+                        .append($('<td class="bo-row-actions">').append($('<button type="button" class="btn-ad btn-ad-danger btn-icon removeLine"><i class="fas fa-trash" aria-hidden="true"></i></button>'))));
                 $('#productList').val('').trigger('change');
                 recalc();
             });

@@ -4,13 +4,13 @@
     var isArabic = LanguageHelper.IsArabic();
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-book" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-book" aria-hidden="true"></i></span>
         <h1>@ViewBag.Title</h1>
     </div>
-    <div class="ad-card-body">
-        <form asp-action="Upsert" method="post" class="ad-form">
+    <div class="bo-card-body">
+        <form asp-action="Upsert" method="post" class="bo-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="EntryType" class="control-label">@L["Bill.EntryType"]</label>
@@ -25,19 +25,19 @@
                 <input asp-for="EntryDate" type="date" class="form-control" />
                 <span asp-validation-for="EntryDate" class="text-danger"></span>
             </div>
-            <div class="form-group ad-full">
+            <div class="form-group bo-full">
                 <label asp-for="Remarks" class="control-label">@L["Bill.Remarks"]</label>
                 <input asp-for="Remarks" class="form-control" />
                 <span asp-validation-for="Remarks" class="text-danger"></span>
             </div>
 
-            <div class="ad-section ad-full" data-row-list data-prefix="Lines">
-                <h2 class="ad-section-title">@L["Bill.EntryLines"]</h2>
+            <div class="bo-section bo-full" data-row-list data-prefix="Lines">
+                <h2 class="bo-section-title">@L["Bill.EntryLines"]</h2>
                 <div asp-validation-for="Lines" class="text-danger"></div>
-                <div class="ad-rows" data-rows>
+                <div class="bo-rows" data-rows>
                     @for (var i = 0; i < Model.Lines.Count; i++)
                     {
-                        <div class="ad-row-item" data-row>
+                        <div class="bo-row-item" data-row>
                             <div class="form-group">
                                 <label class="control-label">@L["Bill.Account"]</label>
                                 <select name="Lines[@i].AccountId" class="form-control">
@@ -57,7 +57,7 @@
                 </div>
                 <button type="button" class="btn-ad btn-ad-ghost mb-3" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["Bill.AddLine"]</button>
                 <template data-row-template>
-                    <div class="ad-row-item" data-row>
+                    <div class="bo-row-item" data-row>
                         <div class="form-group">
                             <label class="control-label">@L["Bill.Account"]</label>
                             <select name="Lines[__i__].AccountId" class="form-control">
@@ -74,14 +74,14 @@
                         <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
                     </div>
                 </template>
-                <p class="ad-meta">
+                <p class="bo-meta">
                     @L["Bill.Debit"]: <b id="sumDebit">0.00</b>
                     &nbsp;|&nbsp; @L["Bill.Credit"]: <b id="sumCredit">0.00</b>
                     &nbsp;|&nbsp; <b id="sumState"></b>
                 </p>
             </div>
 
-            <div class="ad-form-actions">
+            <div class="bo-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
                 <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
             </div>
@@ -118,7 +118,7 @@
             refresh();
 
             // same rules as EntryVmValidator, so the request never leaves the page when it is wrong
-            $('form.ad-form').on('submit', function (e) {
+            $('form.bo-form').on('submit', function (e) {
                 var errors = [];
                 $('.is-invalid').removeClass('is-invalid');
                 if (!$('#EntryDate').val()) {

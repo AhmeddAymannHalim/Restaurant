@@ -7,21 +7,21 @@
     var types = new[] { OrderType.Hall, OrderType.TakeAway, OrderType.Delivery };
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-bell-concierge" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-bell-concierge" aria-hidden="true"></i></span>
         <h1>@ViewBag.Title</h1>
         <a asp-action="Upsert" class="btn-ad btn-ad-primary"><i class="fas fa-plus" aria-hidden="true"></i> @L["NewOrder"]</a>
     </div>
-    <div class="ad-card-body">
-        <div class="ad-tabs">
+    <div class="bo-card-body">
+        <div class="bo-tabs">
             <a asp-action="List" asp-route-status="paid" class="@(status == "paid" ? "is-active" : "")">@L["Paid"]</a>
             <a asp-action="List" asp-route-status="pending" class="@(status == "pending" ? "is-active" : "")">@L["PendingOrders"]</a>
         </div>
 
-        <form asp-action="List" method="get" class="ad-filters">
+        <form asp-action="List" method="get" class="bo-filters">
             <input type="hidden" name="status" value="@status" />
-            <div class="ad-search">
+            <div class="bo-search">
                 <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
                 <input id="Order-search" type="search" class="form-control" name="searchString" value="@Model.SearchString" placeholder="@L["SearchHere"]" />
             </div>
@@ -35,12 +35,12 @@
             <input type="date" name="fromDate" class="form-control w-auto" value="@Model.FromDate?.ToString("yyyy-MM-dd")" aria-label="@L["From"]" title="@L["From"]" />
             <input type="date" name="toDate" class="form-control w-auto" value="@Model.ToDate?.ToString("yyyy-MM-dd")" aria-label="@L["To"]" title="@L["To"]" />
             <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-magnifying-glass" aria-hidden="true"></i> @L["Search"]</button>
-            <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
+            <span class="bo-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
         </form>
 
         @await Html.PartialAsync("_TableExportToolbar", "Order-table")
-        <div class="ad-table-wrap">
-            <table id="Order-table" class="ad-table">
+        <div class="bo-table-wrap">
+            <table id="Order-table" class="bo-table">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -71,7 +71,7 @@
                                 <td>@item.SellerName</td>
                                 <td class="num">@item.TotalPrice.ToString("N2")</td>
                                 <td>@L[item.OnAccount ? "OnAccountStatus" : item.Cash ? "PaidStatus" : "Unpaid"]</td>
-                                <td class="ad-row-actions">
+                                <td class="bo-row-actions">
                                     <a asp-action="Details" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["View"]" aria-label="@L["View"]"><i class="fas fa-eye" aria-hidden="true"></i></a>
                                     <a asp-action="Pdf" asp-route-id="@item.Id" data-no-loader class="btn-ad btn-ad-ghost btn-icon" title="@L["Print"]" aria-label="@L["Print"]"><i class="fas fa-print" aria-hidden="true"></i></a>
                                     @if (!item.Cash)
@@ -101,7 +101,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="10" class="ad-empty">@L["NoData"]</td>
+                            <td colspan="10" class="bo-empty">@L["NoData"]</td>
                         </tr>
                     }
                 </tbody>

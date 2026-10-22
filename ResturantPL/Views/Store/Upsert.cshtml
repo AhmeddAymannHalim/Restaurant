@@ -4,13 +4,13 @@
     ViewBag.Title = isNew ? L["NewStore"].Value : L["UpdateStore"].Value;
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-warehouse" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-warehouse" aria-hidden="true"></i></span>
         <h1>@ViewBag.Title</h1>
     </div>
-    <div class="ad-card-body">
-        <form asp-action="Upsert" method="post" class="ad-form">
+    <div class="bo-card-body">
+        <form asp-action="Upsert" method="post" class="bo-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <div class="form-group">
@@ -33,12 +33,12 @@
                 <input asp-for="PhoneNumber" class="form-control" />
                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
-            <fieldset class="form-group ad-full ad-phones" data-row-list data-prefix="Phones">
+            <fieldset class="form-group bo-full bo-phones" data-row-list data-prefix="Phones">
                 <legend class="control-label">@L["Emp.MoreMobiles"]</legend>
-                <div class="ad-phone-grid" data-rows>
+                <div class="bo-phone-grid" data-rows>
                     @for (var i = 0; i < Model.Phones.Count; i++)
                     {
-                        <div class="ad-phone" data-row>
+                        <div class="bo-phone" data-row>
                             <input type="hidden" name="Phones[@i].Id" value="@Model.Phones[i].Id" />
                             <div class="input-group">
                                 <input type="text" name="Phones[@i].PhoneNumber" value="@Model.Phones[i].PhoneNumber" class="form-control" maxlength="20" />
@@ -51,7 +51,7 @@
                 @Html.ValidationMessage("Phones", new { @class = "text-danger d-block" })
                 <button type="button" class="btn-ad btn-ad-ghost" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["Emp.AddMobile"]</button>
                 <template data-row-template>
-                    <div class="ad-phone" data-row>
+                    <div class="bo-phone" data-row>
                         <input type="hidden" name="Phones[__i__].Id" value="0" />
                         <div class="input-group">
                             <input type="text" name="Phones[__i__].PhoneNumber" class="form-control" maxlength="20" />
@@ -96,9 +96,9 @@
                 </div>
             </div>
 
-            <details class="ad-section ad-full" open>
+            <details class="bo-section bo-full" open>
                 <summary>@L["Sto.Section.Details"]</summary>
-                <div class="ad-section-grid">
+                <div class="bo-section-grid">
                 <div class="form-group">
                     <label asp-for="Code" class="control-label">@L["Sto.Code"]</label>
                     <input asp-for="Code" class="form-control" readonly />
@@ -154,7 +154,7 @@
                 </div>
             </details>
 
-            <div class="ad-form-actions">
+            <div class="bo-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
                 <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
             @if (!isNew)

@@ -5,16 +5,16 @@
     var pending = Model.Data.Count(a => a.CanPost);
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i></span>
         <h1>@L["Bill.Bills"]</h1>
         <a asp-action="Upsert" class="btn-ad btn-ad-primary"><i class="fas fa-plus" aria-hidden="true"></i> @L["NewInvoice"]</a>
         <button type="button" id="postPending" class="btn-ad btn-ad-post"><i class="fas fa-check-double" aria-hidden="true"></i> @L["Bill.PostPending"]</button>
     </div>
-    <div class="ad-card-body">
-        <form asp-action="Index" method="get" class="ad-filters">
-            <div class="ad-search">
+    <div class="bo-card-body">
+        <form asp-action="Index" method="get" class="bo-filters">
+            <div class="bo-search">
                 <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
                 <input id="Bill-search" type="search" class="form-control" name="searchString" value="@Model.SearchString" placeholder="@L["SearchHere"]" />
             </div>
@@ -29,16 +29,16 @@
                 <option value="SRPL" selected="@(Model.Type == "SRPL")">@L["Invoice.Surplus"]</option>
                 <option value="OPEN" selected="@(Model.Type == "OPEN")">@L["Invoice.OpeningInventory"]</option>
             </select>
-            <label class="ad-check"><input type="checkbox" name="unpaidOnly" value="true" checked="@Model.UnpaidOnly" /> @L["UnpaidInvoices"]</label>
+            <label class="bo-check"><input type="checkbox" name="unpaidOnly" value="true" checked="@Model.UnpaidOnly" /> @L["UnpaidInvoices"]</label>
             <input type="date" name="fromDate" class="form-control w-auto" value="@Model.FromDate?.ToString("yyyy-MM-dd")" aria-label="@L["From"]" title="@L["From"]" />
             <input type="date" name="toDate" class="form-control w-auto" value="@Model.ToDate?.ToString("yyyy-MM-dd")" aria-label="@L["To"]" title="@L["To"]" />
             <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-magnifying-glass" aria-hidden="true"></i> @L["Search"]</button>
-            <span class="ad-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
+            <span class="bo-meta">@L["TotalRecords"]: @Model.TotalRecords</span>
         </form>
 
         @await Html.PartialAsync("_TableExportToolbar", "Bill-table")
-        <div class="ad-table-wrap">
-            <table id="Bill-table" class="ad-table">
+        <div class="bo-table-wrap">
+            <table id="Bill-table" class="bo-table">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -69,7 +69,7 @@
                                 <td class="num">@item.Paid.ToString("N2")</td>
                                 <td class="num">@item.Remaining.ToString("N2")</td>
                                 <td>@(item.IsEntryPosted ? L["Bill.Posted"] : L["Bill.NotPosted"])</td>
-                                <td class="ad-row-actions">
+                                <td class="bo-row-actions">
                                     <a asp-action="Details" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Bill.Details"]" aria-label="@L["Bill.Details"]"><i class="fas fa-eye" aria-hidden="true"></i></a>
                                     @if (item.IsEditable)
                                     {
@@ -89,7 +89,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="10" class="ad-empty">@L["NoData"]</td>
+                            <td colspan="10" class="bo-empty">@L["NoData"]</td>
                         </tr>
                     }
                 </tbody>

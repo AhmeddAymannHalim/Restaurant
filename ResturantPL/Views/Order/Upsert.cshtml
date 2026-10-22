@@ -6,12 +6,12 @@
     var sections = Model.Menu.GroupBy(a => a.SectionId).Select(g => g.First()).ToList();
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-cash-register" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-cash-register" aria-hidden="true"></i></span>
         <h1>@ViewBag.Title <small>@Model.OrderCode</small></h1>
     </div>
-    <div class="ad-card-body">
+    <div class="bo-card-body">
         <form id="orderForm" asp-action="Upsert" method="post" class="pos">
             <div asp-validation-summary="All" class="text-danger"></div>
             <input type="hidden" id="cash" name="Cash" value="false" />
@@ -46,7 +46,7 @@
             </section>
 
             <section class="pos-cart">
-                <div class="ad-form pos-fields">
+                <div class="bo-form pos-fields">
                     <div class="form-group">
                         <label class="control-label" for="orderType">@L["OrderType"]</label>
                         <select id="orderType" name="Type" class="form-select">
@@ -111,8 +111,8 @@
                     </div>
                 </div>
 
-                <div class="ad-table-wrap">
-                    <table id="cartTable" class="ad-table">
+                <div class="bo-table-wrap">
+                    <table id="cartTable" class="bo-table">
                         <thead>
                             <tr>
                                 <th>@L["Product"]</th>
@@ -129,7 +129,7 @@
                             }
                         </tbody>
                     </table>
-                    <p id="cartEmpty" class="ad-empty">@L["EmptyCart"]</p>
+                    <p id="cartEmpty" class="bo-empty">@L["EmptyCart"]</p>
                 </div>
 
                 <div class="pos-totals">
@@ -146,7 +146,7 @@
                     <div class="pos-total"><span>@L["TotalPrice"]</span><b id="total">0.00</b></div>
                 </div>
 
-                <div class="ad-form-actions">
+                <div class="bo-form-actions">
                     <input type="hidden" id="paymentMethod" name="PaymentMethod" value="Cash" />
                     <button type="button" id="payNow" class="btn-ad btn-ad-primary"><i class="fas fa-money-bill-wave" aria-hidden="true"></i> @L["PayOrder"]</button>
                     <button type="submit" id="payLater" class="btn-ad btn-ad-ghost"><i class="fas fa-clock" aria-hidden="true"></i> @L["SaveUnpaid"]</button>
@@ -383,7 +383,7 @@
             return orderPromise;
         }).then(function (result) {
             if (!result) { return; }
-            $('.ad-card').addClass('is-leaving');
+            $('.bo-card').addClass('is-leaving');
             $drawer.addClass('is-closing');
             return wait(380).then(function () {
                 if (dashboardUrl) { window.location.href = dashboardUrl; }
@@ -425,7 +425,7 @@
                         '<td></td>' +
                         '<td><div class="qty"><button type="button" class="minus" aria-label="-">-</button><b></b><button type="button" class="plus" aria-label="+">+</button></div></td>' +
                         '<td class="num"></td><td class="num"></td>' +
-                        '<td class="ad-row-actions"><button type="button" class="btn-ad btn-ad-danger btn-icon remove"><i class="fas fa-trash" aria-hidden="true"></i></button></td>');
+                        '<td class="bo-row-actions"><button type="button" class="btn-ad btn-ad-danger btn-icon remove"><i class="fas fa-trash" aria-hidden="true"></i></button></td>');
                     row.children().eq(0).text(row.data('name'));
                     row.find('b').text(qty);
                     row.children().eq(2).text(money(price));

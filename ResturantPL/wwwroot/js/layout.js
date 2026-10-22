@@ -1,6 +1,6 @@
 (function () {
     document.addEventListener("pointermove", function (e) {
-        var el = e.target.closest && e.target.closest(".tile, .now-card, .ad-card");
+        var el = e.target.closest && e.target.closest(".tile, .now-card, .bo-card");
         if (!el) { return; }
         var box = el.getBoundingClientRect();
         el.style.setProperty("--mx", (e.clientX - box.left) + "px");
@@ -121,7 +121,7 @@
         })(lists[l]);
     }
 
-    var invalid = document.querySelectorAll(".ad-section .input-validation-error, .ad-section .field-validation-error");
+    var invalid = document.querySelectorAll(".bo-section .input-validation-error, .bo-section .field-validation-error");
     for (var i = 0; i < invalid.length; i++) {
         var pane = invalid[i].closest(".tab-pane");
         var tab = pane && document.getElementById("tab-" + pane.id.replace("pane-", ""));

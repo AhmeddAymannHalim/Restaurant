@@ -4,13 +4,13 @@
     ViewBag.Title = isNew ? L["NewProduct"].Value : L["UpdateProduct"].Value;
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-box" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-box" aria-hidden="true"></i></span>
         <h1>@ViewBag.Title</h1>
     </div>
-    <div class="ad-card-body">
-        <form asp-action="Upsert" method="post" class="ad-form">
+    <div class="bo-card-body">
+        <form asp-action="Upsert" method="post" class="bo-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <div class="form-group">
@@ -44,12 +44,12 @@
                 <span asp-validation-for="Cost" class="text-danger"></span>
             </div>
 
-            <fieldset class="form-group ad-full ad-stocks" data-row-list data-prefix="Stocks">
+            <fieldset class="form-group bo-full bo-stocks" data-row-list data-prefix="Stocks">
                 <legend class="control-label">@L["StockPerStore"]</legend>
-                <div class="ad-stock-grid" data-rows>
+                <div class="bo-stock-grid" data-rows>
                     @for (var i = 0; i < Model.Stocks.Count; i++)
                     {
-                        <div class="ad-stock" data-row>
+                        <div class="bo-stock" data-row>
                             <select name="Stocks[@i].StoreId" class="form-select">
                                 <option value="">@L["Select"]</option>
                                 @foreach (var store in Model.Stores)
@@ -59,15 +59,15 @@
                             </select>
                             <input type="number" name="Stocks[@i].Quantity" value="@Model.Stocks[i].Quantity.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)" step="0.001" min="0" class="form-control" placeholder="@L["Quantity"]" />
                             <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
-                            @Html.ValidationMessage($"Stocks[{i}].StoreId", new { @class = "text-danger ad-stock-error" })
-                            @Html.ValidationMessage($"Stocks[{i}].Quantity", new { @class = "text-danger ad-stock-error" })
+                            @Html.ValidationMessage($"Stocks[{i}].StoreId", new { @class = "text-danger bo-stock-error" })
+                            @Html.ValidationMessage($"Stocks[{i}].Quantity", new { @class = "text-danger bo-stock-error" })
                         </div>
                     }
                 </div>
                 @Html.ValidationMessage("Stocks", new { @class = "text-danger d-block" })
                 <button type="button" class="btn-ad btn-ad-ghost" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["AddLine"]</button>
                 <template data-row-template>
-                    <div class="ad-stock" data-row>
+                    <div class="bo-stock" data-row>
                         <select name="Stocks[__i__].StoreId" class="form-select">
                             <option value="">@L["Select"]</option>
                             @foreach (var store in Model.Stores)
@@ -81,7 +81,7 @@
                 </template>
             </fieldset>
 
-            <div class="ad-form-actions">
+            <div class="bo-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
                 <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
             @if (!isNew)

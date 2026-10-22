@@ -5,12 +5,12 @@
     ViewBag.Title = isNew ? L["NewMenuItem"].Value : L["UpdateMenuItem"].Value;
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-utensils" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-utensils" aria-hidden="true"></i></span>
         <h1>@ViewBag.Title</h1>
     </div>
-    <div class="ad-card-body">
+    <div class="bo-card-body">
         <form id="menuForm" asp-action="Upsert" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
@@ -143,8 +143,8 @@
                 </div>
                 <p id="formula" class="menu-formula">@L["CostFormula"]</p>
 
-                <div class="ad-table-wrap">
-                    <table id="componentTable" class="ad-table">
+                <div class="bo-table-wrap">
+                    <table id="componentTable" class="bo-table">
                         <thead>
                             <tr>
                                 <th>@L["Products"]</th>
@@ -163,12 +163,12 @@
                                     <td class="num c-qty">@component.Quantity.ToString("0.###", CultureInfo.InvariantCulture)</td>
                                     <td class="num c-unit">@component.UnitCost.ToString("0.00", CultureInfo.InvariantCulture)</td>
                                     <td class="num c-cost">@component.Cost.ToString("0.00", CultureInfo.InvariantCulture)</td>
-                                    <td class="ad-row-actions"><button type="button" class="btn-ad btn-ad-danger btn-icon cancelRow" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button></td>
+                                    <td class="bo-row-actions"><button type="button" class="btn-ad btn-ad-danger btn-icon cancelRow" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button></td>
                                 </tr>
                             }
                         </tbody>
                     </table>
-                    <p id="recipeEmpty" class="ad-empty" hidden>@L["RecipeEmpty"]</p>
+                    <p id="recipeEmpty" class="bo-empty" hidden>@L["RecipeEmpty"]</p>
                 </div>
             </section>
 
@@ -192,7 +192,7 @@
                 <input type="hidden" id="benefit" />
             </section>
 
-            <div class="ad-form-actions">
+            <div class="bo-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
                 <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
                 @if (!isNew)
@@ -346,7 +346,7 @@
                     .append($('<td class="num c-qty">').text(quantity))
                     .append($('<td class="num c-unit">').text(unit.toFixed(2)))
                     .append($('<td class="num c-cost">').text((number(quantity) * unit).toFixed(2)))
-                    .append($('<td class="ad-row-actions">').append($('<button type="button" class="btn-ad btn-ad-danger btn-icon cancelRow">').attr('title', removeText).attr('aria-label', removeText).html('<i class="fas fa-trash" aria-hidden="true"></i>')));
+                    .append($('<td class="bo-row-actions">').append($('<button type="button" class="btn-ad btn-ad-danger btn-icon cancelRow">').attr('title', removeText).attr('aria-label', removeText).html('<i class="fas fa-trash" aria-hidden="true"></i>')));
                 $('#componentTable tbody').append(row);
                 $('#productList').val('').trigger('change');
                 recalc();

@@ -67,7 +67,7 @@
         <h2><i class="fas fa-fire-burner" aria-hidden="true"></i> @L["KitchenQueue"] <b>@Model.InKitchen</b></h2>
         @if (Model.Kitchen.Count == 0)
         {
-            <p class="ad-empty">@L["NothingWaiting"]</p>
+            <p class="bo-empty">@L["NothingWaiting"]</p>
         }
         @foreach (var order in Model.Kitchen)
         {
@@ -99,7 +99,7 @@
         <h2><i class="fas fa-receipt" aria-hidden="true"></i> @L["AwaitingPayment"] <b>@Model.AwaitingPayment</b></h2>
         @if (Model.Unpaid.Count == 0)
         {
-            <p class="ad-empty">@L["NothingWaiting"]</p>
+            <p class="bo-empty">@L["NothingWaiting"]</p>
         }
         @foreach (var order in Model.Unpaid)
         {
@@ -122,8 +122,8 @@
     </section>
 </div>
 
-<div class="ad-table-wrap ops-types">
-    <table class="ad-table">
+<div class="bo-table-wrap ops-types">
+    <table class="bo-table">
         <caption>@L["OrdersByType"]</caption>
         <thead>
             <tr>

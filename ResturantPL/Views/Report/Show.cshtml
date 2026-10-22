@@ -47,14 +47,14 @@
     }
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-chart-column" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-chart-column" aria-hidden="true"></i></span>
         <h1>@ViewBag.Title</h1>
         <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
     </div>
-    <div class="ad-card-body">
-        <form asp-action="Show" method="get" class="ad-filters">
+    <div class="bo-card-body">
+        <form asp-action="Show" method="get" class="bo-filters">
             <input type="hidden" name="report" value="@Model.Report" />
 
             <input type="date"
@@ -114,8 +114,8 @@
 
         @await Html.PartialAsync("_TableExportToolbar", "Report-table")
 
-        <div class="ad-table-wrap">
-            <table id="Report-table" class="ad-table">
+        <div class="bo-table-wrap">
+            <table id="Report-table" class="bo-table">
                 <thead>
                     <tr>
                         @foreach (var column in Model.Columns)
@@ -140,7 +140,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="@Model.Columns.Count" class="ad-empty">@L["NoData"]</td>
+                            <td colspan="@Model.Columns.Count" class="bo-empty">@L["NoData"]</td>
                         </tr>
                     }
                 </tbody>

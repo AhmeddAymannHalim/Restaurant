@@ -4,9 +4,9 @@
     var isArabic = LanguageHelper.IsArabic();
 }
 
-<div class="ad-card">
-    <div class="ad-card-head">
-        <span class="ad-icon"><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i></span>
+<div class="bo-card">
+    <div class="bo-card-head">
+        <span class="bo-icon"><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i></span>
         <h1>@L["Bill.Bill"] #@Model.Code</h1>
         @if (Model.CanPost)
         {
@@ -19,8 +19,8 @@
         }
         <a asp-action="Index" class="btn-ad btn-ad-ghost">@L["Back"]</a>
     </div>
-    <div class="ad-card-body">
-        <div class="ad-form">
+    <div class="bo-card-body">
+        <div class="bo-form">
             <div class="form-group"><label>@L["Bill.BillType"]</label><div class="form-control">@(isArabic ? Model.SettingArName : Model.SettingEnName)</div></div>
             <div class="form-group"><label>@L["InvoiceDate"]</label><div class="form-control">@Model.Date.ToString("yyyy-MM-dd HH:mm")</div></div>
             <div class="form-group"><label>@L["Partner"]</label><div class="form-control">@(isArabic ? Model.PartnerArName : Model.PartnerEnName)</div></div>
@@ -28,9 +28,9 @@
             <div class="form-group"><label>@L["Bill.Storage"]</label><div class="form-control">@(Model.IsStorageEffected ? L["Bill.StorageDone"] : L["Bill.StorageNone"])</div></div>
         </div>
 
-        <h2 class="ad-section-title">@L["Bill.Items"]</h2>
-        <div class="ad-table-wrap">
-            <table class="ad-table">
+        <h2 class="bo-section-title">@L["Bill.Items"]</h2>
+        <div class="bo-table-wrap">
+            <table class="bo-table">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -57,7 +57,7 @@
             </table>
         </div>
 
-        <div class="ad-form">
+        <div class="bo-form">
             <div class="form-group"><label>@L["Bill.ItemsTotal"]</label><div class="form-control">@Model.ItemsTotal.ToString("N2")</div></div>
             <div class="form-group"><label>@L["Bill.Discount"]</label><div class="form-control">@Model.Discount.ToString("N2")</div></div>
             <div class="form-group"><label>@L["Bill.Extras"]</label><div class="form-control">@Model.Extras.ToString("N2")</div></div>
@@ -71,10 +71,10 @@
             }
         </div>
 
-        <h2 class="ad-section-title">@L["Bill.Entries"]</h2>
+        <h2 class="bo-section-title">@L["Bill.Entries"]</h2>
         @if (!Model.Entries.Any())
         {
-            <p class="ad-empty">@L["Bill.NoEntry"]</p>
+            <p class="bo-empty">@L["Bill.NoEntry"]</p>
         }
         @foreach (var entry in Model.Entries)
         {
@@ -83,8 +83,8 @@
                 - @(isArabic ? entry.SettingArName : entry.SettingEnName)
                 - @(entry.IsPosted ? L["Bill.Posted"] : L["Bill.NotPosted"])
             </p>
-            <div class="ad-table-wrap">
-                <table class="ad-table">
+            <div class="bo-table-wrap">
+                <table class="bo-table">
                     <thead>
                         <tr>
                             <th>#</th>
