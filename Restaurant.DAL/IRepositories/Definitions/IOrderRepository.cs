@@ -14,6 +14,8 @@ public interface IOrderRepository
     Task<IEnumerable<MenuItem>> GetCashierMenuAsync();
 
     Task<ApplicationSetting> GetSettingsAsync();
+    Task<Order> GetNewOrderAsync(int? tableId, int? reservationId);
+    Task<Order> GetPendingHallOrderByIdAsync(int id);
     Task<IEnumerable<Table>> GetPendingTablesAsync(int exceptTableId);
 
     Task<ResultMessage> CreateOrderAsync(Order order, string userId);

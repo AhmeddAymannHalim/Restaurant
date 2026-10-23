@@ -1,3 +1,4 @@
+using Shared.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
@@ -68,7 +69,8 @@ public class AccountRepository : IAccountRepository
 
     public async Task<ResultMessage<ApplicationUser>> CheckPasswordAsync(string email, string password)
     {
-        var user = await _userManager.FindByEmailAsync(email);
+        // the sign-in box accepts the e-mail or the user name
+        var user = await _userManager.FindByEmailAsync(email) ?? await _userManager.FindByNameAsync(email);
         if (user is null)
         {
             return new ResultMessage<ApplicationUser>
@@ -114,6 +116,62 @@ public class AccountRepository : IAccountRepository
         };
     }
 
+    public async Task<ResultMessage<AccountIdentity>> SignInAsync(string email, string password)
+    {
+        var checkedUser = await CheckPasswordAsync(email, password);
+        if (!checkedUser.Success)
+        {
+            return new ResultMessage<AccountIdentity> { Success = false, Message = checkedUser.Message };
+        }
+
+        return new ResultMessage<AccountIdentity>
+        {
+            Success = true,
+            Data = new AccountIdentity
+            {
+                Id = checkedUser.Data.Id,
+                UserName = checkedUser.Data.UserName,
+                Email = checkedUser.Data.Email,
+                Image = checkedUser.Data.Image,
+                Roles = await GetRolesAsync(checkedUser.Data)
+            }
+        };
+    }
+
+    public async Task<AccountToken> GetConfirmationTokenAsync(string email)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user is null || user.EmailConfirmed)
+        {
+            return null;
+        }
+
+        return new AccountToken
+        {
+            UserId = user.Id,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            Token = await _userManager.GenerateEmailConfirmationTokenAsync(user)
+        };
+    }
+
+    public async Task<AccountToken> GetPasswordResetTokenAsync(string email)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user is null)
+        {
+            return null;
+        }
+
+        return new AccountToken
+        {
+            UserId = user.Id,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            Token = await _userManager.GeneratePasswordResetTokenAsync(user)
+        };
+    }
+
     public async Task<string> GenerateConfirmationTokenAsync(ApplicationUser user)
     {
         return await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -121,23 +179,30 @@ public class AccountRepository : IAccountRepository
 
     public async Task<ResultMessage> ConfirmEmailAsync(string userId, string token)
     {
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user is null)
+        try
         {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user is null)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RecordNotFound"
+                };
+            }
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+
             return new ResultMessage
             {
-                Success = false,
-                Message = "RecordNotFound"
+                Success = result.Succeeded,
+                Message = result.Succeeded ? null : "Identity." + result.Errors.First().Code
             };
         }
-
-        var result = await _userManager.ConfirmEmailAsync(user, token);
-
-        return new ResultMessage
+        catch (Exception ex)
         {
-            Success = result.Succeeded,
-            Message = result.Succeeded ? null : "Identity." + result.Errors.First().Code
-        };
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
+        }
     }
 
     public async Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user)
@@ -147,63 +212,77 @@ public class AccountRepository : IAccountRepository
 
     public async Task<ResultMessage> ResetPasswordAsync(string email, string token, string password)
     {
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user is null)
+        try
         {
-            return new ResultMessage
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user is null)
             {
-                Success = false,
-                Message = "RecordNotFound"
-            };
-        }
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RecordNotFound"
+                };
+            }
 
-        var result = await _userManager.ResetPasswordAsync(user, token, password);
-        if (!result.Succeeded)
-        {
-            return new ResultMessage
+            var result = await _userManager.ResetPasswordAsync(user, token, password);
+            if (!result.Succeeded)
             {
-                Success = false,
-                Message = "Identity." + result.Errors.First().Code
-            };
-        }
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "Identity." + result.Errors.First().Code
+                };
+            }
 
-        if (!user.EmailConfirmed)
+            if (!user.EmailConfirmed)
+            {
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
+            }
+
+            await _userManager.SetLockoutEndDateAsync(user, null);
+            await _userManager.ResetAccessFailedCountAsync(user);
+
+            return new ResultMessage { Success = true };
+        }
+        catch (Exception ex)
         {
-            user.EmailConfirmed = true;
-            await _userManager.UpdateAsync(user);
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
-
-        await _userManager.SetLockoutEndDateAsync(user, null);
-        await _userManager.ResetAccessFailedCountAsync(user);
-
-        return new ResultMessage { Success = true };
     }
 
     public async Task<ResultMessage> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
     {
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user is null)
+        try
         {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user is null)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RecordNotFound"
+                };
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+            if (result.Succeeded)
+            {
+                return new ResultMessage { Success = true };
+            }
+
+            var wrongCurrent = result.Errors.Any(e => e.Code == "PasswordMismatch");
+
             return new ResultMessage
             {
                 Success = false,
-                Message = "RecordNotFound"
+                Message = wrongCurrent ? "Auth_WrongPassword" : "Identity." + result.Errors.First().Code
             };
         }
-
-        var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
-        if (result.Succeeded)
+        catch (Exception ex)
         {
-            return new ResultMessage { Success = true };
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
-
-        var wrongCurrent = result.Errors.Any(e => e.Code == "PasswordMismatch");
-
-        return new ResultMessage
-        {
-            Success = false,
-            Message = wrongCurrent ? "Auth_WrongPassword" : "Identity." + result.Errors.First().Code
-        };
     }
 
     public async Task<ApplicationUser> GetByIdAsync(string userId)

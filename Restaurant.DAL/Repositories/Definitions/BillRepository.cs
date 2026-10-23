@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
+using Restaurant.DAL.Repositories.Commons;
 using Shared.Enums;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
@@ -14,12 +15,14 @@ public class BillRepository : IBillRepository
     private readonly ApplicationDbContext _context;
     private readonly IOrderLedgerRepository _orderLedger;
     private readonly IBillSupportRepository _billSupport;
+    private readonly IInvoiceRepository _invoices;
 
     public BillRepository(ApplicationDbContext context)
     {
         _context = context;
         _orderLedger = new OrderLedgerRepository(context);
         _billSupport = new BillSupportRepository(context);
+        _invoices = new InvoiceRepository(context, new JournalEntryRepository(context));
     }
 
     public async Task<PaginatedResult<BillListItemViewModel>> GetPagedBillsAsync(PageRequest request)
@@ -319,6 +322,11 @@ public class BillRepository : IBillRepository
     {
         try
         {
+            if (await _invoices.IsInvoiceAsync(id))
+            {
+                return await _invoices.PostInvoiceAsync(id);
+            }
+
             var pos = await _context.Orders.Include(a => a.Bill).FirstOrDefaultAsync(a => a.Id == id);
             if (pos is null)
             {
@@ -373,13 +381,25 @@ public class BillRepository : IBillRepository
     {
         try
         {
+            var posted = 0;
+            var upPostedInvoice = await _invoices.GetUnpostedInvoiceIdsAsync();
+            foreach (var invoiceId in upPostedInvoice)
+            {
+                var invoiceResult = await _invoices.PostInvoiceAsync(invoiceId);
+                if (!invoiceResult.Success)
+                {
+                    return new ResultMessage { Success = false, Message = invoiceResult.Message, Data = posted.ToString() };
+                }
+
+                posted++;
+            }
+
             var ids = await _context.Orders.AsNoTracking()
                 .Where(a => a.Cash && !_context.EntryMasters.Any(e => e.BillId == a.Id))
                 .OrderBy(a => a.Id)
                 .Select(a => a.Id)
                 .ToListAsync();
 
-            var posted = 0;
             foreach (var id in ids)
             {
                 var result = await PostBillAsync(id);

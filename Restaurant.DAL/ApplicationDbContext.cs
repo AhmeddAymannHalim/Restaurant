@@ -106,6 +106,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Group> Groups { get; set; }
     public DbSet<Brand> Brands { get; set; }
     public DbSet<ItemUnit> ItemUnits { get; set; }
+    public DbSet<ItemUnitPrice> ItemUnitPrices { get; set; }
     public DbSet<StoreItemUnit> StoreItemUnits { get; set; }
     public DbSet<ItemLocation> ItemLocations { get; set; }
     public DbSet<ItemBarcode> ItemBarcodes { get; set; }

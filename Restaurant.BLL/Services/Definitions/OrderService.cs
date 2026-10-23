@@ -34,32 +34,14 @@ public class OrderService : IOrderService
         return _mapper.Map<OrderViewModel>(await _unitOfWork.Orders.GetOrderByIdAsync(id));
     }
 
-    public async Task<OrderViewModel> GetNewOrderAsync()
+    public async Task<OrderViewModel> GetPendingHallOrderByIdAsync(int id)
     {
-        var model = _mapper.Map<OrderViewModel>(await _unitOfWork.Orders.GetSettingsAsync());
-        model.OrderCode = await _unitOfWork.Orders.GetNextCodeAsync();
-        model.Menu = _mapper.Map<List<CashierMenuItemViewModel>>(await _unitOfWork.Orders.GetCashierMenuAsync());
-
-        return model;
+        return _mapper.Map<OrderViewModel>(await _unitOfWork.Orders.GetPendingHallOrderByIdAsync(id));
     }
 
-    public async Task<OrderViewModel> GetNewOrderFromReservationAsync(int tableId, int? reservationId)
+    public async Task<OrderViewModel> GetNewOrderAsync(int? tableId, int? reservationId)
     {
-        var model = await GetNewOrderAsync();
-        model.Type = OrderType.Hall;
-        model.TableId = tableId;
-
-        if (reservationId.HasValue)
-        {
-            var reservation = await _unitOfWork.TableReservations.GetReservationByIdAsync(reservationId.Value);
-            if (reservation != null)
-            {
-                model.CustomerName = reservation.CustomerName;
-                model.PhoneNumber = reservation.PhoneNumber;
-            }
-        }
-
-        return model;
+        return _mapper.Map<OrderViewModel>(await _unitOfWork.Orders.GetNewOrderAsync(tableId, reservationId));
     }
 
     public async Task<IEnumerable<LookupItem>> GetPendingTablesAsync(int exceptTableId)

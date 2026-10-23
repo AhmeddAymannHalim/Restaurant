@@ -102,6 +102,17 @@ public class ValidatorTests : IDisposable
     }
 
     [Fact]
+    public async Task User_NeedsAPhoneNumber()
+    {
+        var user = new UserViewModel { UserName = "sara", FirstName = "Sara", LastName = "A", Email = "sara@test.com", UserType = "Waiter", Password = "Pass123", ConfirmPassword = "Pass123" };
+
+        Assert.Contains("PhoneNumber", (await Errors(user)).Keys);
+
+        user.PhoneNumber = "01011112222";
+        Assert.Empty(await Errors(user));
+    }
+
+    [Fact]
     public async Task Order_Rules()
     {
         var item = new OrderItemViewModel { MenuItemId = 1, Quantity = 1 };

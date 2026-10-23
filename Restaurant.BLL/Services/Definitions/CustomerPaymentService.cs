@@ -62,17 +62,9 @@ public class CustomerPaymentService : ICustomerPaymentService
 
     public async Task<PaymentRefundRequestViewModel> GetRefundRequestAsync(int paymentId)
     {
-        var payment = await _unitOfWork.CustomerPayments.GetPaymentByIdAsync(paymentId);
-        if (payment is null)
-        {
-            return null;
-        }
+        var payment = await _unitOfWork.CustomerPayments.GetPaymentForRefundAsync(paymentId);
 
-        var model = _mapper.Map<PaymentRefundRequestViewModel>(payment);
-        model.Refunds = _mapper.Map<List<PaymentRefundViewModel>>(await _unitOfWork.CustomerPayments.GetRefundsForPaymentAsync(paymentId));
-        model.RemainingRefundable = payment.Paid - model.Refunds.Where(a => a.Status != RefundStatus.Rejected).Sum(a => a.Amount);
-
-        return model;
+        return _mapper.Map<PaymentRefundRequestViewModel>(payment);
     }
 
     public async Task<ResultMessage> RequestRefundAsync(PaymentRefundRequestViewModel model, string requestedByUserId)

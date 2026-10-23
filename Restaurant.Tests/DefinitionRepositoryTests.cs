@@ -235,4 +235,47 @@ public class DefinitionRepositoryTests : IDisposable
         Assert.Equal(1, (int)filtered.GetType().GetProperty("TotalRecords").GetValue(filtered));
         Assert.Equal(3, ((System.Collections.IEnumerable)firstPage.GetType().GetProperty("Data").GetValue(firstPage)).Cast<object>().Count());
     }
+
+    // ---------------------------------------------------------------- a failing database never escapes as an exception
+
+    [Theory]
+    [MemberData(nameof(Repositories))]
+    public async Task Upsert_WhenTheSaveFails_AnswersWithAFailureInsteadOfThrowing(Type repoType, Type entityType)
+    {
+        var repo = Create(repoType);
+        var entity = MakeEntity(entityType, "اسم", "Name");
+        _db.SaveFailure.Failure = new InvalidOperationException("forced");
+
+        var result = await Call(repo, Upsert(repo), entity);
+
+        Assert.False((bool)result.GetType().GetProperty("Success").GetValue(result), repoType.Name);
+    }
+
+    [Theory]
+    [MemberData(nameof(Repositories))]
+    public async Task Delete_WhenTheRowIsLinkedAndTheSaveFails_SaysItCannotBeDeleted(Type repoType, Type entityType)
+    {
+        var repo = Create(repoType);
+        var entity = MakeEntity(entityType, "اسم", "Name");
+        Assert_Success(await Call(repo, Upsert(repo), entity), repoType.Name);
+        _db.SaveFailure.Failure = new Microsoft.EntityFrameworkCore.DbUpdateException("forced");
+
+        var result = await Call(repo, Delete(repo), IdOf(entity));
+
+        Assert.False((bool)result.GetType().GetProperty("Success").GetValue(result), repoType.Name);
+    }
+
+    [Theory]
+    [MemberData(nameof(Repositories))]
+    public async Task Delete_WhenTheDatabaseFailsInAnotherWay_AnswersWithAFailureInsteadOfThrowing(Type repoType, Type entityType)
+    {
+        var repo = Create(repoType);
+        var entity = MakeEntity(entityType, "اسم", "Name");
+        Assert_Success(await Call(repo, Upsert(repo), entity), repoType.Name);
+        _db.SaveFailure.Failure = new InvalidOperationException("forced");
+
+        var result = await Call(repo, Delete(repo), IdOf(entity));
+
+        Assert.False((bool)result.GetType().GetProperty("Success").GetValue(result), repoType.Name);
+    }
 }

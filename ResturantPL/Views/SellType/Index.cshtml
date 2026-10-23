@@ -28,6 +28,8 @@
             <th>#</th>
             <th>@L["Code"]</th>
             <th>@L["Name"]</th>
+            <th>@L["SellType.Show"]</th>
+            <th>@L["SellType.IsLastPrice"]</th>
             <th></th>
         </tr>
     </thead>
@@ -41,7 +43,17 @@
                     <td>@counter</td>
                     <td>@item.Code</td>
                     <td>@(isArabic ? item.ArName : item.EnName)</td>
-                    <td class="bo-row-actions">
+                    <td><span class="sell-badge @(item.Show ? "is-on" : "")">@L[item.Show ? "Yes" : "No"]</span></td>
+                    <td>
+                        @if (item.IsLastPrice)
+                        {
+                            <span class="sell-badge is-on">@L["Yes"]@(item.PlusPrice > 0 ? " +" + item.PlusPrice.Value.ToString("0.##") + "%" : "")</span>
+                        }
+                        else
+                        {
+                            <span class="sell-badge">@L["No"]</span>
+                        }
+                    </td>                    <td class="bo-row-actions">
                         <a asp-action="Upsert" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Edit"]" aria-label="@L["Edit"]"><i class="fas fa-pen" aria-hidden="true"></i></a>
                         <button type="button" onclick="Delete('/SellType/Delete/@item.Id')" class="btn-ad btn-ad-danger btn-icon" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button>
                     </td>
@@ -52,7 +64,7 @@
         else
         {
             <tr>
-                <td colspan="4" class="bo-empty">@L["NoData"]</td>
+                <td colspan="6" class="bo-empty">@L["NoData"]</td>
             </tr>
         }
     </tbody>

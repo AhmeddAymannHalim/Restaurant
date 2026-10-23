@@ -52,6 +52,42 @@ public class ProductVmValidator : AbstractValidator<ProductViewModel>
             .Must(stocks => stocks.Select(a => a.StoreId).Distinct().Count() == stocks.Count)
             .WithMessage(localizer["Val.StoreRepeated"].Value);
 
+        RuleForEach(x => x.Units)
+            .Where(a => a.UnitPriceId > 0)
+            .ChildRules(unit =>
+            {
+                unit.RuleFor(a => a.UnitPriceId)
+                    .GreaterThan(0)
+                    .WithMessage(required);
+                unit.RuleFor(a => a.TransRate)
+                    .GreaterThan(0)
+                    .WithMessage(localizer["Val.GreaterThanZero"].Value);
+                unit.RuleFor(a => a.LastPurchase)
+                    .GreaterThanOrEqualTo(0)
+                    .WithMessage(localizer["Val.NotNegative"].Value);
+                unit.RuleForEach(a => a.Prices)
+                    .ChildRules(price =>
+                    {
+                        price.RuleFor(a => a.SellTypeId)
+                            .GreaterThan(0)
+                            .WithMessage(required);
+                        price.RuleFor(a => a.Price)
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage(localizer["Val.NotNegative"].Value);
+                    });
+                unit.RuleFor(a => a.Prices)
+                    .Must(prices => prices.Select(a => a.SellTypeId).Distinct().Count() == prices.Count)
+                    .WithMessage(localizer["Val.PriceTypeRepeated"].Value);
+            });
+
+        RuleFor(x => x.Units)
+            .Must(units => units.Select(a => a.UnitPriceId).Distinct().Count() == units.Count)
+            .WithMessage(localizer["Val.UnitRepeated"].Value)
+            .Must(units => units.Count == 0 || units.Any(a => a.TransRate == 1))
+            .WithMessage(localizer["Val.UnitNeedsBase"].Value)
+            .Must(units => units.Count == 0 || units.Count(a => a.IsDefault) == 1)
+            .WithMessage(localizer["Val.UnitNeedsOneDefault"].Value);
+
         RuleFor(x => x.Cost)
             .GreaterThanOrEqualTo(0)
             .WithMessage(localizer["Val.NotNegative"].Value);

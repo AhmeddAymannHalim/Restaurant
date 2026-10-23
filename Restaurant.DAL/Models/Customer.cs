@@ -71,4 +71,7 @@ public class Customer : BaseEntity
     #endregion
 
     public virtual ICollection<CustomerPhone> Phones { get; set; } = new List<CustomerPhone>();
+
+    // open invoices of this customer, filled when one customer is read for the form
+    public int InvoiceCount { get; set; }
 }

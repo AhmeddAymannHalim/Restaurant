@@ -8,6 +8,9 @@ public class EmployeeConfig : IEntityTypeConfiguration<Employee>
 {
     public void Configure(EntityTypeBuilder<Employee> builder)
     {
+        builder.Ignore(a => a.HasLoginAccount);
+        builder.Ignore(a => a.Image);
+
         builder.HasIndex(a => a.Code).IsUnique();
 
         builder.Property(a => a.Code).IsRequired().HasMaxLength(20);

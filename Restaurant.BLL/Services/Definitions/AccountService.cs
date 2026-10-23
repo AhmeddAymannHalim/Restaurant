@@ -21,64 +21,18 @@ public class AccountService : IAccountService
     public async Task<ResultMessage<AccountToken>> RegisterAsync(RegisterViewModel model)
     {
         var created = await _repository.RegisterCustomerAsync(_mapper.Map<ApplicationUser>(model), model.Password);
-        if (!created.Success)
-        {
-            return new ResultMessage<AccountToken>
-            {
-                Success = false,
-                Message = created.Message
-            };
-        }
 
-        return new ResultMessage<AccountToken>
-        {
-            Success = true
-        };
+        return _mapper.Map<ResultMessage<AccountToken>>(created);
     }
 
     public async Task<ResultMessage<AccountIdentity>> SignInAsync(SignInViewModel model)
     {
-        var result = await _repository.CheckPasswordAsync(model.Email, model.Password);
-        if (!result.Success)
-        {
-            return new ResultMessage<AccountIdentity>
-            {
-                Success = false,
-                Message = result.Message
-            };
-        }
-
-        var identity = new AccountIdentity
-        {
-            Id = result.Data.Id,
-            UserName = result.Data.UserName,
-            Email = result.Data.Email,
-            Image = result.Data.Image,
-            Roles = await _repository.GetRolesAsync(result.Data)
-        };
-
-        return new ResultMessage<AccountIdentity>
-        {
-            Success = true,
-            Data = identity
-        };
+        return await _repository.SignInAsync(model.Email, model.Password);
     }
 
     public async Task<AccountToken> GetConfirmationTokenAsync(string email)
     {
-        var user = await _repository.FindByEmailAsync(email);
-        if (user is null || user.EmailConfirmed)
-        {
-            return null;
-        }
-
-        return new AccountToken
-        {
-            UserId = user.Id,
-            Email = user.Email,
-            FirstName = user.FirstName,
-            Token = await _repository.GenerateConfirmationTokenAsync(user)
-        };
+        return await _repository.GetConfirmationTokenAsync(email);
     }
 
     public async Task<ResultMessage> ConfirmEmailAsync(string userId, string token)
@@ -88,19 +42,7 @@ public class AccountService : IAccountService
 
     public async Task<AccountToken> GetPasswordResetTokenAsync(string email)
     {
-        var user = await _repository.FindByEmailAsync(email);
-        if (user is null)
-        {
-            return null;
-        }
-
-        return new AccountToken
-        {
-            UserId = user.Id,
-            Email = user.Email,
-            FirstName = user.FirstName,
-            Token = await _repository.GeneratePasswordResetTokenAsync(user)
-        };
+        return await _repository.GetPasswordResetTokenAsync(email);
     }
 
     public async Task<ResultMessage> ResetPasswordAsync(ResetPasswordViewModel model)
@@ -115,23 +57,6 @@ public class AccountService : IAccountService
 
     public async Task<ProfileViewModel> GetProfileAsync(string userId)
     {
-        var user = await _repository.GetByIdAsync(userId);
-        if (user is null)
-        {
-            return null;
-        }
-
-        return new ProfileViewModel
-        {
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            PhoneNumber = user.PhoneNumber,
-            TownId = user.TownId,
-            Street = user.Street,
-            TownArName = user.Town?.ArName,
-            TownEnName = user.Town?.EnName,
-            GovernorateId = user.Town?.GovernorateId,
-            CountryId = user.Town?.Governorate?.CountryId
-        };
+        return _mapper.Map<ProfileViewModel>(await _repository.GetByIdAsync(userId));
     }
 }

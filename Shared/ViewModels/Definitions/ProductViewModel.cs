@@ -17,9 +17,30 @@ public class ProductViewModel
     public decimal TotalStock { get; set; }
 
     public List<ProductStockViewModel> Stocks { get; set; } = new();
+    public List<ProductUnitViewModel> Units { get; set; } = new();
 
     public IEnumerable<LookupItem> Categories { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Stores { get; set; } = new List<LookupItem>();
+    public IEnumerable<LookupItem> UnitList { get; set; } = new List<LookupItem>();
+    public List<SellTypeViewModel> SellTypes { get; set; } = new();
+}
+
+public class ProductUnitViewModel
+{
+    public int UnitPriceId { get; set; }
+    public string UnitArName { get; set; }
+    public string UnitEnName { get; set; }
+    public decimal TransRate { get; set; } = 1;
+    public bool IsDefault { get; set; }
+    public string Barcode { get; set; }
+    public decimal LastPurchase { get; set; }
+    public List<ProductUnitPriceViewModel> Prices { get; set; } = new();
+}
+
+public class ProductUnitPriceViewModel
+{
+    public int SellTypeId { get; set; }
+    public decimal Price { get; set; }
 }
 
 public class ProductStockViewModel
@@ -28,4 +49,5 @@ public class ProductStockViewModel
     public string StoreArName { get; set; }
     public string StoreEnName { get; set; }
     public decimal Quantity { get; set; }
+    public decimal MinQuantity { get; set; }
 }

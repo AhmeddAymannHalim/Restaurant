@@ -293,10 +293,31 @@ public class SupplierPaymentRepository : ISupplierPaymentRepository
             .ToListAsync();
     }
 
+    public async Task<PaymentInvoiceSupplier> GetPaymentForRefundAsync(int id)
+    {
+        var payment = await GetPaymentByIdAsync(id);
+        if (payment is null)
+        {
+            return null;
+        }
+
+        payment.Refunds = (await GetRefundsForPaymentAsync(id)).ToList();
+        payment.RemainingRefundable = payment.Paid - payment.Refunds.Where(a => a.Status != RefundStatus.Rejected).Sum(a => a.Amount);
+
+        return payment;
+    }
+
     public async Task<ResultMessage> RequestRefundAsync(PaymentRefund entity, string requestedByUserId)
     {
         try
         {
+            // the form posts the payment id in OriginalPaymentId; a supplier payment lives in its own column
+            if (entity.OriginalPaymentId.HasValue)
+            {
+                entity.SupplierPaymentId = entity.OriginalPaymentId;
+                entity.OriginalPaymentId = null;
+            }
+
             var payment = await _context.PaymentInvoiceSupplier.FirstOrDefaultAsync(a => a.Id == entity.SupplierPaymentId);
             if (payment is null)
             {

@@ -40,46 +40,153 @@
             </div>
             <div class="form-group">
                 <label asp-for="Cost" class="control-label">@L["UnitCost"]</label>
-                <input asp-for="Cost" type="number" step="0.01" min="0" class="form-control" />
+                <input asp-for="Cost" type="number" step="any" min="0" class="form-control" />
                 <span asp-validation-for="Cost" class="text-danger"></span>
             </div>
 
-            <fieldset class="form-group bo-full bo-stocks" data-row-list data-prefix="Stocks">
-                <legend class="control-label">@L["StockPerStore"]</legend>
-                <div class="bo-stock-grid" data-rows>
-                    @for (var i = 0; i < Model.Stocks.Count; i++)
-                    {
-                        <div class="bo-stock" data-row>
-                            <select name="Stocks[@i].StoreId" class="form-select">
+            <div class="form-group bo-full" data-row-list data-prefix="Units">
+                <label class="control-label">@L["ProductUnits"]</label>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>@L["Unit"]</th>
+                                <th>@L["TransRateHead"]</th>
+                                <th>@L["PriceLastPurchase"]</th>
+                                @foreach (var sellType in Model.SellTypes.Where(a => a.Show))
+                                {
+                                    <th>@(LanguageHelper.IsArabic() ? sellType.ArName : sellType.EnName)@if (sellType.IsLastPrice && sellType.PlusPrice > 0) { <span> +@sellType.PlusPrice.Value.ToString("0.##")%</span> }</th>
+                                }
+                                <th>@L["Barcode"]</th>
+                                <th class="text-center">@L["DefaultUnit"]</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody data-rows>
+                            @for (var i = 0; i < Model.Units.Count; i++)
+                            {
+                                var unitRow = Model.Units[i];
+                                <tr data-row>
+                                    <td>
+                                        <select name="Units[@i].UnitPriceId" class="form-select form-select-sm" aria-label="@L["Unit"]">
+                                            <option value="">@L["Select"]</option>
+                                            @foreach (var unit in Model.UnitList)
+                                            {
+                                                <option value="@unit.Id" selected="@(unitRow.UnitPriceId == unit.Id)">@(LanguageHelper.IsArabic() ? unit.ArName : unit.EnName)</option>
+                                            }
+                                        </select>
+                                        @Html.ValidationMessage($"Units[{i}].UnitPriceId", new { @class = "text-danger" })
+                                    </td>
+                                    <td>
+                                        <input type="number" name="Units[@i].TransRate" value="@unitRow.TransRate.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)" step="0.000001" min="0" class="form-control form-control-sm" aria-label="@L["TransRate"]" />
+                                        @Html.ValidationMessage($"Units[{i}].TransRate", new { @class = "text-danger" })
+                                    </td>
+                                    <td><input type="number" name="Units[@i].LastPurchase" value="@unitRow.LastPurchase.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)" step="any" min="0" class="form-control form-control-sm unit-last" aria-label="@L["PriceLastPurchase"]" /></td>
+                                    @{ var priceIndex = 0; }
+                                    @foreach (var sellType in Model.SellTypes.Where(a => a.Show))
+                                    {
+                                        var priceValue = unitRow.Prices.FirstOrDefault(a => a.SellTypeId == sellType.Id)?.Price ?? 0;
+                                        <td>
+                                            <input type="hidden" name="Units[@i].Prices[@priceIndex].SellTypeId" value="@sellType.Id" />
+                                            <input type="number" name="Units[@i].Prices[@priceIndex].Price" value="@priceValue.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)" step="any" min="0" class="form-control form-control-sm unit-price" data-plus="@(sellType.IsLastPrice ? sellType.PlusPrice : null)" aria-label="@(LanguageHelper.IsArabic() ? sellType.ArName : sellType.EnName)" />
+                                        </td>
+                                        priceIndex++;
+                                    }
+                                    <td><input type="text" name="Units[@i].Barcode" value="@unitRow.Barcode" class="form-control form-control-sm" aria-label="@L["Barcode"]" /></td>
+                                    <td class="text-center"><input type="checkbox" name="Units[@i].IsDefault" value="true" class="form-check-input unit-default" checked="@unitRow.IsDefault" aria-label="@L["DefaultUnit"]" /></td>
+                                    <td><button type="button" class="btn btn-sm btn-outline-danger" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                @Html.ValidationMessage("Units", new { @class = "text-danger d-block" })
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["AddLine"]</button>
+                <template data-row-template>
+                    <tr data-row>
+                        <td>
+                            <select name="Units[__i__].UnitPriceId" class="form-select form-select-sm" aria-label="@L["Unit"]">
+                                <option value="">@L["Select"]</option>
+                                @foreach (var unit in Model.UnitList)
+                                {
+                                    <option value="@unit.Id">@(LanguageHelper.IsArabic() ? unit.ArName : unit.EnName)</option>
+                                }
+                            </select>
+                        </td>
+                        <td><input type="number" name="Units[__i__].TransRate" value="1" step="0.000001" min="0" class="form-control form-control-sm" aria-label="@L["TransRate"]" /></td>
+                        <td><input type="number" name="Units[__i__].LastPurchase" value="0" step="any" min="0" class="form-control form-control-sm unit-last" aria-label="@L["PriceLastPurchase"]" /></td>
+                        @{ var templateIndex = 0; }
+                        @foreach (var sellType in Model.SellTypes.Where(a => a.Show))
+                        {
+                            <td>
+                                <input type="hidden" name="Units[__i__].Prices[@templateIndex].SellTypeId" value="@sellType.Id" />
+                                <input type="number" name="Units[__i__].Prices[@templateIndex].Price" value="0" step="any" min="0" class="form-control form-control-sm unit-price" data-plus="@(sellType.IsLastPrice ? sellType.PlusPrice : null)" aria-label="@(LanguageHelper.IsArabic() ? sellType.ArName : sellType.EnName)" />
+                            </td>
+                            templateIndex++;
+                        }
+                        <td><input type="text" name="Units[__i__].Barcode" class="form-control form-control-sm" aria-label="@L["Barcode"]" /></td>
+                        <td class="text-center"><input type="checkbox" name="Units[__i__].IsDefault" value="true" class="form-check-input unit-default" aria-label="@L["DefaultUnit"]" /></td>
+                        <td><button type="button" class="btn btn-sm btn-outline-danger" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button></td>
+                    </tr>
+                </template>
+            </div>
+
+            <div class="form-group bo-full" data-row-list data-prefix="Stocks">
+                <label class="control-label">@L["StockPerStore"]</label>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>@L["Store"]</th>
+                                <th>@L["Quantity"]</th>
+                                <th>@L["MinQuantity"]</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody data-rows>
+                            @for (var i = 0; i < Model.Stocks.Count; i++)
+                            {
+                                <tr data-row>
+                                    <td>
+                                        <select name="Stocks[@i].StoreId" class="form-select form-select-sm" aria-label="@L["Store"]">
+                                            <option value="">@L["Select"]</option>
+                                            @foreach (var store in Model.Stores)
+                                            {
+                                                <option value="@store.Id" selected="@(Model.Stocks[i].StoreId == store.Id)">@(LanguageHelper.IsArabic() ? store.ArName : store.EnName)</option>
+                                            }
+                                        </select>
+                                        @Html.ValidationMessage($"Stocks[{i}].StoreId", new { @class = "text-danger" })
+                                    </td>
+                                    <td>
+                                        <input type="number" name="Stocks[@i].Quantity" value="@Model.Stocks[i].Quantity.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)" step="0.001" min="0" class="form-control form-control-sm" aria-label="@L["Quantity"]" />
+                                        @Html.ValidationMessage($"Stocks[{i}].Quantity", new { @class = "text-danger" })
+                                    </td>
+                                    <td><input type="number" name="Stocks[@i].MinQuantity" value="@Model.Stocks[i].MinQuantity.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)" step="0.001" min="0" class="form-control form-control-sm" aria-label="@L["MinQuantity"]" /></td>
+                                    <td><button type="button" class="btn btn-sm btn-outline-danger" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                @Html.ValidationMessage("Stocks", new { @class = "text-danger d-block" })
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["AddLine"]</button>
+                <template data-row-template>
+                    <tr data-row>
+                        <td>
+                            <select name="Stocks[__i__].StoreId" class="form-select form-select-sm" aria-label="@L["Store"]">
                                 <option value="">@L["Select"]</option>
                                 @foreach (var store in Model.Stores)
                                 {
-                                    <option value="@store.Id" selected="@(Model.Stocks[i].StoreId == store.Id)">@(LanguageHelper.IsArabic() ? store.ArName : store.EnName)</option>
+                                    <option value="@store.Id">@(LanguageHelper.IsArabic() ? store.ArName : store.EnName)</option>
                                 }
                             </select>
-                            <input type="number" name="Stocks[@i].Quantity" value="@Model.Stocks[i].Quantity.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)" step="0.001" min="0" class="form-control" placeholder="@L["Quantity"]" />
-                            <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
-                            @Html.ValidationMessage($"Stocks[{i}].StoreId", new { @class = "text-danger bo-stock-error" })
-                            @Html.ValidationMessage($"Stocks[{i}].Quantity", new { @class = "text-danger bo-stock-error" })
-                        </div>
-                    }
-                </div>
-                @Html.ValidationMessage("Stocks", new { @class = "text-danger d-block" })
-                <button type="button" class="btn-ad btn-ad-ghost" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["AddLine"]</button>
-                <template data-row-template>
-                    <div class="bo-stock" data-row>
-                        <select name="Stocks[__i__].StoreId" class="form-select">
-                            <option value="">@L["Select"]</option>
-                            @foreach (var store in Model.Stores)
-                            {
-                                <option value="@store.Id">@(LanguageHelper.IsArabic() ? store.ArName : store.EnName)</option>
-                            }
-                        </select>
-                        <input type="number" name="Stocks[__i__].Quantity" value="0" step="0.001" min="0" class="form-control" placeholder="@L["Quantity"]" />
-                        <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
-                    </div>
+                        </td>
+                        <td><input type="number" name="Stocks[__i__].Quantity" value="0" step="0.001" min="0" class="form-control form-control-sm" aria-label="@L["Quantity"]" /></td>
+                        <td><input type="number" name="Stocks[__i__].MinQuantity" value="0" step="0.001" min="0" class="form-control form-control-sm" aria-label="@L["MinQuantity"]" /></td>
+                        <td><button type="button" class="btn btn-sm btn-outline-danger" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button></td>
+                    </tr>
                 </template>
-            </fieldset>
+            </div>
 
             <div class="bo-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
@@ -95,4 +202,33 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // a sell type that follows the last purchase is that price plus its percent
+        document.addEventListener('input', function (event) {
+            if (!event.target.classList.contains('unit-last')) {
+                return;
+            }
+
+            var last = parseFloat(event.target.value) || 0;
+            event.target.closest('tr').querySelectorAll('.unit-price[data-plus]').forEach(function (box) {
+                var plus = parseFloat(box.dataset.plus);
+                if (plus > 0) {
+                    box.value = Math.round(last * (1 + plus / 100) * 1000000) / 1000000;
+                }
+            });
+        });
+
+        // only one unit can be the default
+        document.addEventListener('change', function (event) {
+            if (!event.target.classList.contains('unit-default') || !event.target.checked) {
+                return;
+            }
+
+            document.querySelectorAll('.unit-default').forEach(function (box) {
+                if (box !== event.target) {
+                    box.checked = false;
+                }
+            });
+        });
+    </script>
 }

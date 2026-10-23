@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
 using Shared.Enums;
 
 namespace Restaurant.DAL.Models;
@@ -20,7 +19,6 @@ public class Item : BaseEntity
     public decimal TaxPercentage { get; set; }
     public decimal DiscountPercentage { get; set; }
 
-    [Column(TypeName = "decimal(18,6)")]
     public decimal WeightedAverageQuantityOnHand { get; set; }
     public bool HasWeightedAverageHistory { get; set; }
     public bool RequiresCostingRebuild { get; set; }

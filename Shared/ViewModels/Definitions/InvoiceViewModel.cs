@@ -50,6 +50,26 @@ public class InvoiceViewModel
     public IEnumerable<LookupItem> Currencies { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Units { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Categories { get; set; } = new List<LookupItem>();
+
+    // names of the posted lines in the language of the page, from the store's product list and the unit list
+    public void FillItemNames(IEnumerable<StoreProductLookupItem> products)
+    {
+        var isArabic = LanguageHelper.IsArabic();
+        foreach (var item in Items)
+        {
+            var product = products.FirstOrDefault(p => p.ProductId == item.ProductId);
+            if (product is not null)
+            {
+                item.ProductName = isArabic ? product.ProductArName : product.ProductEnName;
+            }
+
+            var unit = Units.FirstOrDefault(u => u.Id == item.UnitPriceId);
+            if (unit is not null)
+            {
+                item.UnitName = isArabic ? unit.ArName : unit.EnName;
+            }
+        }
+    }
 }
 
 public class PostingDefaultViewModel

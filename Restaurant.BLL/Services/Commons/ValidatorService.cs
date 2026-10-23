@@ -32,11 +32,6 @@ public class ValidatorService<T> : IValidatorService<T> where T : class
         return _repository.IsPhoneNumberExist(id, phoneNumber);
     }
 
-    public bool IsFullNameExist(int id, string firstName, string lastName)
-    {
-        return _repository.IsFullNameExist(id, firstName, lastName);
-    }
-
     public bool IsValueExist(int id, string propertyName, string value)
     {
         return _repository.IsValueExist(id, propertyName, value);

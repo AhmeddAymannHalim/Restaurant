@@ -71,23 +71,13 @@ namespace ResturantPL.Controllers.Definitions
         {
             try
             {
-                var model = new InvoiceViewModel { InvoiceType = type ?? InvoiceType.Purchases };
-                if (id.HasValue && id.Value > 0)
+                var model = id.HasValue && id.Value > 0
+                    ? await _invoices.GetInvoiceByIdAsync(id.Value)
+                    : await _invoices.GetNewInvoiceAsync(type ?? InvoiceType.Purchases);
+                if (model == null)
                 {
-                    model = await _invoices.GetInvoiceByIdAsync(id.Value);
-                    if (model == null)
-                    {
-                        _toastr.Error(_localizer["RecordNotFound"].Value);
-                        return RedirectToAction(nameof(Index));
-                    }
-                }
-                else
-                {
-                    model.InvoiceCode = await _invoices.GetNextCodeAsync(model.InvoiceType);
-                    model.PostingDefaults = await _invoices.GetPostingDefaultsAsync();
-                    var defaults = model.PostingDefaults.FirstOrDefault(a => a.Type == model.InvoiceType);
-                    model.AutoPost = defaults?.AutoPost ?? true;
-                    model.AutoStock = defaults?.AutoStock ?? true;
+                    _toastr.Error(_localizer["RecordNotFound"].Value);
+                    return RedirectToAction(nameof(Index));
                 }
 
                 await PopulateData(model);
@@ -250,11 +240,7 @@ namespace ResturantPL.Controllers.Definitions
 
         private async Task PopulateData(InvoiceViewModel model)
         {
-            if (model.PostingDefaults.Count == 0)
-            {
-                model.PostingDefaults = await _invoices.GetPostingDefaultsAsync();
-            }
-
+            model.PostingDefaults = await _invoices.GetPostingDefaultsAsync();
             model.Suppliers = await _lookup.SupplierLookupAsync();
             model.Customers = await _lookup.CustomerLookupAsync();
             model.Stores = await _lookup.NamedLookupAsync<Store>();
@@ -265,21 +251,7 @@ namespace ResturantPL.Controllers.Definitions
 
             if (model.Items.Count > 0)
             {
-                var products = (await _lookup.StoreProductLookupByStoreIdAsync(model.StoreId.GetValueOrDefault())).ToDictionary(p => p.ProductId);
-                var isArabic = LanguageHelper.IsArabic();
-                foreach (var item in model.Items)
-                {
-                    if (products.TryGetValue(item.ProductId, out var product))
-                    {
-                        item.ProductName = isArabic ? product.ProductArName : product.ProductEnName;
-                    }
-
-                    var unit = model.Units.FirstOrDefault(u => u.Id == item.UnitPriceId);
-                    if (unit is not null)
-                    {
-                        item.UnitName = isArabic ? unit.ArName : unit.EnName;
-                    }
-                }
+                model.FillItemNames(await _lookup.StoreProductLookupByStoreIdAsync(model.StoreId.GetValueOrDefault()));
             }
         }
     }

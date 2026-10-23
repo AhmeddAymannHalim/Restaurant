@@ -132,6 +132,10 @@
                         <input id="unitCost" class="form-control" readonly />
                     </div>
                     <div>
+                        <span>@L["Unit"]</span>
+                        <select id="unitList" class="form-control"></select>
+                    </div>
+                    <div>
                         <span>@L["RequiredQuantity"]</span>
                         <input id="quantity" type="number" step="0.001" min="0" class="form-control" />
                     </div>
@@ -149,6 +153,7 @@
                             <tr>
                                 <th>@L["Products"]</th>
                                 <th>@L["Quantity"]</th>
+                                <th>@L["Unit"]</th>
                                 <th>@L["UnitCost"]</th>
                                 <th>@L["Cost"]</th>
                                 <th></th>
@@ -158,10 +163,11 @@
                             @for (var i = 0; i < Model.Components.Count; i++)
                             {
                                 var component = Model.Components[i];
-                                <tr data-id="@component.ProductId">
+                                <tr data-id="@component.ProductId" data-unit="@component.UnitPriceId">
                                     <td>@(isArabic ? component.ProductArName : component.ProductEnName)</td>
                                     <td class="num c-qty">@component.Quantity.ToString("0.###", CultureInfo.InvariantCulture)</td>
-                                    <td class="num c-unit">@component.UnitCost.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                    <td>@(isArabic ? component.UnitArName : component.UnitEnName)</td>
+                                    <td class="num c-unit">@component.UnitCost.ToString("0.00####", CultureInfo.InvariantCulture)</td>
                                     <td class="num c-cost">@component.Cost.ToString("0.00", CultureInfo.InvariantCulture)</td>
                                     <td class="bo-row-actions"><button type="button" class="btn-ad btn-ad-danger btn-icon cancelRow" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button></td>
                                 </tr>
@@ -215,6 +221,7 @@
             var msgNegative = @Html.Raw(Json.Serialize(L["NegativeBenefitConfirm"].Value));
             var msgSelect = @Html.Raw(Json.Serialize(L["Select"].Value));
             var msgLoss = @Html.Raw(Json.Serialize(L["LossWarning"].Value));
+            var msgNoCost = @Html.Raw(Json.Serialize(L["SuggestPriceNeedsCost"].Value));
             var alertTitle = @Html.Raw(Json.Serialize(L["LossAlertTitle"].Value));
             var saveAnywayText = @Html.Raw(Json.Serialize(L["SaveAnyway"].Value));
             var cancelText = @Html.Raw(Json.Serialize(L["Cancel"].Value));
@@ -227,6 +234,16 @@
 
             function number(value) {
                 return parseFloat(value) || 0;
+            }
+
+            // a unit cost can be a fraction of a cent (cost of one gram), so show up to 6 decimals
+            function unitText(value) {
+                var text = (Math.round(value * 1000000) / 1000000).toFixed(6);
+                while (text.endsWith('0') && /\.\d{3,}$/.test(text)) {
+                    text = text.slice(0, -1);
+                }
+
+                return text;
             }
 
             function recalc() {
@@ -296,19 +313,45 @@
                 recalc();
             });
 
+            // quantity and cost are kept per base unit; the chosen unit multiplies the cost by its rate
+            function fillUnits(item) {
+                var list = $('#unitList').empty();
+                var units = item && item.units ? item.units : [];
+                if (!units.length) {
+                    list.append($('<option>', { value: '', text: '-' }).attr('data-rate', 1));
+                    return;
+                }
+
+                $.each(units, function (i, u) {
+                    var option = $('<option>', { value: u.unitPriceId, text: isArabic ? u.unitArName : u.unitEnName }).attr('data-rate', u.transRate);
+                    option.prop('selected', u.isDefault);
+                    list.append(option);
+                });
+            }
+
+            function showUnitFigures() {
+                var item = stock[$('#productList').val()];
+                var rate = number($('#unitList option:selected').attr('data-rate')) || 1;
+                $('#availableQuantity').val(item ? Math.round(item.quantity / rate * 1000) / 1000 : '');
+                $('#unitCost').val(item ? Math.round(item.cost * rate * 10000) / 10000 : '');
+                $('#quantity').trigger('input');
+            }
+
             $('#productList').on('change', function () {
                 var item = stock[$(this).val()];
                 clearLine();
-                $('#availableQuantity').val(item ? item.quantity : '');
-                $('#unitCost').val(item ? item.cost : '');
+                fillUnits(item);
+                showUnitFigures();
             });
+
+            $('#unitList').on('change', showUnitFigures);
 
             $('#quantity').on('input', function () {
                 var quantity = number($(this).val());
                 var unit = number($('#unitCost').val());
                 var cost = quantity * unit;
                 $('#cost').val(cost.toFixed(2));
-                $('#formula').text(quantity + ' x ' + unit.toFixed(2) + ' = ' + cost.toFixed(2));
+                $('#formula').text(quantity + ' x ' + unitText(unit) + ' = ' + cost.toFixed(2));
             });
 
             // The selling price follows the raw-material cost (cost + 30%) until the user types a price by hand.
@@ -327,6 +370,12 @@
 
             $('#suggestPrice').on('click', function () {
                 priceTouched = false;
+                recalc();
+                if (number($('#totalCost').val()) <= 0) {
+                    toastr.warning(msgNoCost);
+                    return;
+                }
+
                 autoPrice();
             });
 
@@ -338,13 +387,17 @@
                     return;
                 }
 
-                $('#componentTable tbody tr[data-id="' + id + '"]').remove();
+                var unitId = $('#unitList').val() || '';
+                $('#componentTable tbody tr').filter(function () {
+                    return String($(this).attr('data-id')) === String(id) && ($(this).attr('data-unit') || '') === unitId;
+                }).remove();
 
                 var unit = number($('#unitCost').val());
-                var row = $('<tr>').attr('data-id', id)
+                var row = $('<tr>').attr('data-id', id).attr('data-unit', unitId)
                     .append($('<td>').text($('#productList option:selected').text()))
                     .append($('<td class="num c-qty">').text(quantity))
-                    .append($('<td class="num c-unit">').text(unit.toFixed(2)))
+                    .append($('<td>').text(unitId ? $('#unitList option:selected').text() : ''))
+                    .append($('<td class="num c-unit">').text(unitText(unit)))
                     .append($('<td class="num c-cost">').text((number(quantity) * unit).toFixed(2)))
                     .append($('<td class="bo-row-actions">').append($('<button type="button" class="btn-ad btn-ad-danger btn-icon cancelRow">').attr('title', removeText).attr('aria-label', removeText).html('<i class="fas fa-trash" aria-hidden="true"></i>')));
                 $('#componentTable tbody').append(row);
@@ -368,6 +421,9 @@
                     var row = $(this);
                     $('<input type="hidden" class="component-input">').attr('name', 'Components[' + i + '].ProductId').val(row.data('id')).appendTo(form);
                     $('<input type="hidden" class="component-input">').attr('name', 'Components[' + i + '].Quantity').val(row.find('.c-qty').text()).appendTo(form);
+                    if (row.attr('data-unit')) {
+                        $('<input type="hidden" class="component-input">').attr('name', 'Components[' + i + '].UnitPriceId').val(row.attr('data-unit')).appendTo(form);
+                    }
                 });
 
                 if (confirmed || number($('#benefit').val()) >= 0) {
@@ -399,6 +455,7 @@
                 $('#storeList').val(storeOptions.first().val());
             }
 
+            fillUnits(null);
             loadProducts($('#storeList').val());
             storeLoaded = !!$('#storeList').val();
             recalc();

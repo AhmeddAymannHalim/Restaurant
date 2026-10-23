@@ -104,6 +104,19 @@ public class InvoiceRepository : IInvoiceRepository
         return model;
     }
 
+    // a blank invoice of one type: its next code and the posting choices that type starts with
+    public async Task<InvoiceViewModel> GetNewInvoiceAsync(InvoiceType type)
+    {
+        var model = new InvoiceViewModel { InvoiceType = type };
+        model.InvoiceCode = await GetNextCodeAsync(type);
+        model.PostingDefaults = await GetPostingDefaultsAsync();
+        var defaults = model.PostingDefaults.FirstOrDefault(a => a.Type == type);
+        model.AutoPost = defaults?.AutoPost ?? true;
+        model.AutoStock = defaults?.AutoStock ?? true;
+
+        return model;
+    }
+
     public async Task<string> GetNextCodeAsync(InvoiceType type)
     {
         var typeInfo = _billSupport.GetInvoiceType(type);
@@ -193,14 +206,30 @@ public class InvoiceRepository : IInvoiceRepository
             var setting = await _billSupport.GetBillSettingAsync(billType, arName, enName);
             var entrySetting = await _billSupport.GetEntrySettingAsync(entryType, arName, enName);
             // the item, unit and cost of every line (same order as the lines)
+            // and how many base units one unit of the line holds (1 when the product has no rate for that unit)
             var itemIds = new List<int>();
             var unitIds = new List<int>();
+            var rates = new List<decimal>();
             var costs = new List<decimal>();
             foreach (var item in items)
             {
+                var itemCode = BillSupportRepository.ItemCodePrefix + item.ProductId;
+                var unitCode = BillSupportRepository.UnitCodePrefix + item.UnitPriceId;
+                decimal rate = 1;
+                var foundRate = await _context.ItemUnits.AsNoTracking()
+                    .Where(a => a.Item.Code == itemCode && a.Unit.Code == unitCode)
+                    .Select(a => (double?)a.TransRate)
+                    .FirstOrDefaultAsync();
+                if (foundRate > 0)
+                {
+                    rate = (decimal)foundRate.Value;
+                }
+
+                var productCost = await _context.Products.AsNoTracking().Where(a => a.Id == item.ProductId).Select(a => a.Cost).FirstOrDefaultAsync();
                 itemIds.Add(await _billSupport.GetItemIdAsync(item.ProductId));
                 unitIds.Add(await _billSupport.GetUnitIdAsync(item.UnitPriceId));
-                costs.Add(await _context.Products.AsNoTracking().Where(a => a.Id == item.ProductId).Select(a => a.Cost).FirstOrDefaultAsync());
+                rates.Add(rate);
+                costs.Add(productCost * rate);
             }
 
             BillMaster bill;
@@ -247,12 +276,13 @@ public class InvoiceRepository : IInvoiceRepository
                         continue;
                     }
 
-                    await _stock.AdjustAsync(takeBackStoreId, takeBackProductId, takeBackSign * (detail.Quantity ?? 0), allowNegative: true);
+                    var takeBackQuantity = takeBackSign * (detail.Quantity ?? 0) * (detail.TransRate ?? 1);
+                    await _stock.AdjustAsync(takeBackStoreId, takeBackProductId, takeBackQuantity, allowNegative: true);
                     await _context.StoreProductMovements.AddAsync(new StoreProductMovement
                     {
                         StoreId = takeBackStoreId,
                         ProductId = takeBackProductId,
-                        QuantityDelta = takeBackSign * (detail.Quantity ?? 0),
+                        QuantityDelta = takeBackQuantity,
                         Source = StockMovementSource.Invoice,
                         ReferenceCode = bill.Code
                     });
@@ -298,7 +328,7 @@ public class InvoiceRepository : IInvoiceRepository
                 StoreId = model.StoreId,
                 Quantity = line.Quantity,
                 UnitPrice = line.Price,
-                TransRate = 1,
+                TransRate = rates[index],
                 TotalAmount = Math.Round(line.Quantity * line.Price, 2),
                 UnitCostAtPosting = costs[index],
                 CreatedAt = DateTime.Now
@@ -366,12 +396,13 @@ public class InvoiceRepository : IInvoiceRepository
                 await _billSupport.EnsureItemUnitAsync(itemIds[i], unitIds[i]);
                 if (bill.IsStorageEffected)
                 {
-                    await _stock.AdjustAsync(applyStoreId, item.ProductId, applySign * item.Quantity, allowNegative: true);
+                    var applyQuantity = applySign * item.Quantity * rates[i];
+                    await _stock.AdjustAsync(applyStoreId, item.ProductId, applyQuantity, allowNegative: true);
                     await _context.StoreProductMovements.AddAsync(new StoreProductMovement
                     {
                         StoreId = applyStoreId,
                         ProductId = item.ProductId,
-                        QuantityDelta = applySign * item.Quantity,
+                        QuantityDelta = applyQuantity,
                         Source = StockMovementSource.Invoice,
                         ReferenceCode = bill.Code
                     });
@@ -380,12 +411,13 @@ public class InvoiceRepository : IInvoiceRepository
 
             if (model.InvoiceType == InvoiceType.Purchases && bill.IsStorageEffected)
             {
-                foreach (var item in items)
+                // the product cost is per base unit, the line price is per the unit of the line
+                for (var i = 0; i < items.Count; i++)
                 {
-                    var productToUpdateCost = await _context.Products.FindAsync(item.ProductId);
+                    var productToUpdateCost = await _context.Products.FindAsync(items[i].ProductId);
                     if (productToUpdateCost is not null)
                     {
-                        productToUpdateCost.Cost = item.Price;
+                        productToUpdateCost.Cost = items[i].Price / rates[i];
                     }
                 }
             }
@@ -468,12 +500,13 @@ public class InvoiceRepository : IInvoiceRepository
                     continue;
                 }
 
-                await _stock.AdjustAsync(deleteStoreId, deleteProductId, deleteSign * (detail.Quantity ?? 0), allowNegative: true);
+                var deleteQuantity = deleteSign * (detail.Quantity ?? 0) * (detail.TransRate ?? 1);
+                await _stock.AdjustAsync(deleteStoreId, deleteProductId, deleteQuantity, allowNegative: true);
                 await _context.StoreProductMovements.AddAsync(new StoreProductMovement
                 {
                     StoreId = deleteStoreId,
                     ProductId = deleteProductId,
-                    QuantityDelta = deleteSign * (detail.Quantity ?? 0),
+                    QuantityDelta = deleteQuantity,
                     Source = StockMovementSource.Invoice,
                     ReferenceCode = bill.Code
                 });
@@ -628,12 +661,14 @@ public class InvoiceRepository : IInvoiceRepository
                         continue;
                     }
 
-                    await _stock.AdjustAsync(bill.StoreId ?? 0, productId, sign * (detail.Quantity ?? 0), allowNegative: true);
+                    var postRate = detail.TransRate ?? 1;
+                    var postQuantity = sign * (detail.Quantity ?? 0) * postRate;
+                    await _stock.AdjustAsync(bill.StoreId ?? 0, productId, postQuantity, allowNegative: true);
                     await _context.StoreProductMovements.AddAsync(new StoreProductMovement
                     {
                         StoreId = bill.StoreId ?? 0,
                         ProductId = productId,
-                        QuantityDelta = sign * (detail.Quantity ?? 0),
+                        QuantityDelta = postQuantity,
                         Source = StockMovementSource.Invoice,
                         ReferenceCode = bill.Code
                     });
@@ -642,7 +677,7 @@ public class InvoiceRepository : IInvoiceRepository
                         var product = await _context.Products.FindAsync(productId);
                         if (product is not null)
                         {
-                            product.Cost = detail.UnitPrice.Value;
+                            product.Cost = detail.UnitPrice.Value / (postRate > 0 ? postRate : 1);
                         }
                     }
                 }

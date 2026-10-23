@@ -37,18 +37,8 @@ public class EmployeeAccountService : IEmployeeAccountService
     public async Task<EmployeeAccountViewModel> GetAccountByEmployeeIdAsync(int employeeId)
     {
         var entity = await _repository.GetAccountByEmployeeIdAsync(employeeId);
-        if (entity is not null)
-        {
-            return _mapper.Map<EmployeeAccountViewModel>(entity);
-        }
 
-        var employee = await _repository.GetEmployeeByIdAsync(employeeId);
-        if (employee is null)
-        {
-            return null;
-        }
-
-        return _mapper.Map<EmployeeAccountViewModel>(employee);
+        return _mapper.Map<EmployeeAccountViewModel>(entity);
     }
 
     public async Task<IEnumerable<LookupItem>> GetEmployeesWithoutAccountAsync()

@@ -378,4 +378,62 @@ public class ScreenJourneyTests : IDisposable
         Assert.IsType<ViewResult>(await dashboard.Index());
         Assert.IsAssignableFrom<IActionResult>(await dashboard.Board());
     }
+
+    [Fact]
+    public async Task Product_And_Menu_Screens_UnitsPricesPerPriceType_AndAKiloRecipe()
+    {
+        var seed = await Seed();
+        var gram = new UnitPrice { Code = "g", ArName = "Gram", EnName = "Gram" };
+        var kilo = new UnitPrice { Code = "k", ArName = "Kilo", EnName = "Kilo" };
+        var types = Enumerable.Range(1, 3).Select(n => new SellType { Code = n.ToString(), ArName = "T" + n, EnName = "T" + n, Show = true }).ToList();
+        Db.AddRange(gram, kilo);
+        Db.AddRange(types);
+        await Db.SaveChangesAsync();
+        Db.ChangeTracker.Clear();
+
+        var products = _host.Controller<ProductController>();
+        var form = new ProductViewModel
+        {
+            ArName = "Sugar", EnName = "Sugar", Cost = 0.012m,
+            Units = new List<ProductUnitViewModel>
+            {
+                new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true, LastPurchase = 0.012m, Prices = types.Select(t => new ProductUnitPriceViewModel { SellTypeId = t.Id, Price = 1 }).ToList() },
+                new() { UnitPriceId = kilo.Id, TransRate = 1000, Prices = types.Select(t => new ProductUnitPriceViewModel { SellTypeId = t.Id, Price = 12 }).ToList() }
+            }
+        };
+
+        // a refused post shows the form again with every list it needs (units, price types)
+        products.ModelState.AddModelError("Units", "x");
+        var refused = Assert.IsType<ViewResult>(await products.Upsert(form));
+        var refusedModel = Assert.IsType<ProductViewModel>(refused.Model);
+        Assert.Equal(3, refusedModel.SellTypes.Count);
+        Assert.Contains(refusedModel.UnitList, u => u.Id == kilo.Id);
+        products.ModelState.Clear();
+
+        Redirects<RedirectToActionResult>(await products.Upsert(form));
+        var sugar = await Db.Products.AsNoTracking().SingleAsync(a => a.EnName == "Sugar");
+        Db.ChangeTracker.Clear();
+
+        var opened = (ProductViewModel)((ViewResult)await products.Upsert(sugar.Id)).Model;
+        Assert.Equal(2, opened.Units.Count);
+        Assert.Equal(3, opened.Units.Single(u => u.UnitPriceId == kilo.Id).Prices.Count);
+        Assert.Equal(3, opened.SellTypes.Count);
+
+        var menu = _host.Controller<MenuController>();
+        var sectionId = (await Db.MenuSections.AsNoTracking().FirstAsync()).Id;
+        Redirects<RedirectToActionResult>(await menu.Upsert(new MenuItemViewModel
+        {
+            ArName = "Cake", EnName = "Cake", MenuSectionId = sectionId, StoreId = seed.store, Price = 60, IsAvailable = true,
+            Components = new List<MenuItemComponentViewModel> { new() { ProductId = sugar.Id, UnitPriceId = kilo.Id, Quantity = 0.25m } }
+        }));
+        var cake = await Db.MenuItems.AsNoTracking().Include(a => a.Components).SingleAsync(a => a.EnName == "Cake");
+        Assert.Equal(1000, cake.Components.Single().TransRate);
+
+        var reopened = (MenuItemViewModel)((ViewResult)await menu.Upsert(cake.Id)).Model;
+        Assert.Equal(3, reopened.TotalCost);
+        Assert.Equal("Kilo", reopened.Components.Single().UnitEnName);
+
+        var lookup = (IEnumerable<StoreProductLookupItem>)((JsonResult)await menu.GetProductsByStore(seed.store)).Value;
+        Assert.Equal(2, lookup.Single(a => a.ProductId == sugar.Id).Units.Count);
+    }
 }

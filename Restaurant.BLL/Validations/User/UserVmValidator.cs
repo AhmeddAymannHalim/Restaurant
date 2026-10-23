@@ -43,6 +43,8 @@ public class UserVmValidator : AbstractValidator<UserViewModel>
             .WithMessage(localizer["EmailAlreadyExists"].Value);
 
         RuleFor(x => x.PhoneNumber)
+            .NotEmpty()
+            .WithMessage(required)
             .MaximumLength(11)
             .WithMessage(MaxLength(11));
 

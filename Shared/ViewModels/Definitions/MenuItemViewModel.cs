@@ -43,6 +43,10 @@ public class MenuItemComponentViewModel
     public string ProductArName { get; set; }
     public string ProductEnName { get; set; }
     public decimal Quantity { get; set; }
+    public int? UnitPriceId { get; set; }
+    public string UnitArName { get; set; }
+    public string UnitEnName { get; set; }
+    public decimal TransRate { get; set; } = 1;
     public decimal UnitCost { get; set; }
     public decimal Cost { get; set; }
 }
@@ -59,4 +63,5 @@ public class StoreProductLookupItem
     public string StoreEnName { get; set; }
     public decimal Quantity { get; set; }
     public decimal Cost { get; set; }
+    public List<ProductUnitViewModel> Units { get; set; } = new();
 }

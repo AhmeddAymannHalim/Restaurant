@@ -18,30 +18,10 @@
             <input type="hidden" id="onAccount" name="OnAccount" value="false" />
 
             <section class="pos-menu" aria-label="@L["MenuItems"]">
-                <div class="pos-sections">
-                    <button type="button" class="pos-section is-active" data-section="">@L["AllTypes"]</button>
-                    @foreach (var sec in sections)
-                    {
-                        <button type="button" class="pos-section" data-section="@sec.SectionId">@(isArabic ? sec.SectionArName : sec.SectionEnName)</button>
-                    }
-                </div>
-                <div class="pos-items">
-                    @foreach (var item in Model.Menu)
-                    {
-                        <button type="button" class="pos-item @(item.IsAvailable ? "" : "is-unavailable")" data-id="@item.Id" data-section="@item.SectionId" data-price="@item.Price.ToString(invariant)" data-name="@(isArabic ? item.ArName : item.EnName)" disabled="@(item.IsAvailable ? null : "disabled")" title="@(item.IsAvailable ? (isArabic ? item.ArIngredients : item.EnIngredients) : L["MenuItemNotAvailable"].Value)">
-                            @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
-                            {
-                                <img src="@item.ImageUrl" alt="" loading="lazy" />
-                            }
-                            <span>@(isArabic ? item.ArName : item.EnName)</span>
-                            @if (!string.IsNullOrWhiteSpace(isArabic ? item.ArIngredients : item.EnIngredients))
-                            {
-                                <small class="pos-item-ing">@(isArabic ? item.ArIngredients : item.EnIngredients)</small>
-                            }
-                            <b>@item.Price.ToString("N2")</b>
-                            <em class="pos-stock" data-left="@item.Available" title="@L["InStock"]"><i class="fas fa-boxes-stacked" aria-hidden="true"></i> <span></span></em>
-                        </button>
-                    }
+                <div class="pos-find" role="search">
+                    <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                    <input id="dishSearch" type="search" class="form-control" autocomplete="off" placeholder="@L["FindDishHint"]" aria-label="@L["FindDishHint"]" />
+                    <button type="button" id="dishSearchBtn" class="btn-ad btn-ad-primary">@L["Search"]</button>
                 </div>
             </section>
 
@@ -158,6 +138,98 @@
     </div>
 </div>
 
+@* outside the form: nothing in here may be posted with the order *@
+<div class="modal fade floor-modal" id="dishFinder" tabindex="-1" aria-labelledby="dishFinderTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dishFinderTitle"><i class="fas fa-utensils" aria-hidden="true"></i> @L["MenuItems"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@L["Cancel"]"></button>
+            </div>
+            <div class="modal-body">
+                <div class="finder-tools">
+                    <input id="finderText" type="search" class="form-control" autocomplete="off" placeholder="@L["FindDishHint"]" aria-label="@L["FindDishHint"]" />
+                    <select id="finderSection" class="form-select" aria-label="@L["MenuSection"]">
+                        <option value="">@L["AllTypes"]</option>
+                        @foreach (var sec in sections)
+                        {
+                            <option value="@sec.SectionId">@(isArabic ? sec.SectionArName : sec.SectionEnName)</option>
+                        }
+                    </select>
+                </div>
+                <div class="bo-table-wrap">
+                    <table id="finderTable" class="bo-table">
+                        <thead>
+                            <tr>
+                                <th>@L["Code"]</th>
+                                <th>@L["MenuItems"]</th>
+                                <th>@L["MenuSection"]</th>
+                                <th>@L["Price"]</th>
+                                <th title="@L["InStock"]">@L["InStock"]</th>
+                                <th>@L["Quantity"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Menu)
+                            {
+                                var name = isArabic ? item.ArName : item.EnName;
+                                var sectionName = isArabic ? item.SectionArName : item.SectionEnName;
+                                var ingredients = isArabic ? item.ArIngredients : item.EnIngredients;
+                                var search = string.Join(" ", item.Code, item.ArName, item.EnName, item.SectionArName, item.SectionEnName, item.ArIngredients, item.EnIngredients).ToLowerInvariant();
+                                var max = item.Available.HasValue ? Math.Max(item.Available.Value, 0) : 999;
+                                <tr class="finder-row @(item.IsAvailable ? "" : "is-unavailable")" data-id="@item.Id" data-section="@item.SectionId" data-price="@item.Price.ToString(invariant)" data-name="@name" data-search="@search">
+                                    <td>@item.Code</td>
+                                    <td class="finder-name">
+                                        @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                                        {
+                                            <img src="@item.ImageUrl" alt="" loading="lazy" />
+                                        }
+                                        <span>
+                                            @name
+                                            @if (!string.IsNullOrWhiteSpace(ingredients))
+                                            {
+                                                <small>@ingredients</small>
+                                            }
+                                        </span>
+                                    </td>
+                                    <td>@sectionName</td>
+                                    <td class="num">@item.Price.ToString("N2")</td>
+                                    <td class="num">
+                                        @if (item.Available.HasValue)
+                                        {
+                                            <span class="pos-left @(item.Available <= 0 ? "is-out" : item.Available <= 5 ? "is-low" : "")">@(item.Available >= 1000 ? "999+" : item.Available.ToString())</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (item.IsAvailable)
+                                        {
+                                            <div class="qty finder-qty">
+                                                <button type="button" class="minus" aria-label="-">-</button>
+                                                <input type="number" min="0" max="@max" step="1" value="0" inputmode="numeric" class="form-control" aria-label="@L["Quantity"]" />
+                                                <button type="button" class="plus" aria-label="+">+</button>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <small>@L["MenuItemNotAvailable"]</small>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <p id="finderEmpty" class="bo-empty" hidden>@L["NoDishesFound"]</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span id="finderCount" class="finder-count"></span>
+                <button type="button" id="finderInsert" class="btn-ad btn-ad-primary" disabled><i class="fas fa-cart-plus" aria-hidden="true"></i> @L["InsertIntoOrder"]</button>
+                <button type="button" class="btn-ad btn-ad-ghost" data-bs-dismiss="modal">@L["Cancel"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <partial name="_PayDrawer" />
 
 @section Styles {
@@ -165,7 +237,6 @@
 }
 
 @section Scripts {
-    <script src="~/js/pos-stock.js" asp-append-version="true"></script>
     <script>
 /* POS payment drawer.
    Cash and wallets: confirm the amount. Visa: a card form with a short "processing" step.
@@ -179,7 +250,6 @@
 
     var $form = $('#orderForm');
     var $stage = $drawer.find('.pay-stage');
-    var names = $drawer.data('names') || {};
     var currency = $drawer.data('currency');
     var method = 'Cash';
     var busy = false;
@@ -199,7 +269,7 @@
         var sum = amount() + ' ' + currency;
         return method === 'Cash'
             ? fill($drawer.data('msg-cash'), [sum])
-            : fill($drawer.data('msg-via'), [sum, names[method]]);
+            : fill($drawer.data('msg-via'), [sum, $drawer.find('.pay-chip[data-method="' + method + '"]').data('name')]);
     }
 
     // Slide the current pane up, then slide the next one down; the stage height follows the content.
@@ -457,29 +527,101 @@
                 $('#discount').data('gross', gross);
             }
 
-            function addItem(id, name, price) {
+            function addItem(id, name, price, qty) {
                 var row = $('#cartTable tbody tr[data-id="' + id + '"]');
                 if (row.length) {
-                    row.data('qty', number(row.data('qty')) + 1);
+                    row.data('qty', number(row.data('qty')) + qty);
                 } else {
-                    $('#cartTable tbody').append($('<tr>').attr('data-id', id).data({ id: id, name: name, price: price, qty: 1 }));
+                    $('#cartTable tbody').append($('<tr>').attr('data-id', id).data({ id: id, name: name, price: price, qty: qty }));
                 }
                 render();
             }
 
-            $('.pos-item').on('click', function () {
-                var b = $(this);
-                if (b.is(':disabled') || b.hasClass('is-unavailable')) {
-                    return;
-                }
-                addItem(b.data('id'), b.data('name'), b.data('price'));
-                b.removeClass('is-added');
-                void b[0].offsetWidth;
-                b.addClass('is-added');
+            // ---- dish finder: search, pick dishes with a quantity, insert them into the order ----
+            var msgPicked = @Html.Raw(Json.Serialize(L["DishesPicked"].Value));
+            var msgInserted = @Html.Raw(Json.Serialize(L["DishesInserted"].Value));
+            var finder = new bootstrap.Modal(document.getElementById('dishFinder'));
+            var finderRows = $('#finderTable tbody tr');
 
-                var fly = $('<span class="pos-item-fly">+1</span>');
-                b.append(fly);
-                setTimeout(function () { fly.remove(); }, 700);
+            function filterDishes() {
+                var terms = $('#finderText').val().trim().toLowerCase().split(/\s+/).filter(Boolean);
+                var section = $('#finderSection').val();
+                var shown = 0;
+                finderRows.each(function () {
+                    var row = $(this);
+                    var text = String(row.attr('data-search'));
+                    var matches = terms.every(function (term) { return text.indexOf(term) >= 0; });
+                    var visible = matches && (!section || String(row.data('section')) === section);
+                    row.toggle(visible);
+                    if (visible) { shown++; }
+                });
+                $('#finderEmpty').prop('hidden', shown > 0);
+            }
+
+            function countPicked() {
+                var picked = 0;
+                finderRows.each(function () {
+                    var row = $(this);
+                    var isPicked = number(row.find('.finder-qty input').val()) > 0;
+                    row.toggleClass('is-picked', isPicked);
+                    if (isPicked) { picked++; }
+                });
+                $('#finderCount').text(picked > 0 ? msgPicked.replace('{0}', picked) : '');
+                $('#finderInsert').prop('disabled', picked === 0);
+            }
+
+            function setQuantity(row, value) {
+                var input = row.find('.finder-qty input');
+                var max = number(input.attr('max'));
+                input.val(Math.min(Math.max(Math.floor(value), 0), max));
+                countPicked();
+            }
+
+            function openFinder() {
+                $('#finderText').val($('#dishSearch').val());
+                $('#finderSection').val('');
+                filterDishes();
+                countPicked();
+                finder.show();
+            }
+
+            function insertPicked() {
+                var added = 0;
+                finderRows.each(function () {
+                    var row = $(this);
+                    var qty = number(row.find('.finder-qty input').val());
+                    if (qty > 0) {
+                        addItem(row.data('id'), row.data('name'), row.data('price'), qty);
+                        row.find('.finder-qty input').val(0);
+                        added++;
+                    }
+                });
+                if (added === 0) { return; }
+
+                countPicked();
+                finder.hide();
+                toastr.success(msgInserted.replace('{0}', added));
+                $('#dishSearch').val('').trigger('focus');
+            }
+
+            $('#dishSearchBtn').on('click', openFinder);
+            $('#dishSearch').on('keydown', function (e) {
+                if (e.key === 'Enter') { e.preventDefault(); openFinder(); }
+            });
+            $('#finderText').on('input', filterDishes);
+            $('#finderSection').on('change', filterDishes);
+            $('#finderInsert').on('click', insertPicked);
+            $('#dishFinder').on('shown.bs.modal', function () { $('#finderText').trigger('focus').trigger('select'); });
+            $('#finderTable').on('click', '.plus', function () { var r = $(this).closest('tr'); setQuantity(r, number(r.find('.finder-qty input').val()) + 1); });
+            $('#finderTable').on('click', '.minus', function () { var r = $(this).closest('tr'); setQuantity(r, number(r.find('.finder-qty input').val()) - 1); });
+            $('#finderTable').on('input', '.finder-qty input', function () { setQuantity($(this).closest('tr'), number($(this).val())); });
+            $('#finderTable').on('keydown', '.finder-qty input', function (e) {
+                if (e.key === 'Enter') { e.preventDefault(); insertPicked(); }
+            });
+            // a click on the dish name picks one portion
+            $('#finderTable').on('click', '.finder-name', function () {
+                var r = $(this).closest('tr');
+                if (r.find('.finder-qty input').length && number(r.find('.finder-qty input').val()) === 0) { setQuantity(r, 1); }
             });
 
             $(document).on('click', '#cartTable .plus', function () { var r = $(this).closest('tr'); r.data('qty', number(r.data('qty')) + 1); render(); });
@@ -490,25 +632,6 @@
                 render();
             });
             $(document).on('click', '#cartTable .remove', function () { $(this).closest('tr').remove(); render(); });
-
-            $('.pos-section').on('click', function () {
-                var id = String($(this).data('section'));
-                $('.pos-section').removeClass('is-active');
-                $(this).addClass('is-active');
-
-                $('.pos-item').each(function () {
-                    var item = $(this);
-                    var show = id === '' || String(item.data('section')) === id;
-                    if (show) {
-                        item.css('display', '').removeClass('pos-item-hidden');
-                    } else if (!item.hasClass('pos-item-hidden')) {
-                        item.addClass('pos-item-hidden');
-                        setTimeout(function () {
-                            if (item.hasClass('pos-item-hidden')) { item.css('display', 'none'); }
-                        }, 180);
-                    }
-                });
-            });
 
             $('#discountPercent').on('input', function () {
                 $('#discount').val(money(number($('#discount').data('gross')) * number($(this).val()) / 100));

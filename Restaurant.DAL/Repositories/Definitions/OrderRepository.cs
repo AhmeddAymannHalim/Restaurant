@@ -29,6 +29,9 @@ public class OrderRepository : IOrderRepository
 
     public async Task<PaginatedResult<Order>> GetPagedOrdersAsync(PageRequest request, string userId)
     {
+        // the screen has two lists only: orders still to be paid, and paid ones
+        request.Status = request.Status == "pending" ? "pending" : "paid";
+
         var query = _context.Orders.AsNoTracking()
             .Include(a => a.Bill)
             .Include(a => a.Seller)
@@ -76,6 +79,18 @@ public class OrderRepository : IOrderRepository
         return PaginatedResult<Order>.Create(data, total, request);
     }
 
+    // only an unpaid order of a table can be moved or merged
+    public async Task<Order> GetPendingHallOrderByIdAsync(int id)
+    {
+        var order = await GetOrderByIdAsync(id);
+        if (order is null || order.Cash || order.TableId == null)
+        {
+            return null;
+        }
+
+        return order;
+    }
+
     public async Task<Order> GetOrderByIdAsync(int id)
     {
         return await _context.Orders.AsNoTracking()
@@ -104,6 +119,41 @@ public class OrderRepository : IOrderRepository
                                                  .FirstOrDefaultAsync() ?? new ApplicationSetting();
     }
 
+    // a fresh order for the cashier screen: next code, tax and service of the settings, the dishes on sale,
+    // and the table and customer of a reservation when the order starts from one
+    public async Task<Order> GetNewOrderAsync(int? tableId, int? reservationId)
+    {
+        var settings = await GetSettingsAsync();
+        var order = new Order
+        {
+            OrderCode = await GetNextCodeAsync(),
+            CustomerName = null, // typed on the screen, not the default cash customer
+            Bill = new BillMaster { Date = DateTime.Now },
+            Service = settings.OrderService,
+            TaxPercent = settings.OrderTax,
+            DefaultService = settings.OrderService,
+            Menu = (await GetCashierMenuAsync()).ToList()
+        };
+
+        if (tableId.HasValue)
+        {
+            order.Type = OrderType.Hall;
+            order.TableId = tableId;
+        }
+
+        if (reservationId.HasValue)
+        {
+            var reservation = await _context.TableReservations.AsNoTracking().FirstOrDefaultAsync(a => a.Id == reservationId.Value);
+            if (reservation != null)
+            {
+                order.CustomerName = reservation.CustomerName;
+                order.PhoneNumber = reservation.PhoneNumber;
+            }
+        }
+
+        return order;
+    }
+
     public async Task<IEnumerable<Table>> GetPendingTablesAsync(int exceptTableId)
     {
         return await _context.Tables.AsNoTracking()
@@ -130,13 +180,13 @@ public class OrderRepository : IOrderRepository
                 var portions = int.MaxValue;
                 foreach (var component in dish.Components)
                 {
-                    if (component.Quantity <= 0)
+                    if (component.QuantityInBase <= 0)
                     {
                         continue;
                     }
 
                     var inStock = _stock.FindQuantity(stock, dish.StoreId, component.ProductId);
-                    portions = Math.Min(portions, (int)Math.Floor(inStock / component.Quantity));
+                    portions = Math.Min(portions, (int)Math.Floor(inStock / component.QuantityInBase));
                 }
 
                 dish.AvailablePortions = portions;
@@ -301,7 +351,7 @@ public class OrderRepository : IOrderRepository
 
                 foreach (var component in dish.Components)
                 {
-                    var used = quantity * component.Quantity;
+                    var used = quantity * component.QuantityInBase;
                     if (!await _stock.AdjustAsync(dish.StoreId, component.ProductId, -used, createIfMissing: false))
                     {
                         return new ResultMessage { Success = false, Message = "InsufficientStock" };

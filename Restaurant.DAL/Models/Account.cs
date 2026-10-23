@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq.Expressions;
 using Shared.Enums;
 
@@ -22,12 +21,10 @@ public class Account : BaseEntity
     public DateTime AccCheckDate { get; set; }
     public string AccCustomerCode { get; set; }
 
-    [NotMapped]
     public decimal BalanceValue => BalanceType == AccountBalanceType.Debit ? DebitBalance - CreditBalance : CreditBalance - DebitBalance;
 
     public AccountBalanceType BalanceType { get; set; }
 
-    [NotMapped]
     public AccountKind Kind { get; set; }
     public AccountType AccountType { get; set; }
 

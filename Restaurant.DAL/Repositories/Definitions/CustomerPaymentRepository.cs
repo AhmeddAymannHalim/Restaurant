@@ -293,6 +293,20 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
             .ToListAsync();
     }
 
+    public async Task<PaymentInvoiceCustomer> GetPaymentForRefundAsync(int id)
+    {
+        var payment = await GetPaymentByIdAsync(id);
+        if (payment is null)
+        {
+            return null;
+        }
+
+        payment.Refunds = (await GetRefundsForPaymentAsync(id)).ToList();
+        payment.RemainingRefundable = payment.Paid - payment.Refunds.Where(a => a.Status != RefundStatus.Rejected).Sum(a => a.Amount);
+
+        return payment;
+    }
+
     public async Task<ResultMessage> RequestRefundAsync(PaymentRefund entity, string requestedByUserId)
     {
         try

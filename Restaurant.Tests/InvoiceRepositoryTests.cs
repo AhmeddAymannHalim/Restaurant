@@ -85,6 +85,91 @@ public class InvoiceRepositoryTests : IDisposable
         Assert.Equal(10, movement.QuantityDelta);
     }
 
+    private async Task<UnitPrice> SeedGramAndKilo()
+    {
+        var kilo = new UnitPrice { Code = "9", ArName = "Kilo", EnName = "Kilo" };
+        _db.Context.Add(kilo);
+        await _db.Context.SaveChangesAsync();
+        var products = new ProductRepository(_db.Context, _db.Http);
+        var edit = new Product { Id = _product.Id, ArName = "Product", EnName = "Product", Cost = 0.005m };
+        edit.Units = new List<ProductUnit> { new() { UnitPriceId = _unit.Id, TransRate = 1, IsDefault = true }, new() { UnitPriceId = kilo.Id, TransRate = 1000 } };
+        _db.Context.ChangeTracker.Clear();
+        Assert.True((await products.UpsertProductAsync(edit, new List<ProductStock>())).Success);
+        _db.Context.ChangeTracker.Clear();
+        return kilo;
+    }
+
+    [Fact]
+    public async Task Purchase_InAKilo_AddsThousandBaseUnitsAndCostsPerBaseUnit()
+    {
+        await Seed();
+        var kilo = await SeedGramAndKilo();
+        var invoice = Invoice(InvoiceType.Purchases, 3, 7, paid: 21);
+        invoice.Items[0].UnitPriceId = kilo.Id;
+
+        var result = await _sut.UpsertInvoiceAsync(invoice);
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(3000, await Stock());
+        Assert.Equal(0.007m, (await _db.Context.Products.AsNoTracking().SingleAsync()).Cost);
+        Assert.Equal(1000, (await _db.Context.BillDetails.AsNoTracking().SingleAsync()).TransRate);
+        Assert.Equal(3000, (await _db.Context.StoreProductMovements.AsNoTracking().SingleAsync()).QuantityDelta);
+    }
+
+    [Fact]
+    public async Task Invoice_InAKilo_EditAndDeleteTakeBackTheBaseUnits()
+    {
+        await Seed();
+        var kilo = await SeedGramAndKilo();
+        var invoice = Invoice(InvoiceType.Purchases, 3, 7, paid: 21);
+        invoice.Items[0].UnitPriceId = kilo.Id;
+        await _sut.UpsertInvoiceAsync(invoice);
+        _db.Context.ChangeTracker.Clear();
+        var id = (await _db.Context.BillMasters.AsNoTracking().SingleAsync()).Id;
+
+        var edit = Invoice(InvoiceType.Purchases, 2, 7, paid: 14);
+        edit.Id = id;
+        edit.Items[0].UnitPriceId = kilo.Id;
+        Assert.True((await _sut.UpsertInvoiceAsync(edit)).Success);
+        Assert.Equal(2000, await Stock());
+
+        _db.Context.ChangeTracker.Clear();
+        Assert.True((await _sut.DeleteInvoiceAsync(id)).Success);
+        Assert.Equal(0, await Stock());
+    }
+
+    [Fact]
+    public async Task Sale_InAKilo_TakesThousandBaseUnitsAndCostsPerKilo()
+    {
+        await Seed();
+        var kilo = await SeedGramAndKilo();
+        await _stock.AdjustAsync(_store.Id, _product.Id, 5000, allowNegative: true);
+        var sale = Invoice(InvoiceType.Sales, 2, 20);
+        sale.Items[0].UnitPriceId = kilo.Id;
+
+        var result = await _sut.UpsertInvoiceAsync(sale);
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(3000, await Stock());
+        var bill = await _db.Context.BillMasters.AsNoTracking().SingleAsync();
+        Assert.Equal(2 * 0.005m * 1000, bill.BillCost);
+        Assert.Equal(40 - 10, bill.BillProfit);
+    }
+
+    [Fact]
+    public async Task Sale_InAKilo_MoreThanTheStockIsRefused()
+    {
+        await Seed();
+        var kilo = await SeedGramAndKilo();
+        await _stock.AdjustAsync(_store.Id, _product.Id, 1500, allowNegative: true);
+        var sale = Invoice(InvoiceType.Sales, 2, 20);
+        sale.Items[0].UnitPriceId = kilo.Id;
+
+        var result = await _sut.UpsertInvoiceAsync(sale);
+
+        Assert.Equal("InsufficientStock", result.Message);
+    }
+
     [Fact]
     public async Task SecondUnitOfTheSameProduct_IsNotAnotherDefaultUnit()
     {
@@ -326,6 +411,25 @@ public class InvoiceRepositoryTests : IDisposable
         Assert.Equal(30, await Balance(_supplier.Account));
         Assert.Equal("BillAlreadyPosted", second.Message);
         Assert.Empty(await _sut.GetUnpostedInvoiceIdsAsync());
+    }
+
+    [Fact]
+    public async Task NewInvoice_HasItsTypeAndNextCode_AndPostsAndMovesStockByDefault()
+    {
+        await Seed();
+
+        var first = await _sut.GetNewInvoiceAsync(InvoiceType.Purchases);
+        await _sut.UpsertInvoiceAsync(Invoice(InvoiceType.Purchases, 1, 5, paid: 5));
+        var second = await _sut.GetNewInvoiceAsync(InvoiceType.Purchases);
+        var sale = await _sut.GetNewInvoiceAsync(InvoiceType.Sales);
+
+        Assert.Equal(InvoiceType.Purchases, first.InvoiceType);
+        Assert.Equal("1", first.InvoiceCode);
+        Assert.Equal("2", second.InvoiceCode);
+        Assert.Equal(InvoiceType.Sales, sale.InvoiceType);
+        Assert.Equal("1", sale.InvoiceCode);
+        Assert.True(first.AutoPost);
+        Assert.True(first.AutoStock);
     }
 
     [Fact]

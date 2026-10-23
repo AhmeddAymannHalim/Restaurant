@@ -331,6 +331,30 @@ public class LedgerAndTransferRepositoriesTests : IDisposable
     }
 
     [Fact]
+    public async Task Bill_PostOrder_ThenDeleteTheOrder_RemovesItsEntryAndGivesTheBalancesBack()
+    {
+        var (orders, bills, orderId, _) = await PaidOrder();
+        var sales = await SeedAccount("SALES", balance: AccountBalanceType.Credit);
+        var cash = await SeedAccount("CASH");
+        var setting = await _db.Context.BillSettings.SingleAsync();
+        setting.AccountItemId = sales.Id;
+        setting.AccountPayId = cash.Id;
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+        Assert.True((await bills.PostBillAsync(orderId)).Success);
+        Assert.Equal(40, await Balance(cash));
+        _db.Context.ChangeTracker.Clear();
+
+        var deleted = await orders.DeleteOrderAsync(orderId);
+
+        Assert.True(deleted.Success, deleted.Message);
+        Assert.Empty(_db.Context.EntryMasters);
+        Assert.Empty(_db.Context.EntryDetails);
+        Assert.Equal(0, await Balance(cash));
+        Assert.Equal(0, await Balance(sales));
+    }
+
+    [Fact]
     public async Task Bill_PostUnknownOrUnpaid_IsRefused_AndPostPendingPostsWhatIsLeft()
     {
         var (orders, bills, orderId, _) = await PaidOrder();

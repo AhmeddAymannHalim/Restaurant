@@ -101,7 +101,8 @@ namespace ResturantPL.Controllers
                 principal,
                 new AuthenticationProperties
                 {
-                    IsPersistent = model.RememberMe
+                    IsPersistent = model.RememberMe,
+                    ExpiresUtc = DateTimeOffset.UtcNow.Add(model.RememberMe ? TimeSpan.FromDays(30) : TimeSpan.FromHours(12))
                 });
 
             return Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl) : RedirectToAction("Index", "Dashboard");

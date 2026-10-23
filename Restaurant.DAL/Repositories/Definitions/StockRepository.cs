@@ -85,7 +85,7 @@ public class StockRepository : IStockRepository
     {
         var rows = await Rows().AsNoTracking()
             .Where(a => storeId == null || a.StoreId == storeId)
-            .Select(a => new { a.StoreId, a.Item.Code, a.Quantity })
+            .Select(a => new { a.StoreId, a.Item.Code, a.Quantity, a.MinQuantityOrder })
             .ToListAsync();
 
         var quantities = new List<StockQuantity>();
@@ -100,11 +100,26 @@ public class StockRepository : IStockRepository
             {
                 StoreId = row.StoreId.Value,
                 ProductId = _billSupport.ProductIdOf(row.Code),
-                Quantity = row.Quantity ?? 0
+                Quantity = row.Quantity ?? 0,
+                MinQuantity = row.MinQuantityOrder ?? 0
             });
         }
 
         return quantities;
+    }
+
+    // The reorder limit of a product in one store. 0 when none was set.
+    public decimal FindMinQuantity(List<StockQuantity> quantities, int storeId, int productId)
+    {
+        foreach (var stock in quantities)
+        {
+            if (stock.StoreId == storeId && stock.ProductId == productId)
+            {
+                return stock.MinQuantity;
+            }
+        }
+
+        return 0;
     }
 
     // How much of a product one store holds. A product that was never stocked there has 0.

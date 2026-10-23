@@ -8,8 +8,8 @@ public interface IOrderService
 {
     Task<PaginatedResult<OrderViewModel>> GetPagedOrdersAsync(PageRequest request, string userId);
     Task<OrderViewModel> GetOrderByIdAsync(int id);
-    Task<OrderViewModel> GetNewOrderAsync();
-    Task<OrderViewModel> GetNewOrderFromReservationAsync(int tableId, int? reservationId);
+    Task<OrderViewModel> GetPendingHallOrderByIdAsync(int id);
+    Task<OrderViewModel> GetNewOrderAsync(int? tableId, int? reservationId);
     Task<IEnumerable<LookupItem>> GetPendingTablesAsync(int exceptTableId);
 
     Task<ResultMessage> CreateOrderAsync(OrderViewModel model, string userId);

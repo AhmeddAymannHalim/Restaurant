@@ -89,7 +89,8 @@ namespace ResturantPL.Controllers.Definitions
                 if (!ModelState.IsValid)
                 {
                     model.ConvertCode = await _service.GetNextCodeAsync();
-                    await PopulateData(model);                    _toastr.Error(_localizer["ValidationError"].Value);
+                    await PopulateData(model);
+                    _toastr.Error(_localizer["ValidationError"].Value);
                     return View("Upsert", model);
                 }
 
@@ -101,7 +102,8 @@ namespace ResturantPL.Controllers.Definitions
                 }
 
                 model.ConvertCode = await _service.GetNextCodeAsync();
-                await PopulateData(model);                _toastr.Error(_localizer[result.Message ?? "ErrorWhileSaving"].Value);
+                await PopulateData(model);
+                _toastr.Error(_localizer[result.Message ?? "ErrorWhileSaving"].Value);
                 return View("Upsert", model);
             }
             catch (Exception ex)
@@ -155,15 +157,7 @@ namespace ResturantPL.Controllers.Definitions
 
             if (model.Items.Count > 0)
             {
-                var products = (await _lookup.StoreProductLookupByStoreIdAsync(model.FromStoreId.GetValueOrDefault())).ToDictionary(p => p.ProductId);
-                foreach (var item in model.Items)
-                {
-                    if (products.TryGetValue(item.ProductId, out var product))
-                    {
-                        item.ProductArName = product.ProductArName;
-                        item.ProductEnName = product.ProductEnName;
-                    }
-                }
+                model.FillItemNames(await _lookup.StoreProductLookupByStoreIdAsync(model.FromStoreId.GetValueOrDefault()));
             }
         }
     }

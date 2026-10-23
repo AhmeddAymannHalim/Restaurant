@@ -1,3 +1,4 @@
+using Shared.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
@@ -56,16 +57,63 @@ public class RoleRepository : IRoleRepository
 
     public async Task<ResultMessage> UpsertRoleAsync(IdentityRole entity)
     {
-        IdentityResult result;
+        try
+        {
+            IdentityResult result;
 
-        if (string.IsNullOrEmpty(entity.Id))
-        {
-            result = await _roleManager.CreateAsync(new IdentityRole(entity.Name));
+            if (string.IsNullOrEmpty(entity.Id))
+            {
+                result = await _roleManager.CreateAsync(new IdentityRole(entity.Name));
+            }
+            else
+            {
+                var existing = await _roleManager.FindByIdAsync(entity.Id);
+                if (existing is null)
+                {
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "RecordNotFound"
+                    };
+                }
+
+                if ((existing.Name == "Admin" || existing.Name == "Manager" || existing.Name == "كاشير" || existing.Name == "User"))
+                {
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "SystemRoleLocked"
+                    };
+                }
+
+                existing.Name = entity.Name;
+                result = await _roleManager.UpdateAsync(existing);
+
+                // every user keeps the name of his role in UserType, so it follows the rename
+                if (result.Succeeded)
+                {
+                    foreach (var user in await _userManager.GetUsersInRoleAsync(existing.Name))
+                    {
+                        user.UserType = existing.Name;
+                        await _userManager.UpdateAsync(user);
+                    }
+                }
+            }
+
+            return new ResultMessage { Success = result.Succeeded, Message = result.Succeeded ? null : "Identity." + result.Errors.First().Code };
         }
-        else
+        catch (Exception ex)
         {
-            var existing = await _roleManager.FindByIdAsync(entity.Id);
-            if (existing is null)
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
+        }
+    }
+
+    public async Task<ResultMessage> DeleteRoleAsync(string id)
+    {
+        try
+        {
+            var entity = await _roleManager.FindByIdAsync(id);
+            if (entity is null)
             {
                 return new ResultMessage
                 {
@@ -74,7 +122,7 @@ public class RoleRepository : IRoleRepository
                 };
             }
 
-            if ((existing.Name == "Admin" || existing.Name == "Manager" || existing.Name == "كاشير" || existing.Name == "User"))
+            if ((entity.Name == "Admin" || entity.Name == "Manager" || entity.Name == "كاشير" || entity.Name == "User"))
             {
                 return new ResultMessage
                 {
@@ -83,55 +131,26 @@ public class RoleRepository : IRoleRepository
                 };
             }
 
-            existing.Name = entity.Name;
-            result = await _roleManager.UpdateAsync(existing);
-
-            // every user keeps the name of his role in UserType, so it follows the rename
-            if (result.Succeeded)
+            if ((await _userManager.GetUsersInRoleAsync(entity.Name)).Count > 0)
             {
-                foreach (var user in await _userManager.GetUsersInRoleAsync(existing.Name))
+                return new ResultMessage
                 {
-                    user.UserType = existing.Name;
-                    await _userManager.UpdateAsync(user);
-                }
+                    Success = false,
+                    Message = "CannotDeleteLinkedRecord"
+                };
             }
+
+            var deleted = await _roleManager.DeleteAsync(entity);
+
+            return new ResultMessage { Success = deleted.Succeeded, Message = deleted.Succeeded ? null : "Identity." + deleted.Errors.First().Code };
         }
-
-        return new ResultMessage { Success = result.Succeeded, Message = result.Succeeded ? null : "Identity." + result.Errors.First().Code };
-    }
-
-    public async Task<ResultMessage> DeleteRoleAsync(string id)
-    {
-        var entity = await _roleManager.FindByIdAsync(id);
-        if (entity is null)
+        catch (DbUpdateException)
         {
-            return new ResultMessage
-            {
-                Success = false,
-                Message = "RecordNotFound"
-            };
+            return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
         }
-
-        if ((entity.Name == "Admin" || entity.Name == "Manager" || entity.Name == "كاشير" || entity.Name == "User"))
+        catch (Exception ex)
         {
-            return new ResultMessage
-            {
-                Success = false,
-                Message = "SystemRoleLocked"
-            };
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
-
-        if ((await _userManager.GetUsersInRoleAsync(entity.Name)).Count > 0)
-        {
-            return new ResultMessage
-            {
-                Success = false,
-                Message = "CannotDeleteLinkedRecord"
-            };
-        }
-
-        var deleted = await _roleManager.DeleteAsync(entity);
-
-        return new ResultMessage { Success = deleted.Succeeded, Message = deleted.Succeeded ? null : "Identity." + deleted.Errors.First().Code };
     }
 }

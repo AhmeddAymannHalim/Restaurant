@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
 using Shared.Enums;
 
 namespace Restaurant.DAL.Models;
@@ -10,10 +9,8 @@ public class BillMaster : BaseEntity
     public DateTime Date { get; set; }
     public decimal? CurrencyRate { get; set; }
 
-    [Column(TypeName = "decimal(18,6)")]
     public decimal? BillCost { get; set; }
 
-    [Column(TypeName = "decimal(18,6)")]
     public decimal? BillProfit { get; set; }
     public string Remarks { get; set; }
 

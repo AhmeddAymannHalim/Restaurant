@@ -15,12 +15,14 @@ public class ProductRepository : IProductRepository
     private readonly ApplicationDbContext _context;
     private readonly IHttpContextAccessor _httpContext;
     private readonly IStockRepository _stock;
+    private readonly IBillSupportRepository _billSupport;
 
     public ProductRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
     {
         _context = context;
         _httpContext = httpContext;
         _stock = new StockRepository(context);
+        _billSupport = new BillSupportRepository(context);
     }
 
     public async Task<PaginatedResult<Product>> GetPagedProductsAsync(PageRequest request)
@@ -51,7 +53,8 @@ public class ProductRepository : IProductRepository
             {
                 StoreId = store.Id,
                 Store = store,
-                Quantity = _stock.FindQuantity(pagedQuantities, store.Id, product.Id)
+                Quantity = _stock.FindQuantity(pagedQuantities, store.Id, product.Id),
+                MinQuantity = _stock.FindMinQuantity(pagedQuantities, store.Id, product.Id)
             }).ToList();
         }
 
@@ -72,8 +75,32 @@ public class ProductRepository : IProductRepository
             {
                 StoreId = store.Id,
                 Store = store,
-                Quantity = _stock.FindQuantity(quantities, store.Id, product.Id)
+                Quantity = _stock.FindQuantity(quantities, store.Id, product.Id),
+                MinQuantity = _stock.FindMinQuantity(quantities, store.Id, product.Id)
             }).ToList();
+
+            var itemCode = BillSupportRepository.ItemCodePrefix + id;
+            var unitRows = await _context.ItemUnits.AsNoTracking()
+                .Where(a => a.Item.Code == itemCode && a.Unit.Code.StartsWith(BillSupportRepository.UnitCodePrefix))
+                .Select(a => new { a.Id, a.Unit.Code, a.TransRate, a.IsDefault, a.Barcode, a.LastPurchase })
+                .ToListAsync();
+            var unitPrices = await _context.UnitPrices.AsNoTracking().ToListAsync();
+            var unitRowIds = unitRows.Select(a => a.Id).ToList();
+            var unitPriceRows = await _context.ItemUnitPrices.AsNoTracking().Where(a => unitRowIds.Contains(a.ItemUnitId)).ToListAsync();
+            foreach (var row in unitRows)
+            {
+                var unitPriceId = _billSupport.UnitPriceIdOf(row.Code);
+                product.Units.Add(new ProductUnit
+                {
+                    UnitPriceId = unitPriceId,
+                    UnitPrice = unitPrices.FirstOrDefault(a => a.Id == unitPriceId),
+                    TransRate = (decimal)row.TransRate,
+                    IsDefault = row.IsDefault,
+                    Barcode = row.Barcode,
+                    LastPurchase = row.LastPurchase ?? 0,
+                    Prices = unitPriceRows.Where(a => a.ItemUnitId == row.Id).Select(a => new ProductUnitPrice { SellTypeId = a.SellTypeId, Price = a.Price }).ToList()
+                });
+            }
         }
 
         return product;
@@ -131,12 +158,20 @@ public class ProductRepository : IProductRepository
             var current = await _stock.QuantitiesAsync();
             foreach (var stock in stocks)
             {
-                if (_stock.FindQuantity(current, stock.StoreId, entity.Id) == stock.Quantity)
+                var quantityChanged = _stock.FindQuantity(current, stock.StoreId, entity.Id) != stock.Quantity;
+                var minChanged = _stock.FindMinQuantity(current, stock.StoreId, entity.Id) != stock.MinQuantity;
+                if (!quantityChanged && !minChanged)
                 {
                     continue;
                 }
 
                 var row = await _stock.RowAsync(stock.StoreId, entity.Id);
+                row.MinQuantityOrder = stock.MinQuantity;
+                if (!quantityChanged)
+                {
+                    continue;
+                }
+
                 var before = row.Quantity ?? 0;
                 row.Quantity = stock.Quantity;
                 await _context.StoreProductMovements.AddAsync(new StoreProductMovement
@@ -171,6 +206,82 @@ public class ProductRepository : IProductRepository
             }
 
             await _context.SaveChangesAsync();
+
+            var unitItemCode = BillSupportRepository.ItemCodePrefix + entity.Id;
+            var hadUnits = await _context.ItemUnits.AnyAsync(a => a.Item.Code == unitItemCode && a.Unit.Code.StartsWith(BillSupportRepository.UnitCodePrefix));
+            if (entity.Units.Count > 0 || hadUnits)
+            {
+                var itemId = await _billSupport.GetItemIdAsync(entity.Id);
+                var oldRows = await _context.ItemUnits
+                    .Include(a => a.Unit)
+                    .Where(a => a.ItemId == itemId && a.Unit.Code.StartsWith(BillSupportRepository.UnitCodePrefix))
+                    .ToListAsync();
+
+                // the stock unit is added automatically as the first unit; once the product has its own default it must stop being one
+                if (entity.Units.Count > 0)
+                {
+                    var stockUnitRows = await _context.ItemUnits
+                        .Where(a => a.ItemId == itemId && a.Unit.Code == StockRepository.BaseUnitCode && a.IsDefault)
+                        .ToListAsync();
+                    foreach (var stockUnitRow in stockUnitRows)
+                    {
+                        stockUnitRow.IsDefault = false;
+                    }
+                }
+
+                var keptUnitIds = entity.Units.Select(a => a.UnitPriceId).ToList();
+                foreach (var old in oldRows)
+                {
+                    if (!keptUnitIds.Contains(_billSupport.UnitPriceIdOf(old.Unit.Code)))
+                    {
+                        _context.ItemUnits.Remove(old);
+                    }
+                }
+
+                foreach (var unit in entity.Units)
+                {
+                    var unitId = await _billSupport.GetUnitIdAsync(unit.UnitPriceId);
+                    var row = oldRows.FirstOrDefault(a => a.UnitId == unitId);
+                    if (row is null)
+                    {
+                        row = new ItemUnit { ItemId = itemId, UnitId = unitId, CreatedAt = DateTime.Now };
+                        await _context.ItemUnits.AddAsync(row);
+                    }
+
+                    row.TransRate = (double)unit.TransRate;
+                    row.IsDefault = unit.IsDefault;
+                    row.Barcode = unit.Barcode;
+                    row.LastPurchase = unit.LastPurchase;
+
+                    // a price type that is not posted (hidden or deleted) keeps whatever it had
+                    if (row.Id != 0)
+                    {
+                        var oldPrices = await _context.ItemUnitPrices.Where(a => a.ItemUnitId == row.Id).ToListAsync();
+                        foreach (var price in unit.Prices)
+                        {
+                            var oldPrice = oldPrices.FirstOrDefault(a => a.SellTypeId == price.SellTypeId);
+                            if (oldPrice is null)
+                            {
+                                await _context.ItemUnitPrices.AddAsync(new ItemUnitPrice { ItemUnitId = row.Id, SellTypeId = price.SellTypeId, Price = price.Price });
+                            }
+                            else
+                            {
+                                oldPrice.Price = price.Price;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var price in unit.Prices)
+                        {
+                            await _context.ItemUnitPrices.AddAsync(new ItemUnitPrice { ItemUnit = row, SellTypeId = price.SellTypeId, Price = price.Price });
+                        }
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
             await transaction.CommitAsync();
 
             return new ResultMessage { Success = true };

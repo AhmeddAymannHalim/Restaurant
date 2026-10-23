@@ -19,6 +19,9 @@ namespace Restaurant.DAL.Models
         public string UserType { get; set; }
         public string Code { get; set; }
 
+        // not stored: the employee a login form is opened for, before the login exists
+        public int? EmployeeId { get; set; }
+
         public virtual Town Town { get; set; }
     }
 }

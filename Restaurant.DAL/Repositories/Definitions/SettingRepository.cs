@@ -27,13 +27,20 @@ public class SettingRepository : ISettingRepository
 
     public async Task<ResultMessage> UpdateApplicationSettingAsync(ApplicationSetting entity)
     {
-        var existing = await _context.ApplicationSettings.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
-        entity.Password = string.IsNullOrWhiteSpace(entity.Password) ? existing?.Password : _shiftPassword.Hash(entity.Password);
+        try
+        {
+            var existing = await _context.ApplicationSettings.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
+            entity.Password = string.IsNullOrWhiteSpace(entity.Password) ? existing?.Password : _shiftPassword.Hash(entity.Password);
 
-        _context.ApplicationSettings.Update(entity);
-        await _context.SaveChangesAsync();
+            _context.ApplicationSettings.Update(entity);
+            await _context.SaveChangesAsync();
 
-        return new ResultMessage { Success = true };
+            return new ResultMessage { Success = true };
+        }
+        catch (Exception ex)
+        {
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
+        }
     }
 
     public async Task<PrinterSetting> GetPrinterSettingAsync()
@@ -43,10 +50,17 @@ public class SettingRepository : ISettingRepository
 
     public async Task<ResultMessage> UpdatePrinterSettingAsync(PrinterSetting entity)
     {
-        _context.PrinterSettings.Update(entity);
-        await _context.SaveChangesAsync();
+        try
+        {
+            _context.PrinterSettings.Update(entity);
+            await _context.SaveChangesAsync();
 
-        return new ResultMessage { Success = true };
+            return new ResultMessage { Success = true };
+        }
+        catch (Exception ex)
+        {
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
+        }
     }
 
 }

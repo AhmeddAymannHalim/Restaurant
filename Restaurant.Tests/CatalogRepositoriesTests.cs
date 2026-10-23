@@ -134,6 +134,133 @@ public class CatalogRepositoriesTests : IDisposable
         Assert.Equal("3", await _products.NewProductCodeAsync());
     }
 
+    // ---------------------------------------------------------------- product units
+
+    private async Task<(UnitPrice gram, UnitPrice kilo)> SeedUnits()
+    {
+        var gram = new UnitPrice { Code = "1", ArName = "جرام", EnName = "Gram" };
+        var kilo = new UnitPrice { Code = "2", ArName = "كيلو", EnName = "Kilo" };
+        _db.Context.AddRange(gram, kilo);
+        await _db.Context.SaveChangesAsync();
+        return (gram, kilo);
+    }
+
+    [Fact]
+    public async Task Product_Units_AreSavedWithRateBarcodeAndDefault_AndAStoreKeepsItsReorderLimit()
+    {
+        var (a, _) = await SeedStores();
+        var (gram, kilo) = await SeedUnits();
+        var priceTypes = Enumerable.Range(1, 8).Select(n => new SellType { ArName = "T" + n, EnName = "T" + n, Show = true }).ToList();
+        _db.Context.AddRange(priceTypes);
+        await _db.Context.SaveChangesAsync();
+        var product = NewProduct();
+        product.Units = new List<ProductUnit>
+        {
+            new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true, Barcode = "111" },
+            new() { UnitPriceId = kilo.Id, TransRate = 1000, Barcode = "222", LastPurchase = 400, Prices = priceTypes.Select((t, n) => new ProductUnitPrice { SellTypeId = t.Id, Price = 10 * (n + 1) + 0.5m }).ToList() }
+        };
+
+        var result = await _products.UpsertProductAsync(product, new[] { new ProductStock { StoreId = a.Id, Quantity = 5, MinQuantity = 2 } });
+
+        Assert.True(result.Success, result.Message);
+        _db.Context.ChangeTracker.Clear();
+        var saved = await _products.GetProductByIdAsync(product.Id);
+        Assert.Equal(2, saved.Units.Count);
+        Assert.Equal(1000, saved.Units.Single(u => u.UnitPriceId == kilo.Id).TransRate);
+        Assert.Equal("222", saved.Units.Single(u => u.UnitPriceId == kilo.Id).Barcode);
+        var kiloPrices = saved.Units.Single(u => u.UnitPriceId == kilo.Id);
+        Assert.Equal(400, kiloPrices.LastPurchase);
+        // price types are a definition, so there is no fixed number of them (here 8)
+        Assert.Equal(8, kiloPrices.Prices.Count);
+        Assert.Equal(new[] { 10.5m, 20.5m, 30.5m, 40.5m, 50.5m, 60.5m, 70.5m, 80.5m }, kiloPrices.Prices.OrderBy(a => a.SellTypeId).Select(a => a.Price).ToArray());
+        Assert.True(saved.Units.Single(u => u.UnitPriceId == gram.Id).IsDefault);
+        Assert.Equal(2, saved.Stocks.Single(s => s.StoreId == a.Id).MinQuantity);
+        Assert.Equal(5, saved.Stocks.Single(s => s.StoreId == a.Id).Quantity);
+        // the stock unit that is created with the first stock row must not be a second default
+        Assert.Single(await _db.Context.ItemUnits.AsNoTracking().Where(u => u.IsDefault).ToListAsync());
+    }
+
+    [Fact]
+    public async Task Product_Units_AUnitTakenOffTheListIsRemoved()
+    {
+        var (gram, kilo) = await SeedUnits();
+        var product = NewProduct();
+        product.Units = new List<ProductUnit> { new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true }, new() { UnitPriceId = kilo.Id, TransRate = 1000 } };
+        await _products.UpsertProductAsync(product, new List<ProductStock>());
+        _db.Context.ChangeTracker.Clear();
+
+        var edit = NewProduct();
+        edit.Id = product.Id;
+        edit.Units = new List<ProductUnit> { new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true } };
+        Assert.True((await _products.UpsertProductAsync(edit, new List<ProductStock>())).Success);
+
+        _db.Context.ChangeTracker.Clear();
+        var saved = await _products.GetProductByIdAsync(product.Id);
+        Assert.Equal(gram.Id, saved.Units.Single().UnitPriceId);
+    }
+
+    [Fact]
+    public async Task Menu_Recipe_InAKiloOfAGramProduct_CostsByTheRate()
+    {
+        var (section, store, flour, _) = await SeedMenu();
+        var (gram, kilo) = await SeedUnits();
+        flour.Cost = 0.01m; // per gram
+        flour.Units = new List<ProductUnit> { new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true }, new() { UnitPriceId = kilo.Id, TransRate = 1000 } };
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+        await _products.UpsertProductAsync(new Product { Id = flour.Id, ArName = "Flour", EnName = "Flour", Cost = 0.01m, Units = flour.Units }, new List<ProductStock>());
+        _db.Context.ChangeTracker.Clear();
+
+        var dish = Dish(section, store, "Bread", (flour.Id, 0.25m));
+        dish.Components.Single().UnitPriceId = kilo.Id;
+        var result = await _menu.UpsertMenuItemAsync(dish, null);
+
+        Assert.True(result.Success, result.Message);
+        _db.Context.ChangeTracker.Clear();
+        var saved = await _menu.GetMenuItemByIdAsync(dish.Id);
+        Assert.Equal(1000, saved.Components.Single().TransRate);
+        Assert.Equal(250, saved.Components.Single().QuantityInBase);
+        Assert.Equal(2.5m, saved.TotalCost);
+    }
+
+    [Fact]
+    public async Task Order_OfADishWithAKiloRecipe_TakesBaseUnitsOutOfTheStock()
+    {
+        var (section, store, flour, _) = await SeedMenu();
+        var (_, kilo) = await SeedUnits();
+        var user = new ApplicationUser { UserName = "u", Email = "u@test.com" };
+        _db.Context.Add(user);
+        var dish = Dish(section, store, "Bread", (flour.Id, 0.1m));
+        dish.Components.Single().UnitPriceId = kilo.Id;
+        dish.Components.Single().TransRate = 1000;
+        _db.Context.MenuItems.Add(dish);
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+        await _stock.AdjustAsync(store.Id, flour.Id, 5000, allowNegative: true);
+        _db.Context.ChangeTracker.Clear();
+        var orders = new OrderRepository(_db.Context);
+
+        var menuBefore = (await orders.GetCashierMenuAsync()).Single();
+        var result = await orders.CreateOrderAsync(new Order { Type = OrderType.TakeAway, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 2 } } } }, user.Id);
+
+        Assert.Equal(50, menuBefore.AvailablePortions);
+        Assert.True(result.Success, result.Message);
+        _db.Context.ChangeTracker.Clear();
+        Assert.Equal(4800, (await _stock.FindAsync(store.Id, flour.Id)).Quantity);
+    }
+
+    [Fact]
+    public async Task Menu_Recipe_AUnitTheProductDoesNotHaveIsRejected()
+    {
+        var (section, store, flour, _) = await SeedMenu();
+        var (_, kilo) = await SeedUnits();
+
+        var dish = Dish(section, store, "Bread", (flour.Id, 1));
+        dish.Components.Single().UnitPriceId = kilo.Id;
+
+        Assert.Equal("RecordNotFound", (await _menu.UpsertMenuItemAsync(dish, null)).Message);
+    }
+
     // ---------------------------------------------------------------- menu items
 
     private async Task<(MenuSection section, Store store, Product flour, Product cheese)> SeedMenu()

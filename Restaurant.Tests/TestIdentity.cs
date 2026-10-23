@@ -31,6 +31,7 @@ public class TestIdentity : IDisposable
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
                 options.User.RequireUniqueEmail = true;
+                options.User.AllowedUserNameCharacters = "";
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();

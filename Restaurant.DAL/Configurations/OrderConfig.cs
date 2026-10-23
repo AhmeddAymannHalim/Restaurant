@@ -9,6 +9,9 @@ public class OrderConfig : IEntityTypeConfiguration<Order>
     public void Configure(EntityTypeBuilder<Order> builder)
     {
         builder.Property(a => a.Id).ValueGeneratedNever();
+        builder.Ignore(a => a.TaxPercent);
+        builder.Ignore(a => a.DefaultService);
+        builder.Ignore(a => a.Menu);
         builder.Property(a => a.OrderCode).IsRequired().HasMaxLength(30);
         builder.Property(a => a.CustomerName).HasMaxLength(100);
         builder.Property(a => a.Address).HasMaxLength(250);

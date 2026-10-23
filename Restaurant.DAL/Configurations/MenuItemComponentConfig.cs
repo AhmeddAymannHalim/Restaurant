@@ -9,6 +9,13 @@ public class MenuItemComponentConfig : IEntityTypeConfiguration<MenuItemComponen
     public void Configure(EntityTypeBuilder<MenuItemComponent> builder)
     {
         builder.Property(a => a.Quantity).HasPrecision(18, 3);
+        builder.Property(a => a.TransRate).HasPrecision(18, 6).HasDefaultValue(1m);
+
+        builder
+            .HasOne(a => a.UnitPrice)
+            .WithMany()
+            .HasForeignKey(a => a.UnitPriceId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder
             .HasOne(a => a.MenuItem)

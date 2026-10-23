@@ -19,5 +19,8 @@ public class EmployeeAccountViewModel
     public string LastName { get; set; }
     public string FullName => $"{FirstName} {LastName}";
 
+    // a new login that is not for one fixed employee shows the list of employees without a login
+    public bool NeedsEmployeeList => string.IsNullOrEmpty(Id) && EmployeeId is null or 0;
+
     public IEnumerable<LookupItem> Employees { get; set; } = new List<LookupItem>();
 }

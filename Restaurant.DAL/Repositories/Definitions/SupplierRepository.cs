@@ -54,11 +54,19 @@ public class SupplierRepository : ISupplierRepository
 
     public async Task<Supplier> GetSupplierByIdAsync(int id)
     {
-        return await _context.Suppliers
+        var supplier = await _context.Suppliers
             .Include(a => a.Account)
             .Include(a => a.Phones)
             .Include(a => a.Town).ThenInclude(a => a.Governorate)
             .FirstOrDefaultAsync(a => a.Id == id);
+        if (supplier is null)
+        {
+            return null;
+        }
+
+        supplier.InvoiceCount = await CountInvoicesAsync(id);
+
+        return supplier;
     }
 
     public async Task<int> CountInvoicesAsync(int id)

@@ -12,9 +12,7 @@ public class SignInVmValidator : AbstractValidator<SignInViewModel>
     {
         RuleFor(x => x.Email)
             .NotEmpty()
-            .WithMessage(localizer["Auth_EmailRequired"].Value)
-            .EmailAddress()
-            .WithMessage(localizer["Auth_EmailInvalid"].Value);
+            .WithMessage(localizer["Auth_EmailRequired"].Value);
 
         RuleFor(x => x.Password)
             .NotEmpty()

@@ -8,6 +8,8 @@ public class PaymentInvoiceSupplierConfig : IEntityTypeConfiguration<PaymentInvo
 {
     public void Configure(EntityTypeBuilder<PaymentInvoiceSupplier> builder)
     {
+        builder.Ignore(a => a.RemainingRefundable);
+        builder.Ignore(a => a.Refunds);
         builder.Property(a => a.ProcessCode).IsRequired().HasMaxLength(30);
         builder.Property(a => a.Description).HasMaxLength(250);
         builder.HasIndex(a => a.ProcessCode).IsUnique();
@@ -33,6 +35,8 @@ public class PaymentInvoiceCustomerConfig : IEntityTypeConfiguration<PaymentInvo
 {
     public void Configure(EntityTypeBuilder<PaymentInvoiceCustomer> builder)
     {
+        builder.Ignore(a => a.RemainingRefundable);
+        builder.Ignore(a => a.Refunds);
         builder.Property(a => a.ProcessCode).IsRequired().HasMaxLength(30);
         builder.Property(a => a.Description).HasMaxLength(250);
         builder.HasIndex(a => a.ProcessCode).IsUnique();

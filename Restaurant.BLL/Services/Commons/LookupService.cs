@@ -1,3 +1,4 @@
+using AutoMapper;
 using Restaurant.BLL.Services.IServices.Commons;
 using Restaurant.DAL.UnitOfWork;
 using Shared.ViewModels.Commons;
@@ -8,10 +9,12 @@ namespace Restaurant.BLL.Services.Commons;
 public class LookupService : ILookupService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public LookupService(IUnitOfWork unitOfWork)
+    public LookupService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
 
@@ -24,6 +27,11 @@ public class LookupService : ILookupService
     public async Task<IEnumerable<AllowanceTypeViewModel>> AllowanceTypeLookupAsync()
     {
         return await _unitOfWork.Lookups.AllowanceTypeLookupAsync();
+    }
+
+    public async Task<IEnumerable<SellTypeViewModel>> SellTypeLookupAsync()
+    {
+        return await _unitOfWork.Lookups.SellTypeLookupAsync();
     }
 
     public async Task<IEnumerable<LeaveTypeViewModel>> LeaveTypeLookupAsync()
@@ -60,13 +68,7 @@ public class LookupService : ILookupService
     {
         var zones = await _unitOfWork.DeliveryZones.GetAllDeliveryZonesAsync();
 
-        return zones.Select(a => new DeliveryZoneViewModel
-        {
-            Id = a.Id,
-            ArName = a.ArName,
-            EnName = a.EnName,
-            Fee = a.Fee
-        }).ToList();
+        return _mapper.Map<List<DeliveryZoneViewModel>>(zones);
     }
 
 

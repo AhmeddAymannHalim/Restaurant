@@ -8,7 +8,7 @@ using Shared.Helpers;
 using Shared.Helpers.Localization;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
-using System.Drawing.Printing;
+using ResturantPL.Helper;
 
 namespace ResturantPL.Controllers
 {
@@ -79,19 +79,7 @@ namespace ResturantPL.Controllers
             try
             {
                 var model = await _service.GetPrinterSettingAsync();
-                var printers = new List<LookupItem_String>();
-                if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
-                {
-                    printers.AddRange(PrinterSettings.InstalledPrinters.Cast<string>()
-                        .Select(a => new LookupItem_String
-                            {
-                                Id = a,
-                                ArName = a,
-                                EnName = a
-                            }));
-                }
-
-                model.Printers = printers;
+                model.Printers = InstalledPrinters.List();
 
                 return View(model);
             }
@@ -108,19 +96,7 @@ namespace ResturantPL.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    var printers = new List<LookupItem_String>();
-                    if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
-                    {
-                        printers.AddRange(PrinterSettings.InstalledPrinters.Cast<string>()
-                            .Select(a => new LookupItem_String
-                                {
-                                    Id = a,
-                                    ArName = a,
-                                    EnName = a
-                                }));
-                    }
-
-                    model.Printers = printers;
+                    model.Printers = InstalledPrinters.List();
                     _toastr.Error(_localizer["ValidationError"].Value);
                     return View(model);
                 }
@@ -128,19 +104,7 @@ namespace ResturantPL.Controllers
                 var result = await _service.UpdatePrinterSettingAsync(model);
                 if (!result.Success)
                 {
-                    var printers = new List<LookupItem_String>();
-                    if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
-                    {
-                        printers.AddRange(PrinterSettings.InstalledPrinters.Cast<string>()
-                            .Select(a => new LookupItem_String
-                                {
-                                    Id = a,
-                                    ArName = a,
-                                    EnName = a
-                                }));
-                    }
-
-                    model.Printers = printers;
+                    model.Printers = InstalledPrinters.List();
                     _toastr.Error(_localizer[result.Message ?? "ErrorWhileUpdating"].Value);
                     return View(nameof(PrinterSetting), model);
                 }

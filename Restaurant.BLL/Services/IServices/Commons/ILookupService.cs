@@ -6,6 +6,7 @@ namespace Restaurant.BLL.Services.IServices.Commons;
 public interface ILookupService
 {
     Task<IEnumerable<LeaveTypeViewModel>> LeaveTypeLookupAsync();
+    Task<IEnumerable<SellTypeViewModel>> SellTypeLookupAsync();
     Task<IEnumerable<AllowanceTypeViewModel>> AllowanceTypeLookupAsync();
     Task<IEnumerable<DeductionTypeViewModel>> DeductionTypeLookupAsync();
     Task<IEnumerable<InsuranceCategoryViewModel>> InsuranceCategoryLookupAsync();

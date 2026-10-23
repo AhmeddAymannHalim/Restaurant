@@ -75,24 +75,6 @@ public class ValidatorRepository<T> : IValidatorRepository<T> where T : class
                    && EF.Property<int>(e, keyName) != id);
     }
 
-    public bool IsFullNameExist(int id, string firstName, string lastName)
-    {
-        if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName))
-        {
-            return false;
-        }
-
-        var keyName = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
-        var first = firstName.Replace(" ", string.Empty).ToLower();
-        var last = lastName.Replace(" ", string.Empty).ToLower();
-
-        return _context.Set<T>()
-            .AsNoTracking()
-            .Any(e => EF.Property<string>(e, "FirstName").Replace(" ", "").ToLower() == first
-                   && EF.Property<string>(e, "LastName").Replace(" ", "").ToLower() == last
-                   && EF.Property<int>(e, keyName) != id);
-    }
-
     public bool IsValueExist(int id, string propertyName, string value)
     {
         if (string.IsNullOrWhiteSpace(value))

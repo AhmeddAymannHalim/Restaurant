@@ -12,4 +12,5 @@ public interface IStockRepository
     IQueryable<StoreItemUnit> Rows();
     Task<List<StockQuantity>> QuantitiesAsync(int? storeId = null);
     decimal FindQuantity(List<StockQuantity> quantities, int storeId, int productId);
+    decimal FindMinQuantity(List<StockQuantity> quantities, int storeId, int productId);
 }

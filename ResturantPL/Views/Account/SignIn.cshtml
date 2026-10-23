@@ -13,7 +13,7 @@
     <form asp-action="SignIn" method="post" novalidate>
         <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
         <div class="field">
-            <input asp-for="Email" type="email" placeholder="@L["Auth_Email"]" autocomplete="username" />
+            <input asp-for="Email" type="text" placeholder="@L["Auth_EmailOrUser"]" autocomplete="username" />
             <span asp-validation-for="Email" class="field-error"></span>
         </div>
         <div class="field">

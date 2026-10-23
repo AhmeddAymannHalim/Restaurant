@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
 using Shared.Enums;
 
 namespace Restaurant.DAL.Models;
@@ -162,19 +161,15 @@ public class Employee : BaseEntity
     public virtual ICollection<EmployeeFixedDeduction> FixedDeductions { get; set; } = new List<EmployeeFixedDeduction>();
     public virtual ICollection<AttendanceInOut> AttendanceRecords { get; set; } = new List<AttendanceInOut>();
 
-    [NotMapped]
     public List<string> PhoneNumbers => Phones.Select(p => p.PhoneNumber).ToList();
-    [NotMapped]
     public List<string> ExistingDocumentUrls => Documents.Select(d => d.Url).ToList();
 
     #endregion
 
     #region Restaurant
 
-    [NotMapped]
     public bool HasLoginAccount { get; set; }
 
-    [NotMapped]
     public string Image { get; set; }
 
     public virtual ICollection<Salary> Salaries { get; set; } = new List<Salary>();

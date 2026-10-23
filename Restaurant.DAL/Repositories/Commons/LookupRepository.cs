@@ -24,6 +24,23 @@ public class LookupRepository : ILookupRepository
 
 
 
+    public async Task<IEnumerable<SellTypeViewModel>> SellTypeLookupAsync()
+    {
+        return await _context.SellTypes.AsNoTracking()
+            .OrderBy(a => a.Id)
+            .Select(a => new SellTypeViewModel
+            {
+                Id = a.Id,
+                Code = a.Code,
+                ArName = a.ArName,
+                EnName = a.EnName,
+                Show = a.Show,
+                IsLastPrice = a.IsLastPrice,
+                PlusPrice = a.PlusPrice
+            })
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<LeaveTypeViewModel>> LeaveTypeLookupAsync()
     {
         return await _context.LeaveTypes.AsNoTracking()
@@ -174,6 +191,32 @@ public class LookupRepository : ILookupRepository
                 Cost = a.Cost
             })
             .ToListAsync();
+
+        var billSupport = new BillSupportRepository(_context);
+        var unitRows = await _context.ItemUnits.AsNoTracking()
+            .Where(a => a.Item.Code.StartsWith(BillSupportRepository.ItemCodePrefix) && a.Unit.Code.StartsWith(BillSupportRepository.UnitCodePrefix))
+            .Select(a => new { ItemCode = a.Item.Code, UnitCode = a.Unit.Code, a.TransRate, a.IsDefault })
+            .ToListAsync();
+        var unitPrices = await _context.UnitPrices.AsNoTracking().ToListAsync();
+
+        foreach (var row in unitRows)
+        {
+            var rowProduct = products.FirstOrDefault(a => a.ProductId == billSupport.ProductIdOf(row.ItemCode));
+            var unitPrice = unitPrices.FirstOrDefault(a => a.Id == billSupport.UnitPriceIdOf(row.UnitCode));
+            if (rowProduct is null || unitPrice is null)
+            {
+                continue;
+            }
+
+            rowProduct.Units.Add(new ProductUnitViewModel
+            {
+                UnitPriceId = unitPrice.Id,
+                UnitArName = unitPrice.ArName,
+                UnitEnName = unitPrice.EnName,
+                TransRate = (decimal)row.TransRate,
+                IsDefault = row.IsDefault
+            });
+        }
 
         foreach (var product in products)
         {

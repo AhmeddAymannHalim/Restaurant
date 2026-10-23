@@ -47,6 +47,29 @@ public class OrderViewModel
     public IEnumerable<LookupItem> DeliveryDrivers { get; set; } = new List<LookupItem>();
     public IEnumerable<DeliveryZoneViewModel> DeliveryZones { get; set; } = new List<DeliveryZoneViewModel>();
     public List<CashierMenuItemViewModel> Menu { get; set; } = new();
+
+    // shows the cashier again after a refused save: a fresh code and menu, and the cart priced from the current menu
+    public void RefreshFrom(OrderViewModel fresh)
+    {
+        OrderCode = fresh?.OrderCode;
+        TaxPercent = fresh?.TaxPercent ?? 0;
+        DefaultService = fresh?.DefaultService ?? 0;
+        Menu = fresh?.Menu ?? new();
+        foreach (var item in Items.ToList())
+        {
+            var dish = Menu.FirstOrDefault(m => m.Id == item.MenuItemId);
+            if (dish is null)
+            {
+                Items.Remove(item);
+                continue;
+            }
+
+            item.MenuItemArName = dish.ArName;
+            item.MenuItemEnName = dish.EnName;
+            item.PriceForUnit = dish.Price;
+            item.Price = dish.Price * item.Quantity;
+        }
+    }
 }
 
 public class OrderItemViewModel
@@ -63,6 +86,7 @@ public class OrderItemViewModel
 public class CashierMenuItemViewModel
 {
     public int Id { get; set; }
+    public string Code { get; set; }
     public string ArName { get; set; }
     public string EnName { get; set; }
     public decimal Price { get; set; }

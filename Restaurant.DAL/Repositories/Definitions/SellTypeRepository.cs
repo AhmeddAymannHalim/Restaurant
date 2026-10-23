@@ -62,6 +62,12 @@ public class SellTypeRepository : ISellTypeRepository
     {
         try
         {
+            // the increase only means something for a price that follows the last purchase
+            if (!entity.IsLastPrice)
+            {
+                entity.PlusPrice = null;
+            }
+
             if (entity.Id == 0)
             {
                 entity.Code = await NewSellTypeCodeAsync();

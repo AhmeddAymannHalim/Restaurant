@@ -6,6 +6,5 @@ public interface IValidatorRepository<T> where T : class
     bool IsArNameExist(int id, string arName);
     bool IsEnNameExist(int id, string enName);
     bool IsPhoneNumberExist(int id, string phoneNumber);
-    bool IsFullNameExist(int id, string firstName, string lastName);
     bool IsValueExist(int id, string propertyName, string value);
 }

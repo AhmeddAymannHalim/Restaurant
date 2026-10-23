@@ -26,35 +26,11 @@ public class BillService : IBillService
 
     public async Task<ResultMessage> PostBillAsync(int id)
     {
-        if (await _unitOfWork.Invoices.IsInvoiceAsync(id))
-        {
-            return await _unitOfWork.Invoices.PostInvoiceAsync(id);
-        }
-
         return await _unitOfWork.Bills.PostBillAsync(id);
     }
 
     public async Task<ResultMessage> PostPendingAsync()
     {
-        var posted = 0;
-        foreach (var id in await _unitOfWork.Invoices.GetUnpostedInvoiceIdsAsync())
-        {
-            var result = await _unitOfWork.Invoices.PostInvoiceAsync(id);
-            if (!result.Success)
-            {
-                result.Data = posted.ToString();
-                return result;
-            }
-
-            posted++;
-        }
-
-        var cashier = await _unitOfWork.Bills.PostPendingAsync();
-        if (cashier.Success)
-        {
-            cashier.Data = (posted + int.Parse(cashier.Data?.ToString() ?? "0")).ToString();
-        }
-
-        return cashier;
+        return await _unitOfWork.Bills.PostPendingAsync();
     }
 }

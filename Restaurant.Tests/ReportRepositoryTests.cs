@@ -347,6 +347,141 @@ public class ReportRepositoryTests : IDisposable
         request.Report = "Deposits";
         Assert.Equal(300, Total(await _sut.BuildAsync(request), "Amount"));
     }
+
+    // ---------------------------------------------------------------- returns, earlier activity and the lists with real rows
+
+    private async Task MoveBillsBeforeThePeriod()
+    {
+        foreach (var bill in await _db.Context.BillMasters.ToListAsync())
+        {
+            bill.Date = _day.AddDays(-60);
+        }
+
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SupplierStatement_PurchasesAndTheirReturns_CloseAtTheBalanceOfTheAccount(bool earlier)
+    {
+        var (store, product, unit, supplier, _) = await SeedInvoiceWorld();
+        Assert.True((await Invoices().UpsertInvoiceAsync(Invoice(InvoiceType.Purchases, store, product, unit, supplier.Id, 10, 10, 0))).Success);
+        Assert.True((await Invoices().UpsertInvoiceAsync(Invoice(InvoiceType.Returns, store, product, unit, supplier.Id, 3, 10, 0))).Success);
+        _db.Context.ChangeTracker.Clear();
+        if (earlier)
+        {
+            await MoveBillsBeforeThePeriod();
+        }
+
+        var request = Request("SupplierStatement", supplier.Id);
+        request.FromDate = _day.AddDays(-5);
+        request.ToDate = _day.AddDays(5);
+        var report = await _sut.BuildAsync(request);
+
+        var account = (await _db.Context.Accounts.AsNoTracking().SingleAsync(a => a.Code == "S")).BalanceValue;
+        Assert.Equal(account, Total(report, "ClosingBalance"));
+        Assert.Equal(earlier ? account : 0, Total(report, "OpeningBalance"));
+        // the opening row, then one row per invoice of the period
+        Assert.Equal(earlier ? 1 : 3, report.Rows.Count);
+
+        var balances = await _sut.BuildAsync(new ReportRequest { Report = "SuppliersBalances", FromDate = request.FromDate, ToDate = request.ToDate });
+        Assert.Equal(account, Total(balances, "ClosingBalance"));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CustomerStatement_SalesAndTheirReturns_CloseAtTheBalanceOfTheAccount(bool earlier)
+    {
+        var (store, product, unit, supplier, customer) = await SeedInvoiceWorld();
+        await Invoices().UpsertInvoiceAsync(Invoice(InvoiceType.Purchases, store, product, unit, supplier.Id, 50, 1, 50));
+        _db.Context.ChangeTracker.Clear();
+        Assert.True((await Invoices().UpsertInvoiceAsync(Invoice(InvoiceType.Sales, store, product, unit, customer.Id, 10, 20, 0))).Success);
+        Assert.True((await Invoices().UpsertInvoiceAsync(Invoice(InvoiceType.SalesReturn, store, product, unit, customer.Id, 2, 20, 0))).Success);
+        _db.Context.ChangeTracker.Clear();
+        if (earlier)
+        {
+            await MoveBillsBeforeThePeriod();
+        }
+
+        var request = Request("CustomerStatement", customer.Id);
+        request.FromDate = _day.AddDays(-5);
+        request.ToDate = _day.AddDays(5);
+        var report = await _sut.BuildAsync(request);
+
+        var account = (await _db.Context.Accounts.AsNoTracking().SingleAsync(a => a.Code == "C")).BalanceValue;
+        Assert.Equal(account, Total(report, "ClosingBalance"));
+        Assert.Equal(earlier ? account : 0, Total(report, "OpeningBalance"));
+    }
+
+    private async Task<(string user, Employee employee, Expense expense, MenuItem dish)> SeedMoney()
+    {
+        var user = new ApplicationUser { UserName = "boss", Email = "b@test.com", FirstName = "Boss", LastName = "B" };
+        var driverJob = new Job { Code = "1", ArName = "طيار", EnName = "Driver" };
+        var employee = new Employee { Code = "1", ArName = "Driver", EnName = "Driver", BasicSalary = 3000, Job = driverJob };
+        var expense = new Expense { Code = "1", ArName = "Rent", EnName = "Rent", Price = 100 };
+        var store = new Store { Code = "1", ArName = "S", EnName = "S" };
+        var section = new MenuSection { Code = "1", ArName = "Sec", EnName = "Sec" };
+        _db.Context.AddRange(user, employee, expense, store, section);
+        await _db.Context.SaveChangesAsync();
+        var dish = new MenuItem { Code = "1", ArName = "Dish", EnName = "Dish", Price = 40, StoreId = store.Id, MenuSectionId = section.Id };
+        _db.Context.MenuItems.Add(dish);
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+
+        return (user.Id, employee, expense, dish);
+    }
+
+    [Fact]
+    public async Task OrdersAndDriversReports_ListTheOrdersOfThePeriodWithTheirTotals()
+    {
+        var (user, driver, _, dish) = await SeedMoney();
+        var orders = new OrderRepository(_db.Context);
+        var zone = new DeliveryZone { Code = "1", ArName = "Z", EnName = "Z", Fee = 10 };
+        _db.Context.DeliveryZones.Add(zone);
+        await _db.Context.SaveChangesAsync();
+        Assert.True((await orders.CreateOrderAsync(new Order { Type = OrderType.TakeAway, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 2 } } } }, user)).Success);
+        Assert.True((await orders.CreateOrderAsync(new Order
+        {
+            Type = OrderType.Delivery, EmployeeId = driver.Id, DeliveryZoneId = zone.Id, CustomerName = "Ali", PhoneNumber = "0100", Address = "Road",
+            Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 1 } } }
+        }, user)).Success);
+        _db.Context.ChangeTracker.Clear();
+
+        var all = await _sut.BuildAsync(Request("Orders"));
+        var drivers = await _sut.BuildAsync(Request("Drivers", driver.Id));
+
+        Assert.Equal(2, Total(all, "Count"));
+        Assert.Equal(2, all.Rows.Count);
+        Assert.True(Total(all, "TotalPrice") > 0);
+        Assert.Equal(1, Total(drivers, "Count"));
+        Assert.True(drivers.UsesPartner);
+        Assert.Single(drivers.Partners);
+    }
+
+    [Fact]
+    public async Task ExpenseSalaryAndScroungeReports_ListTheirRowsAndSumThem()
+    {
+        var (user, employee, expense, _) = await SeedMoney();
+        var journals = new JournalEntryRepository(_db.Context);
+        Assert.True((await new ExitExpenseRepository(_db.Context, journals).UpsertExitExpenseAsync(new ExitExpense { ExpenseId = expense.Id, Price = 80 }, user)).Success);
+        Assert.True((await new SalaryRepository(_db.Context, journals).UpsertSalaryAsync(new Salary { EmployeeId = employee.Id, SalaryAmount = 2500 }, user)).Success);
+        Assert.True((await new ScroungeRepository(_db.Context, journals).UpsertScroungeAsync(new Scrounge { EmployeeId = employee.Id, Amount = 200, State = MoneyState.Dept, Info = "advance" }, user)).Success);
+        _db.Context.ChangeTracker.Clear();
+
+        var expenses = await _sut.BuildAsync(Request("Expenses"));
+        var salaries = await _sut.BuildAsync(Request("Salaries"));
+        var scrounges = await _sut.BuildAsync(Request("Scrounges"));
+
+        Assert.Equal(80, Total(expenses, "Price"));
+        Assert.Single(expenses.Rows);
+        Assert.Equal(2500, Total(salaries, "SalaryAmount"));
+        Assert.Single(salaries.Rows);
+        Assert.Single(scrounges.Rows);
+    }
+
 }
 
 internal static class InvoiceTestExtensions

@@ -20,9 +20,8 @@ public class MenuItem : BaseEntity
     public virtual MenuSection MenuSection { get; set; }
     public virtual ICollection<MenuItemComponent> Components { get; set; }
 
-    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
     public int? AvailablePortions { get; set; }
 
-    public decimal TotalCost => Components?.Sum(a => a.Quantity * (a.Product?.Cost ?? 0)) ?? 0;
+    public decimal TotalCost => Components?.Sum(a => a.QuantityInBase * (a.Product?.Cost ?? 0)) ?? 0;
     public decimal Benefit => Price - TotalCost;
 }

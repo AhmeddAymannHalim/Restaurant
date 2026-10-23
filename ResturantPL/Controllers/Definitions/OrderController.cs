@@ -42,12 +42,6 @@ namespace ResturantPL.Controllers.Definitions
         {
             try
             {
-                request ??= new PageRequest();
-                if (request.Status != "pending")
-                {
-                    request.Status = "paid";
-                }
-
                 return View(await _service.GetPagedOrdersAsync(request, UserId));
             }
             catch (Exception ex)
@@ -60,16 +54,7 @@ namespace ResturantPL.Controllers.Definitions
         {
             try
             {
-                OrderViewModel model;
-                if (tableId.HasValue)
-                {
-                    model = await _service.GetNewOrderFromReservationAsync(tableId.Value, reservationId);
-                }
-                else
-                {
-                    model = await _service.GetNewOrderAsync();
-                }
-
+                var model = await _service.GetNewOrderAsync(tableId, reservationId);
                 if (model == null)
                 {
                     _toastr.Error(_localizer["RecordNotFound"].Value);
@@ -90,59 +75,21 @@ namespace ResturantPL.Controllers.Definitions
         {
             try
             {
-                if (!ModelState.IsValid)
+                ResultMessage result = null;
+                if (ModelState.IsValid)
                 {
-                    var latest = await _service.GetNewOrderAsync();
-                    model.OrderCode = latest?.OrderCode;
-                    model.TaxPercent = latest?.TaxPercent ?? 0;
-                    model.DefaultService = latest?.DefaultService ?? 0;
-                    model.Menu = latest?.Menu ?? new();
-                    foreach (var item in model.Items.ToList())
+                    result = await _service.CreateOrderAsync(model, UserId);
+                    if (result.Success)
                     {
-                        var dish = model.Menu.FirstOrDefault(m => m.Id == item.MenuItemId);
-                        if (dish is null)
-                        {
-                            model.Items.Remove(item);
-                            continue;
-                        }
-
-                        item.MenuItemArName = dish.ArName;
-                        item.MenuItemEnName = dish.EnName;
-                        item.PriceForUnit = dish.Price;
-                        item.Price = dish.Price * item.Quantity;
+                        return RedirectToAction(nameof(Details), new { id = int.Parse(result.Data) });
                     }
-
-                    await PopulateData(model);                    _toastr.Error(_localizer["ValidationError"].Value);
-                    return View("Upsert", model);
                 }
 
-                var result = await _service.CreateOrderAsync(model, UserId);
-                if (result.Success)
-                {
-                    return RedirectToAction(nameof(Details), new { id = int.Parse(result.Data) });
-                }
+                // the cashier is shown again: a fresh code and menu, and the cart priced from the current menu
+                model.RefreshFrom(await _service.GetNewOrderAsync(null, null));
 
-                var fresh = await _service.GetNewOrderAsync();
-                model.OrderCode = fresh?.OrderCode;
-                model.TaxPercent = fresh?.TaxPercent ?? 0;
-                model.DefaultService = fresh?.DefaultService ?? 0;
-                model.Menu = fresh?.Menu ?? new();
-                foreach (var item in model.Items.ToList())
-                {
-                    var dish = model.Menu.FirstOrDefault(m => m.Id == item.MenuItemId);
-                    if (dish is null)
-                    {
-                        model.Items.Remove(item);
-                        continue;
-                    }
-
-                    item.MenuItemArName = dish.ArName;
-                    item.MenuItemEnName = dish.EnName;
-                    item.PriceForUnit = dish.Price;
-                    item.Price = dish.Price * item.Quantity;
-                }
-
-                await PopulateData(model);                _toastr.Error(_localizer[result.Message ?? "ErrorWhileSaving"].Value);
+                await PopulateData(model);
+                _toastr.Error(_localizer[result is null ? "ValidationError" : result.Message ?? "ErrorWhileSaving"].Value);
                 return View("Upsert", model);
             }
             catch (Exception ex)
@@ -210,8 +157,8 @@ namespace ResturantPL.Controllers.Definitions
         {
             try
             {
-                var model = await _service.GetOrderByIdAsync(id);
-                if (model == null || model.Cash || model.TableId == null)
+                var model = await _service.GetPendingHallOrderByIdAsync(id);
+                if (model == null)
                 {
                     _toastr.Error(_localizer["RecordNotFound"].Value);
                     return RedirectToAction(nameof(List), new { status = "pending" });
@@ -252,8 +199,8 @@ namespace ResturantPL.Controllers.Definitions
         {
             try
             {
-                var model = await _service.GetOrderByIdAsync(id);
-                if (model == null || model.Cash || model.TableId == null)
+                var model = await _service.GetPendingHallOrderByIdAsync(id);
+                if (model == null)
                 {
                     _toastr.Error(_localizer["RecordNotFound"].Value);
                     return RedirectToAction(nameof(List), new { status = "pending" });

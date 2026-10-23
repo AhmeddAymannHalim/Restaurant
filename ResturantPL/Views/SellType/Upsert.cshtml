@@ -10,34 +10,50 @@
         <h1>@ViewBag.Title</h1>
     </div>
     <div class="bo-card-body">
-        <form asp-action="Upsert" method="post" class="bo-form">
+        <form asp-action="Upsert" method="post" class="bo-form sell-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Code" class="control-label">@L["Code"]</label>
-                <input asp-for="Code" class="form-control" readonly />
-            </div>
-            <div class="form-group">
-                <label asp-for="ArName" class="control-label">@L["ArabicName"]</label>
-                <input asp-for="ArName" class="form-control" />
-                <span asp-validation-for="ArName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="EnName" class="control-label">@L["EnglishName"]</label>
-                <input asp-for="EnName" class="form-control" />
-                <span asp-validation-for="EnName" class="text-danger"></span>
-            </div>
-            <div class="form-group bo-check">
-                <label class="control-label"><input asp-for="Show" type="checkbox" /> @L["SellType.Show"]</label>
-            </div>
-            <div class="form-group bo-check">
-                <label class="control-label"><input asp-for="IsLastPrice" type="checkbox" /> @L["SellType.IsLastPrice"]</label>
-            </div>
-            <div class="form-group">
-                <label asp-for="PlusPrice" class="control-label">@L["SellType.PlusPrice"]</label>
-                <input asp-for="PlusPrice" type="number" step="0.01" min="0" class="form-control" />
-                <span asp-validation-for="PlusPrice" class="text-danger"></span>
-            </div>
+
+            <fieldset class="sell-group">
+                <legend>@L["SellType.Names"]</legend>
+                <div class="sell-names">
+                    <div class="form-group">
+                        <label asp-for="Code" class="control-label">@L["Code"]</label>
+                        <input asp-for="Code" class="form-control" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="ArName" class="control-label">@L["ArabicName"]</label>
+                        <input asp-for="ArName" class="form-control" />
+                        <span asp-validation-for="ArName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="EnName" class="control-label">@L["EnglishName"]</label>
+                        <input asp-for="EnName" class="form-control" />
+                        <span asp-validation-for="EnName" class="text-danger"></span>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="sell-group">
+                <legend>@L["SellType.Pricing"]</legend>
+                <label class="sell-switch" for="Show">
+                    <span><b>@L["SellType.Show"]</b><small>@L["SellType.ShowHint"]</small></span>
+                    <span class="form-check form-switch"><input asp-for="Show" type="checkbox" role="switch" class="form-check-input" /></span>
+                </label>
+                <label class="sell-switch" for="IsLastPrice">
+                    <span><b>@L["SellType.IsLastPrice"]</b><small>@L["SellType.IsLastPriceHint"]</small></span>
+                    <span class="form-check form-switch"><input asp-for="IsLastPrice" type="checkbox" role="switch" class="form-check-input" /></span>
+                </label>
+                <div id="plusRow" class="sell-plus" hidden>
+                    <label asp-for="PlusPrice" class="control-label">@L["SellType.PlusPrice"]</label>
+                    <div class="sell-plus-field">
+                        <input asp-for="PlusPrice" type="number" step="0.01" min="0" class="form-control" />
+                        <span aria-hidden="true">%</span>
+                    </div>
+                    <small>@L["SellType.PlusPriceHint"]</small>
+                    <span asp-validation-for="PlusPrice" class="text-danger"></span>
+                </div>
+            </fieldset>
 
             <div class="bo-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>
@@ -53,4 +69,23 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // the percent only means something when the price follows the last purchase
+        (function () {
+            var follow = document.getElementById('IsLastPrice');
+            var row = document.getElementById('plusRow');
+            var percent = document.getElementById('PlusPrice');
+
+            function sync() {
+                row.hidden = !follow.checked;
+                percent.disabled = !follow.checked;
+                if (!follow.checked) {
+                    percent.value = '';
+                }
+            }
+
+            follow.addEventListener('change', sync);
+            sync();
+        })();
+    </script>
 }

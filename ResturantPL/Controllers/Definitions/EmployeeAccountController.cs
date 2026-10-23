@@ -63,7 +63,7 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index));
                 }
 
-                if (string.IsNullOrEmpty(model.Id) && model.EmployeeId == 0)
+                if (model.NeedsEmployeeList)
                 {
                     model.Employees = await _service.GetEmployeesWithoutAccountAsync();
                 }
@@ -85,7 +85,7 @@ namespace ResturantPL.Controllers.Definitions
 
                 if (!ModelState.IsValid)
                 {
-                    if (string.IsNullOrEmpty(model.Id) && model.EmployeeId == 0)
+                    if (model.NeedsEmployeeList)
                     {
                         model.Employees = await _service.GetEmployeesWithoutAccountAsync();
                     }
@@ -100,7 +100,7 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index), new { searchString = model.UserName });
                 }
 
-                if (string.IsNullOrEmpty(model.Id) && model.EmployeeId == 0)
+                if (model.NeedsEmployeeList)
                 {
                     model.Employees = await _service.GetEmployeesWithoutAccountAsync();
                 }

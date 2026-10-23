@@ -12,6 +12,7 @@ public class MappingTests
         new(cfg => cfg.AddProfile<Restaurant.BLL.Helper.AutoMapper>(), NullLoggerFactory.Instance);
 
     public static IEnumerable<object[]> Maps() => Config.Internal().GetAllTypeMaps()
+        .Where(m => !m.SourceType.ContainsGenericParameters && !m.DestinationType.ContainsGenericParameters) // an open generic map cannot be instantiated
         .Where(m => m.SourceType.GetConstructor(Type.EmptyTypes) != null && m.DestinationType.GetConstructor(Type.EmptyTypes) != null)
         .Select(m => new object[] { m.SourceType, m.DestinationType });
 

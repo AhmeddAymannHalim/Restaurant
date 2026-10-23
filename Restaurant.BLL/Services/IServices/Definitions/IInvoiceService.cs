@@ -8,6 +8,7 @@ public interface IInvoiceService
 {
     Task<InvoiceViewModel> GetInvoiceByIdAsync(int id);
     Task<string> GetNextCodeAsync(InvoiceType type);
+    Task<InvoiceViewModel> GetNewInvoiceAsync(InvoiceType type);
     Task<List<PostingDefaultViewModel>> GetPostingDefaultsAsync();
     Task<decimal> GetSupplierBalanceAsync(int supplierId);
     Task<decimal> GetCustomerBalanceAsync(int customerId);

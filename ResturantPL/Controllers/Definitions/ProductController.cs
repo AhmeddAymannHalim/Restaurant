@@ -68,11 +68,7 @@ namespace ResturantPL.Controllers.Definitions
                     model.Code = await _service.NewProductCodeAsync();
                 }
 
-                model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
-
-                model.Stores = await _lookup.NamedLookupAsync<Store>();
-                model.Stocks = model.Stocks.Where(a => a.Quantity > 0).ToList();
-
+               await PopulateData(model);
                 return View(model);
             }
             catch (Exception ex)
@@ -90,9 +86,7 @@ namespace ResturantPL.Controllers.Definitions
 
                 if (!ModelState.IsValid)
                 {
-                    model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
-
-                    model.Stores = await _lookup.NamedLookupAsync<Store>();
+                    await PopulateData(model);
                     _toastr.Error(_localizer["ValidationError"].Value);
                     return View("Upsert", model);
                 }
@@ -104,9 +98,7 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index), new { searchString = model.ArName });
                 }
 
-                model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
-
-                model.Stores = await _lookup.NamedLookupAsync<Store>();
+                await PopulateData(model);
                 _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
                 return View("Upsert", model);
             }
@@ -141,6 +133,14 @@ namespace ResturantPL.Controllers.Definitions
                     errorMessage = _localizer["SomethingWentError"].Value
                 });
             }
+        }
+
+        private async Task PopulateData(ProductViewModel model)
+        {
+            model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
+            model.Stores = await _lookup.NamedLookupAsync<Store>();
+            model.UnitList = await _lookup.NamedLookupAsync<UnitPrice>();
+            model.SellTypes = (await _lookup.SellTypeLookupAsync()).ToList();
         }
     }
 }

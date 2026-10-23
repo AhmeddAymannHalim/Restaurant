@@ -29,6 +29,7 @@ public class TestHost : IDisposable
 
     public IServiceProvider Services => _provider;
     public ApplicationDbContext Context => _db.Context;
+    public TestDb Db => _db;
     public Mock<IToastrService> Toastr { get; } = new();
     public Mock<ResturantPL.Services.IEmailService> Email { get; } = new();
 
@@ -52,6 +53,7 @@ public class TestHost : IDisposable
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
                 options.User.RequireUniqueEmail = true;
+                options.User.AllowedUserNameCharacters = "";
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();

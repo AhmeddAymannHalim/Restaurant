@@ -70,7 +70,16 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.StoreArName, opt => opt.MapFrom(src => src.Store.ArName))
             .ForMember(dest => dest.StoreEnName, opt => opt.MapFrom(src => src.Store.EnName));
 
+        CreateMap<ProductUnit, ProductUnitViewModel>()
+            .ForMember(dest => dest.UnitArName, opt => opt.MapFrom(src => src.UnitPrice.ArName))
+            .ForMember(dest => dest.UnitEnName, opt => opt.MapFrom(src => src.UnitPrice.EnName));
+        CreateMap<ProductUnitPrice, ProductUnitPriceViewModel>().ReverseMap();
+        CreateMap<ProductUnitViewModel, ProductUnit>()
+            .ForMember(dest => dest.UnitPrice, opt => opt.Ignore());
+
         CreateMap<Product, ProductViewModel>()
+            .ForMember(dest => dest.UnitList, opt => opt.Ignore())
+            .ForMember(dest => dest.SellTypes, opt => opt.Ignore())
             .ForMember(dest => dest.Stocks, opt => opt.MapFrom(src => src.Stocks))
             .ForMember(dest => dest.TotalStock, opt => opt.MapFrom(src => src.Stocks.Sum(a => a.Quantity)))
             .ForMember(dest => dest.ProductCategoryId, opt => opt.MapFrom(src => src.ProductCategoryId ?? 0))
@@ -118,11 +127,19 @@ public class AutoMapper : Profile
         CreateMap<UserViewModel, ApplicationUser>();
 
         CreateMap<ApplicationUser, EmployeeAccountViewModel>()
-            .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
             .ForMember(dest => dest.Password, opt => opt.Ignore())
             .ForMember(dest => dest.ConfirmPassword, opt => opt.Ignore())
             .ForMember(dest => dest.Employees, opt => opt.Ignore());
         CreateMap<EmployeeAccountViewModel, ApplicationUser>();
+        CreateMap(typeof(ResultMessage<>), typeof(ResultMessage<>));
+        CreateMap<ApplicationUser, AccountToken>()
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Token, opt => opt.Ignore());
+        CreateMap<ApplicationUser, ProfileViewModel>()
+            .ForMember(dest => dest.TownArName, opt => opt.MapFrom(src => src.Town.ArName))
+            .ForMember(dest => dest.TownEnName, opt => opt.MapFrom(src => src.Town.EnName))
+            .ForMember(dest => dest.GovernorateId, opt => opt.MapFrom(src => src.Town == null ? (int?)null : src.Town.GovernorateId))
+            .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.Town == null || src.Town.Governorate == null ? (int?)null : src.Town.Governorate.CountryId));
 
         CreateMap<Account, AccountDefinitionViewModel>()
             .ForMember(dest => dest.ParentArName, opt => opt.MapFrom(src => src.ParentAccount.ArName))
@@ -239,15 +256,12 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => (LanguageHelper.IsArabic() ? src.Employee.ArName : src.Employee.EnName)))
             .ForMember(dest => dest.ItemsCount, opt => opt.MapFrom(src => src.Lines.Count))
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Lines))
-            .ForMember(dest => dest.TaxPercent, opt => opt.Ignore())
-            .ForMember(dest => dest.DefaultService, opt => opt.Ignore())
             .ForMember(dest => dest.Customers, opt => opt.Ignore())
             .ForMember(dest => dest.Tables, opt => opt.Ignore())
             .ForMember(dest => dest.DeliveryDrivers, opt => opt.Ignore())
             .ForMember(dest => dest.DeliveryZones, opt => opt.Ignore())
             .ForMember(dest => dest.DeliveryZoneArName, opt => opt.MapFrom(src => src.DeliveryZone.ArName))
-            .ForMember(dest => dest.DeliveryZoneEnName, opt => opt.MapFrom(src => src.DeliveryZone.EnName))
-            .ForMember(dest => dest.Menu, opt => opt.Ignore());
+            .ForMember(dest => dest.DeliveryZoneEnName, opt => opt.MapFrom(src => src.DeliveryZone.EnName));
         CreateMap<OrderMenuItem, OrderItemViewModel>()
             .ForMember(dest => dest.MenuItemArName, opt => opt.MapFrom(src => src.MenuItem.ArName))
             .ForMember(dest => dest.MenuItemEnName, opt => opt.MapFrom(src => src.MenuItem.EnName));
@@ -569,9 +583,13 @@ public class AutoMapper : Profile
         CreateMap<MenuItemComponent, MenuItemComponentViewModel>()
             .ForMember(dest => dest.ProductArName, opt => opt.MapFrom(src => src.Product.ArName))
             .ForMember(dest => dest.ProductEnName, opt => opt.MapFrom(src => src.Product.EnName))
-            .ForMember(dest => dest.UnitCost, opt => opt.MapFrom(src => src.Product.Cost))
-            .ForMember(dest => dest.Cost, opt => opt.MapFrom(src => src.Quantity * src.Product.Cost));
+            .ForMember(dest => dest.UnitArName, opt => opt.MapFrom(src => src.UnitPrice.ArName))
+            .ForMember(dest => dest.UnitEnName, opt => opt.MapFrom(src => src.UnitPrice.EnName))
+            .ForMember(dest => dest.UnitCost, opt => opt.MapFrom(src => src.Product.Cost * src.TransRate))
+            .ForMember(dest => dest.Cost, opt => opt.MapFrom(src => src.Quantity * src.TransRate * src.Product.Cost));
         CreateMap<MenuItemComponentViewModel, MenuItemComponent>()
+            .ForMember(dest => dest.UnitPrice, opt => opt.Ignore())
+            .ForMember(dest => dest.TransRate, opt => opt.Ignore())
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.MenuItemId, opt => opt.Ignore())
             .ForMember(dest => dest.Product, opt => opt.Ignore())

@@ -69,11 +69,11 @@ public class EmployeeRepository : IEmployeeRepository
         var pagedIds = data.Select(a => a.Id).ToList();
         var pagedImages = await _context.EmployeeImages.AsNoTracking()
             .Where(a => pagedIds.Contains(a.EmployeeId))
-            .ToDictionaryAsync(a => a.EmployeeId, a => a.Url);
+            .ToListAsync();
 
         foreach (var employee in data)
         {
-            employee.Image = pagedImages.GetValueOrDefault(employee.Id);
+            employee.Image = pagedImages.FirstOrDefault(a => a.EmployeeId == employee.Id)?.Url;
         }
 
         return PaginatedResult<Employee>.Create(data, total, request);
@@ -176,12 +176,13 @@ public class EmployeeRepository : IEmployeeRepository
             if (entity.Id == 0)
             {
                 // Allowance and deduction rows are never typed by hand: the chosen type decides the names and the amount.
-                var newAllowanceTypes = await _context.AllowanceTypes.AsNoTracking().ToDictionaryAsync(a => a.Id);
-                var newDeductionTypes = await _context.DeductionTypes.AsNoTracking().ToDictionaryAsync(a => a.Id);
+                var newAllowanceTypes = await _context.AllowanceTypes.AsNoTracking().ToListAsync();
+                var newDeductionTypes = await _context.DeductionTypes.AsNoTracking().ToListAsync();
 
                 foreach (var row in entity.Allowances ?? new List<EmployeeAllowance>())
                 {
-                    if (row.AllowanceTypeId.HasValue && newAllowanceTypes.TryGetValue(row.AllowanceTypeId.Value, out var type))
+                    var type = newAllowanceTypes.FirstOrDefault(a => a.Id == row.AllowanceTypeId);
+                    if (type is not null)
                     {
                         row.ArName = type.ArName;
                         row.EnName = type.EnName;
@@ -198,7 +199,8 @@ public class EmployeeRepository : IEmployeeRepository
 
                 foreach (var row in entity.FixedDeductions ?? new List<EmployeeFixedDeduction>())
                 {
-                    if (row.DeductionTypeId.HasValue && newDeductionTypes.TryGetValue(row.DeductionTypeId.Value, out var type))
+                    var type = newDeductionTypes.FirstOrDefault(a => a.Id == row.DeductionTypeId);
+                    if (type is not null)
                     {
                         row.ArName = type.ArName;
                         row.EnName = type.EnName;
@@ -308,12 +310,13 @@ public class EmployeeRepository : IEmployeeRepository
                 existing.Account.EnName = entity.EnName;
             }
 
-            var allowanceTypes = await _context.AllowanceTypes.AsNoTracking().ToDictionaryAsync(a => a.Id);
-            var deductionTypes = await _context.DeductionTypes.AsNoTracking().ToDictionaryAsync(a => a.Id);
+            var allowanceTypes = await _context.AllowanceTypes.AsNoTracking().ToListAsync();
+            var deductionTypes = await _context.DeductionTypes.AsNoTracking().ToListAsync();
 
             foreach (var row in entity.Allowances ?? new List<EmployeeAllowance>())
             {
                 var oldAllowance = row.Id == 0 ? null : existing.Allowances.FirstOrDefault(a => a.Id == row.Id);
+                var allowanceType = allowanceTypes.FirstOrDefault(a => a.Id == row.AllowanceTypeId);
 
                 if (oldAllowance != null && oldAllowance.AllowanceTypeId == row.AllowanceTypeId)
                 {
@@ -321,7 +324,7 @@ public class EmployeeRepository : IEmployeeRepository
                     row.EnName = oldAllowance.EnName;
                     row.Amount = oldAllowance.Amount;
                 }
-                else if (row.AllowanceTypeId.HasValue && allowanceTypes.TryGetValue(row.AllowanceTypeId.Value, out var allowanceType))
+                else if (allowanceType is not null)
                 {
                     row.ArName = allowanceType.ArName;
                     row.EnName = allowanceType.EnName;
@@ -339,6 +342,7 @@ public class EmployeeRepository : IEmployeeRepository
             foreach (var row in entity.FixedDeductions ?? new List<EmployeeFixedDeduction>())
             {
                 var oldDeduction = row.Id == 0 ? null : existing.FixedDeductions.FirstOrDefault(a => a.Id == row.Id);
+                var deductionType = deductionTypes.FirstOrDefault(a => a.Id == row.DeductionTypeId);
 
                 if (oldDeduction != null && oldDeduction.DeductionTypeId == row.DeductionTypeId)
                 {
@@ -346,7 +350,7 @@ public class EmployeeRepository : IEmployeeRepository
                     row.EnName = oldDeduction.EnName;
                     row.Amount = oldDeduction.Amount;
                 }
-                else if (row.DeductionTypeId.HasValue && deductionTypes.TryGetValue(row.DeductionTypeId.Value, out var deductionType))
+                else if (deductionType is not null)
                 {
                     row.ArName = deductionType.ArName;
                     row.EnName = deductionType.EnName;

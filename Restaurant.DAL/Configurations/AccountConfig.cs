@@ -8,6 +8,7 @@ public class AccountConfig : IEntityTypeConfiguration<Account>
 {
     public void Configure(EntityTypeBuilder<Account> builder)
     {
+        builder.Ignore(a => a.Kind);
         builder.Property(a => a.Code).IsRequired().HasMaxLength(20);
         builder.HasIndex(a => a.Code).IsUnique();
 

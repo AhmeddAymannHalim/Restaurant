@@ -9,6 +9,7 @@ public class CustomerConfig : IEntityTypeConfiguration<Customer>
     public void Configure(EntityTypeBuilder<Customer> builder)
     {
         builder.HasIndex(a => a.AccountId).IsUnique();
+        builder.Ignore(a => a.InvoiceCount);
 
         builder.Property(a => a.PhoneNumber1).HasMaxLength(20);
         builder.Property(a => a.PhoneNumber2).HasMaxLength(20);

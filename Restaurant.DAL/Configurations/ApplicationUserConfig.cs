@@ -8,6 +8,8 @@ public class ApplicationUserConfig : IEntityTypeConfiguration<ApplicationUser>
 {
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
+        builder.Ignore(a => a.EmployeeId);
+
         builder
             .HasOne(a => a.Town)
             .WithMany()

@@ -100,6 +100,8 @@ services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         options.Password.RequireLowercase = false;
         options.Password.RequireUppercase = false;
         options.User.RequireUniqueEmail = true;
+        // empty = any letters, so the Arabic user name المدير is allowed
+        options.User.AllowedUserNameCharacters = "";
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();

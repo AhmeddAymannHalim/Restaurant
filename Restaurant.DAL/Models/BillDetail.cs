@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
 using Shared.Enums;
 
 namespace Restaurant.DAL.Models;
@@ -18,16 +17,12 @@ public class BillDetail : BaseEntity
     public decimal? ExtraAmountPercentage { get; set; }
     public decimal? TotalAmount { get; set; }
 
-    [Column(TypeName = "decimal(18,6)")]
     public decimal? OwnDiscountPercentage { get; set; }
 
-    [Column(TypeName = "decimal(18,6)")]
     public decimal? OwnDiscountValue { get; set; }
 
-    [Column(TypeName = "decimal(18,6)")]
     public decimal? UnitCostAtPosting { get; set; }
 
-    [Column(TypeName = "decimal(18,6)")]
     public decimal? DiscountFromBillLevel { get; set; }
 
     public int? BillMasterId { get; set; }

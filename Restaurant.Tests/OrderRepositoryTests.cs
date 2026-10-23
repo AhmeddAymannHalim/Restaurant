@@ -518,6 +518,34 @@ public class OrderRepositoryTests : IDisposable
         Assert.False(soldOut.IsAvailable);
     }
 
+    [Theory]
+    [InlineData(null, "paid")]
+    [InlineData("", "paid")]
+    [InlineData("whatever", "paid")]
+    [InlineData("paid", "paid")]
+    [InlineData("pending", "pending")]
+    public async Task PagedOrders_OnlyPendingOrPaidAreListed_AnythingElseMeansPaid(string asked, string used)
+    {
+        await Seed();
+        var request = new Shared.ViewModels.Commons.PageRequest { Status = asked };
+
+        await _sut.GetPagedOrdersAsync(request, _user);
+
+        Assert.Equal(used, request.Status);
+    }
+
+    [Fact]
+    public async Task PendingHallOrder_IsOnlyAnUnpaidOrderOfATable()
+    {
+        await Seed();
+        var hall = await Create(NewOrder(OrderType.Hall));
+        var takeAway = await Create(NewOrder(OrderType.TakeAway, cash: true));
+
+        Assert.Equal(hall, (await _sut.GetPendingHallOrderByIdAsync(hall)).Id);
+        Assert.Null(await _sut.GetPendingHallOrderByIdAsync(takeAway));
+        Assert.Null(await _sut.GetPendingHallOrderByIdAsync(404));
+    }
+
     [Fact]
     public async Task PagedOrders_FilterByStatus()
     {

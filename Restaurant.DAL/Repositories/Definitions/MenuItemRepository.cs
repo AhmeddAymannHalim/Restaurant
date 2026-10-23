@@ -53,6 +53,8 @@ public class MenuItemRepository : IMenuItemRepository
             .Include(a => a.Store)
             .Include(a => a.Components)
                 .ThenInclude(a => a.Product)
+            .Include(a => a.Components)
+                .ThenInclude(a => a.UnitPrice)
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == id);
     }
@@ -81,10 +83,11 @@ public class MenuItemRepository : IMenuItemRepository
 
             entity.Components = (entity.Components ?? new List<MenuItemComponent>())
                 .Where(a => a.ProductId > 0 && a.Quantity > 0)
-                .GroupBy(a => a.ProductId)
+                .GroupBy(a => a.ProductId + "-" + a.UnitPriceId)
                 .Select(a => new MenuItemComponent
                     {
-                        ProductId = a.Key,
+                        ProductId = a.First().ProductId,
+                        UnitPriceId = a.First().UnitPriceId,
                         Quantity = a.Sum(x => x.Quantity)
                     })
                 .ToList();
@@ -98,7 +101,7 @@ public class MenuItemRepository : IMenuItemRepository
                 };
             }
 
-            var productIds = entity.Components.Select(a => a.ProductId).ToList();
+            var productIds = entity.Components.Select(a => a.ProductId).Distinct().ToList();
             if (await _context.Products.CountAsync(a => productIds.Contains(a.Id)) != productIds.Count)
             {
                 return new ResultMessage
@@ -106,6 +109,31 @@ public class MenuItemRepository : IMenuItemRepository
                     Success = false,
                     Message = "RecordNotFound"
                 };
+            }
+
+            // the rate comes from the product's own units, never from the browser
+            foreach (var component in entity.Components)
+            {
+                component.TransRate = 1;
+                if (component.UnitPriceId.HasValue)
+                {
+                    var itemCode = BillSupportRepository.ItemCodePrefix + component.ProductId;
+                    var unitCode = BillSupportRepository.UnitCodePrefix + component.UnitPriceId.Value;
+                    var rate = await _context.ItemUnits.AsNoTracking()
+                        .Where(a => a.Item.Code == itemCode && a.Unit.Code == unitCode)
+                        .Select(a => (double?)a.TransRate)
+                        .FirstOrDefaultAsync();
+                    if (rate is null)
+                    {
+                        return new ResultMessage
+                        {
+                            Success = false,
+                            Message = "RecordNotFound"
+                        };
+                    }
+
+                    component.TransRate = (decimal)rate.Value;
+                }
             }
 
             entity.Size = entity.Size == Size.regular ? null : entity.Size;

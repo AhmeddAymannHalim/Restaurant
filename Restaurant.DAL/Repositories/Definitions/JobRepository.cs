@@ -116,7 +116,7 @@ public class JobRepository : IJobRepository
                 return new ResultMessage { Success = true };
             }
 
-            if (await _context.Employees.AnyAsync(a => a.Id == id))
+            if (await _context.Employees.AnyAsync(a => a.JobId == id))
             {
                 return new ResultMessage
                 {

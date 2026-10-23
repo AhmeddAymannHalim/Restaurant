@@ -56,11 +56,19 @@ public class CustomerRepository : ICustomerRepository
 
     public async Task<Customer> GetCustomerByIdAsync(int id)
     {
-        return await _context.Customers
+        var customer = await _context.Customers
             .Include(a => a.Account)
             .Include(a => a.Phones)
             .Include(a => a.Town).ThenInclude(a => a.Governorate)
             .FirstOrDefaultAsync(a => a.Id == id);
+        if (customer is null)
+        {
+            return null;
+        }
+
+        customer.InvoiceCount = await CountInvoicesAsync(id);
+
+        return customer;
     }
 
     public async Task<decimal?> GetCustomerBalanceAsync(int id)

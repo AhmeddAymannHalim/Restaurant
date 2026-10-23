@@ -345,10 +345,11 @@
 
             $('#InvoiceType').on('change', togglePartner);
 
-            var postingDefaults = @Html.Raw(Json.Serialize(Model.PostingDefaults.ToDictionary(a => a.Type.ToString(), a => new { autoPost = a.AutoPost, autoStock = a.AutoStock })));
+            var postingDefaults = @Html.Raw(Json.Serialize(Model.PostingDefaults.Select(a => new { type = a.Type.ToString(), autoPost = a.AutoPost, autoStock = a.AutoStock })));
             var isNewInvoice = @(Model.Id == 0 ? "true" : "false");
             $('#InvoiceType').on('change', function () {
-                var d = isNewInvoice ? postingDefaults[$(this).val()] : null;
+                var type = $(this).val();
+                var d = isNewInvoice ? postingDefaults.find(function (x) { return x.type === type; }) : null;
                 if (d) {
                     $('#AutoPost').prop('checked', d.autoPost);
                     $('#AutoStock').prop('checked', d.autoStock);
@@ -367,13 +368,40 @@
                 $.get('/Bill/CustomerBalance', { customerId: id }, function (balance) { $('#customerBalance').val(money(balance)); });
             });
 
-            $('#productList').on('change', function () {
-                var item = stock[$(this).val()];
-                $('#available').val(item ? item.quantity : '');
-                $('#price').val(item ? item.cost : '');
+            // a product that has units of its own can only be moved in those units; stock and cost are per base unit
+            var allUnitOptions = $('#unitList').html();
+
+            function fillUnits(item) {
+                var list = $('#unitList');
+                if (!item || !item.units || item.units.length === 0) {
+                    list.html(allUnitOptions);
+                    list.find('option').removeAttr('data-rate');
+                    return;
+                }
+
+                list.empty();
+                $.each(item.units, function (i, u) {
+                    var option = $('<option>', { value: u.unitPriceId, text: isArabic ? u.unitArName : u.unitEnName }).attr('data-rate', u.transRate);
+                    option.prop('selected', u.isDefault);
+                    list.append(option);
+                });
+            }
+
+            function showUnitFigures() {
+                var item = stock[$('#productList').val()];
+                var rate = number($('#unitList option:selected').attr('data-rate')) || 1;
+                $('#available').val(item ? Math.round(item.quantity / rate * 1000) / 1000 : '');
+                $('#price').val(item ? Math.round(item.cost * rate * 10000) / 10000 : '');
                 $('#quantity').val('');
                 $('#lineTotal').val('');
+            }
+
+            $('#productList').on('change', function () {
+                fillUnits(stock[$(this).val()]);
+                showUnitFigures();
             });
+
+            $('#unitList').on('change', showUnitFigures);
 
             $('#quantity, #price').on('input', function () {
                 $('#lineTotal').val(money(number($('#quantity').val()) * number($('#price').val())));

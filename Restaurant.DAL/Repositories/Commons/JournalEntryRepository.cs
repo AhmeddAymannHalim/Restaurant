@@ -1,3 +1,4 @@
+using Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Commons;
 using Restaurant.DAL.IRepositories.Definitions;
@@ -63,132 +64,139 @@ public class JournalEntryRepository : IJournalEntryRepository
         IEnumerable<JournalLineRequest> lines,
         bool saveChanges = true)
     {
-        var all = (lines ?? Enumerable.Empty<JournalLineRequest>()).ToList();
-
-        // a negative amount must fail, not be dropped with the empty lines
-        if (all.Any(a => a.Debit < 0 || a.Credit < 0))
+        try
         {
-            return new ResultMessage { Success = false, Message = "JournalLineInvalid" };
-        }
+            var all = (lines ?? Enumerable.Empty<JournalLineRequest>()).ToList();
 
-        var requested = all.Where(a => a.Debit > 0 || a.Credit > 0).ToList();
-        if (requested.Count == 0)
-        {
-            return new ResultMessage { Success = true };
-        }
-
-        if (requested.Any(a => (a.Debit > 0) == (a.Credit > 0)))
-        {
-            return new ResultMessage { Success = false, Message = "JournalLineInvalid" };
-        }
-
-        if (Math.Round(requested.Sum(a => a.Debit), 2) != Math.Round(requested.Sum(a => a.Credit), 2))
-        {
-            return new ResultMessage { Success = false, Message = "JournalNotBalanced" };
-        }
-
-        // which entry type (and name) belongs to this kind of voucher
-        EntryType entryType;
-        string arName;
-        string enName;
-        switch (sourceType)
-        {
-            case JournalSourceType.CustomerPaymentVoucher:
-                entryType = EntryType.CustomerPayment;
-                arName = "دفعات عملاء";
-                enName = "Customer payment";
-                break;
-            case JournalSourceType.SupplierPaymentVoucher:
-                entryType = EntryType.SupplierPayment;
-                arName = "دفعات موردين";
-                enName = "Supplier payment";
-                break;
-            case JournalSourceType.CustomerOpeningBalance:
-                entryType = EntryType.CustomerOpeningBalance;
-                arName = "رصيد افتتاحى للعملاء";
-                enName = "Opening Balance of Customers";
-                break;
-            case JournalSourceType.SupplierOpeningBalance:
-                entryType = EntryType.SupplierOpeningBalance;
-                arName = "رصيد افتتاحى للموردين";
-                enName = "Opening Balance for Suppliers";
-                break;
-            case JournalSourceType.CustomerRefund:
-                entryType = EntryType.CashPayment;
-                arName = "سند صرف نقدي";
-                enName = "Cash Pay Entry";
-                break;
-            case JournalSourceType.SupplierRefund:
-                entryType = EntryType.CashReceipt;
-                arName = "سند قبض نقدي";
-                enName = "Cash Receipt Entry";
-                break;
-            case JournalSourceType.Manual:
-                entryType = EntryType.Journal;
-                arName = "قيد يومي";
-                enName = "Journal";
-                break;
-            default:
-                return new ResultMessage { Success = true };
-        }
-
-        var setting = await _billSupport.GetEntrySettingAsync(entryType, arName, enName);
-
-        if (requested.Any(a => a.AccountId is null) && setting.AccountId is null)
-        {
-            return new ResultMessage { Success = true };
-        }
-
-        var accountIds = requested.Select(a => a.AccountId ?? setting.AccountId.Value).Distinct().ToList();
-        var accounts = await _context.Accounts.Where(a => accountIds.Contains(a.Id)).ToListAsync();
-        if (accounts.Count != accountIds.Count)
-        {
-            return new ResultMessage { Success = false, Message = "RecordNotFound" };
-        }
-
-        var number = await GetNextEntryNumberAsync();
-
-        var entry = new EntryMaster
-        {
-            Code = number,
-            EntryDate = date,
-            TotalBalance = requested.Sum(a => Math.Round(a.Debit, 2)),
-            CurrencyRate = 1,
-            IsPosted = true,
-            EntryRemarks = description,
-            CollectEntryCode = $"{sourceType}:{sourceId}",
-            AccountBoxOrBankId = requested.Any(a => a.AccountId is null) ? setting.AccountId : null,
-            EntrySetting = setting,
-            CreatedAt = DateTime.Now,
-            EntryDetails = requested.Select((line, index) => new EntryDetail
+            // a negative amount must fail, not be dropped with the empty lines
+            if (all.Any(a => a.Debit < 0 || a.Credit < 0))
             {
-                EntryRowCode = (short)(index + 1),
-                AccountId = line.AccountId ?? setting.AccountId,
-                Debit = Math.Round(line.Debit, 2),
-                Credit = Math.Round(line.Credit, 2),
-                EntryDetailsRemarks = line.Description,
-                CreatedAt = DateTime.Now
-            }).ToList()
-        };
-
-        await _context.EntryMasters.AddAsync(entry);
-
-        // the balance of a customer / supplier account is changed by the caller, every other account here
-        foreach (var line in requested)
-        {
-            var account = accounts.First(a => a.Id == (line.AccountId ?? setting.AccountId.Value));
-            if (account.AccountType is not (AccountType.Customer or AccountType.Supplier))
-            {
-                account.Adjust(account.BalanceType == AccountBalanceType.Debit ? line.Debit - line.Credit : line.Credit - line.Debit);
+                return new ResultMessage { Success = false, Message = "JournalLineInvalid" };
             }
-        }
 
-        if (saveChanges)
+            var requested = all.Where(a => a.Debit > 0 || a.Credit > 0).ToList();
+            if (requested.Count == 0)
+            {
+                return new ResultMessage { Success = true };
+            }
+
+            if (requested.Any(a => (a.Debit > 0) == (a.Credit > 0)))
+            {
+                return new ResultMessage { Success = false, Message = "JournalLineInvalid" };
+            }
+
+            if (Math.Round(requested.Sum(a => a.Debit), 2) != Math.Round(requested.Sum(a => a.Credit), 2))
+            {
+                return new ResultMessage { Success = false, Message = "JournalNotBalanced" };
+            }
+
+            // which entry type (and name) belongs to this kind of voucher
+            EntryType entryType;
+            string arName;
+            string enName;
+            switch (sourceType)
+            {
+                case JournalSourceType.CustomerPaymentVoucher:
+                    entryType = EntryType.CustomerPayment;
+                    arName = "دفعات عملاء";
+                    enName = "Customer payment";
+                    break;
+                case JournalSourceType.SupplierPaymentVoucher:
+                    entryType = EntryType.SupplierPayment;
+                    arName = "دفعات موردين";
+                    enName = "Supplier payment";
+                    break;
+                case JournalSourceType.CustomerOpeningBalance:
+                    entryType = EntryType.CustomerOpeningBalance;
+                    arName = "رصيد افتتاحى للعملاء";
+                    enName = "Opening Balance of Customers";
+                    break;
+                case JournalSourceType.SupplierOpeningBalance:
+                    entryType = EntryType.SupplierOpeningBalance;
+                    arName = "رصيد افتتاحى للموردين";
+                    enName = "Opening Balance for Suppliers";
+                    break;
+                case JournalSourceType.CustomerRefund:
+                    entryType = EntryType.CashPayment;
+                    arName = "سند صرف نقدي";
+                    enName = "Cash Pay Entry";
+                    break;
+                case JournalSourceType.SupplierRefund:
+                    entryType = EntryType.CashReceipt;
+                    arName = "سند قبض نقدي";
+                    enName = "Cash Receipt Entry";
+                    break;
+                case JournalSourceType.Manual:
+                    entryType = EntryType.Journal;
+                    arName = "قيد يومي";
+                    enName = "Journal";
+                    break;
+                default:
+                    return new ResultMessage { Success = true };
+            }
+
+            var setting = await _billSupport.GetEntrySettingAsync(entryType, arName, enName);
+
+            if (requested.Any(a => a.AccountId is null) && setting.AccountId is null)
+            {
+                return new ResultMessage { Success = true };
+            }
+
+            var accountIds = requested.Select(a => a.AccountId ?? setting.AccountId.Value).Distinct().ToList();
+            var accounts = await _context.Accounts.Where(a => accountIds.Contains(a.Id)).ToListAsync();
+            if (accounts.Count != accountIds.Count)
+            {
+                return new ResultMessage { Success = false, Message = "RecordNotFound" };
+            }
+
+            var number = await GetNextEntryNumberAsync();
+
+            var entry = new EntryMaster
+            {
+                Code = number,
+                EntryDate = date,
+                TotalBalance = requested.Sum(a => Math.Round(a.Debit, 2)),
+                CurrencyRate = 1,
+                IsPosted = true,
+                EntryRemarks = description,
+                CollectEntryCode = $"{sourceType}:{sourceId}",
+                AccountBoxOrBankId = requested.Any(a => a.AccountId is null) ? setting.AccountId : null,
+                EntrySetting = setting,
+                CreatedAt = DateTime.Now,
+                EntryDetails = requested.Select((line, index) => new EntryDetail
+                {
+                    EntryRowCode = (short)(index + 1),
+                    AccountId = line.AccountId ?? setting.AccountId,
+                    Debit = Math.Round(line.Debit, 2),
+                    Credit = Math.Round(line.Credit, 2),
+                    EntryDetailsRemarks = line.Description,
+                    CreatedAt = DateTime.Now
+                }).ToList()
+            };
+
+            await _context.EntryMasters.AddAsync(entry);
+
+            // the balance of a customer / supplier account is changed by the caller, every other account here
+            foreach (var line in requested)
+            {
+                var account = accounts.First(a => a.Id == (line.AccountId ?? setting.AccountId.Value));
+                if (account.AccountType is not (AccountType.Customer or AccountType.Supplier))
+                {
+                    account.Adjust(account.BalanceType == AccountBalanceType.Debit ? line.Debit - line.Credit : line.Credit - line.Debit);
+                }
+            }
+
+            if (saveChanges)
+            {
+                await _context.SaveChangesAsync();
+            }
+
+            return new ResultMessage { Success = true, Data = number };
+        }
+        catch (Exception ex)
         {
-            await _context.SaveChangesAsync();
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
-
-        return new ResultMessage { Success = true, Data = number };
     }
 
     public async Task<bool> PostBillEntryAsync(BillMaster bill, InvoiceType type, decimal paid, decimal remaining, int? partnerAccountId, EntrySetting entrySetting)

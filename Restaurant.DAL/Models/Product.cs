@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Restaurant.DAL.Models;
 
@@ -14,6 +13,7 @@ public class Product : BaseEntity
 
     public virtual ICollection<MenuItemComponent> MenuItemComponents { get; set; }
 
-    [NotMapped]
     public List<ProductStock> Stocks { get; set; } = new();
+
+    public List<ProductUnit> Units { get; set; } = new();
 }

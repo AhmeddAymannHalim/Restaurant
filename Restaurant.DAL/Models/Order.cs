@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
 using Shared.Enums;
 
 namespace Restaurant.DAL.Models;
@@ -35,12 +34,14 @@ public class Order
     public virtual DeliveryZone DeliveryZone { get; set; }
     public virtual ICollection<OrderMenuItem> Lines { get; set; } = new List<OrderMenuItem>();
 
-    [NotMapped]
     public DateTime OrderDate => Bill?.Date ?? default;
 
-    [NotMapped]
     public decimal Discount => Bill?.BillDiscountValue ?? 0;
 
-    [NotMapped]
     public decimal TotalPrice => Bill?.TotalBillAmountAfterDiscountAndExtra ?? 0;
+
+    // filled only for a new order on the cashier screen
+    public decimal TaxPercent { get; set; }
+    public decimal DefaultService { get; set; }
+    public List<MenuItem> Menu { get; set; } = new();
 }

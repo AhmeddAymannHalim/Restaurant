@@ -1,3 +1,4 @@
+using Shared.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
@@ -75,102 +76,120 @@ public class UserRepository : IUserRepository
 
     public async Task<ResultMessage> UpsertUserAsync(ApplicationUser entity, string password)
     {
-        if (!await _roleManager.RoleExistsAsync(entity.UserType))
+        try
         {
-            return new ResultMessage
+            if (!await _roleManager.RoleExistsAsync(entity.UserType))
             {
-                Success = false,
-                Message = "RoleNotFound"
-            };
-        }
-
-        if (string.IsNullOrEmpty(entity.Id))
-        {
-            entity.Id = Guid.NewGuid().ToString();
-            entity.EmailConfirmed = true;
-            var created = await _userManager.CreateAsync(entity, password);
-            if (!created.Succeeded)
-            {
-                return new ResultMessage { Success = created.Succeeded, Message = created.Succeeded ? null : "Identity." + created.Errors.First().Code };
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RoleNotFound"
+                };
             }
 
-            var addedToRoleOnCreate = await _userManager.AddToRoleAsync(entity, entity.UserType);
-
-            return new ResultMessage { Success = addedToRoleOnCreate.Succeeded, Message = addedToRoleOnCreate.Succeeded ? null : "Identity." + addedToRoleOnCreate.Errors.First().Code };
-        }
-
-        var existing = await _userManager.FindByIdAsync(entity.Id);
-        if (existing is null)
-        {
-            return new ResultMessage
+            if (string.IsNullOrEmpty(entity.Id))
             {
-                Success = false,
-                Message = "RecordNotFound"
-            };
-        }
+                entity.Id = Guid.NewGuid().ToString();
+                entity.EmailConfirmed = true;
+                var created = await _userManager.CreateAsync(entity, password);
+                if (!created.Succeeded)
+                {
+                    return new ResultMessage { Success = created.Succeeded, Message = created.Succeeded ? null : "Identity." + created.Errors.First().Code };
+                }
 
-        if (existing.UserType == AdminRole && entity.UserType != AdminRole && (await _userManager.GetUsersInRoleAsync(AdminRole)).Count <= 1)
-        {
-            return new ResultMessage
+                var addedToRoleOnCreate = await _userManager.AddToRoleAsync(entity, entity.UserType);
+
+                return new ResultMessage { Success = addedToRoleOnCreate.Succeeded, Message = addedToRoleOnCreate.Succeeded ? null : "Identity." + addedToRoleOnCreate.Errors.First().Code };
+            }
+
+            var existing = await _userManager.FindByIdAsync(entity.Id);
+            if (existing is null)
             {
-                Success = false,
-                Message = "LastAdminCannotChange"
-            };
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RecordNotFound"
+                };
+            }
+
+            if (existing.UserType == AdminRole && entity.UserType != AdminRole && (await _userManager.GetUsersInRoleAsync(AdminRole)).Count <= 1)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "LastAdminCannotChange"
+                };
+            }
+
+            var oldRoles = await _userManager.GetRolesAsync(existing);
+
+            existing.UserName = entity.UserName;
+            existing.FirstName = entity.FirstName;
+            existing.LastName = entity.LastName;
+            existing.Email = entity.Email;
+            existing.PhoneNumber = entity.PhoneNumber;
+            existing.UserType = entity.UserType;
+
+            var updated = await _userManager.UpdateAsync(existing);
+            if (!updated.Succeeded)
+            {
+                return new ResultMessage { Success = updated.Succeeded, Message = updated.Succeeded ? null : "Identity." + updated.Errors.First().Code };
+            }
+
+            await _userManager.RemoveFromRolesAsync(existing, oldRoles);
+
+            var addedToRole = await _userManager.AddToRoleAsync(existing, existing.UserType);
+
+            return new ResultMessage { Success = addedToRole.Succeeded, Message = addedToRole.Succeeded ? null : "Identity." + addedToRole.Errors.First().Code };
         }
-
-        var oldRoles = await _userManager.GetRolesAsync(existing);
-
-        existing.UserName = entity.UserName;
-        existing.FirstName = entity.FirstName;
-        existing.LastName = entity.LastName;
-        existing.Email = entity.Email;
-        existing.PhoneNumber = entity.PhoneNumber;
-        existing.UserType = entity.UserType;
-
-        var updated = await _userManager.UpdateAsync(existing);
-        if (!updated.Succeeded)
+        catch (Exception ex)
         {
-            return new ResultMessage { Success = updated.Succeeded, Message = updated.Succeeded ? null : "Identity." + updated.Errors.First().Code };
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
-
-        await _userManager.RemoveFromRolesAsync(existing, oldRoles);
-
-        var addedToRole = await _userManager.AddToRoleAsync(existing, existing.UserType);
-
-        return new ResultMessage { Success = addedToRole.Succeeded, Message = addedToRole.Succeeded ? null : "Identity." + addedToRole.Errors.First().Code };
     }
 
     public async Task<ResultMessage> DeleteUserAsync(string id)
     {
-        var entity = await _userManager.FindByIdAsync(id);
-        if (entity is null)
-        {
-            return new ResultMessage
-            {
-                Success = false,
-                Message = "RecordNotFound"
-            };
-        }
-
-        if (entity.UserType == AdminRole && (await _userManager.GetUsersInRoleAsync(AdminRole)).Count <= 1)
-        {
-            return new ResultMessage
-            {
-                Success = false,
-                Message = "LastAdminCannotChange"
-            };
-        }
-
         try
         {
-            var deleted = await _userManager.DeleteAsync(entity);
+            var entity = await _userManager.FindByIdAsync(id);
+            if (entity is null)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "RecordNotFound"
+                };
+            }
 
-            return new ResultMessage { Success = deleted.Succeeded, Message = deleted.Succeeded ? null : "Identity." + deleted.Errors.First().Code };
+            if (entity.UserType == AdminRole && (await _userManager.GetUsersInRoleAsync(AdminRole)).Count <= 1)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "LastAdminCannotChange"
+                };
+            }
+
+            try
+            {
+                var deleted = await _userManager.DeleteAsync(entity);
+
+                return new ResultMessage { Success = deleted.Succeeded, Message = deleted.Succeeded ? null : "Identity." + deleted.Errors.First().Code };
+            }
+            catch (DbUpdateException)
+            {
+                // the user made orders, payments or salaries
+                return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+            }
         }
         catch (DbUpdateException)
         {
-            // the user made orders, payments or salaries
             return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+        }
+        catch (Exception ex)
+        {
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
     }
 

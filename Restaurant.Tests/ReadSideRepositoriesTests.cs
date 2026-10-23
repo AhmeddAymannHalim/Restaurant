@@ -37,17 +37,6 @@ public class ReadSideRepositoriesTests : IDisposable
         Assert.False(sut.IsValueExist(kitchen.Id, "EnName", "Main Kitchen"));
     }
 
-    [Fact]
-    public async Task Validator_PhoneAndFullName()
-    {
-        _db.Context.Users.Add(new ApplicationUser { UserName = "a", Email = "a@test.com", FirstName = "Ali Hassan", LastName = "Omar", PhoneNumber = "0100" });
-        await _db.Context.SaveChangesAsync();
-        var sut = new ValidatorRepository<ApplicationUser>(_db.Context);
-
-        Assert.True(sut.IsFullNameExist(0, "alihassan", "OMAR"));
-        Assert.False(sut.IsFullNameExist(0, "Ali", ""));
-    }
-
     // ---------------------------------------------------------------- lookups
 
     [Fact]

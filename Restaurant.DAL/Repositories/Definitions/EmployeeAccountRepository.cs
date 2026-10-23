@@ -1,3 +1,4 @@
+using Shared.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
@@ -60,7 +61,23 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
             return null;
         }
 
-        return await _userManager.Users.AsNoTracking().FirstOrDefaultAsync(a => a.Code == employee.Code);
+        var account = await _userManager.Users.AsNoTracking().FirstOrDefaultAsync(a => a.Code == employee.Code);
+        if (account is not null)
+        {
+            return account;
+        }
+
+        // no login yet: an empty one for this employee, to open the new-login form
+        return new ApplicationUser
+        {
+            Id = null, // Identity gives every new user an id; a form with an id is an edit
+            EmployeeId = employee.Id,
+            Code = employee.Code,
+            FirstName = employee.ArName,
+            LastName = employee.EnName,
+            Email = employee.Email,
+            PhoneNumber = employee.PhoneNumber
+        };
     }
 
     public async Task<Employee> GetEmployeeByIdAsync(int employeeId)
@@ -82,10 +99,79 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
 
     public async Task<ResultMessage> UpsertAccountAsync(ApplicationUser entity, int employeeId, string password)
     {
-        if (string.IsNullOrEmpty(entity.Id))
+        try
         {
-            var employee = await GetEmployeeByIdAsync(employeeId);
-            if (employee is null)
+            if (string.IsNullOrEmpty(entity.Id))
+            {
+                var employee = await GetEmployeeByIdAsync(employeeId);
+                if (employee is null)
+                {
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "RecordNotFound"
+                    };
+                }
+
+                // the role of the login is the job of the employee
+                if (string.IsNullOrEmpty(employee.Job?.ArName))
+                {
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "RoleNotFound"
+                    };
+                }
+
+                if (await _userManager.Users.AnyAsync(a => a.Code == employee.Code))
+                {
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "Val.AlreadyExist"
+                    };
+                }
+
+                var user = new ApplicationUser
+                {
+                    UserName = entity.UserName,
+                    Email = entity.Email,
+                    EmailConfirmed = true,
+                    FirstName = employee.ArName,
+                    LastName = string.Empty,
+                    TownId = employee.TownId,
+                    Street = employee.Address,
+                    PhoneNumber = employee.PhoneNumber,
+                    UserType = employee.Job?.ArName,
+                    Code = employee.Code
+                };
+
+                if (!await _roleManager.RoleExistsAsync(user.UserType))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole(user.UserType));
+                }
+
+                var created = await _userManager.CreateAsync(user, password);
+                if (!created.Succeeded)
+                {
+                    return new ResultMessage
+                    {
+                        Success = created.Succeeded,
+                        Message = created.Succeeded ? null : "Identity." + created.Errors.First().Code
+                    };
+                }
+
+                var addedToRole = await _userManager.AddToRoleAsync(user, user.UserType);
+
+                return new ResultMessage
+                {
+                    Success = addedToRole.Succeeded,
+                    Message = addedToRole.Succeeded ? null : "Identity." + addedToRole.Errors.First().Code
+                };
+            }
+
+            var existing = await _userManager.FindByIdAsync(entity.Id);
+            if (existing is null)
             {
                 return new ResultMessage
                 {
@@ -94,93 +180,31 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
                 };
             }
 
-            // the role of the login is the job of the employee
-            if (string.IsNullOrEmpty(employee.Job?.ArName))
+            existing.UserName = entity.UserName;
+            existing.Email = entity.Email;
+
+            var updated = await _userManager.UpdateAsync(existing);
+            if (!updated.Succeeded || string.IsNullOrEmpty(password))
             {
                 return new ResultMessage
                 {
-                    Success = false,
-                    Message = "RoleNotFound"
+                    Success = updated.Succeeded,
+                    Message = updated.Succeeded ? null : "Identity." + updated.Errors.First().Code
                 };
             }
 
-            if (await _userManager.Users.AnyAsync(a => a.Code == employee.Code))
-            {
-                return new ResultMessage
-                {
-                    Success = false,
-                    Message = "Val.AlreadyExist"
-                };
-            }
-
-            var user = new ApplicationUser
-            {
-                UserName = entity.UserName,
-                Email = entity.Email,
-                EmailConfirmed = true,
-                FirstName = employee.ArName,
-                LastName = string.Empty,
-                TownId = employee.TownId,
-                Street = employee.Address,
-                PhoneNumber = employee.PhoneNumber,
-                UserType = employee.Job?.ArName,
-                Code = employee.Code
-            };
-
-            if (!await _roleManager.RoleExistsAsync(user.UserType))
-            {
-                await _roleManager.CreateAsync(new IdentityRole(user.UserType));
-            }
-
-            var created = await _userManager.CreateAsync(user, password);
-            if (!created.Succeeded)
-            {
-                return new ResultMessage
-                {
-                    Success = created.Succeeded,
-                    Message = created.Succeeded ? null : "Identity." + created.Errors.First().Code
-                };
-            }
-
-            var addedToRole = await _userManager.AddToRoleAsync(user, user.UserType);
+            var token = await _userManager.GeneratePasswordResetTokenAsync(existing);
+            var reset = await _userManager.ResetPasswordAsync(existing, token, password);
 
             return new ResultMessage
             {
-                Success = addedToRole.Succeeded,
-                Message = addedToRole.Succeeded ? null : "Identity." + addedToRole.Errors.First().Code
+                Success = reset.Succeeded,
+                Message = reset.Succeeded ? null : "Identity." + reset.Errors.First().Code
             };
         }
-
-        var existing = await _userManager.FindByIdAsync(entity.Id);
-        if (existing is null)
+        catch (Exception ex)
         {
-            return new ResultMessage
-            {
-                Success = false,
-                Message = "RecordNotFound"
-            };
+            return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
-
-        existing.UserName = entity.UserName;
-        existing.Email = entity.Email;
-
-        var updated = await _userManager.UpdateAsync(existing);
-        if (!updated.Succeeded || string.IsNullOrEmpty(password))
-        {
-            return new ResultMessage
-            {
-                Success = updated.Succeeded,
-                Message = updated.Succeeded ? null : "Identity." + updated.Errors.First().Code
-            };
-        }
-
-        var token = await _userManager.GeneratePasswordResetTokenAsync(existing);
-        var reset = await _userManager.ResetPasswordAsync(existing, token, password);
-
-        return new ResultMessage
-        {
-            Success = reset.Succeeded,
-            Message = reset.Succeeded ? null : "Identity." + reset.Errors.First().Code
-        };
     }
 }

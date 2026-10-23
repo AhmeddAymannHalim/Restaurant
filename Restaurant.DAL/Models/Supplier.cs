@@ -44,4 +44,7 @@ public class Supplier : BaseEntity
     #endregion
 
     public virtual ICollection<SupplierPhone> Phones { get; set; } = new List<SupplierPhone>();
+
+    // open invoices of this supplier, filled when one supplier is read for the form
+    public int InvoiceCount { get; set; }
 }

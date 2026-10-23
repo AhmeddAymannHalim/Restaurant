@@ -9,7 +9,7 @@ namespace Restaurant.DAL.Repositories.Definitions;
 public class BillSupportRepository : IBillSupportRepository
 {
     public const string ItemCodePrefix = "RST-P";
-    private const string UnitCodePrefix = "RST-U";
+    public const string UnitCodePrefix = "RST-U";
 
     public const string OrderKind = "ORD";
     public const string TransferCode = "TRF";
