@@ -318,6 +318,12 @@
                 return type === 'Returns' || type === 'Sales' || type === 'Shortage';
             }
 
+            // customer-facing invoices price from the unit's own sell price; everything else (purchases, shortages, stock adjustments) prices from cost
+            function isCustomerType() {
+                var type = $('#InvoiceType').val();
+                return type === 'Sales' || type === 'SalesReturn';
+            }
+
             function togglePartner() {
                 var hasPartner = hasPartnerType();
                 var supplier = isSupplierType();
@@ -345,8 +351,15 @@
 
             $('#InvoiceType').on('change', togglePartner);
 
-            var postingDefaults = @Html.Raw(Json.Serialize(Model.PostingDefaults.Select(a => new { type = a.Type.ToString(), autoPost = a.AutoPost, autoStock = a.AutoStock })));
+            var postingDefaults = @Html.Raw(Json.Serialize(Model.PostingDefaults.Select(a => new { type = a.Type.ToString(), autoPost = a.AutoPost, autoStock = a.AutoStock, sellTypeId = a.SellTypeId })));
             var isNewInvoice = @(Model.Id == 0 ? "true" : "false");
+
+            // the sell type that decides which of a unit's prices applies, driven by the invoice's current type
+            function currentSellTypeId() {
+                var d = postingDefaults.find(function (x) { return x.type === $('#InvoiceType').val(); });
+                return d ? d.sellTypeId : 0;
+            }
+
             $('#InvoiceType').on('change', function () {
                 var type = $(this).val();
                 var d = isNewInvoice ? postingDefaults.find(function (x) { return x.type === type; }) : null;
@@ -354,6 +367,10 @@
                     $('#AutoPost').prop('checked', d.autoPost);
                     $('#AutoStock').prop('checked', d.autoStock);
                 }
+
+                // changing the invoice type can change the sell type, so unit prices must be re-picked
+                fillUnits(stock[$('#productList').val()]);
+                showUnitFigures();
             });
 
             $('#SupplierId').on('change', function () {
@@ -381,7 +398,8 @@
 
                 list.empty();
                 $.each(item.units, function (i, u) {
-                    var option = $('<option>', { value: u.unitPriceId, text: isArabic ? u.unitArName : u.unitEnName }).attr('data-rate', u.transRate).attr('data-sell', ((u.prices || []).filter(function (x) { return x.price > 0; })[0] || {}).price || 0);
+                    var sellPrice = currentSellTypeId() ? (u.prices || []).filter(function (x) { return x.sellTypeId === currentSellTypeId(); })[0] : null;
+                    var option = $('<option>', { value: u.unitPriceId, text: isArabic ? u.unitArName : u.unitEnName }).attr('data-rate', u.transRate).attr('data-sell', sellPrice ? sellPrice.price : 0);
                     option.prop('selected', u.isDefault);
                     list.append(option);
                 });
@@ -393,7 +411,7 @@
                 $('#available').val(item ? Math.round(item.quantity / rate * 1000) / 1000 : '');
                 // a sale starts from the unit's own sell price; everything else (and a unit with no sell price) from cost
                 var sell = number($('#unitList option:selected').attr('data-sell'));
-                var price = (sell > 0 && removesStock() === false && isSupplierType() === false) ? sell : (item ? item.cost * rate : 0);
+                var price = (sell > 0 && isCustomerType()) ? sell : (item ? item.cost * rate : 0);
                 $('#price').val(item ? Math.round(price * 10000) / 10000 : '');
                 $('#quantity').val('');
                 $('#lineTotal').val('');
