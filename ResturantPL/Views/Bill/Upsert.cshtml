@@ -381,7 +381,7 @@
 
                 list.empty();
                 $.each(item.units, function (i, u) {
-                    var option = $('<option>', { value: u.unitPriceId, text: isArabic ? u.unitArName : u.unitEnName }).attr('data-rate', u.transRate);
+                    var option = $('<option>', { value: u.unitPriceId, text: isArabic ? u.unitArName : u.unitEnName }).attr('data-rate', u.transRate).attr('data-sell', ((u.prices || []).filter(function (x) { return x.price > 0; })[0] || {}).price || 0);
                     option.prop('selected', u.isDefault);
                     list.append(option);
                 });
@@ -391,7 +391,10 @@
                 var item = stock[$('#productList').val()];
                 var rate = number($('#unitList option:selected').attr('data-rate')) || 1;
                 $('#available').val(item ? Math.round(item.quantity / rate * 1000) / 1000 : '');
-                $('#price').val(item ? Math.round(item.cost * rate * 10000) / 10000 : '');
+                // a sale starts from the unit's own sell price; everything else (and a unit with no sell price) from cost
+                var sell = number($('#unitList option:selected').attr('data-sell'));
+                var price = (sell > 0 && removesStock() === false && isSupplierType() === false) ? sell : (item ? item.cost * rate : 0);
+                $('#price').val(item ? Math.round(price * 10000) / 10000 : '');
                 $('#quantity').val('');
                 $('#lineTotal').val('');
             }

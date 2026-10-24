@@ -11,7 +11,7 @@ namespace Restaurant.Tests;
 // through the real mapper, repositories and database.
 public class AccountAndBillServiceTests : IDisposable
 {
-    private readonly TestHost _host = new();
+    private readonly TestHost _host = new(invoiceAccounts: true);
 
     public void Dispose() => _host.Dispose();
 

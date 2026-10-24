@@ -107,8 +107,8 @@ public class InvoiceBranchTests : IDisposable
     [Fact]
     public async Task Invoice_SaveAndDelete_WhenTheRowWasChangedByAnotherUser_AnswerConcurrentUpdate()
     {
-        await Seed(withAccounts: false);
-        await Invoices.UpsertInvoiceAsync(Purchase(1, 1, 0));
+        await Seed(withAccounts: true);
+        Assert.True((await Invoices.UpsertInvoiceAsync(Purchase(1, 1, 0))).Success);
         Db.ChangeTracker.Clear();
         var id = (await Db.BillMasters.AsNoTracking().SingleAsync()).Id;
         _host.Db.SaveFailure.Failure = new DbUpdateConcurrencyException("forced");
@@ -154,7 +154,7 @@ public class InvoiceBranchTests : IDisposable
     [Fact]
     public async Task Invoice_ALineThatIsNotAProduct_IsLeftOutOfTheStockOnEditDeleteAndPosting()
     {
-        await Seed(withAccounts: false);
+        await Seed(withAccounts: true);
         var postedLater = Purchase(4, 1, 0);
         postedLater.AutoStock = false;
         postedLater.AutoPost = false;

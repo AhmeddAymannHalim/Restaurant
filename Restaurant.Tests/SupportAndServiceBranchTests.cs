@@ -13,7 +13,7 @@ namespace Restaurant.Tests;
 // (a payment's refund request, an employee's login) that had no test with real data behind them.
 public class SupportAndServiceBranchTests : IDisposable
 {
-    private readonly TestHost _host = new();
+    private readonly TestHost _host = new(invoiceAccounts: true);
 
     public void Dispose() => _host.Dispose();
 

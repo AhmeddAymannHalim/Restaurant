@@ -11,7 +11,7 @@ namespace Restaurant.Tests;
 // while prices and quantities on documents stay in the unit the user picked.
 public class UnitCalculationTests : IDisposable
 {
-    private readonly TestDb _db = new();
+    private readonly TestDb _db = new(invoiceAccounts: true);
     private readonly InvoiceRepository _invoices;
     private readonly OrderRepository _orders;
     private readonly StockRepository _stock;
@@ -262,7 +262,7 @@ public class UnitCalculationTests : IDisposable
         await _db.Context.SaveChangesAsync();
         var products = new ProductRepository(_db.Context, _db.Http);
         var edit = new Product { Id = _sugar.Id, ArName = "Sugar", EnName = "Sugar", Cost = 0.005m };
-        edit.Units = new List<ProductUnit> { new() { UnitPriceId = _gram.Id, TransRate = 1, IsDefault = true }, new() { UnitPriceId = unit.Id, TransRate = rate } };
+        edit.Units = new List<ProductUnit> { new() { UnitPriceId = _gram.Id, TransRate = 1, IsDefault = true }, new() { UnitPriceId = _kilo.Id, TransRate = 1000 }, new() { UnitPriceId = unit.Id, TransRate = rate } };
         _db.Context.ChangeTracker.Clear();
         Assert.True((await products.UpsertProductAsync(edit, new List<ProductStock>())).Success);
 

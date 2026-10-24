@@ -53,7 +53,6 @@ public class ProductVmValidator : AbstractValidator<ProductViewModel>
             .WithMessage(localizer["Val.StoreRepeated"].Value);
 
         RuleForEach(x => x.Units)
-            .Where(a => a.UnitPriceId > 0)
             .ChildRules(unit =>
             {
                 unit.RuleFor(a => a.UnitPriceId)

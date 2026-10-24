@@ -155,54 +155,32 @@ public class ProductRepository : IProductRepository
                 await _context.SaveChangesAsync();
             }
 
+            // stock: quantities here are in the base unit (the unit whose rate is 1)
             var current = await _stock.QuantitiesAsync();
             foreach (var stock in stocks)
             {
-                var quantityChanged = _stock.FindQuantity(current, stock.StoreId, entity.Id) != stock.Quantity;
-                var minChanged = _stock.FindMinQuantity(current, stock.StoreId, entity.Id) != stock.MinQuantity;
-                if (!quantityChanged && !minChanged)
+                var oldQuantity = _stock.FindQuantity(current, stock.StoreId, entity.Id);
+                var oldMin = _stock.FindMinQuantity(current, stock.StoreId, entity.Id);
+                if (oldQuantity == stock.Quantity && oldMin == stock.MinQuantity)
                 {
                     continue;
+                }
+
+                // move first: it reloads the row, which would drop an unsaved minimum
+                if (oldQuantity != stock.Quantity)
+                {
+                    await _stock.MoveAsync(stock.StoreId, entity.Id, stock.Quantity - oldQuantity, StockMovementSource.OpeningBalance, entity.Code);
                 }
 
                 var row = await _stock.RowAsync(stock.StoreId, entity.Id);
                 row.MinQuantityOrder = stock.MinQuantity;
-                if (!quantityChanged)
-                {
-                    continue;
-                }
-
-                var before = row.Quantity ?? 0;
-                row.Quantity = stock.Quantity;
-                await _context.StoreProductMovements.AddAsync(new StoreProductMovement
-                {
-                    StoreId = stock.StoreId,
-                    ProductId = entity.Id,
-                    QuantityDelta = stock.Quantity - before,
-                    Source = StockMovementSource.OpeningBalance,
-                    ReferenceCode = entity.Code
-                });
             }
 
             // a store taken off the list no longer holds this product
             var keptStoreIds = stocks.Select(a => a.StoreId).ToList();
-            foreach (var old in current)
+            foreach (var old in current.Where(a => a.ProductId == entity.Id && !keptStoreIds.Contains(a.StoreId) && a.Quantity != 0))
             {
-                var isThisProduct = old.ProductId == entity.Id;
-                var storeWasRemoved = !keptStoreIds.Contains(old.StoreId);
-                if (isThisProduct && storeWasRemoved && old.Quantity != 0)
-                {
-                    var row = await _stock.RowAsync(old.StoreId, entity.Id);
-                    row.Quantity = 0;
-                    await _context.StoreProductMovements.AddAsync(new StoreProductMovement
-                    {
-                        StoreId = old.StoreId,
-                        ProductId = entity.Id,
-                        QuantityDelta = -old.Quantity,
-                        Source = StockMovementSource.OpeningBalance,
-                        ReferenceCode = entity.Code
-                    });
-                }
+                await _stock.MoveAsync(old.StoreId, entity.Id, -old.Quantity, StockMovementSource.OpeningBalance, entity.Code);
             }
 
             await _context.SaveChangesAsync();
@@ -223,20 +201,20 @@ public class ProductRepository : IProductRepository
                     var stockUnitRows = await _context.ItemUnits
                         .Where(a => a.ItemId == itemId && a.Unit.Code == StockRepository.BaseUnitCode && a.IsDefault)
                         .ToListAsync();
-                    foreach (var stockUnitRow in stockUnitRows)
-                    {
-                        stockUnitRow.IsDefault = false;
-                    }
+                    stockUnitRows.ForEach(a => a.IsDefault = false);
                 }
 
+                // a unit that a recipe still uses cannot be taken off the product (the recipe would keep a rate nobody owns)
                 var keptUnitIds = entity.Units.Select(a => a.UnitPriceId).ToList();
-                foreach (var old in oldRows)
+                var removedRows = oldRows.Where(a => !keptUnitIds.Contains(_billSupport.UnitPriceIdOf(a.Unit.Code))).ToList();
+                var removedUnitIds = removedRows.Select(a => _billSupport.UnitPriceIdOf(a.Unit.Code)).ToList();
+                if (await _context.MenuItemComponents.AnyAsync(a => a.ProductId == entity.Id && a.UnitPriceId.HasValue && removedUnitIds.Contains(a.UnitPriceId.Value)))
                 {
-                    if (!keptUnitIds.Contains(_billSupport.UnitPriceIdOf(old.Unit.Code)))
-                    {
-                        _context.ItemUnits.Remove(old);
-                    }
+                    _context.ChangeTracker.Clear();
+                    return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
                 }
+
+                _context.ItemUnits.RemoveRange(removedRows);
 
                 foreach (var unit in entity.Units)
                 {
@@ -252,29 +230,25 @@ public class ProductRepository : IProductRepository
                     row.IsDefault = unit.IsDefault;
                     row.Barcode = unit.Barcode;
                     row.LastPurchase = unit.LastPurchase;
+                    await _context.SaveChangesAsync();
+
+                    // a recipe keeps the rate it was saved with, so it follows the unit when its rate changes
+                    await _context.MenuItemComponents
+                        .Where(a => a.ProductId == entity.Id && a.UnitPriceId == unit.UnitPriceId)
+                        .ExecuteUpdateAsync(a => a.SetProperty(b => b.TransRate, unit.TransRate));
 
                     // a price type that is not posted (hidden or deleted) keeps whatever it had
-                    if (row.Id != 0)
+                    var oldPrices = await _context.ItemUnitPrices.Where(a => a.ItemUnitId == row.Id).ToListAsync();
+                    foreach (var price in unit.Prices)
                     {
-                        var oldPrices = await _context.ItemUnitPrices.Where(a => a.ItemUnitId == row.Id).ToListAsync();
-                        foreach (var price in unit.Prices)
+                        var oldPrice = oldPrices.FirstOrDefault(a => a.SellTypeId == price.SellTypeId);
+                        if (oldPrice is null)
                         {
-                            var oldPrice = oldPrices.FirstOrDefault(a => a.SellTypeId == price.SellTypeId);
-                            if (oldPrice is null)
-                            {
-                                await _context.ItemUnitPrices.AddAsync(new ItemUnitPrice { ItemUnitId = row.Id, SellTypeId = price.SellTypeId, Price = price.Price });
-                            }
-                            else
-                            {
-                                oldPrice.Price = price.Price;
-                            }
+                            await _context.ItemUnitPrices.AddAsync(new ItemUnitPrice { ItemUnitId = row.Id, SellTypeId = price.SellTypeId, Price = price.Price });
                         }
-                    }
-                    else
-                    {
-                        foreach (var price in unit.Prices)
+                        else
                         {
-                            await _context.ItemUnitPrices.AddAsync(new ItemUnitPrice { ItemUnit = row, SellTypeId = price.SellTypeId, Price = price.Price });
+                            oldPrice.Price = price.Price;
                         }
                     }
                 }

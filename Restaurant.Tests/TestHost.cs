@@ -24,7 +24,7 @@ namespace Restaurant.Tests;
 // every service, repository, validator, controller, the mapper and Identity. Only the toastr, e-mail and localizer are fakes.
 public class TestHost : IDisposable
 {
-    private readonly TestDb _db = new();
+    private readonly TestDb _db;
     private readonly ServiceProvider _provider;
 
     public IServiceProvider Services => _provider;
@@ -33,8 +33,9 @@ public class TestHost : IDisposable
     public Mock<IToastrService> Toastr { get; } = new();
     public Mock<ResturantPL.Services.IEmailService> Email { get; } = new();
 
-    public TestHost()
+    public TestHost(bool invoiceAccounts = false)
     {
+        _db = new TestDb(invoiceAccounts);
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddDataProtection();

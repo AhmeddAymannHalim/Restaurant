@@ -23,6 +23,7 @@ public class ScreenJourneyTests : IDisposable
 
     private async Task<(int store, int product, int unit, int supplier, int customer, int employee, int expense)> Seed()
     {
+        _host.Db.SeedInvoiceAccounts();
         var user = new ApplicationUser { Id = "user-1", UserName = "halim", Email = "h@test.com" };
         var store = new Store { Code = "1", ArName = "S", EnName = "S" };
         var section = new MenuSection { Code = "1", ArName = "Sec", EnName = "Sec" };
@@ -406,7 +407,7 @@ public class ScreenJourneyTests : IDisposable
         products.ModelState.AddModelError("Units", "x");
         var refused = Assert.IsType<ViewResult>(await products.Upsert(form));
         var refusedModel = Assert.IsType<ProductViewModel>(refused.Model);
-        Assert.Equal(3, refusedModel.SellTypes.Count);
+        Assert.Equal(4, refusedModel.SellTypes.Count); // the 3 of the test + the one the invoice accounts need
         Assert.Contains(refusedModel.UnitList, u => u.Id == kilo.Id);
         products.ModelState.Clear();
 
@@ -417,7 +418,7 @@ public class ScreenJourneyTests : IDisposable
         var opened = (ProductViewModel)((ViewResult)await products.Upsert(sugar.Id)).Model;
         Assert.Equal(2, opened.Units.Count);
         Assert.Equal(3, opened.Units.Single(u => u.UnitPriceId == kilo.Id).Prices.Count);
-        Assert.Equal(3, opened.SellTypes.Count);
+        Assert.Equal(4, opened.SellTypes.Count);
 
         var menu = _host.Controller<MenuController>();
         var sectionId = (await Db.MenuSections.AsNoTracking().FirstAsync()).Id;

@@ -318,6 +318,7 @@ public class RepositoryBranchTests : IDisposable
         var customer = new Customer { Account = new Account { Code = "C", ArName = "Cus", EnName = "Cus", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
         Db.AddRange(store, product, unit, supplier, customer);
         await Db.SaveChangesAsync();
+        _host.Db.SeedInvoiceAccounts();
         Db.ChangeTracker.Clear();
 
         return (store, product, unit, supplier, customer);

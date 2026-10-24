@@ -9,7 +9,7 @@ namespace Restaurant.Tests;
 
 public class ReportRepositoryTests : IDisposable
 {
-    private readonly TestDb _db = new();
+    private readonly TestDb _db = new(invoiceAccounts: true);
     private readonly ReportRepository _sut;
     private readonly DateTime _day = DateTime.Today;
 

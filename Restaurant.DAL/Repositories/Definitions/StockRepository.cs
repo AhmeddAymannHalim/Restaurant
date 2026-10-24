@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.Helpers;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
+using Shared.Enums;
+using Shared.ViewModels.Definitions;
 
 namespace Restaurant.DAL.Repositories.Definitions;
 
@@ -73,6 +75,68 @@ public class StockRepository : IStockRepository
         }
 
         return affected > 0;
+    }
+
+    // changes the quantity (it may go below zero here, the caller checks) and writes the movement line for it
+    public async Task MoveAsync(int storeId, int productId, decimal delta, StockMovementSource source, string referenceCode)
+    {
+        await AdjustAsync(storeId, productId, delta, allowNegative: true);
+        await _context.StoreProductMovements.AddAsync(new StoreProductMovement
+        {
+            StoreId = storeId,
+            ProductId = productId,
+            QuantityDelta = delta,
+            Source = source,
+            ReferenceCode = referenceCode
+        });
+    }
+
+    // every product with what one store holds of it, and the units (rate and sell prices) it can be moved in
+    public async Task<List<StoreProductLookupItem>> ProductsOfStoreAsync(int storeId)
+    {
+        var store = await _context.Stores.AsNoTracking().FirstOrDefaultAsync(a => a.Id == storeId);
+        var storeArName = store?.ArName;
+        var storeEnName = store?.EnName;
+        var quantities = await QuantitiesAsync(storeId);
+        var products = await _context.Products.AsNoTracking()
+            .Select(a => new StoreProductLookupItem
+            {
+                Id = a.Id, ProductId = a.Id, ProductCategoryId = a.ProductCategoryId, StoreId = storeId,
+                ProductArName = a.ArName, ProductEnName = a.EnName, StoreArName = storeArName, StoreEnName = storeEnName, Cost = a.Cost
+            })
+            .ToListAsync();
+
+        var unitRows = await _context.ItemUnits.AsNoTracking()
+            .Where(a => a.Item.Code.StartsWith(BillSupportRepository.ItemCodePrefix) && a.Unit.Code.StartsWith(BillSupportRepository.UnitCodePrefix))
+            .Select(a => new { a.Id, ItemCode = a.Item.Code, UnitCode = a.Unit.Code, a.TransRate, a.IsDefault })
+            .ToListAsync();
+        var sellPrices = await _context.ItemUnitPrices.AsNoTracking().Where(a => a.SellType.Show).OrderBy(a => a.SellTypeId).ToListAsync();
+        var unitNames = await _context.UnitPrices.AsNoTracking().ToListAsync();
+
+        foreach (var product in products)
+        {
+            product.Quantity = FindQuantity(quantities, storeId, product.ProductId);
+            foreach (var row in unitRows.Where(a => _billSupport.ProductIdOf(a.ItemCode) == product.ProductId))
+            {
+                var unitName = unitNames.FirstOrDefault(a => a.Id == _billSupport.UnitPriceIdOf(row.UnitCode));
+                if (unitName is null)
+                {
+                    continue;
+                }
+
+                product.Units.Add(new ProductUnitViewModel
+                {
+                    UnitPriceId = unitName.Id,
+                    UnitArName = unitName.ArName,
+                    UnitEnName = unitName.EnName,
+                    TransRate = (decimal)row.TransRate,
+                    IsDefault = row.IsDefault,
+                    Prices = sellPrices.Where(a => a.ItemUnitId == row.Id).Select(a => new ProductUnitPriceViewModel { SellTypeId = a.SellTypeId, Price = a.Price }).ToList()
+                });
+            }
+        }
+
+        return products;
     }
 
     public IQueryable<StoreItemUnit> Rows()

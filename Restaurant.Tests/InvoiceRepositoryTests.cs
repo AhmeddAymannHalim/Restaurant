@@ -9,7 +9,7 @@ namespace Restaurant.Tests;
 
 public class InvoiceRepositoryTests : IDisposable
 {
-    private readonly TestDb _db = new();
+    private readonly TestDb _db = new(invoiceAccounts: true);
     private readonly InvoiceRepository _sut;
     private readonly StockRepository _stock;
 

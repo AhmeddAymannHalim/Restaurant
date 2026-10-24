@@ -81,7 +81,8 @@ public class TestDb : IDisposable
     // Show the real exception text instead of "ErrorWhileSaving" so a failing test explains itself.
     static TestDb() => Shared.Helpers.ErrorLog.ShowDetails = true;
 
-    public TestDb()
+    // invoiceAccounts: every invoice type gets an item account and a pay account, so its journal entry can be posted
+    public TestDb(bool invoiceAccounts = false)
     {
         _connection = new SqliteConnection("DataSource=:memory:");
         _connection.Open();
@@ -91,6 +92,32 @@ public class TestDb : IDisposable
         Context.Database.EnsureCreated();
 
         Http = new HttpContextAccessor { HttpContext = new DefaultHttpContext() };
+
+        if (invoiceAccounts)
+        {
+            SeedInvoiceAccounts();
+        }
+    }
+
+    public void SeedInvoiceAccounts()
+    {
+        var itemAccount = new Restaurant.DAL.Models.Account { Code = "TI", ArName = "Item", EnName = "Item", AccountType = Shared.Enums.AccountType.Normal, BalanceType = Shared.Enums.AccountBalanceType.Debit };
+        var payAccount = new Restaurant.DAL.Models.Account { Code = "TP", ArName = "Cash", EnName = "Cash", AccountType = Shared.Enums.AccountType.Box, BalanceType = Shared.Enums.AccountBalanceType.Debit };
+        var sellType = new Restaurant.DAL.Models.SellType { ArName = "Retail", EnName = "Retail", Show = true };
+        Context.AddRange(itemAccount, payAccount, sellType);
+        Context.SaveChanges();
+        foreach (var billType in new[] { Shared.Enums.BillType.Purchases, Shared.Enums.BillType.PurchaseReturn, Shared.Enums.BillType.Sales, Shared.Enums.BillType.SalesReturn, Shared.Enums.BillType.InventoryDeficit, Shared.Enums.BillType.InventoryIncrease, Shared.Enums.BillType.OpeningBalance })
+        {
+            Context.BillSettings.Add(new Restaurant.DAL.Models.BillSetting
+            {
+                ArName = billType.ToString(), EnName = billType.ToString(), ArAbrvation = billType.ToString(), EnAbrvation = billType.ToString(),
+                BillType = billType, EntryGenerate = Shared.Enums.EntryGenerate.AutomaticEntryCreated, EntryAutoPosted = true,
+                StorageEffect = Shared.Enums.StorageEffect.AutoEffected, CurrencyRate = 1, DefaultPayType = Shared.Enums.PayType.Cash,
+                SellTypeId = sellType.Id, AccountItemId = itemAccount.Id, AccountPayId = payAccount.Id
+            });
+        }
+        Context.SaveChanges();
+        Context.ChangeTracker.Clear();
     }
 
     public void Dispose()

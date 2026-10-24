@@ -581,6 +581,7 @@
   "RoleNotFound": "The selected role does not exist",
   "LastAdminCannotChange": "The last admin cannot be changed or deleted",
   "InvoiceNeedsItems": "Add at least one item to the invoice",
+  "InvoiceAccountsMissing": "The invoice accounts (sales / purchases / cash) are not set in the account settings, so the journal entry cannot be created",
   "InvoiceHasPayments": "This invoice has payments, delete the payments first",
   "InsufficientStock": "Not enough stock in the store; it cannot go below zero",
   "MenuItemNotAvailable": "This item is currently unavailable and cannot be added to an order",
