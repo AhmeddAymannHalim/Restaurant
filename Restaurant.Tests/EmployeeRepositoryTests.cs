@@ -69,6 +69,25 @@ public class EmployeeRepositoryTests : IDisposable
         Assert.Equal(750, saved.CompanyInsuranceAmount);
     }
 
+    [Theory]
+    [InlineData(9, 17, 8)]
+    [InlineData(10, 18, 8)]
+    [InlineData(22, 6, 8)]      // night shift past midnight
+    public async Task Create_DailyHoursFollowTheShift_NotThePostedValue(int startHour, int endHour, double expected)
+    {
+        var job = await SeedJob();
+        var employee = NewEmployee(job);
+        employee.DailyHours = 3;                                  // wrong value posted on purpose
+        employee.StartTime = TimeSpan.FromHours(startHour);
+        employee.EndTime = TimeSpan.FromHours(endHour);
+
+        await _sut.UpsertEmployeeAsync(employee, null, null);
+
+        var saved = await _db.Context.Employees.AsNoTracking().SingleAsync();
+        Assert.Equal((decimal)expected, saved.DailyHours);
+        Assert.Equal(48, saved.WeeklyHours);                      // 6 days * 8 hours, so the rates use the shift too
+    }
+
     [Fact]
     public async Task Create_WithoutWorkDays_HasNoRates()
     {

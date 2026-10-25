@@ -24,8 +24,15 @@ public class SalaryVmValidator : AbstractValidator<SalaryViewModel>
             .GreaterThanOrEqualTo(0)
             .WithMessage(required);
 
-        RuleFor(x => x.ToDate)
-            .GreaterThanOrEqualTo(x => x.FromDate)
+        // A blank date posts as 0001-01-01, which NotEmpty treats as missing
+        RuleFor(x => x.FromDate)
+            .NotEmpty()
             .WithMessage(required);
+
+        RuleFor(x => x.ToDate)
+            .NotEmpty()
+            .WithMessage(required)
+            .GreaterThanOrEqualTo(x => x.FromDate)
+            .WithMessage(localizer["Val.ToDateBeforeFromDate"].Value);
     }
 }

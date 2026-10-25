@@ -198,6 +198,50 @@ public class EmployeeMoneyRepositoriesTests : IDisposable
     }
 
     [Fact]
+    public async Task EmployeeExpenses_AddsAllowancesAndSubtractsFixedDeductions()
+    {
+        var (user, employee, _) = await Seed();
+        _db.Context.EmployeeAllowances.Add(new EmployeeAllowance { EmployeeId = employee.Id, Amount = 300, ArName = "بدل", EnName = "Transport" });
+        _db.Context.EmployeeFixedDeductions.Add(new EmployeeFixedDeduction { EmployeeId = employee.Id, Amount = 120, ArName = "خصم", EnName = "Late" });
+        _db.Context.Scrounges.AddRange(
+            new Scrounge { EmployeeId = employee.Id, Amount = 100, State = MoneyState.Incentive, Date = new DateTime(2030, 1, 5), UserId = user },
+            new Scrounge { EmployeeId = employee.Id, Amount = 50, State = MoneyState.Discount, Date = new DateTime(2030, 1, 6), UserId = user },
+            new Scrounge { EmployeeId = employee.Id, Amount = 200, State = MoneyState.Dept, Date = new DateTime(2030, 1, 7), UserId = user });
+        await _db.Context.SaveChangesAsync();
+        var sut = new SalaryRepository(_db.Context, _journals);
+
+        var model = await sut.GetEmployeeExpensesAsync(employee.Id, new DateTime(2030, 1, 1), new DateTime(2030, 1, 31));
+
+        Assert.Equal(300, model.Allowances);
+        Assert.Equal(120, model.FixedDeductions);
+        Assert.Equal(3000 + 300 + 100 - 120 - 50 - 200, model.TotalSalary);
+    }
+
+    [Fact]
+    public async Task Salary_StoppedEmployee_CannotGetNewSalary_ButSavedOneStaysEditable()
+    {
+        var (user, employee, _) = await Seed();
+        var sut = new SalaryRepository(_db.Context, _journals);
+        var salary = new Salary { EmployeeId = employee.Id, FromDate = new DateTime(2030, 1, 1), ToDate = new DateTime(2030, 1, 31), SalaryAmount = 2500 };
+        Assert.True((await sut.UpsertSalaryAsync(salary, user)).Success);
+
+        employee.IsSalaryStopped = true;
+        _db.Context.Employees.Update(employee);
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+
+        var blocked = await sut.UpsertSalaryAsync(new Salary { EmployeeId = employee.Id, SalaryAmount = 1 }, user);
+        Assert.False(blocked.Success);
+        Assert.Equal("SalaryStopped", blocked.Message);
+        Assert.Single(_db.Context.Salaries.AsNoTracking());
+        Assert.True((await sut.GetEmployeeExpensesAsync(employee.Id, DateTime.Today, DateTime.Today)).IsSalaryStopped);
+
+        var edit = new Salary { Id = salary.Id, EmployeeId = employee.Id, FromDate = salary.FromDate, ToDate = salary.ToDate, SalaryAmount = 2600 };
+        Assert.Equal("SalaryStopped", (await sut.UpsertSalaryAsync(edit, user)).Message);
+        _db.Context.ChangeTracker.Clear();
+        Assert.Equal(2500, (await sut.GetSalaryByIdAsync(salary.Id)).SalaryAmount);
+    }
+    [Fact]
     public async Task Paging_ReturnsRecordsForAllFour()
     {
         var (user, employee, expense) = await Seed();

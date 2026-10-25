@@ -490,6 +490,9 @@
   "Emp.DailyRate": "أجر اليوم",
   "Emp.HourlyRate": "أجر الساعة",
   "Emp.MinuteRate": "أجر الدقيقة",
+  "Val.ToDateBeforeFromDate": "تاريخ النهاية يجب أن يكون بعد تاريخ البداية أو مساويا له",
+  "SalaryStopped": "مرتب هذا الموظف موقوف، لذلك لا يمكن حفظ المرتب",
+  "Emp.ExpectedNet": "صافي الراتب الشهري المتوقع",
   "Emp.SalaryNotes": "ملاحظات الراتب",
   "Emp.Section.Insurance": "التأمين",
   "Emp.InsuranceNumber": "رقم التأمين",
@@ -763,6 +766,8 @@
   "Incentives": "الحوافز",
   "Discounts": "الخصومات",
   "Depts": "السلف",
+  "Allowances": "البدلات",
+  "FixedDeductions": "الاستقطاعات الثابتة",
   "TotalSalary": "اجمالي الراتب",
 
   //invoices and payments

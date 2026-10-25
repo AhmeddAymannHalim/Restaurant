@@ -146,6 +146,18 @@ public class EmployeeRepository : IEmployeeRepository
 
             var weeksPerMonth = 52m / 12m;
             var workDays = entity.WorkDays ?? 0;
+            // The shift decides the daily hours; an end before the start means a night shift past midnight
+            if (entity.StartTime.HasValue && entity.EndTime.HasValue)
+            {
+                var shift = entity.EndTime.Value - entity.StartTime.Value;
+                if (shift <= TimeSpan.Zero)
+                {
+                    shift = shift.Add(TimeSpan.FromDays(1));
+                }
+
+                entity.DailyHours = Math.Round((decimal)shift.TotalHours, 2);
+            }
+
             var dailyHours = entity.DailyHours ?? 0;
             var salary = entity.BasicSalary ?? 0;
 

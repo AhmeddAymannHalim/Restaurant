@@ -504,12 +504,12 @@
                 </div>
                 <div class="form-group">
                     <label asp-for="StartTime" class="control-label">@L["Emp.StartTime"]</label>
-                    <input asp-for="StartTime" type="time" asp-format="{0:hh\:mm}" class="form-control" />
+                    <input asp-for="StartTime" type="time" asp-format="{0:hh\:mm}" class="form-control" data-pay="start" />
                     <span asp-validation-for="StartTime" class="text-danger"></span>
                 </div>
                 <div class="form-group">
                     <label asp-for="EndTime" class="control-label">@L["Emp.EndTime"]</label>
-                    <input asp-for="EndTime" type="time" asp-format="{0:hh\:mm}" class="form-control" />
+                    <input asp-for="EndTime" type="time" asp-format="{0:hh\:mm}" class="form-control" data-pay="end" />
                     <span asp-validation-for="EndTime" class="text-danger"></span>
                 </div>
                 <div class="form-group">
@@ -526,6 +526,10 @@
                     <label asp-for="MinuteRate" class="control-label">@L["Emp.MinuteRate"]</label>
                     <input asp-for="MinuteRate" type="number" step="0.0001" class="form-control" readonly data-pay="minute" />
                     <span asp-validation-for="MinuteRate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label class="control-label" for="expectedNet">@L["Emp.ExpectedNet"]</label>
+                    <input id="expectedNet" type="number" step="0.01" class="form-control" readonly tabindex="-1" />
                 </div>
                 <div class="form-group">
                     <label asp-for="SalaryNotes" class="control-label">@L["Emp.SalaryNotes"]</label>
@@ -1024,7 +1028,23 @@
     function num($el) { var v = parseFloat($el.val()); return isNaN(v) ? 0 : v; }
     function put($el, v, digits) { $el.val(isFinite(v) && v > 0 ? v.toFixed(digits) : ''); }
 
+    /* "HH:mm" -> minutes since midnight, or -1 while the time is empty */
+    function minutes(text) {
+        var p = (text || '').split(':');
+        return p.length < 2 ? -1 : parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
+    }
+
     function recalc() {
+        // With a shift set the hours follow it (same rule as the server); an end before the start is a night shift
+        var from = minutes($f.start.val()), to = minutes($f.end.val());
+        var shifted = from >= 0 && to >= 0;
+        if (shifted) {
+            var span = to - from;
+            if (span <= 0) { span += 24 * 60; }
+            $f.hours.val((span / 60).toFixed(2));
+        }
+        $f.hours.prop('readonly', shifted);
+
         var days = num($f.days), hours = num($f.hours), salary = num($f.salary);
         var weekly = days * hours;
         var monthDays = days * WEEKS_PER_MONTH;
@@ -1041,12 +1061,37 @@
         $f = {};
         $('[data-pay]').each(function () { $f[$(this).data('pay')] = $(this); });
         if (!$f.salary) { return; }
-        $f.salary.add($f.days).add($f.hours).on('input change keyup', recalc);
+        $f.salary.add($f.days).add($f.hours).add($f.start).add($f.end).on('input change keyup', recalc);
         recalc();
     }
 
     init();
     
+})(jQuery);
+
+/* Pay: the expected monthly net is basic salary + allowances - fixed deductions. It is only shown, never posted or stored,
+   because the real net depends on the period (advances, discounts, late, absence) and is saved on the Salary row. */
+(function ($) {
+    'use strict';
+
+    function sum(selector) {
+        var total = 0;
+        $(selector).each(function () { var v = parseFloat($(this).val()); total += isNaN(v) ? 0 : v; });
+        return total;
+    }
+
+    function show() {
+        var $net = $('#expectedNet');
+        if (!$net.length) { return; }
+        var salary = parseFloat($('[data-pay="salary"]').val());
+        var net = (isNaN(salary) ? 0 : salary) + sum('[data-al-amount]') - sum('[data-de-amount]');
+        $net.val(net.toFixed(2));
+    }
+
+    /* The row scripts fill the amounts after the click / change, and rows can be added or removed, so wait one tick. */
+    $(document).on('input change click', '.bo-form', function () { setTimeout(show, 0); });
+    show();
+
 })(jQuery);
 
 /* Insurance: choosing the insurance type loads its wage, allowances and shares; the amounts follow live. */

@@ -490,6 +490,9 @@
   "Emp.DailyRate": "Daily rate",
   "Emp.HourlyRate": "Hourly rate",
   "Emp.MinuteRate": "Minute rate",
+  "Val.ToDateBeforeFromDate": "To date must be on or after from date",
+  "SalaryStopped": "This employee's salary is stopped, so it cannot be saved",
+  "Emp.ExpectedNet": "Expected monthly net",
   "Emp.SalaryNotes": "Salary notes",
   "Emp.Section.Insurance": "Insurance",
   "Emp.InsuranceNumber": "Insurance number",
@@ -763,6 +766,8 @@
   "Incentives": "Incentives",
   "Discounts": "Discounts",
   "Depts": "Advances",
+  "Allowances": "Allowances",
+  "FixedDeductions": "Fixed Deductions",
   "TotalSalary": "Total salary",
 
   //invoices and payments

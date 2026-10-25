@@ -66,6 +66,8 @@ namespace ResturantPL.Controllers.Definitions
                 else
                 {
                     model.SalaryCode = await _service.NewSalaryCodeAsync();
+                    model.FromDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+                    model.ToDate = model.FromDate.AddMonths(1).AddDays(-1);
                 }
 
                 model.Employees = await _lookup.NamedLookupAsync<Employee>();

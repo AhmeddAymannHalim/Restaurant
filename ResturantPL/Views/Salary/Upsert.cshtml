@@ -38,6 +38,7 @@
                 <input id="endDate" asp-for="ToDate" type="date" class="form-control" />
                 <span asp-validation-for="ToDate" class="text-danger"></span>
             </div>
+            <div id="salaryStopped" class="alert alert-warning" hidden>@L["SalaryStopped"]</div>
             <div class="form-group">
                 <label class="control-label">@L["MainSalary"]</label>
                 <input id="mainAmount" class="form-control" readonly />
@@ -45,6 +46,14 @@
             <div class="form-group">
                 <label class="control-label">@L["SalaryType"]</label>
                 <input id="salaryType" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label class="control-label">@L["Allowances"]</label>
+                <input id="allowance" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label class="control-label">@L["FixedDeductions"]</label>
+                <input id="fixedDeduction" class="form-control" readonly />
             </div>
             <div class="form-group">
                 <label class="control-label">@L["Incentives"]</label>
@@ -82,6 +91,8 @@
     }
     <script>
         $(function () {
+            var fillAmount = @(isNew ? "true" : "false");
+
             function loadExpenses() {
                 var employeeId = $("#employeeId").val();
                 var startDate = $("#startDate").val();
@@ -95,17 +106,27 @@
                     type: "GET",
                     data: { employeeId: employeeId, startDate: startDate, endDate: endDate },
                     success: function (data) {
+                        $("#salaryStopped").prop("hidden", !data.isSalaryStopped);
                         $("#mainAmount").val(data.mainSalary);
                         $("#salaryType").val(data.salaryType);
+                        $("#allowance").val(data.allowances);
+                        $("#fixedDeduction").val(data.fixedDeductions);
                         $("#incentive").val(data.incentives);
                         $("#discount").val(data.discounts);
                         $("#dept").val(data.depts);
-                        $("#amount").val(data.totalSalary);
+                        if (fillAmount) {
+                            $("#amount").val(data.totalSalary);
+                        }
                     }
                 });
             }
 
-            $("#employeeId, #startDate, #endDate").change(loadExpenses);
+            $("#employeeId, #startDate, #endDate").change(function () {
+                fillAmount = true;
+                loadExpenses();
+            });
+
+            loadExpenses();
         });
     </script>
 }

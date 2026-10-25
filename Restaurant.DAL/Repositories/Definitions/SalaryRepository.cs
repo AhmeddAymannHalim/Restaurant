@@ -68,6 +68,7 @@ public class SalaryRepository : ISalaryRepository
         var employee = await _context.Employees
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == employeeId);
+
         if (employee is null)
         {
             return null;
@@ -82,10 +83,19 @@ public class SalaryRepository : ISalaryRepository
             Incentives = await scrounges.Where(a => a.State == MoneyState.Incentive).SumAsync(a => (decimal?)a.Amount) ?? 0,
             Discounts = await scrounges.Where(a => a.State == MoneyState.Discount).SumAsync(a => (decimal?)a.Amount) ?? 0,
             Depts = await scrounges.Where(a => a.State == MoneyState.Dept).SumAsync(a => (decimal?)a.Amount) ?? 0,
+
+            Allowances = await _context.EmployeeAllowances.AsNoTracking()
+                .Where(a => a.EmployeeId == employeeId).SumAsync(a => (decimal?)a.Amount) ?? 0,
+
+            FixedDeductions = await _context.EmployeeFixedDeductions.AsNoTracking()
+                .Where(a => a.EmployeeId == employeeId).SumAsync(a => (decimal?)a.Amount) ?? 0,
+
             MainSalary = employee.BasicSalary ?? 0,
+            IsSalaryStopped = employee.IsSalaryStopped,
             SalaryType = employee.PaymentMethod.ToString()
         };
-        model.TotalSalary = model.MainSalary + model.Incentives - model.Discounts - model.Depts;
+        model.TotalSalary = model.MainSalary + model.Allowances + model.Incentives
+            - model.FixedDeductions - model.Discounts - model.Depts;
 
         return model;
     }
@@ -96,6 +106,18 @@ public class SalaryRepository : ISalaryRepository
 
         try
         {
+            // A stopped employee gets no salary saved, new or edited
+            var stopped = await _context.Employees.AsNoTracking()
+                .AnyAsync(a => a.Id == entity.EmployeeId && a.IsSalaryStopped);
+            if (stopped)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "SalaryStopped"
+                };
+            }
+
             if (entity.Id == 0)
             {
                 entity.SalaryCode = await NewSalaryCodeAsync();
