@@ -65,33 +65,12 @@
                 <input asp-for="PhoneNumber" class="form-control" />
                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
-            <fieldset class="form-group bo-full bo-phones" data-row-list data-prefix="Phones">
-                <legend class="control-label">@L["Emp.MoreMobiles"]</legend>
-                <div class="bo-phone-grid" data-rows>
-                    @for (var i = 0; i < Model.Phones.Count; i++)
-                    {
-                        <div class="bo-phone" data-row>
-                            <input type="hidden" name="Phones[@i].Id" value="@Model.Phones[i].Id" />
-                            <div class="input-group">
-                                <input type="text" name="Phones[@i].PhoneNumber" value="@Model.Phones[i].PhoneNumber" class="form-control" maxlength="20" />
-                                <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
-                            </div>
-                            @Html.ValidationMessage($"Phones[{i}].PhoneNumber", new { @class = "text-danger" })
-                        </div>
-                    }
-                </div>
+            <div class="form-group">
+                <label asp-for="PhoneNumber2" class="control-label">@L["Phone2"]</label>
+                <input asp-for="PhoneNumber2" class="form-control" />
+                <span asp-validation-for="PhoneNumber2" class="text-danger"></span>
                 @Html.ValidationMessage("Phones", new { @class = "text-danger d-block" })
-                <button type="button" class="btn-ad btn-ad-ghost" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["Emp.AddMobile"]</button>
-                <template data-row-template>
-                    <div class="bo-phone" data-row>
-                        <input type="hidden" name="Phones[__i__].Id" value="0" />
-                        <div class="input-group">
-                            <input type="text" name="Phones[__i__].PhoneNumber" class="form-control" maxlength="20" />
-                            <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
-                        </div>
-                    </div>
-                </template>
-            </fieldset>
+            </div>
             @if (!isNew && Model.InvoiceCount > 0)
             {
                 <div class="alert alert-warning bo-full" role="alert"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> @string.Format(L["BalanceHasInvoices"].Value, Model.InvoiceCount)</div>

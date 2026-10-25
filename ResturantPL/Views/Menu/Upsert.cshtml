@@ -134,6 +134,7 @@
                     <div>
                         <span>@L["Unit"]</span>
                         <select id="unitList" class="form-control"></select>
+                        <small id="unitSell" class="text-muted"></small>
                     </div>
                     <div>
                         <span>@L["RequiredQuantity"]</span>
@@ -227,6 +228,7 @@
             var cancelText = @Html.Raw(Json.Serialize(L["Cancel"].Value));
             var removeText = @Html.Raw(Json.Serialize(L["Delete"].Value));
             var formulaText = @Html.Raw(Json.Serialize(L["CostFormula"].Value));
+            var sellTypes = @Html.Raw(Json.Serialize(Model.SellTypes.Where(a => a.Show).Select(a => new { id = a.Id, name = isArabic ? a.ArName : a.EnName })));
             var margin = 1.3;
             var priceTouched = false;
             var storeLoaded = false;
@@ -324,6 +326,12 @@
 
                 $.each(units, function (i, u) {
                     var option = $('<option>', { value: u.unitPriceId, text: isArabic ? u.unitArName : u.unitEnName }).attr('data-rate', u.transRate);
+                    // the unit's price for every price type, shown under the unit list
+                    var sell = $.map(sellTypes, function (t) {
+                        var price = $.grep(u.prices || [], function (x) { return x.sellTypeId === t.id; })[0];
+                        return price ? t.name + ': ' + price.price : null;
+                    });
+                    option.attr('data-sell', sell.join(' | '));
                     option.prop('selected', u.isDefault);
                     list.append(option);
                 });
@@ -334,6 +342,7 @@
                 var rate = number($('#unitList option:selected').attr('data-rate')) || 1;
                 $('#availableQuantity').val(item ? Math.round(item.quantity / rate * 1000) / 1000 : '');
                 $('#unitCost').val(item ? Math.round(item.cost * rate * 10000) / 10000 : '');
+                $('#unitSell').text($('#unitList option:selected').attr('data-sell') || '');
                 $('#quantity').trigger('input');
             }
 

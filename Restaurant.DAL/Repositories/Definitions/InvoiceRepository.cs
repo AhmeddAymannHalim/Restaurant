@@ -34,6 +34,7 @@ public class InvoiceRepository : IInvoiceRepository
             .Include(a => a.Currency)
             .Include(a => a.BillDetails).ThenInclude(a => a.Item)
             .Include(a => a.BillDetails).ThenInclude(a => a.Unit)
+            .Include(a => a.PaymentMethods)
             .FirstOrDefaultAsync(a => a.Id == id);
         if (bill is null || !await _billSupport.IsInvoiceAsync(bill))
         {
@@ -60,7 +61,7 @@ public class InvoiceRepository : IInvoiceRepository
             CurrencyEnName = bill.Currency?.EnName,
             CurrencyRate = bill.CurrencyRate,
             Discount = bill.BillDiscountValue,
-            Paid = bill.InitialPaidAmount,
+            Paid = bill.PaymentMethods.Sum(a => a.AmountPaided),
             AutoPost = bill.IsEntryPosted,
             AutoStock = bill.IsStorageEffected,
             Items = bill.BillDetails
@@ -136,6 +137,15 @@ public class InvoiceRepository : IInvoiceRepository
             .FirstOrDefaultAsync();
 
         return account?.BalanceValue ?? 0;
+    }
+
+    // the price type the customer buys at (0 when the customer has none, so the bill setting decides)
+    public async Task<int> GetCustomerSellTypeIdAsync(int customerId)
+    {
+        return await _context.Customers.AsNoTracking()
+            .Where(a => a.Id == customerId)
+            .Select(a => a.SellTypeId ?? 0)
+            .FirstOrDefaultAsync();
     }
 
     public async Task<decimal> GetCustomerBalanceAsync(int customerId)
@@ -257,6 +267,7 @@ public class InvoiceRepository : IInvoiceRepository
                     .Include(a => a.BillSetting)
                     .Include(a => a.BillDetails).ThenInclude(a => a.Item)
                     .Include(a => a.BillDetails).ThenInclude(a => a.Unit)
+                    .Include(a => a.PaymentMethods)
                     .FirstOrDefaultAsync(a => a.Id == model.Id);
                 if (bill is null)
                 {
@@ -286,7 +297,7 @@ public class InvoiceRepository : IInvoiceRepository
 
                 if (bill.IsEntryPosted)
                 {
-                    var takeBackBalanceDelta = -(oldType is InvoiceType.Purchases or InvoiceType.Sales ? 1 : -1) * (bill.TotalBillAmountAfterDiscountAndExtra - bill.InitialPaidAmount);
+                    var takeBackBalanceDelta = -(oldType is InvoiceType.Purchases or InvoiceType.Sales ? 1 : -1) * (bill.TotalBillAmountAfterDiscountAndExtra - bill.PaymentMethods.Sum(a => a.AmountPaided));
                     if (bill.CustomerOrSupplierAccountId.HasValue)
                     {
                         var takeBackAccount = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == bill.CustomerOrSupplierAccountId.Value);
@@ -311,6 +322,7 @@ public class InvoiceRepository : IInvoiceRepository
                 _context.EntryMasters.RemoveRange(existingEntries);
 
                 _context.BillDetails.RemoveRange(bill.BillDetails);
+                _context.PaymentMethods.RemoveRange(bill.PaymentMethods);
 
                 bill.BillSettingId = setting.Id;
                 bill.UpdatedAt = DateTime.Now;
@@ -362,7 +374,9 @@ public class InvoiceRepository : IInvoiceRepository
             bill.PayType = model.PayType == Shared.Enums.PayType.Later ? Shared.Enums.PayType.Later : Shared.Enums.PayType.Cash;
             bill.AmountPaided = paid + linkedPayments;
             bill.CasherRemainingAmount = remaining - linkedPayments;
-            bill.InitialPaidAmount = paid;
+            bill.PaymentMethods = paid > 0
+                ? new List<Restaurant.DAL.Models.PaymentMethod> { new() { RowNumber = 1, AccountPayId = setting.AccountPayId, AmountPaided = paid, CreatedAt = DateTime.Now } }
+                : new List<Restaurant.DAL.Models.PaymentMethod>();
             bill.IsStorageEffected = model.AutoStock;
             bill.IsEntryPosted = model.AutoPost;
             bill.BillCost = cost;
@@ -393,6 +407,14 @@ public class InvoiceRepository : IInvoiceRepository
                     {
                         productToUpdateCost.Cost = items[i].Price / details[i].TransRate.Value;
                     }
+
+                    // the ERP keeps the last buy price on the unit the line was bought in
+                    var boughtUnit = await _context.ItemUnits.FirstOrDefaultAsync(a => a.ItemId == details[i].ItemId && a.UnitId == details[i].UnitId)
+                        ?? _context.ItemUnits.Local.FirstOrDefault(a => a.ItemId == details[i].ItemId && a.UnitId == details[i].UnitId);
+                    if (boughtUnit is not null)
+                    {
+                        boughtUnit.LastPurchase = items[i].Price;
+                    }
                 }
             }
 
@@ -416,6 +438,7 @@ public class InvoiceRepository : IInvoiceRepository
             }
 
             await _context.SaveChangesAsync();
+            await _billSupport.LinkEntryAsync(bill);
             await transaction.CommitAsync();
 
             return new ResultMessage
@@ -444,6 +467,7 @@ public class InvoiceRepository : IInvoiceRepository
                 .Include(a => a.BillSetting)
                 .Include(a => a.BillDetails).ThenInclude(a => a.Item)
                 .Include(a => a.BillDetails).ThenInclude(a => a.Unit)
+                .Include(a => a.PaymentMethods)
                 .FirstOrDefaultAsync(a => a.Id == id);
             if (bill is null)
             {
@@ -512,6 +536,7 @@ public class InvoiceRepository : IInvoiceRepository
             _context.EntryMasters.RemoveRange(entriesToRemove);
 
             _context.BillDetails.RemoveRange(bill.BillDetails);
+            _context.PaymentMethods.RemoveRange(bill.PaymentMethods);
             _context.BillMasters.Remove(bill);
 
             await _context.SaveChangesAsync();
@@ -584,6 +609,7 @@ public class InvoiceRepository : IInvoiceRepository
             var bill = await _context.BillMasters
                 .Include(a => a.BillSetting)
                 .Include(a => a.BillDetails).ThenInclude(a => a.Item)
+                .Include(a => a.PaymentMethods)
                 .FirstOrDefaultAsync(a => a.Id == id);
             if (bill is null || !await _billSupport.IsInvoiceAsync(bill))
             {
@@ -596,7 +622,7 @@ public class InvoiceRepository : IInvoiceRepository
             }
 
             var type = _billSupport.TypeOf(bill.BillSetting.BillType);
-            var paidAtCreation = bill.InitialPaidAmount;
+            var paidAtCreation = bill.PaymentMethods.Sum(a => a.AmountPaided);
             var remaining = bill.TotalBillAmountAfterDiscountAndExtra - paidAtCreation;
 
             if (!bill.IsEntryPosted)
@@ -655,6 +681,7 @@ public class InvoiceRepository : IInvoiceRepository
             bill.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
+            await _billSupport.LinkEntryAsync(bill);
             await transaction.CommitAsync();
 
             return new ResultMessage { Success = true };

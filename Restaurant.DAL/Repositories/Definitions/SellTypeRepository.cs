@@ -27,7 +27,7 @@ public class SellTypeRepository : ISellTypeRepository
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search) || a.Code.ToLower().Contains(search));
+            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search));
         }
 
         var total = await query.CountAsync();
@@ -45,19 +45,6 @@ public class SellTypeRepository : ISellTypeRepository
         return await _context.SellTypes.FindAsync(id);
     }
 
-    public async Task<string> NewSellTypeCodeAsync()
-    {
-        var codes = await _context.SellTypes.AsNoTracking().Select(a => a.Code).ToListAsync();
-
-        var nextCode = codes
-            .Where(code => int.TryParse(code, out _))
-            .Select(int.Parse)
-            .DefaultIfEmpty(0)
-            .Max() + 1;
-
-        return nextCode.ToString();
-    }
-
     public async Task<ResultMessage> UpsertSellTypeAsync(SellType entity)
     {
         try
@@ -70,7 +57,6 @@ public class SellTypeRepository : ISellTypeRepository
 
             if (entity.Id == 0)
             {
-                entity.Code = await NewSellTypeCodeAsync();
                 entity.CreatedAt = DateTime.Now;
                 entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 await _context.SellTypes.AddAsync(entity);
@@ -88,7 +74,6 @@ public class SellTypeRepository : ISellTypeRepository
                     };
                 }
 
-                entity.Code = existing.Code;
                 entity.State = existing.State;
                 entity.CreatedAt = existing.CreatedAt;
                 entity.CreatedById = existing.CreatedById;
@@ -118,6 +103,23 @@ public class SellTypeRepository : ISellTypeRepository
             if (entity is null)
             {
                 return new ResultMessage { Success = true };
+            }
+
+            // item prices are stored in the column picked by the sell type id (1..6): a type whose column holds prices must stay
+            var hasPrices = false;
+            switch (entity.Id)
+            {
+                case 1: hasPrices = await _context.ItemUnits.AnyAsync(a => a.Whole != null); break;
+                case 2: hasPrices = await _context.ItemUnits.AnyAsync(a => a.HalfWhole != null); break;
+                case 3: hasPrices = await _context.ItemUnits.AnyAsync(a => a.Retail != null); break;
+                case 4: hasPrices = await _context.ItemUnits.AnyAsync(a => a.EndUsers != null); break;
+                case 5: hasPrices = await _context.ItemUnits.AnyAsync(a => a.WeightedAverage != null); break;
+                case 6: hasPrices = await _context.ItemUnits.AnyAsync(a => a.Export != null); break;
+            }
+
+            if (hasPrices)
+            {
+                return new ResultMessage { Success = false, Message = "CannotDeleteErpPriceType" };
             }
 
             _context.SellTypes.Remove(entity);

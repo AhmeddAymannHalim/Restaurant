@@ -469,6 +469,7 @@ public class OrderRepository : IOrderRepository
                 }
 
                 await _context.SaveChangesAsync();
+                await _billSupport.LinkEntryAsync(entity.Bill);
             }
 
             await transaction.CommitAsync();
@@ -557,6 +558,7 @@ public class OrderRepository : IOrderRepository
                 order.Bill.IsEntryPosted = await _orderLedger.PostEntryAsync(order);
             }
             await _context.SaveChangesAsync();
+            await _billSupport.LinkEntryAsync(order.Bill);
             await transaction.CommitAsync();
 
             return new ResultMessage { Success = true, Data = order.Id.ToString() };

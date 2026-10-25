@@ -46,30 +46,24 @@ public class ChildRowRepositoriesTests : IDisposable
     public void CleanNumbers_DropsBlanks_TheMainNumber_AndRepeats()
     {
         var sut = new PhoneRepository(_db.Context);
-        var rows = new List<CustomerPhone> { new() { PhoneNumber = " 0100 " }, new() { PhoneNumber = "0100" }, new() { PhoneNumber = "" }, new() { PhoneNumber = null }, new() { PhoneNumber = "0111" }, new() { PhoneNumber = "0122" } };
+        var rows = new List<SupplierPhone> { new() { PhoneNumber = " 0100 " }, new() { PhoneNumber = "0100" }, new() { PhoneNumber = "" }, new() { PhoneNumber = null }, new() { PhoneNumber = "0111" }, new() { PhoneNumber = "0122" } };
 
         Assert.Equal(new[] { "0100", "0122" }, sut.CleanNumbers("0111", rows));
         Assert.Empty(sut.CleanNumbers("0111", null));
     }
 
     [Fact]
-    public async Task SyncCustomerStoreSupplierPhones_RemoveOldAddNewKeepSame()
+    public async Task SyncSupplierPhones_RemoveOldAddNewKeepSame()
     {
         var sut = new PhoneRepository(_db.Context);
-        var customer = new Customer { Account = new Account { Code = "C", ArName = "c", EnName = "c", AccountType = Shared.Enums.AccountType.Customer }, Phones = new List<CustomerPhone> { new() { PhoneNumber = "1" }, new() { PhoneNumber = "2" } } };
-        var store = new Store { Code = "1", ArName = "s", EnName = "s", Phones = new List<StorePhone> { new() { PhoneNumber = "1" }, new() { PhoneNumber = "2" } } };
         var supplier = new Supplier { Account = new Account { Code = "S", ArName = "s", EnName = "s", AccountType = Shared.Enums.AccountType.Supplier }, Phones = new List<SupplierPhone> { new() { PhoneNumber = "1" }, new() { PhoneNumber = "2" } } };
-        _db.Context.AddRange(customer, store, supplier);
+        _db.Context.Add(supplier);
         await _db.Context.SaveChangesAsync();
 
-        sut.SyncCustomerPhones(customer.Phones, new List<string> { "2", "3" });
-        sut.SyncStorePhones(store.Phones, new List<string> { "2", "3" });
         sut.SyncSupplierPhones(supplier.Phones, new List<string> { "2", "3" });
         await _db.Context.SaveChangesAsync();
         _db.Context.ChangeTracker.Clear();
 
-        Assert.Equal(new[] { "2", "3" }, _db.Context.Set<CustomerPhone>().Select(a => a.PhoneNumber).OrderBy(a => a).ToArray());
-        Assert.Equal(new[] { "2", "3" }, _db.Context.Set<StorePhone>().Select(a => a.PhoneNumber).OrderBy(a => a).ToArray());
         Assert.Equal(new[] { "2", "3" }, _db.Context.Set<SupplierPhone>().Select(a => a.PhoneNumber).OrderBy(a => a).ToArray());
     }
 

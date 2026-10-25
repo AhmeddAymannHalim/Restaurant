@@ -26,7 +26,6 @@
     <thead>
         <tr>
             <th>#</th>
-            <th>@L["Code"]</th>
             <th>@L["Name"]</th>
             <th>@L["SellType.Show"]</th>
             <th>@L["SellType.IsLastPrice"]</th>
@@ -41,7 +40,6 @@
             {
                 <tr>
                     <td>@counter</td>
-                    <td>@item.Code</td>
                     <td>@(isArabic ? item.ArName : item.EnName)</td>
                     <td><span class="sell-badge @(item.Show ? "is-on" : "")">@L[item.Show ? "Yes" : "No"]</span></td>
                     <td>

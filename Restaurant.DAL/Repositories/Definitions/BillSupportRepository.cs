@@ -279,6 +279,34 @@ public class BillSupportRepository : IBillSupportRepository
         return number;
     }
 
+    // ERP price types: SellType id 1..6 is Whole, HalfWhole, Retail, EndUsers, WeightedAverage, Export (id 7 "Last Buy" is LastPurchase)
+    public decimal? PriceOf(ItemUnit row, int sellTypeId)
+    {
+        switch (sellTypeId)
+        {
+            case 1: return row.Whole;
+            case 2: return row.HalfWhole;
+            case 3: return row.Retail;
+            case 4: return row.EndUsers;
+            case 5: return row.WeightedAverage;
+            case 6: return row.Export;
+            default: return null;
+        }
+    }
+
+    public void SetPriceOf(ItemUnit row, int sellTypeId, decimal price)
+    {
+        switch (sellTypeId)
+        {
+            case 1: row.Whole = price; break;
+            case 2: row.HalfWhole = price; break;
+            case 3: row.Retail = price; break;
+            case 4: row.EndUsers = price; break;
+            case 5: row.WeightedAverage = price; break;
+            case 6: row.Export = price; break;
+        }
+    }
+
     public int UnitPriceIdOf(string unitCode)
     {
         var number = 0;
@@ -303,6 +331,20 @@ public class BillSupportRepository : IBillSupportRepository
         }
     }
 
+    // the ERP keeps the id of the bill's journal entry on the bill (BillMaster.EntryId); the entry points back with BillId
+    public async Task LinkEntryAsync(BillMaster bill)
+    {
+        var entryId = await _context.EntryMasters.AsNoTracking()
+            .Where(a => a.BillId == bill.Id)
+            .Select(a => (int?)a.Id)
+            .FirstOrDefaultAsync();
+        if (bill.EntryId != entryId)
+        {
+            bill.EntryId = entryId;
+            await _context.SaveChangesAsync();
+        }
+    }
+
     public async Task RecalculateInvoicePaymentAsync(int billMasterId)
     {
         var bill = await _context.BillMasters.FirstOrDefaultAsync(a => a.Id == billMasterId)
@@ -320,9 +362,12 @@ public class BillSupportRepository : IBillSupportRepository
             .SumAsync(a => (decimal?)a.Paid) ?? 0;
 
         // the invoice's own down payment (entered at invoice creation/edit, not through the
-        // dedicated payment screens) is tracked separately in InitialPaidAmount so it isn't lost
-        // here, since this method is the only place that recomputes AmountPaided afterwards.
-        var paidToDate = bill.InitialPaidAmount + paidBySuppliers + paidByCustomers;
+        // dedicated payment screens) is its payment lines, so it isn't lost here, since this
+        // method is the only place that recomputes AmountPaided afterwards.
+        var downPayment = await _context.PaymentMethods
+            .Where(a => a.BillMasterId == billMasterId)
+            .SumAsync(a => (decimal?)a.AmountPaided) ?? 0;
+        var paidToDate = downPayment + paidBySuppliers + paidByCustomers;
 
         bill.AmountPaided = paidToDate;
         bill.CasherRemainingAmount = bill.TotalBillAmountAfterDiscountAndExtra - paidToDate;

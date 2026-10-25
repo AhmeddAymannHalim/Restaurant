@@ -436,21 +436,11 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Expenses, opt => opt.Ignore());
 
         CreateMap<EmployeePhone, PhoneViewModel>();
-        CreateMap<CustomerPhone, PhoneViewModel>();
-        CreateMap<PhoneViewModel, CustomerPhone>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Customer, opt => opt.Ignore())
-            .ForMember(dest => dest.CustomerId, opt => opt.Ignore());
         CreateMap<SupplierPhone, PhoneViewModel>();
         CreateMap<PhoneViewModel, SupplierPhone>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.Supplier, opt => opt.Ignore())
             .ForMember(dest => dest.SupplierId, opt => opt.Ignore());
-        CreateMap<StorePhone, PhoneViewModel>();
-        CreateMap<PhoneViewModel, StorePhone>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Store, opt => opt.Ignore())
-            .ForMember(dest => dest.StoreId, opt => opt.Ignore());
 
         CreateMap<EmployeeDependent, EmployeeDependentViewModel>();
         CreateMap<EmployeeDependentViewModel, EmployeeDependent>()

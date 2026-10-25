@@ -31,7 +31,6 @@ public class LookupRepository : ILookupRepository
             .Select(a => new SellTypeViewModel
             {
                 Id = a.Id,
-                Code = a.Code,
                 ArName = a.ArName,
                 EnName = a.EnName,
                 Show = a.Show,

@@ -9,6 +9,5 @@ public interface ISellTypeRepository
     Task<PaginatedResult<SellType>> GetPagedSellTypesAsync(PageRequest request);
     Task<SellType> GetSellTypeByIdAsync(int id);
     Task<ResultMessage> UpsertSellTypeAsync(SellType entity);
-    Task<string> NewSellTypeCodeAsync();
     Task<ResultMessage> DeleteSellTypeAsync(int id);
 }

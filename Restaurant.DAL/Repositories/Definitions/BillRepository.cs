@@ -361,6 +361,7 @@ public class BillRepository : IBillRepository
                 pos.Bill.IsEntryPosted = true;
                 pos.Bill.UpdatedAt = DateTime.Now;
                 await _context.SaveChangesAsync();
+                await _billSupport.LinkEntryAsync(pos.Bill);
                 await transaction.CommitAsync();
 
                 return new ResultMessage { Success = true };

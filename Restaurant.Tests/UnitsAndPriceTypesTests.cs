@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -48,7 +48,7 @@ public class UnitsAndPriceTypesTests : IDisposable
 
     private async Task<List<SellType>> SeedPriceTypes(int count)
     {
-        var types = Enumerable.Range(1, count).Select(n => new SellType { Code = n.ToString(), ArName = "T" + n, EnName = "T" + n, Show = true }).ToList();
+        var types = Enumerable.Range(1, count).Select(n => new SellType { ArName = "T" + n, EnName = "T" + n, Show = true }).ToList();
         _db.Context.AddRange(types);
         await _db.Context.SaveChangesAsync();
         return types;
@@ -97,28 +97,13 @@ public class UnitsAndPriceTypesTests : IDisposable
         Assert.Equal(12.5m, lookup[5].PlusPrice);
     }
 
-    [Fact]
-    public async Task PriceType_UsedByAUnitPrice_CannotBeDeleted()
-    {
-        var (gram, _) = await SeedUnits();
-        var types = await SeedPriceTypes(1);
-        var product = Flour(new ProductUnit { UnitPriceId = gram.Id, IsDefault = true, Prices = new List<ProductUnitPrice> { new() { SellTypeId = types[0].Id, Price = 5 } } });
-        Assert.True((await _products.UpsertProductAsync(product, new List<ProductStock>())).Success);
-        _db.Context.ChangeTracker.Clear();
-
-        var result = await _sellTypes.DeleteSellTypeAsync(types[0].Id);
-
-        Assert.False(result.Success);
-        Assert.Equal("CannotDeleteLinkedRecord", result.Message);
-    }
-
     // ---------------------------------------------------------------- unit prices of a raw material
 
     [Fact]
     public async Task Product_PricesPerPriceType_AreSavedAndReadBackForEveryType()
     {
         var (gram, kilo) = await SeedUnits();
-        var types = await SeedPriceTypes(8);
+        var types = await SeedPriceTypes(6);
         var product = Flour(
             new ProductUnit { UnitPriceId = gram.Id, IsDefault = true, Prices = types.Select(t => new ProductUnitPrice { SellTypeId = t.Id, Price = t.Id }).ToList() },
             new ProductUnit { UnitPriceId = kilo.Id, TransRate = 1000, Prices = types.Select(t => new ProductUnitPrice { SellTypeId = t.Id, Price = t.Id * 1000 }).ToList() });
@@ -127,8 +112,8 @@ public class UnitsAndPriceTypesTests : IDisposable
 
         _db.Context.ChangeTracker.Clear();
         var saved = await _products.GetProductByIdAsync(product.Id);
-        Assert.Equal(8, saved.Units.Single(u => u.UnitPriceId == gram.Id).Prices.Count);
-        Assert.Equal(8000, saved.Units.Single(u => u.UnitPriceId == kilo.Id).Prices.Single(p => p.SellTypeId == types[7].Id).Price);
+        Assert.Equal(6, saved.Units.Single(u => u.UnitPriceId == gram.Id).Prices.Count);
+        Assert.Equal(6000, saved.Units.Single(u => u.UnitPriceId == kilo.Id).Prices.Single(p => p.SellTypeId == types[5].Id).Price);
     }
 
     [Fact]
@@ -151,7 +136,7 @@ public class UnitsAndPriceTypesTests : IDisposable
     }
 
     [Fact]
-    public async Task Product_Edit_ATypeAddedLater_GetsItsRowWithoutDuplicatingTheOthers()
+    public async Task Product_Edit_ATypeAddedLater_GetsItsErpColumnWithoutChangingTheOthers()
     {
         var (gram, _) = await SeedUnits();
         var types = await SeedPriceTypes(2);
@@ -163,7 +148,9 @@ public class UnitsAndPriceTypesTests : IDisposable
         edit.Id = product.Id;
         Assert.True((await _products.UpsertProductAsync(edit, new List<ProductStock>())).Success);
 
-        Assert.Equal(2, await _db.Context.ItemUnitPrices.CountAsync());
+        var row = await _db.Context.ItemUnits.AsNoTracking().SingleAsync(a => a.Whole != null);
+        Assert.Equal(9, row.Whole);
+        Assert.Equal(9, row.HalfWhole);
     }
 
     [Fact]
@@ -174,14 +161,14 @@ public class UnitsAndPriceTypesTests : IDisposable
         var prices = new Func<List<ProductUnitPrice>>(() => new List<ProductUnitPrice> { new() { SellTypeId = types[0].Id, Price = 3 } });
         var product = Flour(new ProductUnit { UnitPriceId = gram.Id, IsDefault = true, Prices = prices() }, new ProductUnit { UnitPriceId = kilo.Id, TransRate = 1000, Prices = prices() });
         await _products.UpsertProductAsync(product, new List<ProductStock>());
-        Assert.Equal(2, await _db.Context.ItemUnitPrices.CountAsync());
+        Assert.Equal(2, await _db.Context.ItemUnits.CountAsync(a => a.Whole == 3));
         _db.Context.ChangeTracker.Clear();
 
         var edit = Flour(new ProductUnit { UnitPriceId = gram.Id, IsDefault = true, Prices = prices() });
         edit.Id = product.Id;
         Assert.True((await _products.UpsertProductAsync(edit, new List<ProductStock>())).Success);
 
-        Assert.Equal(1, await _db.Context.ItemUnitPrices.CountAsync());
+        Assert.Equal(1, await _db.Context.ItemUnits.CountAsync(a => a.Whole == 3));
     }
 
     [Fact]
@@ -544,6 +531,34 @@ public class UnitsAndPriceTypesTests : IDisposable
         Assert.Contains("Val.PriceTypeRepeated", errors["Units[0].Prices"]);
     }
 
+    [Fact]
+    public async Task ProductForm_APriceTypeWithoutAnErpColumn_IsRejected()
+    {
+        var errors = await Errors(Form(new ProductUnitViewModel
+        {
+            UnitPriceId = 1, TransRate = 1, IsDefault = true,
+            Prices = new List<ProductUnitPriceViewModel> { new() { SellTypeId = 6, Price = 1 }, new() { SellTypeId = 7, Price = 1 } }
+        }));
+
+        Assert.DoesNotContain("Units[0].Prices[0].SellTypeId", errors.Keys);
+        Assert.Contains("Val.PriceTypeNotSupported", errors["Units[0].Prices[1].SellTypeId"]);
+    }
+
+    [Fact]
+    public async Task PriceType_WhoseErpColumnHoldsPrices_CannotBeDeleted_UntilNoPriceIsLeft()
+    {
+        var (gram, _) = await SeedUnits();
+        var types = await SeedPriceTypes(1);
+        var product = Flour(new ProductUnit { UnitPriceId = gram.Id, IsDefault = true, Prices = new List<ProductUnitPrice> { new() { SellTypeId = types[0].Id, Price = 5 } } });
+        Assert.True((await _products.UpsertProductAsync(product, new List<ProductStock>())).Success);
+        _db.Context.ChangeTracker.Clear();
+
+        var blocked = await _sellTypes.DeleteSellTypeAsync(types[0].Id);
+
+        Assert.False(blocked.Success);
+        Assert.Equal("CannotDeleteErpPriceType", blocked.Message);
+    }
+
     // ---------------------------------------------------------------- precision (what the database column can hold)
 
     [Theory]
@@ -551,7 +566,8 @@ public class UnitsAndPriceTypesTests : IDisposable
     [InlineData(typeof(BillDetail), nameof(BillDetail.UnitPrice))]
     [InlineData(typeof(BillDetail), nameof(BillDetail.TransRate))]
     [InlineData(typeof(Product), nameof(Product.Cost))]
-    [InlineData(typeof(ItemUnitPrice), nameof(ItemUnitPrice.Price))]
+    [InlineData(typeof(ItemUnit), nameof(ItemUnit.Whole))]
+    [InlineData(typeof(ItemUnit), nameof(ItemUnit.HalfWhole))]
     [InlineData(typeof(ItemUnit), nameof(ItemUnit.LastPurchase))]
     [InlineData(typeof(MenuItemComponent), nameof(MenuItemComponent.TransRate))]
     public void FractionalUnitsNeedSixDecimals_SoARateOrPriceOfOneGramIsNotRoundedAway(Type entity, string property)
@@ -564,7 +580,7 @@ public class UnitsAndPriceTypesTests : IDisposable
     [Fact]
     public void TheCodeOnlyMapsThroughFluentConfiguration_NoColumnAttributesOnTheNewModels()
     {
-        foreach (var type in new[] { typeof(ProductUnit), typeof(ItemUnitPrice), typeof(ItemUnit), typeof(MenuItemComponent) })
+        foreach (var type in new[] { typeof(ProductUnit), typeof(ItemUnit), typeof(MenuItemComponent) })
         {
             Assert.DoesNotContain(type.GetProperties(), p => p.GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.Schema.ColumnAttribute), true).Any()
                 || p.GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute), true).Any());

@@ -147,6 +147,7 @@ namespace ResturantPL.Controllers.Definitions
             model.Stores = await _lookup.NamedLookupAsync<Store>();
             model.Products = await _lookup.NamedLookupAsync<Product>();
             model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
+            model.SellTypes = (await _lookup.SellTypeLookupAsync()).ToList();
         }
     }
 }

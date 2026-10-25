@@ -15,7 +15,7 @@ public class StoreVmValidator : AbstractValidator<StoreViewModel>
         var required = localizer["Val.RequiredField"].Value;
         string MaxLength(int length) => string.Format(localizer["Val.MaxLength"].Value, length);
 
-        this.AddPhoneRules(x => x.PhoneNumber, x => x.Phones, localizer);
+        this.AddPhoneNumberRules(localizer, x => x.PhoneNumber, x => x.PhoneNumber2, x => x.PhoneNumber3);
 
         RuleFor(x => x.ArName)
             .NotEmpty()

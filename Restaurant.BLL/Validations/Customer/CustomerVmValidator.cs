@@ -31,7 +31,7 @@ public class CustomerVmValidator : AbstractValidator<CustomerViewModel>
             .When(x => !string.IsNullOrWhiteSpace(x.IDNumber))
             .WithMessage(localizer["Val.AlreadyExist"].Value);
 
-        this.AddPhoneRules(x => x.PhoneNumber, x => x.Phones, localizer);
+        this.AddPhoneNumberRules(localizer, x => x.PhoneNumber, x => x.PhoneNumber2);
 
         RuleFor(x => x.Code)
             .Must((model, code) => !accountValidator.IsCodeExist(model.AccountId ?? 0, code))

@@ -126,30 +126,24 @@ public class PartnerRepositoriesTests : IDisposable
     }
 
     [Fact]
-    public async Task Customer_Phones_AreCleanedAndSynced()
+    public async Task Customer_SecondPhone_IsSavedInTheErpColumn_AndEdited()
     {
         var customer = NewCustomer();
-        customer.Phones = new List<CustomerPhone>
-        {
-            new() { PhoneNumber = " 01000000001 " }, // the main number again
-            new() { PhoneNumber = "01111111111" },
-            new() { PhoneNumber = "01111111111" },   // duplicate
-            new() { PhoneNumber = "  " }
-        };
+        customer.PhoneNumber2 = "01111111111";
         await _customers.UpsertCustomerAsync(customer, null);
         _db.Context.ChangeTracker.Clear();
 
         var saved = await _customers.GetCustomerByIdAsync(customer.Id);
+        Assert.Equal("01000000001", saved.PhoneNumber1);
         Assert.Equal("01111111111", saved.PhoneNumber2);
-        Assert.Equal(new[] { "01111111111" }, saved.Phones.Select(a => a.PhoneNumber));
 
         _db.Context.ChangeTracker.Clear();
         var edit = NewCustomer();
         edit.Id = customer.Id;
-        edit.Phones = new List<CustomerPhone> { new() { PhoneNumber = "01222222222" } };
+        edit.PhoneNumber2 = "01222222222";
         await _customers.UpsertCustomerAsync(edit, null);
         _db.Context.ChangeTracker.Clear();
-        Assert.Equal(new[] { "01222222222" }, (await _customers.GetCustomerByIdAsync(customer.Id)).Phones.Select(a => a.PhoneNumber));
+        Assert.Equal("01222222222", (await _customers.GetCustomerByIdAsync(customer.Id)).PhoneNumber2);
     }
 
     [Fact]
@@ -301,7 +295,7 @@ public class PartnerRepositoriesTests : IDisposable
     public void Phones_CleanNumbers_TrimsDedupesAndSkipsTheMainNumber()
     {
         var sut = new PhoneRepository(_db.Context);
-        var rows = new List<CustomerPhone>
+        var rows = new List<SupplierPhone>
         {
             new() { PhoneNumber = " 111 " }, new() { PhoneNumber = "111" }, new() { PhoneNumber = "222" }, new() { PhoneNumber = null }, new() { PhoneNumber = "MAIN" }
         };

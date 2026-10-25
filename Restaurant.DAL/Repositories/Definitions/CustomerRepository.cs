@@ -18,7 +18,6 @@ public class CustomerRepository : ICustomerRepository
     private readonly ApplicationDbContext _context;
     private readonly IHttpContextAccessor _httpContext;
     private readonly IAccountProvisionRepository _accountProvision;
-    private readonly IPhoneRepository _phones;
     private readonly ILocationRepository _location;
 
     public CustomerRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
@@ -26,7 +25,6 @@ public class CustomerRepository : ICustomerRepository
         _context = context;
         _httpContext = httpContext;
         _accountProvision = new AccountProvisionRepository(context);
-        _phones = new PhoneRepository(context);
         _location = new LocationRepository(context);
     }
 
@@ -58,7 +56,6 @@ public class CustomerRepository : ICustomerRepository
     {
         var customer = await _context.Customers
             .Include(a => a.Account)
-            .Include(a => a.Phones)
             .Include(a => a.Town).ThenInclude(a => a.Governorate)
             .FirstOrDefaultAsync(a => a.Id == id);
         if (customer is null)
@@ -107,9 +104,6 @@ public class CustomerRepository : ICustomerRepository
             }
 
             entity.Account = null;
-            var phones = _phones.CleanNumbers(entity.PhoneNumber1, entity.Phones);
-            entity.Phones = new List<CustomerPhone>();
-            entity.PhoneNumber2 = phones.ElementAtOrDefault(0);
             var location = await _location.ResolveAsync(entity.TownId);
             entity.GovId = location.GovId;
             entity.CountryId = location.CountryId;
@@ -129,14 +123,12 @@ public class CustomerRepository : ICustomerRepository
                 entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 entity.ImageUrl = imageFile is null ? null : DocumentSetting.UploadFile(imageFile, ImagesFolder);
 
-                _phones.SyncCustomerPhones(entity.Phones, phones);
                 await _context.Customers.AddAsync(entity);
             }
             else
             {
                 var existing = await _context.Customers
                     .Include(a => a.Account)
-                    .Include(a => a.Phones)
                     .FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
@@ -162,7 +154,6 @@ public class CustomerRepository : ICustomerRepository
                 openingDelta = (form.DebitBalance - form.CreditBalance) - (existing.Account.DebitBalance - existing.Account.CreditBalance);
                 existing.Account.Adjust(openingDelta);
                 _context.Entry(existing).CurrentValues.SetValues(entity);
-                _phones.SyncCustomerPhones(existing.Phones, phones);
             }
 
             await _context.SaveChangesAsync();

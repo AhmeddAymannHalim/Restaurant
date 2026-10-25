@@ -34,6 +34,7 @@ public class MenuItemViewModel
     public IEnumerable<LookupItem> Stores { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Products { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Categories { get; set; } = new List<LookupItem>();
+    public List<SellTypeViewModel> SellTypes { get; set; } = new();
 }
 
 public class MenuItemComponentViewModel

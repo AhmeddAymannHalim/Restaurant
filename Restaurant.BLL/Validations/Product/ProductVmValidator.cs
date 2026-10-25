@@ -69,7 +69,9 @@ public class ProductVmValidator : AbstractValidator<ProductViewModel>
                     {
                         price.RuleFor(a => a.SellTypeId)
                             .GreaterThan(0)
-                            .WithMessage(required);
+                            .WithMessage(required)
+                            .LessThanOrEqualTo(6)
+                            .WithMessage(localizer["Val.PriceTypeNotSupported"].Value);
                         price.RuleFor(a => a.Price)
                             .GreaterThanOrEqualTo(0)
                             .WithMessage(localizer["Val.NotNegative"].Value);

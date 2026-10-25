@@ -386,7 +386,7 @@ public class ScreenJourneyTests : IDisposable
         var seed = await Seed();
         var gram = new UnitPrice { Code = "g", ArName = "Gram", EnName = "Gram" };
         var kilo = new UnitPrice { Code = "k", ArName = "Kilo", EnName = "Kilo" };
-        var types = Enumerable.Range(1, 3).Select(n => new SellType { Code = n.ToString(), ArName = "T" + n, EnName = "T" + n, Show = true }).ToList();
+        var types = Enumerable.Range(1, 3).Select(n => new SellType { ArName = "T" + n, EnName = "T" + n, Show = true }).ToList();
         Db.AddRange(gram, kilo);
         Db.AddRange(types);
         await Db.SaveChangesAsync();

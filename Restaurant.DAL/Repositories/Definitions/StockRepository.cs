@@ -108,9 +108,9 @@ public class StockRepository : IStockRepository
 
         var unitRows = await _context.ItemUnits.AsNoTracking()
             .Where(a => a.Item.Code.StartsWith(BillSupportRepository.ItemCodePrefix) && a.Unit.Code.StartsWith(BillSupportRepository.UnitCodePrefix))
-            .Select(a => new { a.Id, ItemCode = a.Item.Code, UnitCode = a.Unit.Code, a.TransRate, a.IsDefault })
+            .Select(a => new { Row = a, ItemCode = a.Item.Code, UnitCode = a.Unit.Code })
             .ToListAsync();
-        var sellPrices = await _context.ItemUnitPrices.AsNoTracking().Where(a => a.SellType.Show).OrderBy(a => a.SellTypeId).ToListAsync();
+        var sellTypeIds = await _context.SellTypes.AsNoTracking().Where(a => a.Show).OrderBy(a => a.Id).Select(a => a.Id).ToListAsync();
         var unitNames = await _context.UnitPrices.AsNoTracking().ToListAsync();
 
         foreach (var product in products)
@@ -129,9 +129,9 @@ public class StockRepository : IStockRepository
                     UnitPriceId = unitName.Id,
                     UnitArName = unitName.ArName,
                     UnitEnName = unitName.EnName,
-                    TransRate = (decimal)row.TransRate,
-                    IsDefault = row.IsDefault,
-                    Prices = sellPrices.Where(a => a.ItemUnitId == row.Id).Select(a => new ProductUnitPriceViewModel { SellTypeId = a.SellTypeId, Price = a.Price }).ToList()
+                    TransRate = (decimal)row.Row.TransRate,
+                    IsDefault = row.Row.IsDefault,
+                    Prices = sellTypeIds.Where(a => _billSupport.PriceOf(row.Row, a) != null).Select(a => new ProductUnitPriceViewModel { SellTypeId = a, Price = _billSupport.PriceOf(row.Row, a).Value }).ToList()
                 });
             }
         }

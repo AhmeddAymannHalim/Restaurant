@@ -31,13 +31,31 @@ public class ProductToInvoiceJourneyTests : IDisposable
     }
 
     [Fact]
+    public async Task Customer_BuysAtHisOwnPriceType_OrNoneWhenHeHasNoneSet()
+    {
+        var halfWhole = new SellType { ArName = "Half", EnName = "Half", Show = true };
+        Db.Add(halfWhole);
+        await Db.SaveChangesAsync();
+        var withType = new Customer { SellTypeId = halfWhole.Id, Account = new Account { Code = "C1", ArName = "A", EnName = "A", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
+        var withoutType = new Customer { Account = new Account { Code = "C2", ArName = "B", EnName = "B", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
+        Db.AddRange(withType, withoutType);
+        await Db.SaveChangesAsync();
+        Db.ChangeTracker.Clear();
+        var invoices = new InvoiceRepository(Db, new JournalEntryRepository(Db));
+
+        Assert.Equal(halfWhole.Id, await invoices.GetCustomerSellTypeIdAsync(withType.Id));
+        Assert.Equal(0, await invoices.GetCustomerSellTypeIdAsync(withoutType.Id));
+        Assert.Equal(0, await invoices.GetCustomerSellTypeIdAsync(999999));
+    }
+
+    [Fact]
     public async Task Potato_FromProductToDishToPurchaseAndSale_EveryNumberIsRight()
     {
         var store = new Store { Code = "1", ArName = "Store", EnName = "Store" };
         var gram = new UnitPrice { Code = "g", ArName = "Gram", EnName = "Gram" };
         var kilo = new UnitPrice { Code = "k", ArName = "Kilo", EnName = "Kilo" };
-        var retail = new SellType { Code = "1", ArName = "Retail", EnName = "Retail", Show = true };
-        var wholesale = new SellType { Code = "2", ArName = "Wholesale", EnName = "Wholesale", Show = true };
+        var retail = new SellType { ArName = "Retail", EnName = "Retail", Show = true };
+        var wholesale = new SellType { ArName = "Wholesale", EnName = "Wholesale", Show = true };
         var section = new MenuSection { Code = "1", ArName = "Section", EnName = "Section" };
         var supplier = new Supplier { Account = new Account { Code = "S", ArName = "Sup", EnName = "Sup", AccountType = AccountType.Supplier, BalanceType = AccountBalanceType.Credit } };
         var customer = new Customer { Account = new Account { Code = "C", ArName = "Cus", EnName = "Cus", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
@@ -111,6 +129,18 @@ public class ProductToInvoiceJourneyTests : IDisposable
         Assert.Equal(10000 + 5000 + 500, await Stock(store.Id, productId));
         // the cost per gram is the price of the last line (0.03 per gram)
         Assert.Equal(0.03m, (await Db.Products.AsNoTracking().SingleAsync()).Cost);
+        // each unit remembers the price it was last bought at
+        var kiloRow = await Db.ItemUnits.AsNoTracking().SingleAsync(a => a.Unit.Code == BillSupportRepository.UnitCodePrefix + kilo.Id);
+        var gramRow = await Db.ItemUnits.AsNoTracking().SingleAsync(a => a.Unit.Code == BillSupportRepository.UnitCodePrefix + gram.Id);
+        Assert.Equal(20, kiloRow.LastPurchase);
+        Assert.Equal(0.03m, gramRow.LastPurchase);
+        // the ERP keeps the journal entry id on the bill, and the entry points back with BillId
+        var purchaseEntry = await Db.EntryMasters.AsNoTracking().SingleAsync(a => a.BillId == purchaseBill.Id);
+        Assert.Equal(purchaseEntry.Id, purchaseBill.EntryId);
+        // the down payment is the bill's own payment line (ERP PaymentMethod), on the pay account of the bill setting
+        var purchaseLines = await Db.PaymentMethods.AsNoTracking().Where(a => a.BillMasterId == purchaseBill.Id).ToListAsync();
+        Assert.Equal(new[] { 100m }, purchaseLines.Select(a => a.AmountPaided).ToArray());
+        Assert.NotNull(purchaseLines.Single().AccountPayId);
         // 115 bought, 100 paid: 15 is still owed to the supplier
         Assert.Equal(15, await Balance(supplier.AccountId.Value));
 
@@ -151,6 +181,12 @@ public class ProductToInvoiceJourneyTests : IDisposable
         Assert.Equal(7.5m, await Balance(customer.AccountId.Value));
         Db.ChangeTracker.Clear();
         Assert.Equal(2, await Db.BillDetails.CountAsync(a => a.BillMasterId == saleBill.Id));
+        // the entry was rebuilt by the edit: the bill points at the new one
+        var editedEntry = await Db.EntryMasters.AsNoTracking().SingleAsync(a => a.BillId == saleBill.Id);
+        Assert.Equal(editedEntry.Id, (await Db.BillMasters.AsNoTracking().SingleAsync(a => a.Id == saleBill.Id)).EntryId);
+        // the payment line was replaced by the new paid amount, not added to the old one
+        Assert.Equal(new[] { 30m }, await Db.PaymentMethods.AsNoTracking().Where(a => a.BillMasterId == saleBill.Id).Select(a => a.AmountPaided).ToArrayAsync());
+        Assert.Equal(30m, (await invoices.GetInvoiceByIdAsync(saleBill.Id)).Paid);
 
         // ---- 6. a sale of more than what is in stock is refused and changes nothing
         Db.ChangeTracker.Clear();
@@ -186,6 +222,7 @@ public class ProductToInvoiceJourneyTests : IDisposable
         Db.ChangeTracker.Clear();
         Assert.Empty(await Db.BillMasters.AsNoTracking().ToListAsync());
         Assert.Empty(await Db.EntryMasters.AsNoTracking().ToListAsync());
+        Assert.Empty(await Db.PaymentMethods.AsNoTracking().ToListAsync());
 
         // every movement adds up to what the store holds
         Assert.Equal(10000, await Db.StoreProductMovements.Where(a => a.ProductId == productId).SumAsync(a => a.QuantityDelta));

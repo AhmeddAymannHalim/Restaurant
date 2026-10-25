@@ -355,7 +355,11 @@
             var isNewInvoice = @(Model.Id == 0 ? "true" : "false");
 
             // the sell type that decides which of a unit's prices applies, driven by the invoice's current type
+            // a customer who buys at his own price type (Gomla, half gomla...) overrides the invoice type's sell type
+            var customerSellTypeId = 0;
+
             function currentSellTypeId() {
+                if (customerSellTypeId > 0 && isCustomerType()) { return customerSellTypeId; }
                 var d = postingDefaults.find(function (x) { return x.type === $('#InvoiceType').val(); });
                 return d ? d.sellTypeId : 0;
             }
@@ -381,8 +385,13 @@
 
             $('#CustomerId').on('change', function () {
                 var id = $(this).val();
-                if (!id) { $('#customerBalance').val(''); return; }
+                if (!id) { $('#customerBalance').val(''); customerSellTypeId = 0; return; }
                 $.get('/Bill/CustomerBalance', { customerId: id }, function (balance) { $('#customerBalance').val(money(balance)); });
+                $.get('/Bill/CustomerSellType', { customerId: id }, function (sellTypeId) {
+                    customerSellTypeId = Number(sellTypeId) || 0;
+                    fillUnits(stock[$('#productList').val()]);
+                    showUnitFigures();
+                });
             });
 
             // a product that has units of its own can only be moved in those units; stock and cost are per base unit
@@ -398,7 +407,9 @@
 
                 list.empty();
                 $.each(item.units, function (i, u) {
-                    var sellPrice = currentSellTypeId() ? (u.prices || []).filter(function (x) { return x.sellTypeId === currentSellTypeId(); })[0] : null;
+                    var sellPrice = currentSellTypeId() ? (u.prices || []).filter(function (x) { return x.sellTypeId === currentSellTypeId() && x.price > 0; })[0] : null;
+                    // the customer's price type has no price on this unit: use the first price that is filled in rather than the cost
+                    if (!sellPrice && currentSellTypeId()) { sellPrice = (u.prices || []).filter(function (x) { return x.price > 0; })[0]; }
                     var option = $('<option>', { value: u.unitPriceId, text: isArabic ? u.unitArName : u.unitEnName }).attr('data-rate', u.transRate).attr('data-sell', sellPrice ? sellPrice.price : 0);
                     option.prop('selected', u.isDefault);
                     list.append(option);

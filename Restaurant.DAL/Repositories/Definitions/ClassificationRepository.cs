@@ -27,7 +27,7 @@ public class ClassificationRepository : IClassificationRepository
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search) || a.Code.ToLower().Contains(search));
+            query = query.Where(a => a.ArName.ToLower().Contains(search) || a.EnName.ToLower().Contains(search));
         }
 
         var total = await query.CountAsync();
@@ -45,26 +45,12 @@ public class ClassificationRepository : IClassificationRepository
         return await _context.Classifications.FindAsync(id);
     }
 
-    public async Task<string> NewClassificationCodeAsync()
-    {
-        var codes = await _context.Classifications.AsNoTracking().Select(a => a.Code).ToListAsync();
-
-        var nextCode = codes
-            .Where(code => int.TryParse(code, out _))
-            .Select(int.Parse)
-            .DefaultIfEmpty(0)
-            .Max() + 1;
-
-        return nextCode.ToString();
-    }
-
     public async Task<ResultMessage> UpsertClassificationAsync(Classification entity)
     {
         try
         {
             if (entity.Id == 0)
             {
-                entity.Code = await NewClassificationCodeAsync();
                 entity.CreatedAt = DateTime.Now;
                 entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 await _context.Classifications.AddAsync(entity);
@@ -82,7 +68,6 @@ public class ClassificationRepository : IClassificationRepository
                     };
                 }
 
-                entity.Code = existing.Code;
                 entity.State = existing.State;
                 entity.CreatedAt = existing.CreatedAt;
                 entity.CreatedById = existing.CreatedById;

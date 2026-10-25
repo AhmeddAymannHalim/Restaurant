@@ -41,5 +41,4 @@ public class Store : BaseEntity
 
     #endregion
 
-    public virtual ICollection<StorePhone> Phones { get; set; } = new List<StorePhone>();
 }

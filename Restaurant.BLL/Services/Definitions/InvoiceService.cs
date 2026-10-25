@@ -40,6 +40,11 @@ public class InvoiceService : IInvoiceService
         return await _unitOfWork.Invoices.GetSupplierBalanceAsync(supplierId);
     }
 
+    public async Task<int> GetCustomerSellTypeIdAsync(int customerId)
+    {
+        return await _unitOfWork.Invoices.GetCustomerSellTypeIdAsync(customerId);
+    }
+
     public async Task<decimal> GetCustomerBalanceAsync(int customerId)
     {
         return await _unitOfWork.Invoices.GetCustomerBalanceAsync(customerId);

@@ -21,7 +21,10 @@ public interface IBillSupportRepository
     Task<int> GetUnitIdAsync(int unitPriceId);
     int ProductIdOf(string itemCode);
     int UnitPriceIdOf(string unitCode);
+    decimal? PriceOf(ItemUnit row, int sellTypeId);
+    void SetPriceOf(ItemUnit row, int sellTypeId, decimal price);
     Task EnsureItemUnitAsync(int itemId, int unitId);
+    Task LinkEntryAsync(BillMaster bill);
     Task RecalculateInvoicePaymentAsync(int billMasterId);
     Task<StoreItemUnit> GetStockRowAsync(int storeId, int itemId, int unitId);
 }

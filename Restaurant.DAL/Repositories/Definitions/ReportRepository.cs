@@ -58,7 +58,7 @@ public class ReportRepository : IReportRepository
                 var supplierReturns = await _context.BillMasters
                     .AsNoTracking()
                     .Where(a => a.BillSetting.BillType == BillType.PurchaseReturn && a.Date >= from && a.Date < end)
-                    .SumAsync(a => (decimal?)a.InitialPaidAmount) ?? 0;
+                    .SumAsync(a => (decimal?)a.PaymentMethods.Sum(p => p.AmountPaided)) ?? 0;
 
                 var customerPayments = await _context.PaymentInvoiceCustomer
                     .AsNoTracking()
@@ -68,7 +68,7 @@ public class ReportRepository : IReportRepository
                 var purchases = await _context.BillMasters
                     .AsNoTracking()
                     .Where(a => a.BillSetting.BillType == BillType.Purchases && a.Date >= from && a.Date < end)
-                    .SumAsync(a => (decimal?)a.InitialPaidAmount) ?? 0;
+                    .SumAsync(a => (decimal?)a.PaymentMethods.Sum(p => p.AmountPaided)) ?? 0;
 
                 var expenses = await _context.ExitExpenses
                     .AsNoTracking()
@@ -388,7 +388,7 @@ public class ReportRepository : IReportRepository
                         && a.IsEntryPosted
                         && !_context.Orders.Any(p => p.Id == a.Id))
                     .Where(a => a.Date < from)
-                    .Select(a => new { a.BillSetting.BillType, Remaining = a.TotalBillAmountAfterDiscountAndExtra - a.InitialPaidAmount })
+                    .Select(a => new { a.BillSetting.BillType, Remaining = a.TotalBillAmountAfterDiscountAndExtra - a.PaymentMethods.Sum(p => p.AmountPaided) })
                     .ToListAsync();
 
                 decimal beforeInvoiceDebit = 0;
@@ -420,7 +420,7 @@ public class ReportRepository : IReportRepository
                         && a.IsEntryPosted
                         && !_context.Orders.Any(p => p.Id == a.Id))
                     .Where(a => a.Date >= from && a.Date < end)
-                    .Select(a => new { a.Date, a.Code, a.BillSetting.BillType, Remaining = a.TotalBillAmountAfterDiscountAndExtra - a.InitialPaidAmount })
+                    .Select(a => new { a.Date, a.Code, a.BillSetting.BillType, Remaining = a.TotalBillAmountAfterDiscountAndExtra - a.PaymentMethods.Sum(p => p.AmountPaided) })
                     .ToListAsync();
 
                 var invoiceMovements = inPeriodInvoiceRows.Select(invoice =>
@@ -568,8 +568,8 @@ public class ReportRepository : IReportRepository
                         Date = a.Date,
                         Info = a.BillSetting.BillType == BillType.Sales ? "Sales" : "SalesReturn",
                         Code = a.Code,
-                        Debit = a.BillSetting.BillType == BillType.Sales ? a.TotalBillAmountAfterDiscountAndExtra - a.InitialPaidAmount : 0m,
-                        Credit = a.BillSetting.BillType == BillType.SalesReturn ? a.TotalBillAmountAfterDiscountAndExtra - a.InitialPaidAmount : 0m
+                        Debit = a.BillSetting.BillType == BillType.Sales ? a.TotalBillAmountAfterDiscountAndExtra - a.PaymentMethods.Sum(p => p.AmountPaided) : 0m,
+                        Credit = a.BillSetting.BillType == BillType.SalesReturn ? a.TotalBillAmountAfterDiscountAndExtra - a.PaymentMethods.Sum(p => p.AmountPaided) : 0m
                     })
                     .ToListAsync();
 
@@ -676,7 +676,7 @@ public class ReportRepository : IReportRepository
                         && a.IsEntryPosted
                         && !_context.Orders.Any(p => p.Id == a.Id))
                     .Where(a => a.Date < end)
-                    .Select(a => new { a.CustomerOrSupplierAccountId, a.BillSetting.BillType, a.Date, Remaining = a.TotalBillAmountAfterDiscountAndExtra - a.InitialPaidAmount })
+                    .Select(a => new { a.CustomerOrSupplierAccountId, a.BillSetting.BillType, a.Date, Remaining = a.TotalBillAmountAfterDiscountAndExtra - a.PaymentMethods.Sum(p => p.AmountPaided) })
                     .ToListAsync();
 
                 // one query for every supplier's payments up to the period end, instead of 2 queries per supplier

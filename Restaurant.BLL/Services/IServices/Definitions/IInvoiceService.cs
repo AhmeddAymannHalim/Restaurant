@@ -12,6 +12,7 @@ public interface IInvoiceService
     Task<List<PostingDefaultViewModel>> GetPostingDefaultsAsync();
     Task<decimal> GetSupplierBalanceAsync(int supplierId);
     Task<decimal> GetCustomerBalanceAsync(int customerId);
+    Task<int> GetCustomerSellTypeIdAsync(int customerId);
     Task<ResultMessage> UpsertInvoiceAsync(InvoiceViewModel model);
     Task<ResultMessage> DeleteInvoiceAsync(int id);
 }

@@ -9,5 +9,4 @@ public interface ISellTypeService
     Task<SellTypeViewModel> GetSellTypeByIdAsync(int id);
     Task<ResultMessage> UpsertSellTypeAsync(SellTypeViewModel model);
     Task<ResultMessage> DeleteSellTypeAsync(int id);
-    Task<string> NewSellTypeCodeAsync();
 }

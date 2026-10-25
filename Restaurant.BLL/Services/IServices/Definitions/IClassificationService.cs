@@ -9,5 +9,4 @@ public interface IClassificationService
     Task<ClassificationViewModel> GetClassificationByIdAsync(int id);
     Task<ResultMessage> UpsertClassificationAsync(ClassificationViewModel model);
     Task<ResultMessage> DeleteClassificationAsync(int id);
-    Task<string> NewClassificationCodeAsync();
 }

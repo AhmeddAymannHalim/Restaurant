@@ -150,7 +150,7 @@ public class CatalogRepositoriesTests : IDisposable
     {
         var (a, _) = await SeedStores();
         var (gram, kilo) = await SeedUnits();
-        var priceTypes = Enumerable.Range(1, 8).Select(n => new SellType { ArName = "T" + n, EnName = "T" + n, Show = true }).ToList();
+        var priceTypes = Enumerable.Range(1, 6).Select(n => new SellType { ArName = "T" + n, EnName = "T" + n, Show = true }).ToList();
         _db.Context.AddRange(priceTypes);
         await _db.Context.SaveChangesAsync();
         var product = NewProduct();
@@ -171,8 +171,8 @@ public class CatalogRepositoriesTests : IDisposable
         var kiloPrices = saved.Units.Single(u => u.UnitPriceId == kilo.Id);
         Assert.Equal(400, kiloPrices.LastPurchase);
         // price types are a definition, so there is no fixed number of them (here 8)
-        Assert.Equal(8, kiloPrices.Prices.Count);
-        Assert.Equal(new[] { 10.5m, 20.5m, 30.5m, 40.5m, 50.5m, 60.5m, 70.5m, 80.5m }, kiloPrices.Prices.OrderBy(a => a.SellTypeId).Select(a => a.Price).ToArray());
+        Assert.Equal(6, kiloPrices.Prices.Count);
+        Assert.Equal(new[] { 10.5m, 20.5m, 30.5m, 40.5m, 50.5m, 60.5m }, kiloPrices.Prices.OrderBy(a => a.SellTypeId).Select(a => a.Price).ToArray());
         Assert.True(saved.Units.Single(u => u.UnitPriceId == gram.Id).IsDefault);
         Assert.Equal(2, saved.Stocks.Single(s => s.StoreId == a.Id).MinQuantity);
         Assert.Equal(5, saved.Stocks.Single(s => s.StoreId == a.Id).Quantity);

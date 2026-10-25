@@ -83,7 +83,8 @@ public class DefinitionRepositoryTests : IDisposable
         return entity;
     }
 
-    private static string CodeOf(object entity) => (string)entity.GetType().GetProperty("Code").GetValue(entity);
+    // SellType and Classification follow the ERP models, which have no Code column
+    private static string CodeOf(object entity) => (string)entity.GetType().GetProperty("Code")?.GetValue(entity);
     private static int IdOf(object entity) => (int)entity.GetType().GetProperty("Id").GetValue(entity);
     private static void SetName(object entity, string en) => entity.GetType().GetProperty("EnName").SetValue(entity, en);
 
@@ -107,7 +108,10 @@ public class DefinitionRepositoryTests : IDisposable
         var saved = (BaseEntity)await Call(repo, Get(repo), IdOf(entity));
         Assert.NotNull(saved);
         Assert.NotNull(saved.CreatedAt);
-        Assert.False(string.IsNullOrWhiteSpace(CodeOf(saved)));
+        if (entityType.GetProperty("Code") is not null)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(CodeOf(saved)));
+        }
     }
 
     [Theory]
@@ -121,7 +125,10 @@ public class DefinitionRepositoryTests : IDisposable
         Assert_Success(await Call(repo, Upsert(repo), first), repoType.Name);
         Assert_Success(await Call(repo, Upsert(repo), second), repoType.Name);
 
-        Assert.NotEqual(CodeOf(first), CodeOf(second));
+        if (entityType.GetProperty("Code") is not null)
+        {
+            Assert.NotEqual(CodeOf(first), CodeOf(second));
+        }
     }
 
     [Theory]
@@ -158,7 +165,7 @@ public class DefinitionRepositoryTests : IDisposable
         entityType.GetProperty("Id").SetValue(edit, IdOf(entity));
         // CostCenter, Currency and Specialization let the user edit the code on purpose; the rest ignore it.
         var codeEditable = new[] { typeof(CostCenter), typeof(Currency), typeof(Specialization) }.Contains(entityType);
-        entityType.GetProperty("Code").SetValue(edit, codeEditable ? code : "HACKED");
+        entityType.GetProperty("Code")?.SetValue(edit, codeEditable ? code : "HACKED");
         var result = await Call(repo, Upsert(repo), edit);
 
         Assert_Success(result, repoType.Name);

@@ -73,7 +73,10 @@ public class DefinitionServiceTests : IDisposable
         _db.Context.ChangeTracker.Clear();
         var loaded = await Call(service, Find(service, "Get", "ByIdAsync"), id);
         Assert.Equal("Name", Get<string>(loaded, "EnName"));
-        Assert.False(string.IsNullOrWhiteSpace(Get<string>(loaded, "Code")));
+        if (loaded.GetType().GetProperty("Code") is not null)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(Get<string>(loaded, "Code")));
+        }
 
         var edited = await Call(service, upsert, Model(upsert, "جديد", "Renamed", id));
         Assert.True(Get<bool>(edited, "Success"), serviceName + ": " + Get<string>(edited, "Message"));

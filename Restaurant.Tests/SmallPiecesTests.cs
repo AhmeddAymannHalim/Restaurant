@@ -200,6 +200,23 @@ public class SmallPiecesTests : IDisposable
         Assert.Contains(tooLong, e => e.Key.Contains("PhoneNumber") && e.Value.Any(m => m == "Val.MaxLength" || m.Contains("20")));
     }
 
+    [Fact]
+    public async Task CustomerAndStorePhones_FixedErpColumns_DigitsOnly_AndNeverRepeated()
+    {
+        var customerValidator = (IValidator<CustomerViewModel>)_host.Get(typeof(IValidator<CustomerViewModel>));
+        var storeValidator = (IValidator<StoreViewModel>)_host.Get(typeof(IValidator<StoreViewModel>));
+
+        var fine = await customerValidator.ValidateAsync(new CustomerViewModel { ArName = "عميل", EnName = "Customer", PhoneNumber = "0101", PhoneNumber2 = "0102" });
+        var repeated = await customerValidator.ValidateAsync(new CustomerViewModel { ArName = "عميل", EnName = "Customer", PhoneNumber = "0101", PhoneNumber2 = " 0101 " });
+        var letters = await storeValidator.ValidateAsync(new StoreViewModel { ArName = "مخزن", EnName = "Store", PhoneNumber = "0101", PhoneNumber2 = "call-me" });
+        var storeRepeated = await storeValidator.ValidateAsync(new StoreViewModel { ArName = "مخزن", EnName = "Store", PhoneNumber = "0101", PhoneNumber2 = "0102", PhoneNumber3 = "0102" });
+
+        Assert.DoesNotContain(fine.Errors, e => e.PropertyName.Contains("Phone"));
+        Assert.Contains(repeated.Errors, e => e.ErrorMessage == "PhoneAlreadyExists");
+        Assert.Contains(letters.Errors, e => e.PropertyName == "PhoneNumber2" && e.ErrorMessage == "Val.PhoneDigitsOnly");
+        Assert.Contains(storeRepeated.Errors, e => e.ErrorMessage == "PhoneAlreadyExists");
+    }
+
     // ---------------------------------------------------------------- asset rules of the account form
 
     private async Task<Dictionary<string, List<string>>> AccountErrors(AccountDefinitionViewModel model)

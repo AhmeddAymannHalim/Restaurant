@@ -1,6 +1,8 @@
 @model ProductViewModel
 @{
     var isNew = Model.Id == 0;
+    // the ERP keeps six prices per unit (sell type id 1..6)
+    var priceTypes = Model.SellTypes.Where(a => a.Show && a.Id <= 6).ToList();
     ViewBag.Title = isNew ? L["NewProduct"].Value : L["UpdateProduct"].Value;
 }
 
@@ -53,7 +55,7 @@
                                 <th>@L["Unit"]</th>
                                 <th>@L["TransRateHead"]</th>
                                 <th>@L["PriceLastPurchase"]</th>
-                                @foreach (var sellType in Model.SellTypes.Where(a => a.Show))
+                                @foreach (var sellType in priceTypes)
                                 {
                                     <th>@(LanguageHelper.IsArabic() ? sellType.ArName : sellType.EnName)@if (sellType.IsLastPrice && sellType.PlusPrice > 0) { <span> +@sellType.PlusPrice.Value.ToString("0.##")%</span> }</th>
                                 }
@@ -83,7 +85,7 @@
                                     </td>
                                     <td><input type="number" name="Units[@i].LastPurchase" value="@unitRow.LastPurchase.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)" step="any" min="0" class="form-control form-control-sm unit-last" aria-label="@L["PriceLastPurchase"]" /></td>
                                     @{ var priceIndex = 0; }
-                                    @foreach (var sellType in Model.SellTypes.Where(a => a.Show))
+                                    @foreach (var sellType in priceTypes)
                                     {
                                         var priceValue = unitRow.Prices.FirstOrDefault(a => a.SellTypeId == sellType.Id)?.Price ?? 0;
                                         <td>
@@ -116,7 +118,7 @@
                         <td><input type="number" name="Units[__i__].TransRate" value="1" step="0.000001" min="0" class="form-control form-control-sm" aria-label="@L["TransRate"]" /></td>
                         <td><input type="number" name="Units[__i__].LastPurchase" value="0" step="any" min="0" class="form-control form-control-sm unit-last" aria-label="@L["PriceLastPurchase"]" /></td>
                         @{ var templateIndex = 0; }
-                        @foreach (var sellType in Model.SellTypes.Where(a => a.Show))
+                        @foreach (var sellType in priceTypes)
                         {
                             <td>
                                 <input type="hidden" name="Units[__i__].Prices[@templateIndex].SellTypeId" value="@sellType.Id" />

@@ -11,7 +11,7 @@ public class CustomerViewModel
     public string EnName { get; set; }
     public string Address { get; set; }
     public string PhoneNumber { get; set; }
-    public List<PhoneViewModel> Phones { get; set; } = new();
+    public string PhoneNumber2 { get; set; }
     public decimal Balance { get; set; }
     public decimal Debit { get; set; }
     public decimal Credit { get; set; }

@@ -82,14 +82,14 @@ public class ProductRepository : IProductRepository
             var itemCode = BillSupportRepository.ItemCodePrefix + id;
             var unitRows = await _context.ItemUnits.AsNoTracking()
                 .Where(a => a.Item.Code == itemCode && a.Unit.Code.StartsWith(BillSupportRepository.UnitCodePrefix))
-                .Select(a => new { a.Id, a.Unit.Code, a.TransRate, a.IsDefault, a.Barcode, a.LastPurchase })
+                .Select(a => new { Row = a, a.Unit.Code })
                 .ToListAsync();
             var unitPrices = await _context.UnitPrices.AsNoTracking().ToListAsync();
-            var unitRowIds = unitRows.Select(a => a.Id).ToList();
-            var unitPriceRows = await _context.ItemUnitPrices.AsNoTracking().Where(a => unitRowIds.Contains(a.ItemUnitId)).ToListAsync();
-            foreach (var row in unitRows)
+            var sellTypeIds = await _context.SellTypes.AsNoTracking().OrderBy(a => a.Id).Select(a => a.Id).ToListAsync();
+            foreach (var unitRow in unitRows)
             {
-                var unitPriceId = _billSupport.UnitPriceIdOf(row.Code);
+                var row = unitRow.Row;
+                var unitPriceId = _billSupport.UnitPriceIdOf(unitRow.Code);
                 product.Units.Add(new ProductUnit
                 {
                     UnitPriceId = unitPriceId,
@@ -98,7 +98,7 @@ public class ProductRepository : IProductRepository
                     IsDefault = row.IsDefault,
                     Barcode = row.Barcode,
                     LastPurchase = row.LastPurchase ?? 0,
-                    Prices = unitPriceRows.Where(a => a.ItemUnitId == row.Id).Select(a => new ProductUnitPrice { SellTypeId = a.SellTypeId, Price = a.Price }).ToList()
+                    Prices = sellTypeIds.Where(a => _billSupport.PriceOf(row, a) != null).Select(a => new ProductUnitPrice { SellTypeId = a, Price = _billSupport.PriceOf(row, a).Value }).ToList()
                 });
             }
         }
@@ -238,18 +238,9 @@ public class ProductRepository : IProductRepository
                         .ExecuteUpdateAsync(a => a.SetProperty(b => b.TransRate, unit.TransRate));
 
                     // a price type that is not posted (hidden or deleted) keeps whatever it had
-                    var oldPrices = await _context.ItemUnitPrices.Where(a => a.ItemUnitId == row.Id).ToListAsync();
                     foreach (var price in unit.Prices)
                     {
-                        var oldPrice = oldPrices.FirstOrDefault(a => a.SellTypeId == price.SellTypeId);
-                        if (oldPrice is null)
-                        {
-                            await _context.ItemUnitPrices.AddAsync(new ItemUnitPrice { ItemUnitId = row.Id, SellTypeId = price.SellTypeId, Price = price.Price });
-                        }
-                        else
-                        {
-                            oldPrice.Price = price.Price;
-                        }
+                        _billSupport.SetPriceOf(row, price.SellTypeId, price.Price);
                     }
                 }
 

@@ -14,14 +14,12 @@ public class StoreRepository : IStoreRepository
 {
     private readonly ApplicationDbContext _context;
     private readonly IHttpContextAccessor _httpContext;
-    private readonly IPhoneRepository _phones;
     private readonly ILocationRepository _location;
 
     public StoreRepository(ApplicationDbContext context, IHttpContextAccessor httpContext)
     {
         _context = context;
         _httpContext = httpContext;
-        _phones = new PhoneRepository(context);
         _location = new LocationRepository(context);
     }
 
@@ -48,7 +46,6 @@ public class StoreRepository : IStoreRepository
     public async Task<Store> GetStoreByIdAsync(int id)
     {
         return await _context.Stores
-            .Include(a => a.Phones)
             .Include(a => a.Town).ThenInclude(a => a.Governorate)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
@@ -70,10 +67,6 @@ public class StoreRepository : IStoreRepository
     {
         try
         {
-            var phones = _phones.CleanNumbers(entity.PhoneNumber1, entity.Phones);
-            entity.Phones = new List<StorePhone>();
-            entity.PhoneNumber2 = phones.ElementAtOrDefault(0);
-            entity.PhoneNumber3 = phones.ElementAtOrDefault(1);
             var location = await _location.ResolveAsync(entity.TownId);
             entity.GovId = location.GovId;
             entity.CountryId = location.CountryId;
@@ -83,12 +76,11 @@ public class StoreRepository : IStoreRepository
                 entity.Code = await NewStoreCodeAsync();
                 entity.CreatedAt = DateTime.Now;
                 entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
-                _phones.SyncStorePhones(entity.Phones, phones);
                 await _context.Stores.AddAsync(entity);
             }
             else
             {
-                var existing = await _context.Stores.Include(a => a.Phones).FirstOrDefaultAsync(a => a.Id == entity.Id);
+                var existing = await _context.Stores.FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
                     return new ResultMessage
@@ -105,7 +97,6 @@ public class StoreRepository : IStoreRepository
                 entity.UpdatedAt = DateTime.Now;
                 entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 _context.Entry(existing).CurrentValues.SetValues(entity);
-                _phones.SyncStorePhones(existing.Phones, phones);
             }
 
             await _context.SaveChangesAsync();

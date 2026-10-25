@@ -11,6 +11,7 @@ public interface IInvoiceRepository
     Task<InvoiceViewModel> GetNewInvoiceAsync(InvoiceType type);
     Task<decimal> GetSupplierBalanceAsync(int supplierId);
     Task<decimal> GetCustomerBalanceAsync(int customerId);
+    Task<int> GetCustomerSellTypeIdAsync(int customerId);
     Task<ResultMessage> UpsertInvoiceAsync(InvoiceViewModel model);
     Task<ResultMessage> DeleteInvoiceAsync(int id);
     Task<bool> IsInvoiceAsync(int id);

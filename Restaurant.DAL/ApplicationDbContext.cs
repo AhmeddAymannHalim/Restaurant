@@ -42,9 +42,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<AllowanceType> AllowanceTypes { get; set; }
     public DbSet<DeductionType> DeductionTypes { get; set; }
     public DbSet<EmployeePhone> EmployeePhones { get; set; }
-    public DbSet<CustomerPhone> CustomerPhones { get; set; }
     public DbSet<SupplierPhone> SupplierPhones { get; set; }
-    public DbSet<StorePhone> StorePhones { get; set; }
     public DbSet<EmployeeDocument> EmployeeDocuments { get; set; }
     public DbSet<EmployeeImage> EmployeeImages { get; set; }
     public DbSet<EmployeeDependent> EmployeeDependents { get; set; }
@@ -106,7 +104,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Group> Groups { get; set; }
     public DbSet<Brand> Brands { get; set; }
     public DbSet<ItemUnit> ItemUnits { get; set; }
-    public DbSet<ItemUnitPrice> ItemUnitPrices { get; set; }
     public DbSet<StoreItemUnit> StoreItemUnits { get; set; }
     public DbSet<ItemLocation> ItemLocations { get; set; }
     public DbSet<ItemBarcode> ItemBarcodes { get; set; }

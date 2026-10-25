@@ -425,7 +425,9 @@ public class RepositoryBranchTests : IDisposable
         Assert.True(result.Success, result.Message);
         Assert.Equal("1", result.Data);
         Db.ChangeTracker.Clear();
-        Assert.Single(await Db.EntryMasters.AsNoTracking().Where(a => a.BillId == first).ToListAsync());
+        var postedEntry = await Db.EntryMasters.AsNoTracking().SingleAsync(a => a.BillId == first);
+        // a posted cashier order points at its journal entry, like an invoice does
+        Assert.Equal(postedEntry.Id, (await Db.BillMasters.AsNoTracking().SingleAsync(a => a.Id == first)).EntryId);
         Assert.Equal("0", (await bills.PostPendingAsync()).Data);
     }
 
