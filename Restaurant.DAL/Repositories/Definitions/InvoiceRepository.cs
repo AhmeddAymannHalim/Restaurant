@@ -542,8 +542,10 @@ public class InvoiceRepository : IInvoiceRepository
         var settings = await _context.BillSettings.AsNoTracking()
             .Where(a => invoiceBillTypes.Contains(a.BillType))
             .OrderBy(a => a.Id)
-            .Select(a => new { a.BillType, a.EntryGenerate, a.StorageEffect })
+            .Select(a => new { a.BillType, a.EntryGenerate, a.StorageEffect, a.SellTypeId })
             .ToListAsync();
+
+        var defaultSellTypeId = await _context.SellTypes.OrderBy(a => a.Id).Select(a => (int?)a.Id).FirstOrDefaultAsync() ?? 0;
 
         var defaults = new List<PostingDefaultViewModel>();
         foreach (var info in _billSupport.GetAllInvoiceTypes())
@@ -554,7 +556,8 @@ public class InvoiceRepository : IInvoiceRepository
             {
                 Type = info.Type,
                 AutoPost = setting is null || setting.EntryGenerate == EntryGenerate.AutomaticEntryCreated,
-                AutoStock = setting is null || setting.StorageEffect == StorageEffect.AutoEffected
+                AutoStock = setting is null || setting.StorageEffect == StorageEffect.AutoEffected,
+                SellTypeId = setting?.SellTypeId ?? defaultSellTypeId
             });
         }
 

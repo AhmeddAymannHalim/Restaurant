@@ -667,72 +667,54 @@ public class ReportRepository : IReportRepository
                 decimal totalDebit = 0;
                 decimal totalCredit = 0;
 
+                // one query for every supplier's purchase invoices/returns up to the period end, instead of 2 queries per supplier
+                var accountIds = suppliers.Where(a => a.AccountId.HasValue).Select(a => a.AccountId.Value).ToList();
+                var allInvoiceRows = await _context.BillMasters
+                    .AsNoTracking()
+                    .Where(a => a.CustomerOrSupplierAccountId.HasValue && accountIds.Contains(a.CustomerOrSupplierAccountId.Value)
+                        && (a.BillSetting.BillType == BillType.Purchases || a.BillSetting.BillType == BillType.PurchaseReturn)
+                        && a.IsEntryPosted
+                        && !_context.Orders.Any(p => p.Id == a.Id))
+                    .Where(a => a.Date < end)
+                    .Select(a => new { a.CustomerOrSupplierAccountId, a.BillSetting.BillType, a.Date, Remaining = a.TotalBillAmountAfterDiscountAndExtra - a.InitialPaidAmount })
+                    .ToListAsync();
+
+                // one query for every supplier's payments up to the period end, instead of 2 queries per supplier
+                var supplierIds = suppliers.Select(a => a.Id).ToList();
+                var allPaymentRows = await _context.PaymentInvoiceSupplier
+                    .AsNoTracking()
+                    .Where(a => supplierIds.Contains(a.SupplierId) && a.Date < end)
+                    .Select(a => new { a.SupplierId, a.Date, a.Paid })
+                    .ToListAsync();
+
                 foreach (var supplier in suppliers)
                 {
-                    var balanceAccountId = await _context.Suppliers.AsNoTracking()
-                        .Where(a => a.Id == supplier.Id)
-                        .Select(a => a.AccountId)
-                        .FirstOrDefaultAsync();
-
-                    var beforeInvoiceRows = await _context.BillMasters
-                        .AsNoTracking()
-                        .Where(a => balanceAccountId != null && a.CustomerOrSupplierAccountId == balanceAccountId
-                            && (a.BillSetting.BillType == BillType.Purchases || a.BillSetting.BillType == BillType.PurchaseReturn)
-                            && a.IsEntryPosted
-                            && !_context.Orders.Any(p => p.Id == a.Id))
-                        .Where(a => a.Date < from)
-                        .Select(a => new { a.BillSetting.BillType, Remaining = a.TotalBillAmountAfterDiscountAndExtra - a.InitialPaidAmount })
-                        .ToListAsync();
+                    var invoiceRows = allInvoiceRows.Where(a => a.CustomerOrSupplierAccountId == supplier.AccountId);
+                    var paymentRows = allPaymentRows.Where(a => a.SupplierId == supplier.Id);
 
                     decimal beforeInvoiceDebit = 0;
                     decimal beforeInvoiceCredit = 0;
-                    foreach (var invoice in beforeInvoiceRows)
-                    {
-                        if (invoice.BillType == BillType.Purchases)
-                        {
-                            beforeInvoiceDebit += invoice.Remaining;
-                        }
-                        else
-                        {
-                            beforeInvoiceCredit += invoice.Remaining;
-                        }
-                    }
-
-                    var beforePaymentTotal = await _context.PaymentInvoiceSupplier
-                        .AsNoTracking()
-                        .Where(a => a.SupplierId == supplier.Id)
-                        .Where(a => a.Date < from)
-                        .SumAsync(a => (decimal?)a.Paid) ?? 0;
-
-                    var inPeriodInvoiceRows = await _context.BillMasters
-                        .AsNoTracking()
-                        .Where(a => balanceAccountId != null && a.CustomerOrSupplierAccountId == balanceAccountId
-                            && (a.BillSetting.BillType == BillType.Purchases || a.BillSetting.BillType == BillType.PurchaseReturn)
-                            && a.IsEntryPosted
-                            && !_context.Orders.Any(p => p.Id == a.Id))
-                        .Where(a => a.Date >= from && a.Date < end)
-                        .Select(a => new { a.BillSetting.BillType, Remaining = a.TotalBillAmountAfterDiscountAndExtra - a.InitialPaidAmount })
-                        .ToListAsync();
-
                     decimal inPeriodInvoiceDebit = 0;
                     decimal inPeriodInvoiceCredit = 0;
-                    foreach (var invoice in inPeriodInvoiceRows)
+                    foreach (var invoice in invoiceRows)
                     {
+                        var isBeforePeriod = invoice.Date < from;
                         if (invoice.BillType == BillType.Purchases)
                         {
-                            inPeriodInvoiceDebit += invoice.Remaining;
+                            if (isBeforePeriod) beforeInvoiceDebit += invoice.Remaining; else inPeriodInvoiceDebit += invoice.Remaining;
                         }
                         else
                         {
-                            inPeriodInvoiceCredit += invoice.Remaining;
+                            if (isBeforePeriod) beforeInvoiceCredit += invoice.Remaining; else inPeriodInvoiceCredit += invoice.Remaining;
                         }
                     }
 
-                    var inPeriodPaymentTotal = await _context.PaymentInvoiceSupplier
-                        .AsNoTracking()
-                        .Where(a => a.SupplierId == supplier.Id)
-                        .Where(a => a.Date >= from && a.Date < end)
-                        .SumAsync(a => (decimal?)a.Paid) ?? 0;
+                    decimal beforePaymentTotal = 0;
+                    decimal inPeriodPaymentTotal = 0;
+                    foreach (var payment in paymentRows)
+                    {
+                        if (payment.Date < from) beforePaymentTotal += payment.Paid; else inPeriodPaymentTotal += payment.Paid;
+                    }
 
                     var opening = (supplier.LastBalance ?? 0) + beforeInvoiceDebit - beforeInvoiceCredit - beforePaymentTotal;
                     var debit = inPeriodInvoiceDebit;

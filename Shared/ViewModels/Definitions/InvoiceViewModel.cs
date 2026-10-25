@@ -77,6 +77,7 @@ public class PostingDefaultViewModel
     public InvoiceType Type { get; set; }
     public bool AutoPost { get; set; }
     public bool AutoStock { get; set; }
+    public int SellTypeId { get; set; }
 }
 
 public class InvoiceItemViewModel
