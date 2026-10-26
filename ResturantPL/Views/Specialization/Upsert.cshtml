@@ -1,5 +1,6 @@
 @model SpecializationViewModel
 @{
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var isNew = Model.Id == 0;
     ViewBag.Title = isNew ? L["NewSpecialization"].Value : L["UpdateSpecialization"].Value;
 }
@@ -38,7 +39,7 @@
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.Parents.Where(item => item.Id != Model.Id))
                     {
-                        <option value="@item.Id" selected="@(Model.ParentId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.ParentId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
                 <span asp-validation-for="ParentId" class="text-danger"></span>

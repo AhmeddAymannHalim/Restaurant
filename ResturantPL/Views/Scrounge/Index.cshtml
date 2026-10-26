@@ -44,7 +44,7 @@
                 <tr>
                     <td>@counter</td>
                     <td>@item.Date.ToString("d")</td>
-                    <td>@item.EmployeeName</td>
+                    <td>@(isArabic ? item.EmployeeArName : item.EmployeeEnName)</td>
                     <td>@Html.EnumText(L, item.State)</td>
                     <td>@item.Amount</td>
                     <td>@item.Info</td>

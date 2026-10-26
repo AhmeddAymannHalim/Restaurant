@@ -1,8 +1,7 @@
 ﻿@model ReportViewModel
 @{
     ViewBag.Title = L["Report_" + Model.Report].Value;
-    var isArabic = LanguageHelper.IsArabic();
-
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     string Format(object cell, string column)
     {
         if (cell == null)

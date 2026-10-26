@@ -1,5 +1,6 @@
 @model PaymentViewModel
 @{
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var isNew = Model.Id == 0;
     ViewBag.Title = isNew ? L["NewCustomerPayment"].Value : L["UpdateCustomerPayment"].Value;
     var invariant = CultureInfo.InvariantCulture;
@@ -29,7 +30,7 @@
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.Partners)
                     {
-                        <option value="@item.Id" selected="@(Model.PartnerId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.PartnerId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
                 <span asp-validation-for="PartnerId" class="text-danger"></span>
@@ -40,7 +41,7 @@
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.OpenInvoices)
                     {
-                        <option value="@item.Id" selected="@(Model.BillMasterId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.BillMasterId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
                 <span asp-validation-for="BillMasterId" class="text-danger"></span>

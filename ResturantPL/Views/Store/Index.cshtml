@@ -48,7 +48,7 @@
                     <td>@(isArabic ? item.BranchArName : item.BranchEnName)</td>
                     <td>@item.Address</td>
                     <td>@item.PhoneNumber</td>
-                    <td>@item.StorekeeperName</td>
+                    <td>@(isArabic ? item.StorekeeperArName : item.StorekeeperEnName)</td>
                     <td class="bo-row-actions">
                         <a asp-action="Upsert" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Edit"]" aria-label="@L["Edit"]"><i class="fas fa-pen" aria-hidden="true"></i></a>
                         <button type="button" onclick="Delete('/Store/Delete/@item.Id')" class="btn-ad btn-ad-danger btn-icon" title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-trash" aria-hidden="true"></i></button>

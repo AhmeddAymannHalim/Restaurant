@@ -156,8 +156,8 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
                 {
                     return new ResultMessage
                     {
-                        Success = created.Succeeded,
-                        Message = created.Succeeded ? null : "Identity." + created.Errors.First().Code
+                        Success = false,
+                        Message = "Identity." + created.Errors.First().Code
                     };
                 }
 

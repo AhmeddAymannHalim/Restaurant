@@ -1,7 +1,7 @@
 @model OrderViewModel
 @{
     ViewBag.Title = L["Cashier"].Value;
-    var isArabic = LanguageHelper.IsArabic();
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var invariant = CultureInfo.InvariantCulture;
     var sections = Model.Menu.GroupBy(a => a.SectionId).Select(g => g.First()).ToList();
 }

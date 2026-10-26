@@ -1,7 +1,7 @@
 @model InvoiceViewModel
 @{
     Layout = null;
-    var isArabic = LanguageHelper.IsArabic();
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
 }
 <!DOCTYPE html>
 <html lang="@(isArabic ? "ar" : "en")" dir="@(isArabic ? "rtl" : "ltr")">
@@ -57,8 +57,8 @@
             {
                 <tr>
                     <td>@(counter++)</td>
-                    <td>@item.ProductName</td>
-                    <td>@item.UnitName</td>
+                    <td>@(isArabic ? item.ProductArName : item.ProductEnName)</td>
+                    <td>@(isArabic ? item.UnitArName : item.UnitEnName)</td>
                     <td class="num">@item.Quantity.ToString("0.###", CultureInfo.InvariantCulture)</td>
                     <td class="num">@item.Price.ToString("N2")</td>
                     <td class="num">@item.Total.ToString("N2")</td>

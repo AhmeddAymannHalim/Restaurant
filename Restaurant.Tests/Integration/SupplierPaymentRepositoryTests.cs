@@ -23,8 +23,10 @@ public class SupplierPaymentRepositoryTests : IDisposable
     {
         var account = new Account { Code = code, ArName = "Cust" + code, EnName = "Cust" + code, AccountType = AccountType.Supplier, BalanceType = AccountBalanceType.Credit, CreditBalance = 1000 };
         var supplier = new Supplier { Account = account };
+        var setting = await new BillSupportRepository(_db.Context).GetBillSettingAsync(BillType.Purchases, "مشتريات", "Purchases");
         var bill = new BillMaster
         {
+            BillSettingId = setting.Id,
             Code = "B" + code,
             Date = DateTime.Today,
             TotalBillAmountAfterDiscountAndExtra = 500,
@@ -199,7 +201,7 @@ public class SupplierPaymentRepositoryTests : IDisposable
     public async Task Upsert_Edit_MovingThePaymentToAnotherInvoice_FreesTheFirstInvoice()
     {
         var (supplier, first) = await Seed();
-        var second = new BillMaster { Code = "B2", Date = DateTime.Today, TotalBillAmountAfterDiscountAndExtra = 400, CasherRemainingAmount = 400, CustomerOrSupplierAccount = supplier.Account };
+        var second = new BillMaster { BillSettingId = first.BillSettingId, Code = "B2", Date = DateTime.Today, TotalBillAmountAfterDiscountAndExtra = 400, CasherRemainingAmount = 400, CustomerOrSupplierAccount = supplier.Account };
         _db.Context.BillMasters.Add(second);
         await _db.Context.SaveChangesAsync();
         var payment = Payment(supplier, first, 200);
@@ -258,6 +260,26 @@ public class SupplierPaymentRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task Edit_CannotLowerPaidBelowRefunds()
+    {
+        var userId = await SeedUser();
+        var (supplier, bill) = await Seed();
+        var payment = Payment(supplier, bill, 200);
+        await _sut.UpsertPaymentAsync(payment);
+        await _sut.RequestRefundAsync(new PaymentRefund { Reason = "r", SupplierPaymentId = payment.Id, Amount = 150 }, userId);
+        _db.Context.ChangeTracker.Clear();
+
+        var tooLow = Payment(supplier, bill, 100);
+        tooLow.Id = payment.Id;
+        Assert.Equal("PaymentLessThanRefunds", (await _sut.UpsertPaymentAsync(tooLow)).Message);
+
+        _db.Context.ChangeTracker.Clear();
+        var enough = Payment(supplier, bill, 150);
+        enough.Id = payment.Id;
+        Assert.True((await _sut.UpsertPaymentAsync(enough)).Success);
+    }
+
+    [Fact]
     public async Task RequestRefund_Rules()
     {
         var userId = await SeedUser();
@@ -308,6 +330,38 @@ public class SupplierPaymentRepositoryTests : IDisposable
         Assert.Equal("RefundAlreadyProcessed", second.Message);
         Assert.Equal("RefundAlreadyProcessed", rejectAfter.Message);
         Assert.Equal(RefundStatus.Approved, (await _db.Context.PaymentRefunds.AsNoTracking().SingleAsync()).Status);
+    }
+
+    [Fact]
+    public async Task ApprovedRefund_MakesTheInvoiceOweAgain()
+    {
+        var userId = await SeedUser();
+        var (supplier, bill) = await Seed();
+        var payment = Payment(supplier, bill, 200);
+        await _sut.UpsertPaymentAsync(payment);
+        await _sut.RequestRefundAsync(new PaymentRefund { Reason = "r", SupplierPaymentId = payment.Id, Amount = 80 }, userId);
+        var refundId = (await _db.Context.PaymentRefunds.SingleAsync()).Id;
+
+        Assert.True((await _sut.ApproveRefundAsync(refundId, userId)).Success);
+
+        var saved = await Bill(bill);
+        Assert.Equal(120, saved.AmountPaided);
+        Assert.Equal(380, saved.CasherRemainingAmount);
+    }
+
+    [Fact]
+    public async Task OpenInvoices_ShowOnlyPurchasesInvoices_AndPayingAnotherTypeIsRefused()
+    {
+        var (supplier, bill) = await Seed();
+        var otherSetting = await new BillSupportRepository(_db.Context).GetBillSettingAsync(BillType.PurchaseReturn, "مرتجع مشتريات", "PurchaseReturn");
+        var other = new BillMaster { BillSettingId = otherSetting.Id, Code = "R1", Date = DateTime.Today, TotalBillAmountAfterDiscountAndExtra = 300, CasherRemainingAmount = 300, CustomerOrSupplierAccountId = bill.CustomerOrSupplierAccountId };
+        _db.Context.BillMasters.Add(other);
+        await _db.Context.SaveChangesAsync();
+
+        var open = await _sut.GetOpenInvoicesForPartnerAsync(supplier.Id);
+
+        Assert.Equal(bill.Id, Assert.Single(open).Id);
+        Assert.Equal("RecordNotFound", (await _sut.UpsertPaymentAsync(Payment(supplier, other, 50))).Message);
     }
 
     [Fact]

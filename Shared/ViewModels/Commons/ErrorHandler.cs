@@ -34,6 +34,7 @@ public static class ErrorHandler
         return new ViewResult
         {
             ViewName = "~/Views/Shared/Error.cshtml",
+            StatusCode = 500,
             ViewData = new ViewDataDictionary<ErrorViewModel>(new EmptyModelMetadataProvider(),new ModelStateDictionary())
             {
                 Model = errorViewModel

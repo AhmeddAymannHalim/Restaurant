@@ -6,7 +6,7 @@ namespace Restaurant.BLL.Services.IServices.Definitions;
 
 public interface IOrderService
 {
-    Task<PaginatedResult<OrderViewModel>> GetPagedOrdersAsync(PageRequest request, string userId);
+    Task<PaginatedResult<OrderViewModel>> GetPagedOrdersAsync(PageRequest request);
     Task<OrderViewModel> GetOrderByIdAsync(int id);
     Task<OrderViewModel> GetPendingHallOrderByIdAsync(int id);
     Task<OrderViewModel> GetNewOrderAsync(int? tableId, int? reservationId);

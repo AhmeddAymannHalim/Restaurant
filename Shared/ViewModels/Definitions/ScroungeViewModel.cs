@@ -8,7 +8,8 @@ public class ScroungeViewModel
     public DateTime Date { get; set; }
     public decimal Amount { get; set; }
     public int? EmployeeId { get; set; }
-    public string EmployeeName { get; set; }
+    public string EmployeeArName { get; set; }
+    public string EmployeeEnName { get; set; }
     public Shared.Enums.MoneyState State { get; set; }
     public string UserName { get; set; }
     public IEnumerable<LookupItem> Employees { get; set; } = new List<LookupItem>();

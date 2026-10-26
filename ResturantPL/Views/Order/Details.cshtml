@@ -2,7 +2,7 @@
 @{
     Layout = null;
     var isPdf = ViewBag.IsPdf == true;
-    var isArabic = LanguageHelper.IsArabic();
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var print = ViewBag.Print as ApplicationSettingViewModel;
     var copies = print?.NumberOfCustomerPrint ?? 1;
     var autoPrint = !isPdf && print != null && (print.PrintAfterOrder || (print.PrintForTakeawayOrder && Model.Type == OrderType.TakeAway));
@@ -58,9 +58,9 @@
             }
             @if (Model.Type is OrderType.Delivery)
             {
-                @if (!string.IsNullOrEmpty(Model.EmployeeName))
+                @if (!string.IsNullOrEmpty(Model.EmployeeArName))
                 {
-                    <dt>@L["DeliveryDriver"]</dt><dd>@Model.EmployeeName</dd>
+                    <dt>@L["DeliveryDriver"]</dt><dd>@(isArabic ? Model.EmployeeArName : Model.EmployeeEnName)</dd>
                 }
                 <dt>@L["Address"]</dt><dd>@Model.Address</dd>
                 <dt>@L["PhoneNumber"]</dt><dd>@Model.PhoneNumber</dd>
@@ -97,7 +97,7 @@
             }
             @if (Model.DeliveryFee > 0)
             {
-                <div><span>@L["DeliveryFee"]@(string.IsNullOrEmpty(Model.DeliveryZoneArName) ? "" : " (" + (LanguageHelper.IsArabic() ? Model.DeliveryZoneArName : Model.DeliveryZoneEnName) + ")")</span><span>@Model.DeliveryFee.ToString("N2")</span></div>
+                <div><span>@L["DeliveryFee"]@(string.IsNullOrEmpty(Model.DeliveryZoneArName) ? "" : " (" + (isArabic ? Model.DeliveryZoneArName : Model.DeliveryZoneEnName) + ")")</span><span>@Model.DeliveryFee.ToString("N2")</span></div>
             }
             @if (Model.Discount > 0)
             {
@@ -130,7 +130,7 @@
             <button type="button" onclick="printCopies()">@L["Print"]</button>
             <a href="@Url.Action("Pdf", new { id = Model.Id })">PDF</a>
             <a class="alt" href="@Url.Action("Upsert")">@L["NewOrder"]</a>
-            <a class="alt" href="@Url.Action("List", new { status = Model.Cash ? "shift" : "pending" })">@L["Back"]</a>
+            <a class="alt" href="@Url.Action("List", new { status = Model.Cash ? "paid" : "pending" })">@L["Back"]</a>
         </div>
         <script>
             function printCopies() {

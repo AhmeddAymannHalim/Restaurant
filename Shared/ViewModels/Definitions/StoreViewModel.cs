@@ -14,7 +14,8 @@ public class StoreViewModel
     public string PhoneNumber2 { get; set; }
     public string PhoneNumber3 { get; set; }
     public int? StorekeeperId { get; set; }
-    public string StorekeeperName { get; set; }
+    public string StorekeeperArName { get; set; }
+    public string StorekeeperEnName { get; set; }
     public IEnumerable<LookupItem> Storekeepers { get; set; } = new List<LookupItem>();
 
     public string Code { get; set; }

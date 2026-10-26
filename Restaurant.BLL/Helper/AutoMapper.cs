@@ -100,8 +100,8 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Branches, opt => opt.Ignore())
             .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber1))
             .ForMember(dest => dest.StorekeeperId, opt => opt.MapFrom(src => src.EmployeeId))
-            .ForMember(dest => dest.StorekeeperName,
-                opt => opt.MapFrom(src => LanguageHelper.IsArabic() ? src.Employee.ArName : src.Employee.EnName))
+            .ForMember(dest => dest.StorekeeperArName, opt => opt.MapFrom(src => src.Employee.ArName))
+            .ForMember(dest => dest.StorekeeperEnName, opt => opt.MapFrom(src => src.Employee.EnName))
             .ForMember(dest => dest.Storekeepers, opt => opt.Ignore());
         CreateMap<StoreViewModel, Store>()
             .ForMember(dest => dest.GovId, opt => opt.MapFrom(src => src.GovernorateId))
@@ -253,7 +253,8 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.ReceiverName, opt => opt.MapFrom(src => src.Receiver.FullName))
             .ForMember(dest => dest.TableArName, opt => opt.MapFrom(src => src.Table.ArName))
             .ForMember(dest => dest.TableEnName, opt => opt.MapFrom(src => src.Table.EnName))
-            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => (LanguageHelper.IsArabic() ? src.Employee.ArName : src.Employee.EnName)))
+            .ForMember(dest => dest.EmployeeArName, opt => opt.MapFrom(src => src.Employee.ArName))
+            .ForMember(dest => dest.EmployeeEnName, opt => opt.MapFrom(src => src.Employee.EnName))
             .ForMember(dest => dest.ItemsCount, opt => opt.MapFrom(src => src.Lines.Count))
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Lines))
             .ForMember(dest => dest.Customers, opt => opt.Ignore())
@@ -534,7 +535,8 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Expense, opt => opt.Ignore());
 
         CreateMap<Scrounge, ScroungeViewModel>()
-            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => (LanguageHelper.IsArabic() ? src.Employee.ArName : src.Employee.EnName)))
+            .ForMember(dest => dest.EmployeeArName, opt => opt.MapFrom(src => src.Employee.ArName))
+            .ForMember(dest => dest.EmployeeEnName, opt => opt.MapFrom(src => src.Employee.EnName))
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName))
             .ForMember(dest => dest.Employees, opt => opt.Ignore());
         CreateMap<ScroungeViewModel, Scrounge>()
@@ -544,7 +546,8 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Employee, opt => opt.Ignore());
 
         CreateMap<Salary, SalaryViewModel>()
-            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => (LanguageHelper.IsArabic() ? src.Employee.ArName : src.Employee.EnName)))
+            .ForMember(dest => dest.EmployeeArName, opt => opt.MapFrom(src => src.Employee.ArName))
+            .ForMember(dest => dest.EmployeeEnName, opt => opt.MapFrom(src => src.Employee.EnName))
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName))
             .ForMember(dest => dest.Employees, opt => opt.Ignore());
         CreateMap<SalaryViewModel, Salary>()

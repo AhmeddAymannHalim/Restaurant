@@ -51,25 +51,6 @@ public class InvoiceViewModel
     public IEnumerable<LookupItem> Units { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Categories { get; set; } = new List<LookupItem>();
 
-    // names of the posted lines in the language of the page, from the store's product list and the unit list
-    public void FillItemNames(IEnumerable<StoreProductLookupItem> products)
-    {
-        var isArabic = LanguageHelper.IsArabic();
-        foreach (var item in Items)
-        {
-            var product = products.FirstOrDefault(p => p.ProductId == item.ProductId);
-            if (product is not null)
-            {
-                item.ProductName = isArabic ? product.ProductArName : product.ProductEnName;
-            }
-
-            var unit = Units.FirstOrDefault(u => u.Id == item.UnitPriceId);
-            if (unit is not null)
-            {
-                item.UnitName = isArabic ? unit.ArName : unit.EnName;
-            }
-        }
-    }
 }
 
 public class PostingDefaultViewModel
@@ -84,9 +65,11 @@ public class InvoiceItemViewModel
 {
     public int Id { get; set; }
     public int ProductId { get; set; }
-    public string ProductName { get; set; }
+    public string ProductArName { get; set; }
+    public string ProductEnName { get; set; }
     public int UnitPriceId { get; set; }
-    public string UnitName { get; set; }
+    public string UnitArName { get; set; }
+    public string UnitEnName { get; set; }
     public decimal Quantity { get; set; }
     public decimal Price { get; set; }
 

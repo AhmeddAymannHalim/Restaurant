@@ -60,7 +60,9 @@ namespace ResturantPL.Controllers.Definitions
                     }
                 }
 
-                await PopulateData(model);
+                model.CostCenters = await _lookup.NamedLookupAsync<CostCenter>();
+                model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
+                model.Employees = await _lookup.NamedLookupAsync<Employee>();
                 return View(model);
             }
             catch (Exception ex)
@@ -76,22 +78,25 @@ namespace ResturantPL.Controllers.Definitions
             {
                 var isNew = model.Id == 0;
 
-                if (!ModelState.IsValid)
+                if (ModelState.IsValid)
                 {
-                    await PopulateData(model);
+                    var result = await _service.UpsertSupplierAsync(model);
+                    if (result.Success)
+                    {
+                        _toastr.Success(_localizer[isNew ? "SavedSuccessfully" : "UpdatedSuccessfully"].Value);
+                        return RedirectToAction(nameof(Index), new { searchString = model.ArName });
+                    }
+
+                    _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                }
+                else
+                {
                     _toastr.Error(_localizer["ValidationError"].Value);
-                    return View("Upsert", model);
                 }
 
-                var result = await _service.UpsertSupplierAsync(model);
-                if (result.Success)
-                {
-                    _toastr.Success(_localizer[isNew ? "SavedSuccessfully" : "UpdatedSuccessfully"].Value);
-                    return RedirectToAction(nameof(Index), new { searchString = model.ArName });
-                }
-
-                await PopulateData(model);
-                _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                model.CostCenters = await _lookup.NamedLookupAsync<CostCenter>();
+                model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
+                model.Employees = await _lookup.NamedLookupAsync<Employee>();
                 return View("Upsert", model);
             }
             catch (Exception ex)
@@ -125,13 +130,6 @@ namespace ResturantPL.Controllers.Definitions
                     errorMessage = _localizer["SomethingWentError"].Value
                 });
             }
-        }
-
-        private async Task PopulateData(SupplierViewModel model)
-        {
-            model.CostCenters = await _lookup.NamedLookupAsync<CostCenter>();
-            model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
-            model.Employees = await _lookup.NamedLookupAsync<Employee>();
         }
     }
 }

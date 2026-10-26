@@ -33,7 +33,6 @@ public class JournalEntryRepository : IJournalEntryRepository
         return (last + 1).ToString();
     }
 
-    // the opening balance of a customer / supplier: its account against the main account of the voucher
     public async Task<ResultMessage> PostOpeningBalanceAsync(Account account, decimal delta)
     {
         if (delta == 0)
@@ -55,8 +54,6 @@ public class JournalEntryRepository : IJournalEntryRepository
             });
     }
 
-    // a line without an account uses the main account of the voucher (EntrySetting.Account).
-    // No main account in the settings means nothing to post, so no entry is created.
     public async Task<ResultMessage> PostSourceEntryAsync(JournalSourceType sourceType,
         int sourceId,
         DateTime date,
@@ -292,6 +289,25 @@ public class JournalEntryRepository : IJournalEntryRepository
             .ToListAsync();
 
         // give back what the posting did to the balances (customers and suppliers are reversed by the caller)
+        foreach (var detail in entries.SelectMany(a => a.EntryDetails))
+        {
+            if (detail.Account is not null && detail.Account.AccountType is not (AccountType.Customer or AccountType.Supplier))
+            {
+                detail.Account.Adjust(detail.Account.BalanceType == AccountBalanceType.Debit ? detail.Credit - detail.Debit : detail.Debit - detail.Credit);
+            }
+        }
+
+        _context.EntryDetails.RemoveRange(entries.SelectMany(a => a.EntryDetails));
+        _context.EntryMasters.RemoveRange(entries);
+    }
+
+    public async Task RemoveBillEntriesAsync(int billId)
+    {
+        var entries = await _context.EntryMasters
+            .Include(a => a.EntryDetails).ThenInclude(a => a.Account)
+            .Where(a => a.BillId == billId)
+            .ToListAsync();
+
         foreach (var detail in entries.SelectMany(a => a.EntryDetails))
         {
             if (detail.Account is not null && detail.Account.AccountType is not (AccountType.Customer or AccountType.Supplier))

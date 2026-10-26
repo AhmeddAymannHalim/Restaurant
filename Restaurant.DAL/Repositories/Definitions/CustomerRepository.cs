@@ -90,6 +90,8 @@ public class CustomerRepository : ICustomerRepository
 
     public async Task<ResultMessage> UpsertCustomerAsync(Customer entity, IFormFile imageFile)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
             if (!DocumentSetting.IsAllowedImage(imageFile))
@@ -157,7 +159,13 @@ public class CustomerRepository : ICustomerRepository
             }
 
             await _context.SaveChangesAsync();
-            await new JournalEntryRepository(_context).PostOpeningBalanceAsync(openingAccount, openingDelta);
+            var posting = await new JournalEntryRepository(_context).PostOpeningBalanceAsync(openingAccount, openingDelta);
+            if (!posting.Success)
+            {
+                return posting;
+            }
+
+            await transaction.CommitAsync();
 
             if (imageFile is not null && !string.IsNullOrEmpty(replacedImage))
             {

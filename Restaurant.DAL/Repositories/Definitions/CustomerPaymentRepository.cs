@@ -96,7 +96,7 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
         }
 
         return await _context.BillMasters.AsNoTracking()
-            .Where(a => a.CustomerOrSupplierAccountId == accountId.Value && a.CasherRemainingAmount != 0)
+            .Where(a => a.CustomerOrSupplierAccountId == accountId.Value && a.BillSetting.BillType == BillType.Sales && a.CasherRemainingAmount > 0)
             .OrderBy(a => a.Date)
             .Select(a => new LookupItem
             {
@@ -123,8 +123,8 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
                 };
             }
 
-            var bill = await _context.BillMasters.FirstOrDefaultAsync(a => a.Id == entity.BillMasterId);
-            if (bill is null || bill.CustomerOrSupplierAccountId != partner.AccountId)
+            var bill = await _context.BillMasters.Include(a => a.BillSetting).FirstOrDefaultAsync(a => a.Id == entity.BillMasterId);
+            if (bill is null || bill.CustomerOrSupplierAccountId != partner.AccountId || bill.BillSetting?.BillType != BillType.Sales)
             {
                 return new ResultMessage
                 {
@@ -161,6 +161,18 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
                     {
                         Success = false,
                         Message = "RecordNotFound"
+                    };
+                }
+
+                var refunded = await _context.PaymentRefunds.AsNoTracking()
+                    .Where(a => a.OriginalPaymentId == payment.Id && a.Status != RefundStatus.Rejected)
+                    .SumAsync(a => a.Amount);
+                if (entity.Paid < refunded)
+                {
+                    return new ResultMessage
+                    {
+                        Success = false,
+                        Message = "PaymentLessThanRefunds"
                     };
                 }
 
@@ -369,6 +381,8 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
 
     public async Task<ResultMessage> ApproveRefundAsync(int refundId, string approvedByUserId)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
             var refund = await _context.PaymentRefunds.FirstOrDefaultAsync(a => a.Id == refundId && a.OriginalPaymentId != null);
@@ -434,6 +448,14 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
             }
 
             await _context.SaveChangesAsync();
+
+            if (payment.BillMasterId.HasValue)
+            {
+                await _billSupport.RecalculateInvoicePaymentAsync(payment.BillMasterId.Value);
+                await _context.SaveChangesAsync();
+            }
+
+            await transaction.CommitAsync();
 
             return new ResultMessage { Success = true };
         }

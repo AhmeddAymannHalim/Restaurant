@@ -14,5 +14,6 @@ public interface IJournalEntryRepository
         IEnumerable<JournalLineRequest> lines,
         bool saveChanges = true);
     Task RemoveSourceEntriesAsync(JournalSourceType sourceType, int sourceId);
+    Task RemoveBillEntriesAsync(int billId);
     Task<bool> PostBillEntryAsync(BillMaster bill, InvoiceType type, decimal paid, decimal remaining, int? partnerAccountId, EntrySetting entrySetting);
 }

@@ -50,8 +50,6 @@ public class ExitExpenseRepository : IExitExpenseRepository
 
     public async Task<ResultMessage> UpsertExitExpenseAsync(ExitExpense entity, string userId)
     {
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-
         try
         {
             if (entity.Id == 0)
@@ -63,7 +61,7 @@ public class ExitExpenseRepository : IExitExpenseRepository
             }
             else
             {
-                var existing = await _context.ExitExpenses.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
+                var existing = await _context.ExitExpenses.FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
                     return new ResultMessage
@@ -75,12 +73,9 @@ public class ExitExpenseRepository : IExitExpenseRepository
 
                 entity.Date = existing.Date;
                 entity.UserId = existing.UserId;
-                _context.ExitExpenses.Update(entity);
+                _context.Entry(existing).CurrentValues.SetValues(entity);
                 await _context.SaveChangesAsync();
             }
-
-
-            await transaction.CommitAsync();
 
             return new ResultMessage { Success = true };
         }

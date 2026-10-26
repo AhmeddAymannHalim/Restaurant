@@ -281,6 +281,15 @@ public class ProductRepository : IProductRepository
                 };
             }
 
+            if (await _context.BillDetails.AnyAsync(a => a.Item.Code == itemCode))
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "CannotDeleteLinkedRecord"
+                };
+            }
+
             _context.Products.Remove(entity);
             await _context.SaveChangesAsync();
 

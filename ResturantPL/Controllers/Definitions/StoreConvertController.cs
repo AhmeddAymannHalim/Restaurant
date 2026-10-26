@@ -67,7 +67,9 @@ namespace ResturantPL.Controllers.Definitions
                     model.ConvertCode = await _service.GetNextCodeAsync();
                 }
 
-                await PopulateData(model);
+                model.Stores = await _lookup.NamedLookupAsync<Store>();
+                model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
+
                 return View(model);
             }
             catch (Exception ex)
@@ -86,24 +88,26 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index));
                 }
 
-                if (!ModelState.IsValid)
+                if (ModelState.IsValid)
                 {
-                    model.ConvertCode = await _service.GetNextCodeAsync();
-                    await PopulateData(model);
-                    _toastr.Error(_localizer["ValidationError"].Value);
-                    return View("Upsert", model);
-                }
+                    var result = await _service.CreateConvertAsync(model);
+                    if (result.Success)
+                    {
+                        _toastr.Success(_localizer["SavedSuccessfully"].Value);
+                        return RedirectToAction(nameof(Index), new { searchString = result.Data });
+                    }
 
-                var result = await _service.CreateConvertAsync(model);
-                if (result.Success)
+                    _toastr.Error(_localizer[result.Message ?? "ErrorWhileSaving"].Value);
+                }
+                else
                 {
-                    _toastr.Success(_localizer["SavedSuccessfully"].Value);
-                    return RedirectToAction(nameof(Index), new { searchString = result.Data });
+                    _toastr.Error(_localizer["ValidationError"].Value);
                 }
 
                 model.ConvertCode = await _service.GetNextCodeAsync();
-                await PopulateData(model);
-                _toastr.Error(_localizer[result.Message ?? "ErrorWhileSaving"].Value);
+                model.Stores = await _lookup.NamedLookupAsync<Store>();
+                model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
+
                 return View("Upsert", model);
             }
             catch (Exception ex)
@@ -141,23 +145,19 @@ namespace ResturantPL.Controllers.Definitions
 
         public async Task<IActionResult> Pdf(int id)
         {
-            var model = await _service.GetConvertByIdAsync(id);
-            if (model == null)
+            try
             {
-                return NotFound();
+                var model = await _service.GetConvertByIdAsync(id);
+                if (model == null)
+                {
+                    return NotFound();
+                }
+
+                return new ViewAsPdf("Pdf", model) { FileName = Uri.EscapeDataString($"StoreConvert-{model.ConvertCode}.pdf") };
             }
-
-            return new ViewAsPdf("Pdf", model) { FileName = Uri.EscapeDataString($"StoreConvert-{model.ConvertCode}.pdf") };
-        }
-
-        private async Task PopulateData(StoreConvertViewModel model)
-        {
-            model.Stores = await _lookup.NamedLookupAsync<Store>();
-            model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
-
-            if (model.Items.Count > 0)
+            catch (Exception ex)
             {
-                model.FillItemNames(await _lookup.StoreProductLookupByStoreIdAsync(model.FromStoreId.GetValueOrDefault()));
+                return ErrorHandler.ErrorView(ex);
             }
         }
     }

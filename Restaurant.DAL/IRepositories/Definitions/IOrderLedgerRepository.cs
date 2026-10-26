@@ -8,4 +8,6 @@ public interface IOrderLedgerRepository
     Task<int> GetItemIdAsync(MenuItem dish);
     Task<bool> PostEntryAsync(Order order);
     Task RemoveEntryAsync(int billId);
+    void RecalculateBill(Order order, decimal taxPercent);
+    Task RemoveOrderAsync(Order order);
 }

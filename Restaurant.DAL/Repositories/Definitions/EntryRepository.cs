@@ -142,36 +142,14 @@ public class EntryRepository : IEntryRepository
                 return new ResultMessage { Success = false, Message = "JournalNeedsTwoLines" };
             }
 
-            var hasInvalidLine = false;
-            foreach (var line in lines)
-            {
-                var hasDebit = line.Debit.GetValueOrDefault() > 0;
-                var hasCredit = line.Credit.GetValueOrDefault() > 0;
-                var hasNegativeDebit = line.Debit < 0;
-                var hasNegativeCredit = line.Credit < 0;
-
-                if (hasDebit == hasCredit || hasNegativeDebit || hasNegativeCredit)
-                {
-                    hasInvalidLine = true;
-                    break;
-                }
-            }
-
-            if (hasInvalidLine)
+            var lineHasBothOrNeither = lines.Any(a => (a.Debit.GetValueOrDefault() > 0) == (a.Credit.GetValueOrDefault() > 0));
+            if (lineHasBothOrNeither)
             {
                 return new ResultMessage { Success = false, Message = "JournalLineInvalid" };
             }
 
-            decimal totalDebit = 0;
-            decimal totalCredit = 0;
-            foreach (var line in lines)
-            {
-                totalDebit += line.Debit.GetValueOrDefault();
-                totalCredit += line.Credit.GetValueOrDefault();
-            }
-
-            var roundedTotalDebit = Math.Round(totalDebit, 2);
-            var roundedTotalCredit = Math.Round(totalCredit, 2);
+            var roundedTotalDebit = Math.Round(lines.Sum(a => a.Debit.GetValueOrDefault()), 2);
+            var roundedTotalCredit = Math.Round(lines.Sum(a => a.Credit.GetValueOrDefault()), 2);
             if (roundedTotalDebit != roundedTotalCredit)
             {
                 return new ResultMessage { Success = false, Message = "JournalNotBalanced" };
@@ -295,5 +273,4 @@ public class EntryRepository : IEntryRepository
             return new ResultMessage { Success = false, Message = ErrorLog.Message(ex) };
         }
     }
-
 }

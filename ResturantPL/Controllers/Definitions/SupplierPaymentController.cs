@@ -148,25 +148,46 @@ namespace ResturantPL.Controllers.Definitions
 
         public async Task<IActionResult> Pdf(int id)
         {
-            var model = await _service.GetPaymentByIdAsync(id);
-            if (model == null)
+            try
             {
-                return NotFound();
-            }
+                var model = await _service.GetPaymentByIdAsync(id);
+                if (model == null)
+                {
+                    return NotFound();
+                }
 
-            return new ViewAsPdf("Pdf", model) { FileName = Uri.EscapeDataString($"SupplierPayment-{model.ProcessCode}.pdf") };
+                return new ViewAsPdf("Pdf", model) { FileName = Uri.EscapeDataString($"SupplierPayment-{model.ProcessCode}.pdf") };
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex);
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> Balance(int partnerId)
         {
-            return Json(await _service.GetBalanceAsync(partnerId));
+            try
+            {
+                return Json(await _service.GetBalanceAsync(partnerId));
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> OpenInvoices(int partnerId)
         {
-            return Json(await _service.GetOpenInvoicesForPartnerAsync(partnerId));
+            try
+            {
+                return Json(await _service.GetOpenInvoicesForPartnerAsync(partnerId));
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
 
         public async Task<IActionResult> Refunds(int paymentId)

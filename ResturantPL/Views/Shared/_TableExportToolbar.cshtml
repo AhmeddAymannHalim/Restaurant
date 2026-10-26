@@ -1,6 +1,6 @@
 @model string
 @{
-    var isArabic = LanguageHelper.IsArabic();
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
 }
 
 <div class="bo-export" data-table-export data-table-id="@Model" data-title="@ViewBag.Title" data-rtl="@(isArabic ? "1" : "0")"

@@ -171,17 +171,9 @@ public class UserRepository : IUserRepository
                 };
             }
 
-            try
-            {
-                var deleted = await _userManager.DeleteAsync(entity);
+            var deleted = await _userManager.DeleteAsync(entity);
 
-                return new ResultMessage { Success = deleted.Succeeded, Message = deleted.Succeeded ? null : "Identity." + deleted.Errors.First().Code };
-            }
-            catch (DbUpdateException)
-            {
-                // the user made orders, payments or salaries
-                return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
-            }
+            return new ResultMessage { Success = deleted.Succeeded, Message = deleted.Succeeded ? null : "Identity." + deleted.Errors.First().Code };
         }
         catch (DbUpdateException)
         {

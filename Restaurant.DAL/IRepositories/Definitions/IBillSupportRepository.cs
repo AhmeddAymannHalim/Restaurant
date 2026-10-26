@@ -11,6 +11,10 @@ public interface IBillSupportRepository
     List<BillType> GetInvoiceBillTypes();
     InvoiceType TypeOf(BillType billType);
     bool IsInvoiceBillType(BillType billType);
+    int StockSignOf(InvoiceType type);
+    int BalanceSignOf(InvoiceType type);
+    Task<decimal> GetLinkedPaymentsAsync(int billMasterId);
+    string KindOf(bool isCashier, BillType billType);
     BillType? BillTypeOfKind(string kind);
     Task<bool> IsInvoiceAsync(BillMaster bill);
     IQueryable<BillMaster> OfKind(IQueryable<BillMaster> query, params string[] kinds);

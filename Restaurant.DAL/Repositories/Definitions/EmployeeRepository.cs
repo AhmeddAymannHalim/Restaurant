@@ -303,7 +303,7 @@ public class EmployeeRepository : IEmployeeRepository
             entity.CreatedAt = existing.CreatedAt;
             entity.CreatedById = existing.CreatedById;
             entity.UpdatedAt = DateTime.Now;
-                entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
+            entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
 
             if (imageFile != null)
             {

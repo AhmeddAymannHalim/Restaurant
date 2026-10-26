@@ -80,6 +80,8 @@ public class SupplierRepository : ISupplierRepository
 
     public async Task<ResultMessage> UpsertSupplierAsync(Supplier entity)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
             var form = entity.Account;
@@ -148,7 +150,13 @@ public class SupplierRepository : ISupplierRepository
             }
 
             await _context.SaveChangesAsync();
-            await new JournalEntryRepository(_context).PostOpeningBalanceAsync(openingAccount, openingDelta);
+            var posting = await new JournalEntryRepository(_context).PostOpeningBalanceAsync(openingAccount, openingDelta);
+            if (!posting.Success)
+            {
+                return posting;
+            }
+
+            await transaction.CommitAsync();
 
             return new ResultMessage { Success = true };
         }

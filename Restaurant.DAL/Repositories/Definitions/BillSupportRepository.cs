@@ -88,6 +88,66 @@ public class BillSupportRepository : IBillSupportRepository
         return false;
     }
 
+    public int StockSignOf(InvoiceType type)
+    {
+        if (type is InvoiceType.Purchases or InvoiceType.SalesReturn or InvoiceType.Surplus or InvoiceType.OpeningInventory)
+        {
+            return 1;
+        }
+
+        return -1;
+    }
+
+    public int BalanceSignOf(InvoiceType type)
+    {
+        if (type is InvoiceType.Purchases or InvoiceType.Sales)
+        {
+            return 1;
+        }
+
+        return -1;
+    }
+
+    public async Task<decimal> GetLinkedPaymentsAsync(int billMasterId)
+    {
+        var paidBySuppliers = await _context.PaymentInvoiceSupplier
+            .Where(a => a.BillMasterId == billMasterId)
+            .SumAsync(a => (decimal?)a.Paid) ?? 0;
+
+        var paidByCustomers = await _context.PaymentInvoiceCustomer
+            .Where(a => a.BillMasterId == billMasterId)
+            .SumAsync(a => (decimal?)a.Paid) ?? 0;
+
+        // an approved refund gives part of a payment back, so the invoice owes that part again
+        var refundedToSuppliers = await _context.PaymentRefunds
+            .Where(a => a.Status == RefundStatus.Approved && a.SupplierPayment.BillMasterId == billMasterId)
+            .SumAsync(a => (decimal?)a.Amount) ?? 0;
+
+        var refundedToCustomers = await _context.PaymentRefunds
+            .Where(a => a.Status == RefundStatus.Approved && a.OriginalPayment.BillMasterId == billMasterId)
+            .SumAsync(a => (decimal?)a.Amount) ?? 0;
+
+        return paidBySuppliers + paidByCustomers - refundedToSuppliers - refundedToCustomers;
+    }
+
+    public string KindOf(bool isCashier, BillType billType)
+    {
+        if (isCashier)
+        {
+            return OrderKind;
+        }
+
+        foreach (var info in GetAllInvoiceTypes())
+        {
+            if (info.BillType == billType)
+            {
+                return info.Code;
+            }
+        }
+
+        return "OTHER";
+    }
+
     public BillType? BillTypeOfKind(string kind)
     {
         if (kind == OrderKind)
@@ -279,7 +339,6 @@ public class BillSupportRepository : IBillSupportRepository
         return number;
     }
 
-    // ERP price types: SellType id 1..6 is Whole, HalfWhole, Retail, EndUsers, WeightedAverage, Export (id 7 "Last Buy" is LastPurchase)
     public decimal? PriceOf(ItemUnit row, int sellTypeId)
     {
         switch (sellTypeId)
@@ -354,20 +413,13 @@ public class BillSupportRepository : IBillSupportRepository
             return;
         }
 
-        var paidBySuppliers = await _context.PaymentInvoiceSupplier
-            .Where(a => a.BillMasterId == billMasterId)
-            .SumAsync(a => (decimal?)a.Paid) ?? 0;
-        var paidByCustomers = await _context.PaymentInvoiceCustomer
-            .Where(a => a.BillMasterId == billMasterId)
-            .SumAsync(a => (decimal?)a.Paid) ?? 0;
+        var linkedPayments = await GetLinkedPaymentsAsync(billMasterId);
 
-        // the invoice's own down payment (entered at invoice creation/edit, not through the
-        // dedicated payment screens) is its payment lines, so it isn't lost here, since this
-        // method is the only place that recomputes AmountPaided afterwards.
         var downPayment = await _context.PaymentMethods
             .Where(a => a.BillMasterId == billMasterId)
             .SumAsync(a => (decimal?)a.AmountPaided) ?? 0;
-        var paidToDate = downPayment + paidBySuppliers + paidByCustomers;
+
+        var paidToDate = downPayment + linkedPayments;
 
         bill.AmountPaided = paidToDate;
         bill.CasherRemainingAmount = bill.TotalBillAmountAfterDiscountAndExtra - paidToDate;

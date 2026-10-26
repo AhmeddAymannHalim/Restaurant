@@ -36,13 +36,11 @@ namespace ResturantPL.Controllers.Definitions
             _localizer = localizer;
         }
 
-        private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         public async Task<IActionResult> List([FromQuery] PageRequest request)
         {
             try
             {
-                return View(await _service.GetPagedOrdersAsync(request, UserId));
+                return View(await _service.GetPagedOrdersAsync(request));
             }
             catch (Exception ex)
             {
@@ -61,7 +59,11 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(List));
                 }
 
-                await PopulateData(model);
+                model.Customers = await _lookup.CustomerLookupAsync();
+                model.Tables = await _lookup.FreeTableLookupAsync();
+                model.DeliveryDrivers = await _lookup.DeliveryDriverLookupAsync();
+                model.DeliveryZones = await _lookup.DeliveryZoneLookupAsync();
+
                 return View(model);
             }
             catch (Exception ex)
@@ -75,10 +77,11 @@ namespace ResturantPL.Controllers.Definitions
         {
             try
             {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 ResultMessage result = null;
                 if (ModelState.IsValid)
                 {
-                    result = await _service.CreateOrderAsync(model, UserId);
+                    result = await _service.CreateOrderAsync(model, userId);
                     if (result.Success)
                     {
                         return RedirectToAction(nameof(Details), new { id = int.Parse(result.Data) });
@@ -88,7 +91,10 @@ namespace ResturantPL.Controllers.Definitions
                 // the cashier is shown again: a fresh code and menu, and the cart priced from the current menu
                 model.RefreshFrom(await _service.GetNewOrderAsync(null, null));
 
-                await PopulateData(model);
+                model.Customers = await _lookup.CustomerLookupAsync();
+                model.Tables = await _lookup.FreeTableLookupAsync();
+                model.DeliveryDrivers = await _lookup.DeliveryDriverLookupAsync();
+                model.DeliveryZones = await _lookup.DeliveryZoneLookupAsync();
                 _toastr.Error(_localizer[result is null ? "ValidationError" : result.Message ?? "ErrorWhileSaving"].Value);
                 return View("Upsert", model);
             }
@@ -120,15 +126,22 @@ namespace ResturantPL.Controllers.Definitions
 
         public async Task<IActionResult> Pdf(int id)
         {
-            var model = await _service.GetOrderByIdAsync(id);
-            if (model == null)
+            try
             {
-                return NotFound();
+                var model = await _service.GetOrderByIdAsync(id);
+                if (model == null)
+                {
+                    return NotFound();
+                }
+
+                ViewBag.IsPdf = true;
+
+                return new ViewAsPdf("Details", model) { FileName = Uri.EscapeDataString($"Order-{model.OrderCode}.pdf") };
             }
-
-            ViewBag.IsPdf = true;
-
-            return new ViewAsPdf("Details", model) { FileName = Uri.EscapeDataString($"Order-{model.OrderCode}.pdf") };
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex);
+            }
         }
 
         [HttpPost, ValidateAntiForgeryToken]
@@ -136,7 +149,8 @@ namespace ResturantPL.Controllers.Definitions
         {
             try
             {
-                var result = await _service.PayOrderAsync(id, UserId, method);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var result = await _service.PayOrderAsync(id, userId, method);
                 if (!result.Success)
                 {
                     _toastr.Error(_localizer[result.Message].Value);
@@ -268,27 +282,26 @@ namespace ResturantPL.Controllers.Definitions
         [HttpGet]
         public async Task<IActionResult> CustomerInfo(int customerId)
         {
-            var customer = await _customers.GetCustomerByIdAsync(customerId);
-            if (customer == null)
+            try
             {
-                return NotFound();
+                var customer = await _customers.GetCustomerByIdAsync(customerId);
+                if (customer == null)
+                {
+                    return NotFound();
+                }
+
+                return Json(new
+                {
+                    customer.ArName,
+                    customer.EnName,
+                    customer.Address,
+                    customer.PhoneNumber
+                });
             }
-
-            return Json(new
+            catch (Exception)
             {
-                customer.ArName,
-                customer.EnName,
-                customer.Address,
-                customer.PhoneNumber
-            });
-        }
-
-        private async Task PopulateData(OrderViewModel model)
-        {
-            model.Customers = await _lookup.CustomerLookupAsync();
-            model.Tables = await _lookup.FreeTableLookupAsync();
-            model.DeliveryDrivers = await _lookup.DeliveryDriverLookupAsync();
-            model.DeliveryZones = await _lookup.DeliveryZoneLookupAsync();
+                return BadRequest();
+            }
         }
     }
 }

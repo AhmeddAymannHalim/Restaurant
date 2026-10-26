@@ -1,5 +1,6 @@
 @model InvoiceViewModel
 @{
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var isNew = Model.Id == 0;
     ViewBag.Title = isNew ? L["NewInvoice"].Value : L["UpdateInvoice"].Value;
     var invariant = CultureInfo.InvariantCulture;
@@ -49,7 +50,7 @@
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.Suppliers)
                     {
-                        <option value="@item.Id" selected="@(Model.SupplierId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.SupplierId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
                 <span asp-validation-for="SupplierId" class="text-danger"></span>
@@ -64,7 +65,7 @@
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.Customers)
                     {
-                        <option value="@item.Id" selected="@(Model.CustomerId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.CustomerId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
                 <span asp-validation-for="CustomerId" class="text-danger"></span>
@@ -79,7 +80,7 @@
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.Stores)
                     {
-                        <option value="@item.Id" selected="@(Model.StoreId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.StoreId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
                 <span asp-validation-for="StoreId" class="text-danger"></span>
@@ -90,7 +91,7 @@
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.CostCenters)
                     {
-                        <option value="@item.Id" selected="@(Model.CostCenterId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.CostCenterId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
                 <span asp-validation-for="CostCenterId" class="text-danger"></span>
@@ -101,7 +102,7 @@
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.Currencies)
                     {
-                        <option value="@item.Id" selected="@(Model.CurrencyId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.CurrencyId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
                 <span asp-validation-for="CurrencyId" class="text-danger"></span>
@@ -119,7 +120,7 @@
                         <option value="">@L["AllCategories"]</option>
                         @foreach (var item in Model.Categories)
                         {
-                            <option value="@item.Id">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                            <option value="@item.Id">@(isArabic ? item.ArName : item.EnName)</option>
                         }
                     </select>
                 </div>
@@ -136,7 +137,7 @@
                     <select id="unitList" class="form-select">
                         @foreach (var item in Model.Units)
                         {
-                            <option value="@item.Id">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                            <option value="@item.Id" data-ar="@item.ArName" data-en="@item.EnName">@(isArabic ? item.ArName : item.EnName)</option>
                         }
                     </select>
                 </div>
@@ -174,9 +175,9 @@
                         <tbody>
                             @foreach (var item in Model.Items)
                             {
-                                <tr data-product="@item.ProductId" data-unit="@item.UnitPriceId" data-qty="@item.Quantity.ToString(invariant)" data-price="@item.Price.ToString(invariant)">
-                                    <td>@item.ProductName</td>
-                                    <td>@item.UnitName</td>
+                                <tr data-product="@item.ProductId" data-unit="@item.UnitPriceId" data-qty="@item.Quantity.ToString(invariant)" data-price="@item.Price.ToString(invariant)" data-product-ar="@item.ProductArName" data-product-en="@item.ProductEnName" data-unit-ar="@item.UnitArName" data-unit-en="@item.UnitEnName">
+                                    <td>@(isArabic ? item.ProductArName : item.ProductEnName)</td>
+                                    <td>@(isArabic ? item.UnitArName : item.UnitEnName)</td>
                                     <td class="num">@item.Quantity.ToString("0.###", invariant)</td>
                                     <td class="num">@item.Price.ToString("N2")</td>
                                     <td class="num">@item.Total.ToString("N2")</td>
@@ -272,7 +273,7 @@
                 $('#remaining').val(money(net - number($('#paid').val()) - linkedPayments));
             }
 
-            var isArabic = @Html.Raw(Json.Serialize(LanguageHelper.IsArabic()));
+            var isArabic = @Html.Raw(Json.Serialize(isArabic));
 
             function renderProducts() {
                 var category = $('#categoryList').val();
@@ -410,7 +411,7 @@
                     var sellPrice = currentSellTypeId() ? (u.prices || []).filter(function (x) { return x.sellTypeId === currentSellTypeId() && x.price > 0; })[0] : null;
                     // the customer's price type has no price on this unit: use the first price that is filled in rather than the cost
                     if (!sellPrice && currentSellTypeId()) { sellPrice = (u.prices || []).filter(function (x) { return x.price > 0; })[0]; }
-                    var option = $('<option>', { value: u.unitPriceId, text: isArabic ? u.unitArName : u.unitEnName }).attr('data-rate', u.transRate).attr('data-sell', sellPrice ? sellPrice.price : 0);
+                    var option = $('<option>', { value: u.unitPriceId, text: isArabic ? u.unitArName : u.unitEnName }).attr('data-rate', u.transRate).attr('data-sell', sellPrice ? sellPrice.price : 0).attr('data-ar', u.unitArName).attr('data-en', u.unitEnName);
                     option.prop('selected', u.isDefault);
                     list.append(option);
                 });
@@ -452,7 +453,7 @@
                     return;
                 }
                 $('#linesTable tbody').append(
-                    $('<tr>').attr({ 'data-product': productId, 'data-unit': $('#unitList').val(), 'data-qty': qty, 'data-price': price })
+                    $('<tr>').attr({ 'data-product': productId, 'data-unit': $('#unitList').val(), 'data-qty': qty, 'data-price': price, 'data-product-ar': stock[productId].productArName, 'data-product-en': stock[productId].productEnName, 'data-unit-ar': $('#unitList option:selected').attr('data-ar'), 'data-unit-en': $('#unitList option:selected').attr('data-en') })
                         .append($('<td>').text($('#productList option:selected').text()))
                         .append($('<td>').text($('#unitList option:selected').text()))
                         .append($('<td class="num">').text(qty))
@@ -511,7 +512,7 @@
 
                 $('#linesTable tbody tr').each(function (i) {
                     var row = $(this);
-                    var values = { ProductId: row.data('product'), UnitPriceId: row.data('unit'), Quantity: row.data('qty'), Price: row.data('price') };
+                    var values = { ProductId: row.data('product'), UnitPriceId: row.data('unit'), Quantity: row.data('qty'), Price: row.data('price'), ProductArName: row.attr('data-product-ar'), ProductEnName: row.attr('data-product-en'), UnitArName: row.attr('data-unit-ar'), UnitEnName: row.attr('data-unit-en') };
                     $.each(values, function (name, value) {
                         $('<input type="hidden" class="line-input">').attr('name', 'Items[' + i + '].' + name).val(value).appendTo(form);
                     });

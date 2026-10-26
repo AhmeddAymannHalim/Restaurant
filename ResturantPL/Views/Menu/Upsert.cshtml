@@ -1,7 +1,7 @@
 @model MenuItemViewModel
 @{
     var isNew = Model.Id == 0;
-    var isArabic = LanguageHelper.IsArabic();
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     ViewBag.Title = isNew ? L["NewMenuItem"].Value : L["UpdateMenuItem"].Value;
 }
 

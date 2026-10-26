@@ -529,7 +529,7 @@ public class OrderRepositoryTests : IDisposable
         await Seed();
         var request = new Shared.ViewModels.Commons.PageRequest { Status = asked };
 
-        await _sut.GetPagedOrdersAsync(request, _user);
+        await _sut.GetPagedOrdersAsync(request);
 
         Assert.Equal(used, request.Status);
     }
@@ -553,8 +553,8 @@ public class OrderRepositoryTests : IDisposable
         await Create(NewOrder(OrderType.TakeAway));
         await Create(NewOrder(OrderType.Hall));
 
-        var mine = await _sut.GetPagedOrdersAsync(new Shared.ViewModels.Commons.PageRequest(), _user);
-        var pending = await _sut.GetPagedOrdersAsync(new Shared.ViewModels.Commons.PageRequest { Status = "pending" }, _user);
+        var mine = await _sut.GetPagedOrdersAsync(new Shared.ViewModels.Commons.PageRequest());
+        var pending = await _sut.GetPagedOrdersAsync(new Shared.ViewModels.Commons.PageRequest { Status = "pending" });
 
         Assert.Single(mine.Data);
         Assert.Single(pending.Data);

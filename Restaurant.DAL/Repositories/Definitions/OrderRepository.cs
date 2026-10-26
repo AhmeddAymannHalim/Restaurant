@@ -27,7 +27,7 @@ public class OrderRepository : IOrderRepository
 
     // ---------------------------------------------------------------- read
 
-    public async Task<PaginatedResult<Order>> GetPagedOrdersAsync(PageRequest request, string userId)
+    public async Task<PaginatedResult<Order>> GetPagedOrdersAsync(PageRequest request)
     {
         // the screen has two lists only: orders still to be paid, and paid ones
         request.Status = request.Status == "pending" ? "pending" : "paid";
@@ -419,26 +419,7 @@ public class OrderRepository : IOrderRepository
                 Service = order.Type == OrderType.TakeAway ? 0 : settings.OrderService,
                 Lines = lines
             };
-            entity.Tax = Math.Round(entity.Lines.Sum(a => a.Price) * settings.OrderTax / 100, 2);
-            var subTotal = entity.Lines.Sum(a => a.Price);
-            var extras = entity.Tax + entity.Service + entity.DeliveryFee;
-            var discount = Math.Min(Math.Max(0, entity.Bill.BillDiscountValue), subTotal + extras);
-            var total = subTotal + extras - discount;
-            var cost = entity.Lines.Sum(a => a.UnitCost * a.Quantity);
-            entity.Bill.TotalAmountBeforeDiscountOrExtra = subTotal;
-            entity.Bill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
-            entity.Bill.BillDiscountValue = discount;
-            entity.Bill.TotalDiscountValueOnBillAndItems = discount;
-            entity.Bill.BillExtraValue = extras;
-            entity.Bill.TotalExtraValueOnBillAndItems = extras;
-            entity.Bill.TotalBillAmountAfterDiscountAndExtra = total;
-            entity.Bill.BillCost = cost;
-            entity.Bill.BillProfit = total - cost;
-            entity.Bill.PayType = entity.OnAccount ? PayType.Later : PayType.Cash;
-            entity.Bill.IsEntryPosted = false;
-            entity.Bill.AmountPaided = entity.Cash && !entity.OnAccount ? total : 0;
-            entity.Bill.CasherRemainingAmount = total - entity.Bill.AmountPaided;
-            entity.Bill.UpdatedAt = DateTime.Now;
+            _orderLedger.RecalculateBill(entity, settings.OrderTax);
 
             // 7. customer balance, table and stock movements
             if (customer is not null)
@@ -530,26 +511,7 @@ public class OrderRepository : IOrderRepository
             order.ReceiverId = userId;
             order.Bill.Date = DateTime.Now;
             var settings = await GetSettingsAsync();
-            order.Tax = Math.Round(order.Lines.Sum(a => a.Price) * settings.OrderTax / 100, 2);
-            var subTotal = order.Lines.Sum(a => a.Price);
-            var extras = order.Tax + order.Service + order.DeliveryFee;
-            var discount = Math.Min(Math.Max(0, order.Bill.BillDiscountValue), subTotal + extras);
-            var total = subTotal + extras - discount;
-            var cost = order.Lines.Sum(a => a.UnitCost * a.Quantity);
-            order.Bill.TotalAmountBeforeDiscountOrExtra = subTotal;
-            order.Bill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
-            order.Bill.BillDiscountValue = discount;
-            order.Bill.TotalDiscountValueOnBillAndItems = discount;
-            order.Bill.BillExtraValue = extras;
-            order.Bill.TotalExtraValueOnBillAndItems = extras;
-            order.Bill.TotalBillAmountAfterDiscountAndExtra = total;
-            order.Bill.BillCost = cost;
-            order.Bill.BillProfit = total - cost;
-            order.Bill.PayType = order.OnAccount ? PayType.Later : PayType.Cash;
-            order.Bill.IsEntryPosted = false;
-            order.Bill.AmountPaided = order.Cash && !order.OnAccount ? total : 0;
-            order.Bill.CasherRemainingAmount = total - order.Bill.AmountPaided;
-            order.Bill.UpdatedAt = DateTime.Now;
+            _orderLedger.RecalculateBill(order, settings.OrderTax);
 
             await _context.SaveChangesAsync();
             var billSetting = await _orderLedger.GetSettingAsync();
@@ -583,10 +545,12 @@ public class OrderRepository : IOrderRepository
                 .Include(a => a.Bill).ThenInclude(a => a.BillDetails)
                 .Include(a => a.Lines).ThenInclude(a => a.BillDetail)
                 .FirstOrDefaultAsync(a => a.Id == line.OrderId && !a.Cash && a.Type == OrderType.Hall);
+
             var to = await _context.Orders
                 .Include(a => a.Bill).ThenInclude(a => a.BillDetails)
                 .Include(a => a.Lines).ThenInclude(a => a.BillDetail)
                 .FirstOrDefaultAsync(a => a.TableId == targetTableId && !a.Cash && a.Type == OrderType.Hall);
+
             if (from is null || to is null || from.Id == to.Id)
             {
                 return new ResultMessage { Success = false, Message = "TargetTableHasNoOrder" };
@@ -607,50 +571,12 @@ public class OrderRepository : IOrderRepository
             }
             else
             {
-                // the last dish moved away, so the source order is deleted
-                if (from.Type == OrderType.Hall && from.TableId.HasValue)
-                {
-                    var freedTable = await _context.Tables.FindAsync(from.TableId.Value);
-                    if (freedTable is not null)
-                    {
-                        freedTable.IsPending = false;
-                    }
-                }
-
-                await _orderLedger.RemoveEntryAsync(from.Id);
-                var fromLines = from.Lines.Where(a => a.OrderId == from.Id).ToList();
-                _context.OrderIngredients.RemoveRange(fromLines.SelectMany(a => a.Ingredients));
-                _context.OrderMenuItems.RemoveRange(fromLines);
-                _context.BillDetails.RemoveRange(fromLines.Select(a => a.BillDetail).Where(a => a is not null));
-                _context.Orders.Remove(from);
-                if (from.Bill is not null)
-                {
-                    _context.BillMasters.Remove(from.Bill);
-                }
+                await _orderLedger.RemoveOrderAsync(from);
             }
 
             foreach (var open in openOrders)
             {
-                open.Tax = Math.Round(open.Lines.Sum(a => a.Price) * settings.OrderTax / 100, 2);
-                var subTotal = open.Lines.Sum(a => a.Price);
-                var extras = open.Tax + open.Service + open.DeliveryFee;
-                var discount = Math.Min(Math.Max(0, open.Bill.BillDiscountValue), subTotal + extras);
-                var total = subTotal + extras - discount;
-                var cost = open.Lines.Sum(a => a.UnitCost * a.Quantity);
-                open.Bill.TotalAmountBeforeDiscountOrExtra = subTotal;
-                open.Bill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
-                open.Bill.BillDiscountValue = discount;
-                open.Bill.TotalDiscountValueOnBillAndItems = discount;
-                open.Bill.BillExtraValue = extras;
-                open.Bill.TotalExtraValueOnBillAndItems = extras;
-                open.Bill.TotalBillAmountAfterDiscountAndExtra = total;
-                open.Bill.BillCost = cost;
-                open.Bill.BillProfit = total - cost;
-                open.Bill.PayType = open.OnAccount ? PayType.Later : PayType.Cash;
-                open.Bill.IsEntryPosted = false;
-                open.Bill.AmountPaided = open.Cash && !open.OnAccount ? total : 0;
-                open.Bill.CasherRemainingAmount = total - open.Bill.AmountPaided;
-                open.Bill.UpdatedAt = DateTime.Now;
+                _orderLedger.RecalculateBill(open, settings.OrderTax);
             }
 
             await _context.SaveChangesAsync();
@@ -671,10 +597,12 @@ public class OrderRepository : IOrderRepository
                 .Include(a => a.Bill).ThenInclude(a => a.BillDetails)
                 .Include(a => a.Lines).ThenInclude(a => a.BillDetail)
                 .FirstOrDefaultAsync(a => a.Id == id && !a.Cash && a.Type == OrderType.Hall);
+
             var to = await _context.Orders
                 .Include(a => a.Bill).ThenInclude(a => a.BillDetails)
                 .Include(a => a.Lines).ThenInclude(a => a.BillDetail)
                 .FirstOrDefaultAsync(a => a.TableId == targetTableId && !a.Cash && a.Type == OrderType.Hall);
+
             if (from is null || to is null || from.Id == to.Id)
             {
                 return new ResultMessage { Success = false, Message = "TargetTableHasNoOrder" };
@@ -691,46 +619,9 @@ public class OrderRepository : IOrderRepository
 
             to.Service += from.Service;
             to.Bill.BillDiscountValue += from.Bill.BillDiscountValue;
-            to.Tax = Math.Round(to.Lines.Sum(a => a.Price) * settings.OrderTax / 100, 2);
-            var subTotal = to.Lines.Sum(a => a.Price);
-            var extras = to.Tax + to.Service + to.DeliveryFee;
-            var discount = Math.Min(Math.Max(0, to.Bill.BillDiscountValue), subTotal + extras);
-            var total = subTotal + extras - discount;
-            var cost = to.Lines.Sum(a => a.UnitCost * a.Quantity);
-            to.Bill.TotalAmountBeforeDiscountOrExtra = subTotal;
-            to.Bill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
-            to.Bill.BillDiscountValue = discount;
-            to.Bill.TotalDiscountValueOnBillAndItems = discount;
-            to.Bill.BillExtraValue = extras;
-            to.Bill.TotalExtraValueOnBillAndItems = extras;
-            to.Bill.TotalBillAmountAfterDiscountAndExtra = total;
-            to.Bill.BillCost = cost;
-            to.Bill.BillProfit = total - cost;
-            to.Bill.PayType = to.OnAccount ? PayType.Later : PayType.Cash;
-            to.Bill.IsEntryPosted = false;
-            to.Bill.AmountPaided = to.Cash && !to.OnAccount ? total : 0;
-            to.Bill.CasherRemainingAmount = total - to.Bill.AmountPaided;
-            to.Bill.UpdatedAt = DateTime.Now;
+            _orderLedger.RecalculateBill(to, settings.OrderTax);
 
-            if (from.Type == OrderType.Hall && from.TableId.HasValue)
-            {
-                var freedTable = await _context.Tables.FindAsync(from.TableId.Value);
-                if (freedTable is not null)
-                {
-                    freedTable.IsPending = false;
-                }
-            }
-
-            await _orderLedger.RemoveEntryAsync(from.Id);
-            var fromLines = from.Lines.Where(a => a.OrderId == from.Id).ToList();
-            _context.OrderIngredients.RemoveRange(fromLines.SelectMany(a => a.Ingredients));
-            _context.OrderMenuItems.RemoveRange(fromLines);
-            _context.BillDetails.RemoveRange(fromLines.Select(a => a.BillDetail).Where(a => a is not null));
-            _context.Orders.Remove(from);
-            if (from.Bill is not null)
-            {
-                _context.BillMasters.Remove(from.Bill);
-            }
+            await _orderLedger.RemoveOrderAsync(from);
 
             await _context.SaveChangesAsync();
 
@@ -788,25 +679,7 @@ public class OrderRepository : IOrderRepository
                 }
             }
 
-            if (order.Type == OrderType.Hall && order.TableId.HasValue)
-            {
-                var freedTable = await _context.Tables.FindAsync(order.TableId.Value);
-                if (freedTable is not null)
-                {
-                    freedTable.IsPending = false;
-                }
-            }
-
-            await _orderLedger.RemoveEntryAsync(order.Id);
-            var orderLines = order.Lines.Where(a => a.OrderId == order.Id).ToList();
-            _context.OrderIngredients.RemoveRange(orderLines.SelectMany(a => a.Ingredients));
-            _context.OrderMenuItems.RemoveRange(orderLines);
-            _context.BillDetails.RemoveRange(orderLines.Select(a => a.BillDetail).Where(a => a is not null));
-            _context.Orders.Remove(order);
-            if (order.Bill is not null)
-            {
-                _context.BillMasters.Remove(order.Bill);
-            }
+            await _orderLedger.RemoveOrderAsync(order);
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();

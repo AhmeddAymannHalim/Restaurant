@@ -540,6 +540,7 @@ body.dash { font-family: "Cairo", "Open Sans", system-ui, sans-serif; }
     font-size: .95rem;
 }
 
+.dash-crumb a { white-space: nowrap; }
 .dash-crumb a:hover { color: #fff; }
 .dash-crumb i { font-size: .7rem; opacity: .7; }
 
@@ -920,6 +921,7 @@ body.side-shut .dash-side:not(:hover) .side-chevron { opacity: 0; }
     padding: .7rem 1rem;
     border-bottom: 1px solid rgba(43, 69, 96, .6);
     vertical-align: middle;
+    white-space: nowrap;
 }
 
 .bo-table tbody tr:last-child td { border-bottom: 0; }

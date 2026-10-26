@@ -2,7 +2,7 @@
 @{
     var isNew = Model.Id == 0;
     ViewBag.Title = isNew ? L["NewStoreConvert"].Value : L["StoreConverts"].Value;
-    var isArabic = LanguageHelper.IsArabic();
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var invariant = CultureInfo.InvariantCulture;
 }
 
@@ -95,9 +95,10 @@
                         <tbody>
                             @foreach (var item in Model.Items)
                             {
-                                <tr>
+                                <tr data-product="@item.ProductId" data-qty="@item.Quantity.ToString(invariant)" data-product-ar="@item.ProductArName" data-product-en="@item.ProductEnName">
                                     <td>@(isArabic ? item.ProductArName : item.ProductEnName)</td>
                                     <td class="num">@item.Quantity.ToString("0.###", invariant)</td>
+                                    <td class="bo-row-actions"><button type="button" class="btn-ad btn-ad-danger btn-icon removeLine"><i class="fas fa-trash" aria-hidden="true"></i></button></td>
                                 </tr>
                             }
                         </tbody>
@@ -191,7 +192,7 @@
                     if (!productId || qty <= 0) { toastr.error(msgFill); return; }
                     if (qty > number($('#available').val())) { toastr.error(msgStock); return; }
                     $('#linesTable tbody').append(
-                        $('<tr>').attr({ 'data-product': productId, 'data-qty': qty })
+                        $('<tr>').attr({ 'data-product': productId, 'data-qty': qty, 'data-product-ar': stock[productId].productArName, 'data-product-en': stock[productId].productEnName })
                             .append($('<td>').text($('#productList option:selected').text()))
                             .append($('<td class="num">').text(qty))
                             .append($('<td class="bo-row-actions">').append($('<button type="button" class="btn-ad btn-ad-danger btn-icon removeLine"><i class="fas fa-trash" aria-hidden="true"></i></button>'))));
@@ -208,7 +209,7 @@
                     form.find('input.line-input').remove();
                     $('#linesTable tbody tr').each(function (i) {
                         var row = $(this);
-                        $.each({ ProductId: row.data('product'), Quantity: row.data('qty') }, function (name, value) {
+                        $.each({ ProductId: row.data('product'), Quantity: row.data('qty'), ProductArName: row.attr('data-product-ar'), ProductEnName: row.attr('data-product-en') }, function (name, value) {
                             $('<input type="hidden" class="line-input">').attr('name', 'Items[' + i + '].' + name).val(value).appendTo(form);
                         });
                     });

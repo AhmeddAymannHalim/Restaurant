@@ -68,7 +68,18 @@ namespace ResturantPL.Controllers.Definitions
                     model.IsActive = true;
                 }
 
-                await PopulateData(model);
+                model.Departments = await _lookup.NamedLookupAsync<Department>();
+                model.ContractTypes = await _lookup.NamedLookupAsync<ContractType>();
+                model.Specializations = await _lookup.NamedLookupAsync<Specialization>();
+                model.JobTypes = await _lookup.NamedLookupAsync<JobType>();
+                model.InsuranceCategories = await _lookup.InsuranceCategoryLookupAsync();
+                model.InsuranceCompanies = await _lookup.NamedLookupAsync<InsuranceCompany>();
+                model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
+                model.Jobs = await _lookup.NamedLookupAsync<Job>();
+                model.Nationalities = await _lookup.NamedLookupAsync<Country>();
+                model.LeaveTypes = await _lookup.LeaveTypeLookupAsync();
+                model.AllowanceTypes = await _lookup.AllowanceTypeLookupAsync();
+                model.DeductionTypes = await _lookup.DeductionTypeLookupAsync();
                 return View(model);
             }
             catch (Exception ex)
@@ -84,22 +95,34 @@ namespace ResturantPL.Controllers.Definitions
             {
                 var isNew = model.Id == 0;
 
-                if (!ModelState.IsValid)
+                if (ModelState.IsValid)
                 {
-                    await PopulateData(model);
+                    var result = await _service.UpsertEmployeeAsync(model);
+                    if (result.Success)
+                    {
+                        _toastr.Success(_localizer[isNew ? "SavedSuccessfully" : "UpdatedSuccessfully"].Value);
+                        return RedirectToAction(nameof(Index), new { searchString = model.ArName });
+                    }
+
+                    _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                }
+                else
+                {
                     _toastr.Error(_localizer["ValidationError"].Value);
-                    return View("Upsert", model);
                 }
 
-                var result = await _service.UpsertEmployeeAsync(model);
-                if (result.Success)
-                {
-                    _toastr.Success(_localizer[isNew ? "SavedSuccessfully" : "UpdatedSuccessfully"].Value);
-                    return RedirectToAction(nameof(Index), new { searchString = model.ArName });
-                }
-
-                await PopulateData(model);
-                _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                model.Departments = await _lookup.NamedLookupAsync<Department>();
+                model.ContractTypes = await _lookup.NamedLookupAsync<ContractType>();
+                model.Specializations = await _lookup.NamedLookupAsync<Specialization>();
+                model.JobTypes = await _lookup.NamedLookupAsync<JobType>();
+                model.InsuranceCategories = await _lookup.InsuranceCategoryLookupAsync();
+                model.InsuranceCompanies = await _lookup.NamedLookupAsync<InsuranceCompany>();
+                model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
+                model.Jobs = await _lookup.NamedLookupAsync<Job>();
+                model.Nationalities = await _lookup.NamedLookupAsync<Country>();
+                model.LeaveTypes = await _lookup.LeaveTypeLookupAsync();
+                model.AllowanceTypes = await _lookup.AllowanceTypeLookupAsync();
+                model.DeductionTypes = await _lookup.DeductionTypeLookupAsync();
                 return View("Upsert", model);
             }
             catch (Exception ex)
@@ -133,22 +156,6 @@ namespace ResturantPL.Controllers.Definitions
                     errorMessage = _localizer["SomethingWentError"].Value
                 });
             }
-        }
-
-        private async Task PopulateData(EmployeeViewModel model)
-        {
-            model.Departments = await _lookup.NamedLookupAsync<Department>();
-            model.ContractTypes = await _lookup.NamedLookupAsync<ContractType>();
-            model.Specializations = await _lookup.NamedLookupAsync<Specialization>();
-            model.JobTypes = await _lookup.NamedLookupAsync<JobType>();
-            model.InsuranceCategories = await _lookup.InsuranceCategoryLookupAsync();
-            model.InsuranceCompanies = await _lookup.NamedLookupAsync<InsuranceCompany>();
-            model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
-            model.Jobs = await _lookup.NamedLookupAsync<Job>();
-            model.Nationalities = await _lookup.NamedLookupAsync<Country>();
-            model.LeaveTypes = await _lookup.LeaveTypeLookupAsync();
-            model.AllowanceTypes = await _lookup.AllowanceTypeLookupAsync();
-            model.DeductionTypes = await _lookup.DeductionTypeLookupAsync();
         }
     }
 }

@@ -80,7 +80,15 @@ namespace ResturantPL.Controllers.Definitions
                     return RedirectToAction(nameof(Index));
                 }
 
-                await PopulateData(model);
+                model.PostingDefaults = await _invoices.GetPostingDefaultsAsync();
+                model.Suppliers = await _lookup.SupplierLookupAsync();
+                model.Customers = await _lookup.CustomerLookupAsync();
+                model.Stores = await _lookup.NamedLookupAsync<Store>();
+                model.CostCenters = await _lookup.NamedLookupAsync<CostCenter>();
+                model.Currencies = await _lookup.NamedLookupAsync<Currency>();
+                model.Units = await _lookup.NamedLookupAsync<UnitPrice>();
+                model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
+
                 return View(model);
             }
             catch (Exception ex)
@@ -96,22 +104,32 @@ namespace ResturantPL.Controllers.Definitions
             {
                 var isNew = model.Id == 0;
 
-                if (!ModelState.IsValid)
+                if (ModelState.IsValid)
                 {
-                    await PopulateData(model);
+                    var result = await _invoices.UpsertInvoiceAsync(model);
+                    if (result.Success)
+                    {
+                        _toastr.Success(_localizer[isNew ? "SavedSuccessfully" : "UpdatedSuccessfully"].Value);
+                        return RedirectToAction(nameof(Index), new { searchString = result.Data });
+                    }
+
+                    _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                }
+                else
+                {
                     _toastr.Error(_localizer["ValidationError"].Value);
-                    return View("Upsert", model);
                 }
 
-                var result = await _invoices.UpsertInvoiceAsync(model);
-                if (result.Success)
-                {
-                    _toastr.Success(_localizer[isNew ? "SavedSuccessfully" : "UpdatedSuccessfully"].Value);
-                    return RedirectToAction(nameof(Index), new { searchString = result.Data });
-                }
+                // the form is shown again, so its dropdown lists are filled again
+                model.PostingDefaults = await _invoices.GetPostingDefaultsAsync();
+                model.Suppliers = await _lookup.SupplierLookupAsync();
+                model.Customers = await _lookup.CustomerLookupAsync();
+                model.Stores = await _lookup.NamedLookupAsync<Store>();
+                model.CostCenters = await _lookup.NamedLookupAsync<CostCenter>();
+                model.Currencies = await _lookup.NamedLookupAsync<Currency>();
+                model.Units = await _lookup.NamedLookupAsync<UnitPrice>();
+                model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
 
-                await PopulateData(model);
-                _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
                 return View("Upsert", model);
             }
             catch (Exception ex)
@@ -149,13 +167,20 @@ namespace ResturantPL.Controllers.Definitions
 
         public async Task<IActionResult> Pdf(int id)
         {
-            var model = await _invoices.GetInvoiceByIdAsync(id);
-            if (model == null)
+            try
             {
-                return NotFound();
-            }
+                var model = await _invoices.GetInvoiceByIdAsync(id);
+                if (model == null)
+                {
+                    return NotFound();
+                }
 
-            return new ViewAsPdf("Pdf", model) { FileName = Uri.EscapeDataString($"Invoice-{model.InvoiceCode}.pdf") };
+                return new ViewAsPdf("Pdf", model) { FileName = Uri.EscapeDataString($"Invoice-{model.InvoiceCode}.pdf") };
+            }
+            catch (Exception ex)
+            {
+                return ErrorHandler.ErrorView(ex);
+            }
         }
 
         [HttpGet]
@@ -248,23 +273,6 @@ namespace ResturantPL.Controllers.Definitions
                     success = false,
                     errorMessage = _localizer["SomethingWentError"].Value
                 });
-            }
-        }
-
-        private async Task PopulateData(InvoiceViewModel model)
-        {
-            model.PostingDefaults = await _invoices.GetPostingDefaultsAsync();
-            model.Suppliers = await _lookup.SupplierLookupAsync();
-            model.Customers = await _lookup.CustomerLookupAsync();
-            model.Stores = await _lookup.NamedLookupAsync<Store>();
-            model.CostCenters = await _lookup.NamedLookupAsync<CostCenter>();
-            model.Currencies = await _lookup.NamedLookupAsync<Currency>();
-            model.Units = await _lookup.NamedLookupAsync<UnitPrice>();
-            model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
-
-            if (model.Items.Count > 0)
-            {
-                model.FillItemNames(await _lookup.StoreProductLookupByStoreIdAsync(model.StoreId.GetValueOrDefault()));
             }
         }
     }

@@ -1,7 +1,7 @@
 @model OrderViewModel
 @{
     ViewBag.Title = L["MergeOrder"].Value;
-    var isArabic = LanguageHelper.IsArabic();
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var tables = (IEnumerable<LookupItem>)ViewBag.Tables;
 }
 

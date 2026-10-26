@@ -142,15 +142,20 @@ namespace ResturantPL.Controllers.Definitions
         [HttpGet]
         public async Task<IActionResult> EmployeeExpenses(int employeeId, DateTime startDate, DateTime endDate)
         {
-            var expenses = await _service.GetEmployeeExpensesAsync(employeeId, startDate, endDate);
-            if (expenses == null)
+            try
             {
-                return NotFound();
+                var expenses = await _service.GetEmployeeExpensesAsync(employeeId, startDate, endDate);
+                if (expenses == null)
+                {
+                    return NotFound();
+                }
+
+                return Json(expenses);
             }
-
-            expenses.SalaryType = _localizer["Enum.SalaryPaymentMethod." + expenses.SalaryType].Value;
-
-            return Json(expenses);
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
     }
 }

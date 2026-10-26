@@ -20,9 +20,9 @@ public class OrderService : IOrderService
         _mapper = mapper;
     }
 
-    public async Task<PaginatedResult<OrderViewModel>> GetPagedOrdersAsync(PageRequest request, string userId)
+    public async Task<PaginatedResult<OrderViewModel>> GetPagedOrdersAsync(PageRequest request)
     {
-        var result = await _unitOfWork.Orders.GetPagedOrdersAsync(request, userId);
+        var result = await _unitOfWork.Orders.GetPagedOrdersAsync(request);
 
         return PaginatedResult<OrderViewModel>.Create(_mapper.Map<List<OrderViewModel>>(result.Data),
             result.TotalRecords,

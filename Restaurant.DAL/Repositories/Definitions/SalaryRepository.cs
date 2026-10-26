@@ -74,36 +74,53 @@ public class SalaryRepository : ISalaryRepository
             return null;
         }
 
+        var fromDay = startDate.Date;
+        var nextDay = endDate.Date.AddDays(1);
         var scrounges = _context.Scrounges
             .AsNoTracking()
-            .Where(a => a.EmployeeId == employeeId && a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date);
+            .Where(a => a.EmployeeId == employeeId && a.Date >= fromDay && a.Date < nextDay);
 
-        var model = new EmployeeExpenseViewModel
+        var incentives = await scrounges
+            .Where(a => a.State == MoneyState.Incentive)
+            .SumAsync(a => (decimal?)a.Amount) ?? 0;
+
+        var discounts = await scrounges
+            .Where(a => a.State == MoneyState.Discount)
+            .SumAsync(a => (decimal?)a.Amount) ?? 0;
+
+        var depts = await scrounges
+            .Where(a => a.State == MoneyState.Dept)
+            .SumAsync(a => (decimal?)a.Amount) ?? 0;
+
+        var allowances = await _context.EmployeeAllowances
+            .AsNoTracking()
+            .Where(a => a.EmployeeId == employeeId)
+            .SumAsync(a => (decimal?)a.Amount) ?? 0;
+
+        var fixedDeductions = await _context.EmployeeFixedDeductions
+            .AsNoTracking()
+            .Where(a => a.EmployeeId == employeeId)
+            .SumAsync(a => (decimal?)a.Amount) ?? 0;
+
+        var mainSalary = employee.BasicSalary ?? 0;
+        var totalSalary = mainSalary + allowances + incentives - fixedDeductions - discounts - depts;
+
+        return new EmployeeExpenseViewModel
         {
-            Incentives = await scrounges.Where(a => a.State == MoneyState.Incentive).SumAsync(a => (decimal?)a.Amount) ?? 0,
-            Discounts = await scrounges.Where(a => a.State == MoneyState.Discount).SumAsync(a => (decimal?)a.Amount) ?? 0,
-            Depts = await scrounges.Where(a => a.State == MoneyState.Dept).SumAsync(a => (decimal?)a.Amount) ?? 0,
-
-            Allowances = await _context.EmployeeAllowances.AsNoTracking()
-                .Where(a => a.EmployeeId == employeeId).SumAsync(a => (decimal?)a.Amount) ?? 0,
-
-            FixedDeductions = await _context.EmployeeFixedDeductions.AsNoTracking()
-                .Where(a => a.EmployeeId == employeeId).SumAsync(a => (decimal?)a.Amount) ?? 0,
-
-            MainSalary = employee.BasicSalary ?? 0,
+            MainSalary = mainSalary,
+            Allowances = allowances,
+            Incentives = incentives,
+            FixedDeductions = fixedDeductions,
+            Discounts = discounts,
+            Depts = depts,
+            TotalSalary = totalSalary,
             IsSalaryStopped = employee.IsSalaryStopped,
-            SalaryType = employee.PaymentMethod.ToString()
+            SalaryType = employee.SalaryType?.ToString() ?? string.Empty
         };
-        model.TotalSalary = model.MainSalary + model.Allowances + model.Incentives
-            - model.FixedDeductions - model.Discounts - model.Depts;
-
-        return model;
     }
 
     public async Task<ResultMessage> UpsertSalaryAsync(Salary entity, string userId)
     {
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-
         try
         {
             // A stopped employee gets no salary saved, new or edited
@@ -118,17 +135,10 @@ public class SalaryRepository : ISalaryRepository
                 };
             }
 
-            if (entity.Id == 0)
+            Salary existing = null;
+            if (entity.Id != 0)
             {
-                entity.SalaryCode = await NewSalaryCodeAsync();
-                entity.UserId = userId;
-                entity.SalaryDate = DateTime.Now;
-                await _context.Salaries.AddAsync(entity);
-                await _context.SaveChangesAsync();
-            }
-            else
-            {
-                var existing = await _context.Salaries.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
+                existing = await _context.Salaries.FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
                     return new ResultMessage
@@ -137,16 +147,38 @@ public class SalaryRepository : ISalaryRepository
                         Message = "RecordNotFound"
                     };
                 }
+            }
 
+            var periodAlreadyPaid = await _context.Salaries.AsNoTracking()
+                .AnyAsync(a => a.Id != entity.Id
+                    && a.EmployeeId == entity.EmployeeId
+                    && a.FromDate <= entity.ToDate
+                    && a.ToDate >= entity.FromDate);
+            if (periodAlreadyPaid)
+            {
+                return new ResultMessage
+                {
+                    Success = false,
+                    Message = "SalaryPeriodAlreadyPaid"
+                };
+            }
+
+            if (existing is null)
+            {
+                entity.SalaryCode = await NewSalaryCodeAsync();
+                entity.UserId = userId;
+                entity.SalaryDate = DateTime.Now;
+                await _context.Salaries.AddAsync(entity);
+            }
+            else
+            {
                 entity.SalaryCode = existing.SalaryCode;
                 entity.SalaryDate = existing.SalaryDate;
                 entity.UserId = existing.UserId;
-                _context.Salaries.Update(entity);
-                await _context.SaveChangesAsync();
+                _context.Entry(existing).CurrentValues.SetValues(entity);
             }
 
-
-            await transaction.CommitAsync();
+            await _context.SaveChangesAsync();
 
             return new ResultMessage { Success = true };
         }

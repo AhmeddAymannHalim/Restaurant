@@ -1,5 +1,6 @@
 @model UserViewModel
 @{
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var isNew = string.IsNullOrEmpty(Model.Id);
     ViewBag.Title = isNew ? L["NewUser"].Value : L["UpdateUser"].Value;
 }
@@ -44,7 +45,7 @@
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.Roles)
                     {
-                        <option value="@item.Id" selected="@(Model.UserType == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.UserType == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
                 <span asp-validation-for="UserType" class="text-danger"></span>

@@ -1,5 +1,6 @@
 @model AccountDefinitionViewModel
 @{
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var isNew = Model.Id == 0;
     ViewBag.Title = isNew ? L["NewAccount"].Value : L["UpdateAccount"].Value;
 }
@@ -51,7 +52,7 @@
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.Parents)
                     {
-                        <option value="@item.Id" selected="@(Model.ParentAccountId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.ParentAccountId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
                 <span asp-validation-for="ParentAccountId" class="text-danger"></span>
@@ -62,7 +63,7 @@
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.Currencies)
                     {
-                        <option value="@item.Id" selected="@(Model.CurrencyId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.CurrencyId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
             </div>

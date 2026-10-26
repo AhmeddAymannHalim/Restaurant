@@ -22,7 +22,7 @@ public class SalaryVmValidator : AbstractValidator<SalaryViewModel>
 
         RuleFor(x => x.SalaryAmount)
             .GreaterThanOrEqualTo(0)
-            .WithMessage(required);
+            .WithMessage(localizer["Val.NotNegative"].Value);
 
         // A blank date posts as 0001-01-01, which NotEmpty treats as missing
         RuleFor(x => x.FromDate)

@@ -21,19 +21,6 @@ public class StoreConvertViewModel
     public IEnumerable<LookupItem> Stores { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Categories { get; set; } = new List<LookupItem>();
 
-    // names of the posted lines, from the product list of the store they leave
-    public void FillItemNames(IEnumerable<StoreProductLookupItem> products)
-    {
-        foreach (var item in Items)
-        {
-            var product = products.FirstOrDefault(p => p.ProductId == item.ProductId);
-            if (product is not null)
-            {
-                item.ProductArName = product.ProductArName;
-                item.ProductEnName = product.ProductEnName;
-            }
-        }
-    }
 }
 
 public class StoreConvertItemViewModel

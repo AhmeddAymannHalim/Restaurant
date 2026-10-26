@@ -64,31 +64,55 @@ public class OrderLedgerRepository : IOrderLedgerRepository
 
     public async Task RemoveEntryAsync(int billId)
     {
-        var entries = await _context.EntryMasters
-            .Include(a => a.EntryDetails).ThenInclude(a => a.Account)
-            .Where(a => a.BillId == billId)
-            .ToListAsync();
+        await new JournalEntryRepository(_context).RemoveBillEntriesAsync(billId);
+    }
 
-        foreach (var entry in entries)
+    public void RecalculateBill(Order order, decimal taxPercent)
+    {
+        var subTotal = order.Lines.Sum(a => a.Price);
+        order.Tax = Math.Round(subTotal * taxPercent / 100, 2);
+        var extras = order.Tax + order.Service + order.DeliveryFee;
+        var discount = Math.Min(Math.Max(0, order.Bill.BillDiscountValue), subTotal + extras);
+        var total = subTotal + extras - discount;
+        var cost = order.Lines.Sum(a => a.UnitCost * a.Quantity);
+
+        order.Bill.TotalAmountBeforeDiscountOrExtra = subTotal;
+        order.Bill.TotalItemsAmountAfterDiscountAndExtra = subTotal;
+        order.Bill.BillDiscountValue = discount;
+        order.Bill.TotalDiscountValueOnBillAndItems = discount;
+        order.Bill.BillExtraValue = extras;
+        order.Bill.TotalExtraValueOnBillAndItems = extras;
+        order.Bill.TotalBillAmountAfterDiscountAndExtra = total;
+        order.Bill.BillCost = cost;
+        order.Bill.BillProfit = total - cost;
+        order.Bill.PayType = order.OnAccount ? PayType.Later : PayType.Cash;
+        order.Bill.IsEntryPosted = false;
+        order.Bill.AmountPaided = order.Cash && !order.OnAccount ? total : 0;
+        order.Bill.CasherRemainingAmount = total - order.Bill.AmountPaided;
+        order.Bill.UpdatedAt = DateTime.Now;
+    }
+
+    public async Task RemoveOrderAsync(Order order)
+    {
+        if (order.Type == OrderType.Hall && order.TableId.HasValue)
         {
-            foreach (var detail in entry.EntryDetails)
+            var freedTable = await _context.Tables.FindAsync(order.TableId.Value);
+            if (freedTable is not null)
             {
-                if (detail.Account == null)
-                {
-                    continue;
-                }
-
-                var isCustomerOrSupplier = detail.Account.AccountType == AccountType.Customer
-                    || detail.Account.AccountType == AccountType.Supplier;
-                if (!isCustomerOrSupplier)
-                {
-                    detail.Account.Adjust(detail.Account.BalanceType == AccountBalanceType.Debit ? detail.Credit - detail.Debit : detail.Debit - detail.Credit);
-                }
+                freedTable.IsPending = false;
             }
-
-            _context.EntryDetails.RemoveRange(entry.EntryDetails);
         }
 
-        _context.EntryMasters.RemoveRange(entries);
+        await RemoveEntryAsync(order.Id);
+
+        var orderLines = order.Lines.Where(a => a.OrderId == order.Id).ToList();
+        _context.OrderIngredients.RemoveRange(orderLines.SelectMany(a => a.Ingredients));
+        _context.OrderMenuItems.RemoveRange(orderLines);
+        _context.BillDetails.RemoveRange(orderLines.Select(a => a.BillDetail).Where(a => a is not null));
+        _context.Orders.Remove(order);
+        if (order.Bill is not null)
+        {
+            _context.BillMasters.Remove(order.Bill);
+        }
     }
 }

@@ -2,6 +2,7 @@
 @{
     var isNew = Model.Id == 0;
     ViewBag.Title = isNew ? L["NewSalary"].Value : L["UpdateSalary"].Value;
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
 }
 
 <div class="bo-card">
@@ -23,7 +24,7 @@
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.Employees)
                     {
-                        <option value="@item.Id" selected="@(Model.EmployeeId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.EmployeeId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
                 <span asp-validation-for="EmployeeId" class="text-danger"></span>
@@ -92,6 +93,12 @@
     <script>
         $(function () {
             var fillAmount = @(isNew ? "true" : "false");
+            var salaryTypes = {
+                Monthly: "@L["Enum.SalaryType.Monthly"]",
+                Weekly: "@L["Enum.SalaryType.Weekly"]",
+                Daily: "@L["Enum.SalaryType.Daily"]",
+                Hourly: "@L["Enum.SalaryType.Hourly"]"
+            };
 
             function loadExpenses() {
                 var employeeId = $("#employeeId").val();
@@ -108,7 +115,7 @@
                     success: function (data) {
                         $("#salaryStopped").prop("hidden", !data.isSalaryStopped);
                         $("#mainAmount").val(data.mainSalary);
-                        $("#salaryType").val(data.salaryType);
+                        $("#salaryType").val(salaryTypes[data.salaryType] || "");
                         $("#allowance").val(data.allowances);
                         $("#fixedDeduction").val(data.fixedDeductions);
                         $("#incentive").val(data.incentives);

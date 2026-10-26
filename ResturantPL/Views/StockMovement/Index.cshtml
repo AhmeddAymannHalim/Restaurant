@@ -1,7 +1,7 @@
 ﻿@model StockMovementIndexViewModel
 @{
     ViewBag.Title = L["StockMovements"].Value;
-    var isArabic = LanguageHelper.IsArabic();
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var result = Model.Result;
     var invariant = CultureInfo.InvariantCulture;
 }

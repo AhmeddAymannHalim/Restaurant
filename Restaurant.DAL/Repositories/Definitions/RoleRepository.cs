@@ -122,7 +122,7 @@ public class RoleRepository : IRoleRepository
                 };
             }
 
-            if ((entity.Name == "Admin" || entity.Name == "Manager" || entity.Name == "كاشير" || entity.Name == "User"))
+            if (entity.Name == "Admin" || entity.Name == "Manager" || entity.Name == "كاشير" || entity.Name == "User")
             {
                 return new ResultMessage
                 {

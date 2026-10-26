@@ -68,12 +68,12 @@ public class OrderControllerBranchTests
     {
         var cashier = new Cashier();
         var request = new PageRequest { Status = "pending" };
-        cashier.Orders.Setup(a => a.GetPagedOrdersAsync(request, It.IsAny<string>()))
+        cashier.Orders.Setup(a => a.GetPagedOrdersAsync(request))
             .ReturnsAsync(PaginatedResult<OrderViewModel>.Create(new List<OrderViewModel>(), 0, new PageRequest()));
 
         Assert.IsType<ViewResult>(await cashier.Controller.List(request));
 
-        cashier.Orders.Setup(a => a.GetPagedOrdersAsync(It.IsAny<PageRequest>(), It.IsAny<string>())).ThrowsAsync(new InvalidOperationException());
+        cashier.Orders.Setup(a => a.GetPagedOrdersAsync(It.IsAny<PageRequest>())).ThrowsAsync(new InvalidOperationException());
         Assert.Equal(ErrorView, Assert.IsType<ViewResult>(await cashier.Controller.List(new PageRequest())).ViewName);
     }
 

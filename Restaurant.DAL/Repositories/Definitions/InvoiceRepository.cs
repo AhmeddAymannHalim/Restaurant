@@ -42,7 +42,6 @@ public class InvoiceRepository : IInvoiceRepository
         }
 
         var type = _billSupport.TypeOf(bill.BillSetting.BillType);
-        var isArabic = LanguageHelper.IsArabic();
         var model = new InvoiceViewModel
         {
             Id = bill.Id,
@@ -71,17 +70,18 @@ public class InvoiceRepository : IInvoiceRepository
                 {
                     Id = a.Id,
                     ProductId = _billSupport.ProductIdOf(a.Item?.Code),
-                    ProductName = isArabic ? a.Item?.ArName : a.Item?.EnName,
+                    ProductArName = a.Item?.ArName,
+                    ProductEnName = a.Item?.EnName,
                     UnitPriceId = _billSupport.UnitPriceIdOf(a.Unit?.Code),
-                    UnitName = isArabic ? a.Unit?.ArName : a.Unit?.EnName,
+                    UnitArName = a.Unit?.ArName,
+                    UnitEnName = a.Unit?.EnName,
                     Quantity = a.Quantity ?? 0,
                     Price = a.UnitPrice ?? 0
                 })
                 .ToList()
         };
 
-        model.LinkedPayments = (await _context.PaymentInvoiceSupplier.Where(a => a.BillMasterId == bill.Id).SumAsync(a => (decimal?)a.Paid) ?? 0)
-            + (await _context.PaymentInvoiceCustomer.Where(a => a.BillMasterId == bill.Id).SumAsync(a => (decimal?)a.Paid) ?? 0);
+        model.LinkedPayments = await _billSupport.GetLinkedPaymentsAsync(bill.Id);
 
         var accountId = bill.CustomerOrSupplierAccountId;
         if (accountId.HasValue)
@@ -121,10 +121,7 @@ public class InvoiceRepository : IInvoiceRepository
     public async Task<string> GetNextCodeAsync(InvoiceType type)
     {
         var typeInfo = _billSupport.GetInvoiceType(type);
-        var billType = typeInfo.BillType;
-        var arName = typeInfo.ArName;
-        var enName = typeInfo.EnName;
-        var setting = await _billSupport.GetBillSettingAsync(billType, arName, enName);
+        var setting = await _billSupport.GetBillSettingAsync(typeInfo.BillType, typeInfo.ArName, typeInfo.EnName);
 
         return await _billSupport.NextBillCodeAsync(setting.Id);
     }
@@ -208,28 +205,28 @@ public class InvoiceRepository : IInvoiceRepository
             }
 
             var typeInfo = _billSupport.GetInvoiceType(model.InvoiceType);
-            var billType = typeInfo.BillType;
-            var arName = typeInfo.ArName;
-            var enName = typeInfo.EnName;
-            var entryType = typeInfo.Entry;
-
-            var setting = await _billSupport.GetBillSettingAsync(billType, arName, enName);
-            var entrySetting = await _billSupport.GetEntrySettingAsync(entryType, arName, enName);
+            var setting = await _billSupport.GetBillSettingAsync(typeInfo.BillType, typeInfo.ArName, typeInfo.EnName);
+            var entrySetting = await _billSupport.GetEntrySettingAsync(typeInfo.Entry, typeInfo.ArName, typeInfo.EnName);
             // one BillDetail per line: stock and cost are kept per base unit, so the line remembers how many base units its unit holds
             // (1 when the product has no rate for that unit)
+            var itemCodes = productIds.Select(a => BillSupportRepository.ItemCodePrefix + a).ToList();
+            var unitRates = await _context.ItemUnits.AsNoTracking()
+                .Include(a => a.Item)
+                .Include(a => a.Unit)
+                .Where(a => itemCodes.Contains(a.Item.Code))
+                .ToListAsync();
+            var products = await _context.Products.AsNoTracking().Where(a => productIds.Contains(a.Id)).ToListAsync();
+
             var details = new List<BillDetail>();
             for (var i = 0; i < items.Count; i++)
             {
                 var line = items[i];
                 var itemCode = BillSupportRepository.ItemCodePrefix + line.ProductId;
                 var unitCode = BillSupportRepository.UnitCodePrefix + line.UnitPriceId;
-                var foundRate = await _context.ItemUnits.AsNoTracking()
-                    .Where(a => a.Item.Code == itemCode && a.Unit.Code == unitCode)
-                    .Select(a => (double?)a.TransRate)
-                    .FirstOrDefaultAsync();
+                var foundRate = unitRates.FirstOrDefault(a => a.Item.Code == itemCode && a.Unit.Code == unitCode)?.TransRate;
 
                 var rate = foundRate > 0 ? (decimal)foundRate.Value : 1;
-                var productCost = await _context.Products.AsNoTracking().Where(a => a.Id == line.ProductId).Select(a => a.Cost).FirstOrDefaultAsync();
+                var productCost = products.First(a => a.Id == line.ProductId).Cost;
 
                 details.Add(new BillDetail
                 {
@@ -280,7 +277,7 @@ public class InvoiceRepository : IInvoiceRepository
                 }
 
                 var oldType = _billSupport.TypeOf(bill.BillSetting.BillType);
-                var takeBackSign = -(oldType is InvoiceType.Purchases or InvoiceType.SalesReturn or InvoiceType.Surplus or InvoiceType.OpeningInventory ? 1 : -1);
+                var takeBackSign = -_billSupport.StockSignOf(oldType);
                 var takeBackStoreId = bill.StoreId ?? 0;
 
                 foreach (var detail in bill.BillDetails.Where(_ => bill.IsStorageEffected))
@@ -297,7 +294,7 @@ public class InvoiceRepository : IInvoiceRepository
 
                 if (bill.IsEntryPosted)
                 {
-                    var takeBackBalanceDelta = -(oldType is InvoiceType.Purchases or InvoiceType.Sales ? 1 : -1) * (bill.TotalBillAmountAfterDiscountAndExtra - bill.PaymentMethods.Sum(a => a.AmountPaided));
+                    var takeBackBalanceDelta = -_billSupport.BalanceSignOf(oldType) * (bill.TotalBillAmountAfterDiscountAndExtra - bill.PaymentMethods.Sum(a => a.AmountPaided));
                     if (bill.CustomerOrSupplierAccountId.HasValue)
                     {
                         var takeBackAccount = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == bill.CustomerOrSupplierAccountId.Value);
@@ -305,21 +302,7 @@ public class InvoiceRepository : IInvoiceRepository
                     }
                 }
 
-                var existingEntries = await _context.EntryMasters
-                    .Include(a => a.EntryDetails).ThenInclude(a => a.Account)
-                    .Where(a => a.BillId == bill.Id)
-                    .ToListAsync();
-
-                foreach (var existingDetail in existingEntries.SelectMany(a => a.EntryDetails))
-                {
-                    if (existingDetail.Account is not null && existingDetail.Account.AccountType is not (AccountType.Customer or AccountType.Supplier))
-                    {
-                        existingDetail.Account.Adjust(existingDetail.Account.BalanceType == AccountBalanceType.Debit ? existingDetail.Credit - existingDetail.Debit : existingDetail.Debit - existingDetail.Credit);
-                    }
-                }
-
-                _context.EntryDetails.RemoveRange(existingEntries.SelectMany(a => a.EntryDetails));
-                _context.EntryMasters.RemoveRange(existingEntries);
+                await _journals.RemoveBillEntriesAsync(bill.Id);
 
                 _context.BillDetails.RemoveRange(bill.BillDetails);
                 _context.PaymentMethods.RemoveRange(bill.PaymentMethods);
@@ -336,8 +319,7 @@ public class InvoiceRepository : IInvoiceRepository
             decimal linkedPayments = 0;
             if (model.Id != 0)
             {
-                linkedPayments = (await _context.PaymentInvoiceSupplier.Where(a => a.BillMasterId == model.Id).SumAsync(a => (decimal?)a.Paid) ?? 0)
-                    + (await _context.PaymentInvoiceCustomer.Where(a => a.BillMasterId == model.Id).SumAsync(a => (decimal?)a.Paid) ?? 0);
+                linkedPayments = await _billSupport.GetLinkedPaymentsAsync(model.Id);
             }
             if (paid + linkedPayments > total)
             {
@@ -350,15 +332,7 @@ public class InvoiceRepository : IInvoiceRepository
             decimal? cost = null;
             if (isSale)
             {
-                decimal saleCost = 0;
-                foreach (var detail in details)
-                {
-                    var detailCost = detail.UnitCostAtPosting ?? 0;
-                    var detailQuantity = detail.Quantity ?? 0;
-                    saleCost += detailCost * detailQuantity;
-                }
-
-                cost = saleCost;
+                cost = details.Sum(a => (a.UnitCostAtPosting ?? 0) * (a.Quantity ?? 0));
             }
 
             bill.StoreId = model.StoreId;
@@ -384,7 +358,7 @@ public class InvoiceRepository : IInvoiceRepository
             bill.BillProfit = cost.HasValue ? (model.InvoiceType == InvoiceType.SalesReturn ? cost - total : total - cost) : null;
             bill.BillDetails = details;
 
-            var applySign = (model.InvoiceType is InvoiceType.Purchases or InvoiceType.SalesReturn or InvoiceType.Surplus or InvoiceType.OpeningInventory ? 1 : -1);
+            var applySign = _billSupport.StockSignOf(model.InvoiceType);
             var applyStoreId = bill.StoreId.Value;
 
             for (var i = 0; i < items.Count; i++)
@@ -420,7 +394,7 @@ public class InvoiceRepository : IInvoiceRepository
 
             if (bill.IsEntryPosted && partner.AccountId.HasValue)
             {
-                var applyBalanceDelta = (model.InvoiceType is InvoiceType.Purchases or InvoiceType.Sales ? 1 : -1) * remaining;
+                var applyBalanceDelta = _billSupport.BalanceSignOf(model.InvoiceType) * remaining;
                 var applyAccount = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == partner.AccountId.Value);
                 applyAccount?.Adjust(applyBalanceDelta);
             }
@@ -479,15 +453,15 @@ public class InvoiceRepository : IInvoiceRepository
                 return new ResultMessage { Success = false, Message = "BillNotEditable" };
             }
 
-            var billPayments = (await _context.PaymentInvoiceSupplier.Where(a => a.BillMasterId == bill.Id).SumAsync(a => (decimal?)a.Paid) ?? 0)
-                + (await _context.PaymentInvoiceCustomer.Where(a => a.BillMasterId == bill.Id).SumAsync(a => (decimal?)a.Paid) ?? 0);
-            if (billPayments > 0)
+            var hasPayments = await _context.PaymentInvoiceSupplier.AnyAsync(a => a.BillMasterId == bill.Id)
+                || await _context.PaymentInvoiceCustomer.AnyAsync(a => a.BillMasterId == bill.Id);
+            if (hasPayments)
             {
                 return new ResultMessage { Success = false, Message = "InvoiceHasPayments" };
             }
 
             var deleteType = _billSupport.TypeOf(bill.BillSetting.BillType);
-            var deleteSign = -(deleteType is InvoiceType.Purchases or InvoiceType.SalesReturn or InvoiceType.Surplus or InvoiceType.OpeningInventory ? 1 : -1);
+            var deleteSign = -_billSupport.StockSignOf(deleteType);
             var deleteStoreId = bill.StoreId ?? 0;
 
             foreach (var detail in bill.BillDetails.Where(_ => bill.IsStorageEffected))
@@ -504,7 +478,7 @@ public class InvoiceRepository : IInvoiceRepository
 
             if (bill.IsEntryPosted)
             {
-                var deleteBalanceDelta = -(deleteType is InvoiceType.Purchases or InvoiceType.Sales ? 1 : -1) * bill.CasherRemainingAmount;
+                var deleteBalanceDelta = -_billSupport.BalanceSignOf(deleteType) * bill.CasherRemainingAmount;
                 if (bill.CustomerOrSupplierAccountId.HasValue)
                 {
                     var deleteAccount = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == bill.CustomerOrSupplierAccountId.Value);
@@ -519,21 +493,7 @@ public class InvoiceRepository : IInvoiceRepository
                 return new ResultMessage { Success = false, Message = "InsufficientStock" };
             }
 
-            var entriesToRemove = await _context.EntryMasters
-                .Include(a => a.EntryDetails).ThenInclude(a => a.Account)
-                .Where(a => a.BillId == bill.Id)
-                .ToListAsync();
-
-            foreach (var detailToRemove in entriesToRemove.SelectMany(a => a.EntryDetails))
-            {
-                if (detailToRemove.Account is not null && detailToRemove.Account.AccountType is not (AccountType.Customer or AccountType.Supplier))
-                {
-                    detailToRemove.Account.Adjust(detailToRemove.Account.BalanceType == AccountBalanceType.Debit ? detailToRemove.Credit - detailToRemove.Debit : detailToRemove.Debit - detailToRemove.Credit);
-                }
-            }
-
-            _context.EntryDetails.RemoveRange(entriesToRemove.SelectMany(a => a.EntryDetails));
-            _context.EntryMasters.RemoveRange(entriesToRemove);
+            await _journals.RemoveBillEntriesAsync(bill.Id);
 
             _context.BillDetails.RemoveRange(bill.BillDetails);
             _context.PaymentMethods.RemoveRange(bill.PaymentMethods);
@@ -628,16 +588,13 @@ public class InvoiceRepository : IInvoiceRepository
             if (!bill.IsEntryPosted)
             {
                 var typeInfo = _billSupport.GetInvoiceType(type);
-                var arName = typeInfo.ArName;
-                var enName = typeInfo.EnName;
-                var entryType = typeInfo.Entry;
-                var entrySetting = await _billSupport.GetEntrySettingAsync(entryType, arName, enName);
+                var entrySetting = await _billSupport.GetEntrySettingAsync(typeInfo.Entry, typeInfo.ArName, typeInfo.EnName);
 
                 await _journals.PostBillEntryAsync(bill, type, paidAtCreation, remaining, bill.CustomerOrSupplierAccountId, entrySetting);
 
                 if (bill.CustomerOrSupplierAccountId.HasValue)
                 {
-                    var postBalanceDelta = (type is InvoiceType.Purchases or InvoiceType.Sales ? 1 : -1) * remaining;
+                    var postBalanceDelta = _billSupport.BalanceSignOf(type) * remaining;
                     var postAccount = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == bill.CustomerOrSupplierAccountId.Value);
                     postAccount?.Adjust(postBalanceDelta);
                 }
@@ -647,7 +604,7 @@ public class InvoiceRepository : IInvoiceRepository
 
             if (!bill.IsStorageEffected)
             {
-                var sign = (type is InvoiceType.Purchases or InvoiceType.SalesReturn or InvoiceType.Surplus or InvoiceType.OpeningInventory ? 1 : -1);
+                var sign = _billSupport.StockSignOf(type);
                 foreach (var detail in bill.BillDetails)
                 {
                     var productId = _billSupport.ProductIdOf(detail.Item?.Code);

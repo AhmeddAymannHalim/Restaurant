@@ -1,10 +1,12 @@
 @using Newtonsoft.Json
 @using Shared.Constants
 @using Shared.Enums.Others
+@{
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
+}
 
 @{
-    bool isArabicCulture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar";
-    string toastPosition = isArabicCulture ? "toast-top-left" : "toast-top-right";
+    string toastPosition = isArabic ? "toast-top-left" : "toast-top-right";
 }
 
 <script type="text/javascript">

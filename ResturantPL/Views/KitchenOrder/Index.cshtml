@@ -1,7 +1,7 @@
 @model IEnumerable<OrderViewModel>
 @{
     ViewBag.Title = L["KitchenOrders"].Value;
-    var isArabic = LanguageHelper.IsArabic();
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
 }
 
 <div class="bo-card">

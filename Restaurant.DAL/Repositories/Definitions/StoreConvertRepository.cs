@@ -101,18 +101,17 @@ public class StoreConvertRepository : IStoreConvertRepository
                 return new ResultMessage { Success = false, Message = "Val.GreaterThanZero" };
             }
 
-            var wanted = convert.StoreConvertProducts
+            var lines = convert.StoreConvertProducts
                 .GroupBy(a => a.ProductId)
-                .Select(g => new
-                    {
-                        ProductId = g.Key,
-                        Quantity = g.Sum(x => x.Quantity)
-                    })
+                .Select(g => new StoreConvertProduct
+                {
+                    ProductId = g.Key,
+                    Quantity = g.Sum(x => x.Quantity)
+                })
                 .ToList();
 
-            var lines = new List<StoreConvertProduct>();
             var movements = new List<StoreProductMovement>();
-            foreach (var item in wanted)
+            foreach (var item in lines)
             {
                 if (!await _stock.AdjustAsync(convert.FromStoreId, item.ProductId, -item.Quantity, createIfMissing: false))
                 {
@@ -124,11 +123,6 @@ public class StoreConvertRepository : IStoreConvertRepository
                 }
 
                 await _stock.AdjustAsync(convert.ToStoreId, item.ProductId, item.Quantity);
-                lines.Add(new StoreConvertProduct
-                {
-                    ProductId = item.ProductId,
-                    Quantity = item.Quantity
-                });
                 movements.Add(new StoreProductMovement
                 {
                     StoreId = convert.FromStoreId,

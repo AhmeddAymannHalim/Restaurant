@@ -1,5 +1,6 @@
 @model ProductViewModel
 @{
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var isNew = Model.Id == 0;
     // the ERP keeps six prices per unit (sell type id 1..6)
     var priceTypes = Model.SellTypes.Where(a => a.Show && a.Id <= 6).ToList();
@@ -35,7 +36,7 @@
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.Categories)
                     {
-                        <option value="@item.Id" selected="@(Model.ProductCategoryId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.ProductCategoryId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
                 <span asp-validation-for="ProductCategoryId" class="text-danger"></span>
@@ -57,7 +58,7 @@
                                 <th>@L["PriceLastPurchase"]</th>
                                 @foreach (var sellType in priceTypes)
                                 {
-                                    <th>@(LanguageHelper.IsArabic() ? sellType.ArName : sellType.EnName)@if (sellType.IsLastPrice && sellType.PlusPrice > 0) { <span> +@sellType.PlusPrice.Value.ToString("0.##")%</span> }</th>
+                                    <th>@(isArabic ? sellType.ArName : sellType.EnName)@if (sellType.IsLastPrice && sellType.PlusPrice > 0) { <span> +@sellType.PlusPrice.Value.ToString("0.##")%</span> }</th>
                                 }
                                 <th>@L["Barcode"]</th>
                                 <th class="text-center">@L["DefaultUnit"]</th>
@@ -74,7 +75,7 @@
                                             <option value="">@L["Select"]</option>
                                             @foreach (var unit in Model.UnitList)
                                             {
-                                                <option value="@unit.Id" selected="@(unitRow.UnitPriceId == unit.Id)">@(LanguageHelper.IsArabic() ? unit.ArName : unit.EnName)</option>
+                                                <option value="@unit.Id" selected="@(unitRow.UnitPriceId == unit.Id)">@(isArabic ? unit.ArName : unit.EnName)</option>
                                             }
                                         </select>
                                         @Html.ValidationMessage($"Units[{i}].UnitPriceId", new { @class = "text-danger" })
@@ -90,7 +91,7 @@
                                         var priceValue = unitRow.Prices.FirstOrDefault(a => a.SellTypeId == sellType.Id)?.Price ?? 0;
                                         <td>
                                             <input type="hidden" name="Units[@i].Prices[@priceIndex].SellTypeId" value="@sellType.Id" />
-                                            <input type="number" name="Units[@i].Prices[@priceIndex].Price" value="@priceValue.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)" step="any" min="0" class="form-control form-control-sm unit-price" data-plus="@(sellType.IsLastPrice ? sellType.PlusPrice : null)" aria-label="@(LanguageHelper.IsArabic() ? sellType.ArName : sellType.EnName)" />
+                                            <input type="number" name="Units[@i].Prices[@priceIndex].Price" value="@priceValue.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)" step="any" min="0" class="form-control form-control-sm unit-price" data-plus="@(sellType.IsLastPrice ? sellType.PlusPrice : null)" aria-label="@(isArabic ? sellType.ArName : sellType.EnName)" />
                                         </td>
                                         priceIndex++;
                                     }
@@ -111,7 +112,7 @@
                                 <option value="">@L["Select"]</option>
                                 @foreach (var unit in Model.UnitList)
                                 {
-                                    <option value="@unit.Id">@(LanguageHelper.IsArabic() ? unit.ArName : unit.EnName)</option>
+                                    <option value="@unit.Id">@(isArabic ? unit.ArName : unit.EnName)</option>
                                 }
                             </select>
                         </td>
@@ -122,7 +123,7 @@
                         {
                             <td>
                                 <input type="hidden" name="Units[__i__].Prices[@templateIndex].SellTypeId" value="@sellType.Id" />
-                                <input type="number" name="Units[__i__].Prices[@templateIndex].Price" value="0" step="any" min="0" class="form-control form-control-sm unit-price" data-plus="@(sellType.IsLastPrice ? sellType.PlusPrice : null)" aria-label="@(LanguageHelper.IsArabic() ? sellType.ArName : sellType.EnName)" />
+                                <input type="number" name="Units[__i__].Prices[@templateIndex].Price" value="0" step="any" min="0" class="form-control form-control-sm unit-price" data-plus="@(sellType.IsLastPrice ? sellType.PlusPrice : null)" aria-label="@(isArabic ? sellType.ArName : sellType.EnName)" />
                             </td>
                             templateIndex++;
                         }
@@ -154,7 +155,7 @@
                                             <option value="">@L["Select"]</option>
                                             @foreach (var store in Model.Stores)
                                             {
-                                                <option value="@store.Id" selected="@(Model.Stocks[i].StoreId == store.Id)">@(LanguageHelper.IsArabic() ? store.ArName : store.EnName)</option>
+                                                <option value="@store.Id" selected="@(Model.Stocks[i].StoreId == store.Id)">@(isArabic ? store.ArName : store.EnName)</option>
                                             }
                                         </select>
                                         @Html.ValidationMessage($"Stocks[{i}].StoreId", new { @class = "text-danger" })
@@ -179,7 +180,7 @@
                                 <option value="">@L["Select"]</option>
                                 @foreach (var store in Model.Stores)
                                 {
-                                    <option value="@store.Id">@(LanguageHelper.IsArabic() ? store.ArName : store.EnName)</option>
+                                    <option value="@store.Id">@(isArabic ? store.ArName : store.EnName)</option>
                                 }
                             </select>
                         </td>

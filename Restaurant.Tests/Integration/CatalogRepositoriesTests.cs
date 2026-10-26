@@ -117,6 +117,26 @@ public class CatalogRepositoriesTests : IDisposable
     }
 
     [Fact]
+    public async Task Product_OnAnInvoice_CannotBeDeleted()
+    {
+        var product = NewProduct();
+        await _products.UpsertProductAsync(product, new List<ProductStock>());
+        var support = new BillSupportRepository(_db.Context);
+        var setting = await support.GetBillSettingAsync(BillType.Purchases, "مشتريات", "Purchases");
+        var itemId = await support.GetItemIdAsync(product.Id);
+        _db.Context.BillMasters.Add(new BillMaster
+        {
+            Code = "1", Date = DateTime.Now, CurrencyRate = 1, BillSettingId = setting.Id, CreatedAt = DateTime.Now,
+            BillDetails = new List<BillDetail> { new() { ItemId = itemId, Quantity = 1, UnitPrice = 5, CreatedAt = DateTime.Now } }
+        });
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+
+        Assert.Equal("CannotDeleteLinkedRecord", (await _products.DeleteProductAsync(product.Id)).Message);
+        Assert.Single(_db.Context.Products);
+    }
+
+    [Fact]
     public async Task Product_PagingShowsStockOfEveryStore_AndSearches()
     {
         var (a, b) = await SeedStores();

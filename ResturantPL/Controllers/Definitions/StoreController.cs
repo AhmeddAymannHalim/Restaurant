@@ -68,7 +68,9 @@ namespace ResturantPL.Controllers.Definitions
                     model.Code = await _service.NewStoreCodeAsync();
                 }
 
-                await PopulateData(model);
+                model.Storekeepers = await _lookup.StorekeeperLookupAsync();
+                model.Stores = await _lookup.NamedLookupAsync<Store>();
+                model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
                 return View(model);
             }
             catch (Exception ex)
@@ -84,22 +86,25 @@ namespace ResturantPL.Controllers.Definitions
             {
                 var isNew = model.Id == 0;
 
-                if (!ModelState.IsValid)
+                if (ModelState.IsValid)
                 {
-                    await PopulateData(model);
+                    var result = await _service.UpsertStoreAsync(model);
+                    if (result.Success)
+                    {
+                        _toastr.Success(_localizer[isNew ? "SavedSuccessfully" : "UpdatedSuccessfully"].Value);
+                        return RedirectToAction(nameof(Index), new { searchString = model.ArName });
+                    }
+
+                    _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                }
+                else
+                {
                     _toastr.Error(_localizer["ValidationError"].Value);
-                    return View("Upsert", model);
                 }
 
-                var result = await _service.UpsertStoreAsync(model);
-                if (result.Success)
-                {
-                    _toastr.Success(_localizer[isNew ? "SavedSuccessfully" : "UpdatedSuccessfully"].Value);
-                    return RedirectToAction(nameof(Index), new { searchString = model.ArName });
-                }
-
-                await PopulateData(model);
-                _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                model.Storekeepers = await _lookup.StorekeeperLookupAsync();
+                model.Stores = await _lookup.NamedLookupAsync<Store>();
+                model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
                 return View("Upsert", model);
             }
             catch (Exception ex)
@@ -133,13 +138,6 @@ namespace ResturantPL.Controllers.Definitions
                     errorMessage = _localizer["SomethingWentError"].Value
                 });
             }
-        }
-
-        private async Task PopulateData(StoreViewModel model)
-        {
-            model.Storekeepers = await _lookup.StorekeeperLookupAsync();
-            model.Stores = await _lookup.NamedLookupAsync<Store>();
-            model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
         }
     }
 }

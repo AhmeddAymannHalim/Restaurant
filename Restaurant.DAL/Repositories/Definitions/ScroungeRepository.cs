@@ -52,8 +52,6 @@ public class ScroungeRepository : IScroungeRepository
 
     public async Task<ResultMessage> UpsertScroungeAsync(Scrounge entity, string userId)
     {
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-
         try
         {
             if (entity.Id == 0)
@@ -64,7 +62,7 @@ public class ScroungeRepository : IScroungeRepository
             }
             else
             {
-                var existing = await _context.Scrounges.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
+                var existing = await _context.Scrounges.FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
                     return new ResultMessage
@@ -76,11 +74,9 @@ public class ScroungeRepository : IScroungeRepository
 
                 entity.Date = existing.Date;
                 entity.UserId = existing.UserId;
-                _context.Scrounges.Update(entity);
+                _context.Entry(existing).CurrentValues.SetValues(entity);
                 await _context.SaveChangesAsync();
             }
-
-            await transaction.CommitAsync();
 
             return new ResultMessage { Success = true };
         }

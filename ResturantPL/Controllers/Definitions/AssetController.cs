@@ -63,7 +63,9 @@ namespace ResturantPL.Controllers.Definitions
                     model.Code = await _service.NewAccountCodeAsync(null, AccountKind.Asset);
                 }
 
-                await PopulateData(model);
+                model.Parents = await _service.GetParentOptionsAsync(model.Id == 0 ? null : model.Id);
+                model.Currencies = await _lookup.NamedLookupAsync<Currency>();
+                model.PostingAccounts = await _service.GetPostingAccountOptionsAsync();
                 return View(model);
             }
             catch (Exception ex)
@@ -80,22 +82,25 @@ namespace ResturantPL.Controllers.Definitions
                 var isNew = model.Id == 0;
                 model.Kind = AccountKind.Asset;
 
-                if (!ModelState.IsValid)
+                if (ModelState.IsValid)
                 {
-                    await PopulateData(model);
+                    var result = await _service.UpsertAccountAsync(model);
+                    if (result.Success)
+                    {
+                        _toastr.Success(_localizer[isNew ? "SavedSuccessfully" : "UpdatedSuccessfully"].Value);
+                        return RedirectToAction(nameof(Index), new { searchString = model.ArName });
+                    }
+
+                    _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                }
+                else
+                {
                     _toastr.Error(_localizer["ValidationError"].Value);
-                    return View("Upsert", model);
                 }
 
-                var result = await _service.UpsertAccountAsync(model);
-                if (result.Success)
-                {
-                    _toastr.Success(_localizer[isNew ? "SavedSuccessfully" : "UpdatedSuccessfully"].Value);
-                    return RedirectToAction(nameof(Index), new { searchString = model.ArName });
-                }
-
-                await PopulateData(model);
-                _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                model.Parents = await _service.GetParentOptionsAsync(model.Id == 0 ? null : model.Id);
+                model.Currencies = await _lookup.NamedLookupAsync<Currency>();
+                model.PostingAccounts = await _service.GetPostingAccountOptionsAsync();
                 return View("Upsert", model);
             }
             catch (Exception ex)
@@ -129,13 +134,6 @@ namespace ResturantPL.Controllers.Definitions
                     errorMessage = _localizer["SomethingWentError"].Value
                 });
             }
-        }
-
-        private async Task PopulateData(AccountDefinitionViewModel model)
-        {
-            model.Parents = await _service.GetParentOptionsAsync(model.Id == 0 ? null : model.Id);
-            model.Currencies = await _lookup.NamedLookupAsync<Currency>();
-            model.PostingAccounts = await _service.GetPostingAccountOptionsAsync();
         }
     }
 }

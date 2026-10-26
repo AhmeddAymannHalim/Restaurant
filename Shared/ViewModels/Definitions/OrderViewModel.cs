@@ -35,7 +35,8 @@ public class OrderViewModel
     public string ReceiverName { get; set; }
     public string TableArName { get; set; }
     public string TableEnName { get; set; }
-    public string EmployeeName { get; set; }
+    public string EmployeeArName { get; set; }
+    public string EmployeeEnName { get; set; }
     public int ItemsCount { get; set; }
 
     public List<OrderItemViewModel> Items { get; set; } = new();

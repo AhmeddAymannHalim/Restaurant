@@ -1,9 +1,10 @@
 ﻿@using System.Globalization
 @{
-    var isAr = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar";
+    bool isArabicabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
+    var isArabic = isArabicabic;
 }
 <!DOCTYPE html>
-<html lang="@(isAr ? "ar" : "en")" dir="@(isAr ? "rtl" : "ltr")">
+<html lang="@(isArabic ? "ar" : "en")" dir="@(isArabic ? "rtl" : "ltr")">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -16,7 +17,7 @@
     <ul class="embers"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>
 
     <a class="lang-switch" asp-controller="SetLanguage" asp-action="SetLanguage"
-       asp-route-culture="@(isAr ? "en" : "ar")" asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)">@(isAr ? "English" : "العربية")</a>
+       asp-route-culture="@(isArabic ? "en" : "ar")" asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)">@(isArabic ? "English" : "العربية")</a>
 
     <main class="auth-wrap">
         @RenderBody()

@@ -63,8 +63,6 @@ public class DepositRepository : IDepositRepository
 
     public async Task<ResultMessage> UpsertDepositAsync(Deposit entity, string userId)
     {
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-
         try
         {
             if (entity.Id == 0)
@@ -76,7 +74,7 @@ public class DepositRepository : IDepositRepository
             }
             else
             {
-                var existing = await _context.Deposits.AsNoTracking().FirstOrDefaultAsync(a => a.Id == entity.Id);
+                var existing = await _context.Deposits.FirstOrDefaultAsync(a => a.Id == entity.Id);
                 if (existing is null)
                 {
                     return new ResultMessage
@@ -90,12 +88,9 @@ public class DepositRepository : IDepositRepository
                 entity.CreatedTime = existing.CreatedTime;
                 entity.IsDeleted = existing.IsDeleted;
                 entity.UserId = existing.UserId;
-                _context.Deposits.Update(entity);
+                _context.Entry(existing).CurrentValues.SetValues(entity);
                 await _context.SaveChangesAsync();
             }
-
-
-            await transaction.CommitAsync();
 
             return new ResultMessage { Success = true };
         }

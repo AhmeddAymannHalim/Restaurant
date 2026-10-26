@@ -1,7 +1,7 @@
 ﻿@model PaginatedResult<AccountDefinitionViewModel>
 @{
     ViewBag.Title = L["ChartOfAccounts"].Value;
-    var isArabic = LanguageHelper.IsArabic();
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
 }
 
 <div class="bo-card">

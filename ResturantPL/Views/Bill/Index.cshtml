@@ -1,7 +1,7 @@
 ﻿@model PaginatedResult<BillListItemViewModel>
 @{
     ViewBag.Title = L["Bill.Bills"].Value;
-    var isArabic = LanguageHelper.IsArabic();
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var pending = Model.Data.Count(a => a.CanPost);
 }
 

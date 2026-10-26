@@ -8,7 +8,7 @@ namespace Restaurant.DAL.IRepositories.Definitions;
 
 public interface IOrderRepository
 {
-    Task<PaginatedResult<Order>> GetPagedOrdersAsync(PageRequest request, string userId);
+    Task<PaginatedResult<Order>> GetPagedOrdersAsync(PageRequest request);
     Task<Order> GetOrderByIdAsync(int id);
     Task<string> GetNextCodeAsync();
     Task<IEnumerable<MenuItem>> GetCashierMenuAsync();

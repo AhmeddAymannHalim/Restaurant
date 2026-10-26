@@ -1,5 +1,6 @@
 @model BranchViewModel
 @{
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var isNew = Model.Id == 0;
     ViewBag.Title = isNew ? L["NewBranch"].Value : L["UpdateBranch"].Value;
 }
@@ -54,7 +55,7 @@
                                     <option value="">@L["Select"]</option>
                                     @foreach (var item in Model.Companies)
                                     {
-                                        <option value="@item.Id" selected="@(Model.CompanyId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                                        <option value="@item.Id" selected="@(Model.CompanyId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                                     }
                                 </select>
                                 <span asp-validation-for="CompanyId" class="text-danger"></span>
@@ -65,7 +66,7 @@
                                     <option value="">@L["Select"]</option>
                                     @foreach (var item in Model.Currencies)
                                     {
-                                        <option value="@item.Id" selected="@(Model.CurrencyId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                                        <option value="@item.Id" selected="@(Model.CurrencyId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                                     }
                                 </select>
                                 <span asp-validation-for="CurrencyId" class="text-danger"></span>

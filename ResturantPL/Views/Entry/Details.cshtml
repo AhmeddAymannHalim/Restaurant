@@ -1,7 +1,7 @@
 @model EntryViewModel
 @{
     ViewBag.Title = L["Bill.Entry"].Value + " " + Model.Code;
-    var isArabic = LanguageHelper.IsArabic();
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
 }
 
 <div class="bo-card">

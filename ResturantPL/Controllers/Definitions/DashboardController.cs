@@ -16,13 +16,11 @@ namespace ResturantPL.Controllers.Definitions
             _service = service;
         }
 
-        private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         public async Task<IActionResult> Index()
         {
             try
             {
-                return View(await _service.GetDashboardAsync(UserId));
+                return View(await _service.GetDashboardAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)));
             }
             catch (Exception ex)
             {
@@ -35,7 +33,7 @@ namespace ResturantPL.Controllers.Definitions
         {
             try
             {
-                return PartialView("_Board", await _service.GetDashboardAsync(UserId));
+                return PartialView("_Board", await _service.GetDashboardAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)));
             }
             catch (Exception)
             {

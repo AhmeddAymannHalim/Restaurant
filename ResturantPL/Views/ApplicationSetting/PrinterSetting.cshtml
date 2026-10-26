@@ -1,5 +1,6 @@
 @model PrinterSettingViewModel
 @{
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     ViewBag.Title = L["Setting_PrinterTitle"].Value;
 }
 
@@ -19,7 +20,7 @@
             <option value="">@L["Setting_SelectPrinter"]</option>
                     @foreach (var item in Model.Printers)
                     {
-                        <option value="@item.Id" selected="@(Model.PrinterForAllSections == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.PrinterForAllSections == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
         <span asp-validation-for="PrinterForAllSections" class="text-danger"></span>
@@ -30,7 +31,7 @@
             <option value="">@L["Setting_SelectPrinter"]</option>
                     @foreach (var item in Model.Printers)
                     {
-                        <option value="@item.Id" selected="@(Model.PrinterForCashier == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.PrinterForCashier == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
         <span asp-validation-for="PrinterForCashier" class="text-danger"></span>
@@ -41,7 +42,7 @@
             <option value="">@L["Setting_SelectPrinter"]</option>
                     @foreach (var item in Model.Printers)
                     {
-                        <option value="@item.Id" selected="@(Model.PrinterForEachSection == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.PrinterForEachSection == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
         <span asp-validation-for="PrinterForEachSection" class="text-danger"></span>

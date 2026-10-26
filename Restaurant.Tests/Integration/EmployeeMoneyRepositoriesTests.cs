@@ -241,6 +241,26 @@ public class EmployeeMoneyRepositoriesTests : IDisposable
         _db.Context.ChangeTracker.Clear();
         Assert.Equal(2500, (await sut.GetSalaryByIdAsync(salary.Id)).SalaryAmount);
     }
+
+    [Fact]
+    public async Task Salary_OverlappingPeriod_IsBlocked_ButNextPeriodAndOwnEditWork()
+    {
+        var (user, employee, _) = await Seed();
+        var sut = new SalaryRepository(_db.Context, _journals);
+        var january = new Salary { EmployeeId = employee.Id, FromDate = new DateTime(2030, 1, 1), ToDate = new DateTime(2030, 1, 31), SalaryAmount = 2500 };
+        Assert.True((await sut.UpsertSalaryAsync(january, user)).Success);
+
+        var overlap = new Salary { EmployeeId = employee.Id, FromDate = new DateTime(2030, 1, 31), ToDate = new DateTime(2030, 2, 27), SalaryAmount = 1 };
+        Assert.Equal("SalaryPeriodAlreadyPaid", (await sut.UpsertSalaryAsync(overlap, user)).Message);
+
+        var february = new Salary { EmployeeId = employee.Id, FromDate = new DateTime(2030, 2, 1), ToDate = new DateTime(2030, 2, 28), SalaryAmount = 2500 };
+        Assert.True((await sut.UpsertSalaryAsync(february, user)).Success);
+
+        _db.Context.ChangeTracker.Clear();
+        var edit = new Salary { Id = january.Id, EmployeeId = employee.Id, FromDate = january.FromDate, ToDate = january.ToDate, SalaryAmount = 2600 };
+        Assert.True((await sut.UpsertSalaryAsync(edit, user)).Success);
+        Assert.Equal(2, _db.Context.Salaries.Count());
+    }
     [Fact]
     public async Task Paging_ReturnsRecordsForAllFour()
     {

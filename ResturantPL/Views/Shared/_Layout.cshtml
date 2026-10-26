@@ -1,7 +1,7 @@
 ﻿@using System.Globalization
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
-    var isArabic = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar";
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var title = string.IsNullOrWhiteSpace(ViewBag.Title as string) ? L["Dashboard"].Value : (string)ViewBag.Title;
 }
 <!DOCTYPE html>

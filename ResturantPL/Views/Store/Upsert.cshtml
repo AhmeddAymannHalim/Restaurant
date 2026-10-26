@@ -1,5 +1,6 @@
 ﻿@model StoreViewModel
 @{
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var isNew = Model.Id == 0;
     ViewBag.Title = isNew ? L["NewStore"].Value : L["UpdateStore"].Value;
 }
@@ -50,7 +51,7 @@
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.Storekeepers)
                     {
-                        <option value="@item.Id" selected="@(Model.StorekeeperId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                        <option value="@item.Id" selected="@(Model.StorekeeperId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                     }
                 </select>
                 <span asp-validation-for="StorekeeperId" class="text-danger"></span>
@@ -60,7 +61,7 @@
                  data-countries-url="@Url.Action("Countries", "Lookup")"
                  data-governorates-url="@Url.Action("Governorates", "Lookup")"
                  data-cities-url="@Url.Action("Cities", "Lookup")"
-                 data-arabic="@(LanguageHelper.IsArabic() ? "1" : "0")"
+                 data-arabic="@(isArabic ? "1" : "0")"
                  data-placeholder="@L["Select"]"
                  data-selected-country="@Model.CountryId"
                  data-selected-governorate="@Model.GovernorateId"
@@ -109,7 +110,7 @@
                         <option value="">@L["Select"]</option>
                         @foreach (var item in Model.Stores.Where(item => true && item.Id != Model.Id))
                         {
-                            <option value="@item.Id" selected="@(Model.ParentId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                            <option value="@item.Id" selected="@(Model.ParentId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                         }
                     </select>
                     <span asp-validation-for="ParentId" class="text-danger"></span>
@@ -120,7 +121,7 @@
                         <option value="">@L["Select"]</option>
                         @foreach (var item in Model.Branches.Where(item => true))
                         {
-                            <option value="@item.Id" selected="@(Model.BranchId == item.Id)">@(LanguageHelper.IsArabic() ? item.ArName : item.EnName)</option>
+                            <option value="@item.Id" selected="@(Model.BranchId == item.Id)">@(isArabic ? item.ArName : item.EnName)</option>
                         }
                     </select>
                     <span asp-validation-for="BranchId" class="text-danger"></span>

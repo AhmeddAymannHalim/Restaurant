@@ -331,24 +331,23 @@ public class KitchenEntryBillControllerTests
     }
 
     [Fact]
-    public async Task Bill_OpenInvoice_ShowsItWithTheNamesOfItsProductsAndUnits_OrBacksToTheListWhenMissing()
+    public async Task Bill_OpenInvoice_KeepsBothNamesOfItsLines_OrBacksToTheListWhenMissing()
     {
         var bills = new Bills();
         bills.Invoices.Setup(a => a.GetInvoiceByIdAsync(5)).ReturnsAsync(new InvoiceViewModel
         {
             Id = 5, StoreId = 3,
-            Items = new List<InvoiceItemViewModel> { new() { ProductId = 11, UnitPriceId = 6, Quantity = 1 }, new() { ProductId = 99, UnitPriceId = 77, Quantity = 1 } }
+            Items = new List<InvoiceItemViewModel> { new() { ProductId = 11, ProductArName = "دقيق", ProductEnName = "Flour", UnitPriceId = 6, UnitArName = "كيلو", UnitEnName = "Kilo", Quantity = 1 } }
         });
 
         var found = await bills.Controller.Upsert(5, null);
         var missing = await bills.Controller.Upsert(6, null);
 
         var model = Assert.IsType<InvoiceViewModel>(Assert.IsType<ViewResult>(found).Model);
-        Assert.Equal("Flour", model.Items[0].ProductName);
-        Assert.Equal("Kilo", model.Items[0].UnitName);
-        // a product or unit that is no longer in the lists keeps its stored text
-        Assert.Null(model.Items[1].ProductName);
-        Assert.Null(model.Items[1].UnitName);
+        Assert.Equal("دقيق", model.Items[0].ProductArName);
+        Assert.Equal("Flour", model.Items[0].ProductEnName);
+        Assert.Equal("كيلو", model.Items[0].UnitArName);
+        Assert.Equal("Kilo", model.Items[0].UnitEnName);
         Assert.Equal("Index", Assert.IsType<RedirectToActionResult>(missing).ActionName);
     }
 

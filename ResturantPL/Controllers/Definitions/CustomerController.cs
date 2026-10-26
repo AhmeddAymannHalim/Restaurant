@@ -60,7 +60,14 @@ namespace ResturantPL.Controllers.Definitions
                     }
                 }
 
-                await PopulateData(model);
+                model.SellTypes = await _lookup.NamedLookupAsync<SellType>();
+                model.CostCenters = await _lookup.NamedLookupAsync<CostCenter>();
+                model.Classifications = await _lookup.NamedLookupAsync<Classification>();
+                model.CustomerTiers = await _lookup.NamedLookupAsync<CustomerTier>();
+                model.Specializations = await _lookup.NamedLookupAsync<Specialization>();
+                model.Nationalities = await _lookup.NamedLookupAsync<Country>();
+                model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
+                model.Employees = await _lookup.NamedLookupAsync<Employee>();
                 return View(model);
             }
             catch (Exception ex)
@@ -76,22 +83,30 @@ namespace ResturantPL.Controllers.Definitions
             {
                 var isNew = model.Id == 0;
 
-                if (!ModelState.IsValid)
+                if (ModelState.IsValid)
                 {
-                    await PopulateData(model);
+                    var result = await _service.UpsertCustomerAsync(model);
+                    if (result.Success)
+                    {
+                        _toastr.Success(_localizer[isNew ? "SavedSuccessfully" : "UpdatedSuccessfully"].Value);
+                        return RedirectToAction(nameof(Index), new { searchString = model.ArName });
+                    }
+
+                    _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                }
+                else
+                {
                     _toastr.Error(_localizer["ValidationError"].Value);
-                    return View("Upsert", model);
                 }
 
-                var result = await _service.UpsertCustomerAsync(model);
-                if (result.Success)
-                {
-                    _toastr.Success(_localizer[isNew ? "SavedSuccessfully" : "UpdatedSuccessfully"].Value);
-                    return RedirectToAction(nameof(Index), new { searchString = model.ArName });
-                }
-
-                await PopulateData(model);
-                _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
+                model.SellTypes = await _lookup.NamedLookupAsync<SellType>();
+                model.CostCenters = await _lookup.NamedLookupAsync<CostCenter>();
+                model.Classifications = await _lookup.NamedLookupAsync<Classification>();
+                model.CustomerTiers = await _lookup.NamedLookupAsync<CustomerTier>();
+                model.Specializations = await _lookup.NamedLookupAsync<Specialization>();
+                model.Nationalities = await _lookup.NamedLookupAsync<Country>();
+                model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
+                model.Employees = await _lookup.NamedLookupAsync<Employee>();
                 return View("Upsert", model);
             }
             catch (Exception ex)
@@ -129,25 +144,20 @@ namespace ResturantPL.Controllers.Definitions
 
         public async Task<IActionResult> CustomerBalance(int customerId)
         {
-            var balance = await _service.GetCustomerBalanceAsync(customerId);
-            if (balance == null)
+            try
+            {
+                var balance = await _service.GetCustomerBalanceAsync(customerId);
+                if (balance == null)
+                {
+                    return BadRequest();
+                }
+
+                return Json(balance);
+            }
+            catch (Exception)
             {
                 return BadRequest();
             }
-
-            return Json(balance);
-        }
-
-        private async Task PopulateData(CustomerViewModel model)
-        {
-            model.SellTypes = await _lookup.NamedLookupAsync<SellType>();
-            model.CostCenters = await _lookup.NamedLookupAsync<CostCenter>();
-            model.Classifications = await _lookup.NamedLookupAsync<Classification>();
-            model.CustomerTiers = await _lookup.NamedLookupAsync<CustomerTier>();
-            model.Specializations = await _lookup.NamedLookupAsync<Specialization>();
-            model.Nationalities = await _lookup.NamedLookupAsync<Country>();
-            model.Branches = await _lookup.NamedLookupAsync<CompanyBranch>();
-            model.Employees = await _lookup.NamedLookupAsync<Employee>();
         }
     }
 }

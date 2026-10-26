@@ -1,7 +1,6 @@
 @model DashboardViewModel
 @{
-    var isArabic = LanguageHelper.IsArabic();
-
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     string Age(DateTime from)
     {
         var minutes = (int)Math.Max(0, (DateTime.Now - from).TotalMinutes);

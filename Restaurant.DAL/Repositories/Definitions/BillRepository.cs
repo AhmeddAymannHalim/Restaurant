@@ -90,43 +90,11 @@ public class BillRepository : IBillRepository
         var data = new List<BillListItemViewModel>();
         foreach (var row in rawRows)
         {
-            string settingCode;
-            if (row.IsCashier)
-            {
-                settingCode = "ORD";
-            }
-            else if (row.BillType == BillType.Purchases)
-            {
-                settingCode = "PUR";
-            }
-            else if (row.BillType == BillType.PurchaseReturn)
-            {
-                settingCode = "PRET";
-            }
-            else if (row.BillType == BillType.Sales)
-            {
-                settingCode = "SAL";
-            }
-            else if (row.BillType == BillType.SalesReturn)
-            {
-                settingCode = "SRET";
-            }
-            else
-            {
-                settingCode = "OTHER";
-            }
+            var settingCode = _billSupport.KindOf(row.IsCashier, row.BillType);
 
-            var partnerArName = row.PartnerArNameRaw;
-            if (partnerArName is null)
-            {
-                partnerArName = row.FallbackCustomerName;
-            }
-
-            var partnerEnName = row.PartnerEnNameRaw;
-            if (partnerEnName is null)
-            {
-                partnerEnName = row.FallbackCustomerName;
-            }
+            // a cashier order has no account, so it shows the customer name typed on the order
+            var partnerArName = row.PartnerArNameRaw ?? row.FallbackCustomerName;
+            var partnerEnName = row.PartnerEnNameRaw ?? row.FallbackCustomerName;
 
             var isInvoiceType = invoiceTypes.Contains(row.BillType);
             var isEditable = isInvoiceType && !row.IsCashier;
@@ -212,43 +180,11 @@ public class BillRepository : IBillRepository
             return null;
         }
 
-        string settingCode;
-        if (rawBill.IsCashier)
-        {
-            settingCode = "ORD";
-        }
-        else if (rawBill.BillType == BillType.Purchases)
-        {
-            settingCode = "PUR";
-        }
-        else if (rawBill.BillType == BillType.PurchaseReturn)
-        {
-            settingCode = "PRET";
-        }
-        else if (rawBill.BillType == BillType.Sales)
-        {
-            settingCode = "SAL";
-        }
-        else if (rawBill.BillType == BillType.SalesReturn)
-        {
-            settingCode = "SRET";
-        }
-        else
-        {
-            settingCode = "OTHER";
-        }
+        var settingCode = _billSupport.KindOf(rawBill.IsCashier, rawBill.BillType);
 
-        var partnerArName = rawBill.PartnerArNameRaw;
-        if (partnerArName is null)
-        {
-            partnerArName = rawBill.FallbackCustomerName;
-        }
-
-        var partnerEnName = rawBill.PartnerEnNameRaw;
-        if (partnerEnName is null)
-        {
-            partnerEnName = rawBill.FallbackCustomerName;
-        }
+        // a cashier order has no account, so it shows the customer name typed on the order
+        var partnerArName = rawBill.PartnerArNameRaw ?? rawBill.FallbackCustomerName;
+        var partnerEnName = rawBill.PartnerEnNameRaw ?? rawBill.FallbackCustomerName;
 
         var isInvoiceType = invoiceTypes.Contains(rawBill.BillType);
         var isEditable = isInvoiceType && !rawBill.IsCashier;
@@ -338,39 +274,26 @@ public class BillRepository : IBillRepository
                 return new ResultMessage { Success = false, Message = "BillNotCollected" };
             }
 
+            // anything not committed is rolled back when the transaction is disposed
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
             if (await _context.EntryMasters.AnyAsync(a => a.BillId == id))
             {
                 return new ResultMessage { Success = false, Message = "BillAlreadyPosted" };
             }
 
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            if (!await _orderLedger.PostEntryAsync(pos))
             {
-                if (await _context.EntryMasters.AnyAsync(a => a.BillId == id))
-                {
-                    await transaction.RollbackAsync();
-                    return new ResultMessage { Success = false, Message = "BillAlreadyPosted" };
-                }
-
-                if (!await _orderLedger.PostEntryAsync(pos))
-                {
-                    await transaction.RollbackAsync();
-                    return new ResultMessage { Success = false, Message = "BillSettingAccountsMissing" };
-                }
-
-                pos.Bill.IsEntryPosted = true;
-                pos.Bill.UpdatedAt = DateTime.Now;
-                await _context.SaveChangesAsync();
-                await _billSupport.LinkEntryAsync(pos.Bill);
-                await transaction.CommitAsync();
-
-                return new ResultMessage { Success = true };
+                return new ResultMessage { Success = false, Message = "BillSettingAccountsMissing" };
             }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+
+            pos.Bill.IsEntryPosted = true;
+            pos.Bill.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+            await _billSupport.LinkEntryAsync(pos.Bill);
+            await transaction.CommitAsync();
+
+            return new ResultMessage { Success = true };
         }
         catch (Exception ex)
         {
@@ -383,8 +306,8 @@ public class BillRepository : IBillRepository
         try
         {
             var posted = 0;
-            var upPostedInvoice = await _invoices.GetUnpostedInvoiceIdsAsync();
-            foreach (var invoiceId in upPostedInvoice)
+            var unpostedInvoiceIds = await _invoices.GetUnpostedInvoiceIdsAsync();
+            foreach (var invoiceId in unpostedInvoiceIds)
             {
                 var invoiceResult = await _invoices.PostInvoiceAsync(invoiceId);
                 if (!invoiceResult.Success)

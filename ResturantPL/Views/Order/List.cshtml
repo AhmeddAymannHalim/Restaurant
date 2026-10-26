@@ -2,7 +2,7 @@
 @{
     var status = Model.Status ?? "paid";
     ViewBag.Title = status == "pending" ? L["PendingOrders"].Value : L["Paid"].Value;
-    var isArabic = LanguageHelper.IsArabic();
+    bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var isManager = User.IsInRole("Admin") || User.IsInRole("Manager");
     var types = new[] { OrderType.Hall, OrderType.TakeAway, OrderType.Delivery };
 }

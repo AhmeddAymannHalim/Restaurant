@@ -351,7 +351,7 @@ public class RepositoryBranchTests : IDisposable
         var all = await bills.GetPagedBillsAsync(new PageRequest { FromDate = new DateTime(2000, 1, 1), ToDate = new DateTime(2100, 1, 1), PageSize = 50 });
         var codes = all.Data.Select(a => a.SettingCode).OrderBy(a => a).ToList();
 
-        Assert.Equal(new[] { "OTHER", "PRET", "PUR", "SAL", "SRET" }, codes);
+        Assert.Equal(new[] { "PRET", "PUR", "SAL", "SHRT", "SRET" }, codes);
         foreach (var row in all.Data)
         {
             var details = await bills.GetBillByIdAsync(row.Id);

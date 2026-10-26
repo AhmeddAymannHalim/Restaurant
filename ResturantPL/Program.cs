@@ -71,22 +71,20 @@ services.Configure<RequestLocalizationOptions>(options =>
     };
 });
 
-var relaxedSecurity = configuration.GetValue<bool>("Security:Relaxed");
 services.AddAntiforgery(options => options.HeaderName = "RequestVerificationToken");
 services.AddControllersWithViews(options =>
     {
         options.Filters.Add<AjaxRedirectFilter>();
-        if (relaxedSecurity)
-        {
-            options.Filters.Add(new IgnoreAntiforgeryTokenAttribute { Order = 1001 });
-        }
-        else
-        {
-            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
-        }
+        options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+        options.ModelMetadataDetailsProviders.Add(new ResturantPL.Helper.RequiredValueMetadataProvider());
     })
     .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
     .AddDataAnnotationsLocalization();
+services.AddOptions<MvcOptions>().Configure<IStringLocalizer<Shared.SharedResource>>((options, localizer) =>
+{
+    options.ModelBindingMessageProvider.SetValueMustNotBeNullAccessor(_ => localizer["Val.RequiredField"]);
+    options.ModelBindingMessageProvider.SetValueMustBeANumberAccessor(_ => localizer["Val.MustBeNumber"]);
+});
 services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
 services.AddValidatorsFromAssemblyContaining<BranchVmValidator>();
 services.AddAutoMapper(cfg => { }, typeof(Restaurant.BLL.Helper.AutoMapper).Assembly);
@@ -132,20 +130,10 @@ services.AddAuthentication(options =>
         };
     });
 
-if (relaxedSecurity)
-{
-    services.AddAuthorizationBuilder()
-        .AddPolicy("Staff", policy => policy.RequireAuthenticatedUser())
-        .AddPolicy("Management", policy => policy.RequireAuthenticatedUser())
-        .AddPolicy("Admin", policy => policy.RequireAuthenticatedUser());
-}
-else
-{
-    services.AddAuthorizationBuilder()
-        .AddPolicy("Staff", policy => policy.RequireAuthenticatedUser())
-        .AddPolicy("Management", policy => policy.RequireRole("Admin", "Manager"))
-        .AddPolicy("Admin", policy => policy.RequireRole("Admin"));
-}
+services.AddAuthorizationBuilder()
+    .AddPolicy("Staff", policy => policy.RequireAuthenticatedUser())
+    .AddPolicy("Management", policy => policy.RequireRole("Admin", "Manager"))
+    .AddPolicy("Admin", policy => policy.RequireRole("Admin"));
 
 services.Configure<EmailOptions>(configuration.GetSection("Email"));
 services.AddScoped<IEmailService, EmailService>();
@@ -235,21 +223,26 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllerRoute(name: "default", pattern: "{controller=Dashboard}/{action=Index}/{id?}");
 
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsEnvironment("Testing"))
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await dbContext.Database.MigrateAsync();
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await dbContext.Database.MigrateAsync();
 
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var defaultPassword = configuration["Database:DefaultPassword"] ?? (app.Environment.IsDevelopment() ? "@Qwe12" : null);
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var defaultPassword = configuration["Database:DefaultPassword"] ?? (app.Environment.IsDevelopment() ? "@Qwe12" : null);
 
-    await DataSeeder.SeedCountries(dbContext);
-    await DataSeeder.SeedGovs(dbContext);
-    await DataSeeder.SeedTowns(dbContext);
-    await DataSeeder.SeedApplicationSettings(dbContext, defaultPassword);
-    await DataSeeder.SeedPrinterSettings(dbContext);
-    await DataSeeder.SeedAdminRoleAndUsers(userManager, roleManager, defaultPassword != null, defaultPassword);
+        await DataSeeder.SeedCountries(dbContext);
+        await DataSeeder.SeedGovs(dbContext);
+        await DataSeeder.SeedTowns(dbContext);
+        await DataSeeder.SeedApplicationSettings(dbContext, defaultPassword);
+        await DataSeeder.SeedPrinterSettings(dbContext);
+        await DataSeeder.SeedAdminRoleAndUsers(userManager, roleManager, defaultPassword != null, defaultPassword);
+    }
 }
 
 app.Run();
+
+public partial class Program;
