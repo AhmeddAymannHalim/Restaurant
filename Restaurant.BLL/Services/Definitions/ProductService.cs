@@ -38,9 +38,7 @@ public class ProductService : IProductService
     {
         var entity = _mapper.Map<Product>(model);
 
-        var stocks = _mapper.Map<List<ProductStock>>(model.Stocks);
-
-        return await _unitOfWork.Products.UpsertProductAsync(entity, stocks);
+        return await _unitOfWork.Products.UpsertProductAsync(entity);
     }
 
     public async Task<ResultMessage> DeleteProductAsync(int id)

@@ -44,7 +44,7 @@ public class ReportRepositoryTests : IDisposable
     {
         var model = new InvoiceViewModel
         {
-            InvoiceType = type, StoreId = store.Id, Paid = paid, AutoPost = true, AutoStock = true,
+            InvoiceType = type, StoreId = store.Id, Paid = paid, PayType = Shared.Enums.PayType.Later, AutoPost = true, AutoStock = true,
             Items = new List<InvoiceItemViewModel> { new() { ProductId = product.Id, UnitPriceId = unit.Id, Quantity = quantity, Price = price } }
         };
         if (model.IsSupplierInvoice) model.SupplierId = partnerId; else model.CustomerId = partnerId;
@@ -210,14 +210,15 @@ public class ReportRepositoryTests : IDisposable
         var user = new ApplicationUser { UserName = "u", Email = "u@test.com" };
         var store = new Store { Code = "1", ArName = "S", EnName = "S" };
         var section = new MenuSection { Code = "1", ArName = "Sec", EnName = "Sec" };
-        _db.Context.AddRange(user, store, section);
+        var walkIn = new Customer { Account = new Account { Code = "W", ArName = "Walk-in", EnName = "Walk-in", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
+        _db.Context.AddRange(user, store, section, walkIn);
         await _db.Context.SaveChangesAsync();
         var dish = new MenuItem { Code = "1", ArName = "Dish", EnName = "Dish", Price = 40, StoreId = store.Id, MenuSectionId = section.Id };
         _db.Context.MenuItems.Add(dish);
         await _db.Context.SaveChangesAsync();
         _db.Context.ChangeTracker.Clear();
         var orders = new OrderRepository(_db.Context);
-        Order Take() => new() { Type = OrderType.TakeAway, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 1 } } } };
+        Order Take() => new() { Type = OrderType.TakeAway, CustomerId = walkIn.Id, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 1 } } } };
         await orders.CreateOrderAsync(Take(), user.Id);
         var request = Request("MoneySafe");
         request.FromDate = DateTime.Today;
@@ -235,7 +236,9 @@ public class ReportRepositoryTests : IDisposable
         var section = new MenuSection { Code = "1", ArName = "Sec", EnName = "Sec" };
         var flour = new Product { Code = "1", ArName = "F", EnName = "F", Cost = 4 };
         var expense = new Expense { Code = "1", ArName = "E", EnName = "E" };
-        _db.Context.AddRange(user, store, section, flour, expense);
+        var table = new Table { Code = "1", ArName = "T1", EnName = "T1", NumOfPersons = 4 };
+        var customer = new Customer { Account = new Account { Code = "C", ArName = "Cus", EnName = "Cus", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
+        _db.Context.AddRange(user, store, section, flour, expense, table, customer);
         await _db.Context.SaveChangesAsync();
         var dish = new MenuItem
         {
@@ -248,7 +251,7 @@ public class ReportRepositoryTests : IDisposable
         await new StockRepository(_db.Context).AdjustAsync(store.Id, flour.Id, 100);
         _db.Context.ChangeTracker.Clear();
         var orders = new OrderRepository(_db.Context);
-        await orders.CreateOrderAsync(new Order { Type = OrderType.Hall, Cash = true, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 2 } } } }, user.Id);
+        await orders.CreateOrderAsync(new Order { Type = OrderType.Hall, Cash = true, TableId = table.Id, CustomerId = customer.Id, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 2 } } } }, user.Id);
         _db.Context.ExitExpenses.Add(new ExitExpense { ExpenseId = expense.Id, Price = 30, Date = DateTime.Now, UserId = user.Id });
         await _db.Context.SaveChangesAsync();
         var request = Request("Profit");
@@ -440,12 +443,13 @@ public class ReportRepositoryTests : IDisposable
         var (user, driver, _, dish) = await SeedMoney();
         var orders = new OrderRepository(_db.Context);
         var zone = new DeliveryZone { Code = "1", ArName = "Z", EnName = "Z", Fee = 10 };
-        _db.Context.DeliveryZones.Add(zone);
+        var customer = new Customer { Account = new Account { Code = "C", ArName = "Cus", EnName = "Cus", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
+        _db.Context.AddRange(zone, customer);
         await _db.Context.SaveChangesAsync();
-        Assert.True((await orders.CreateOrderAsync(new Order { Type = OrderType.TakeAway, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 2 } } } }, user)).Success);
+        Assert.True((await orders.CreateOrderAsync(new Order { Type = OrderType.TakeAway, CustomerId = customer.Id, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 2 } } } }, user)).Success);
         Assert.True((await orders.CreateOrderAsync(new Order
         {
-            Type = OrderType.Delivery, EmployeeId = driver.Id, DeliveryZoneId = zone.Id, CustomerName = "Ali", PhoneNumber = "0100", Address = "Road",
+            Type = OrderType.Delivery, EmployeeId = driver.Id, DeliveryZoneId = zone.Id, CustomerId = customer.Id, CustomerName = "Ali", PhoneNumber = "0100", Address = "Road",
             Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 1 } } }
         }, user)).Success);
         _db.Context.ChangeTracker.Clear();

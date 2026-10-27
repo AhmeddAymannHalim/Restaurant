@@ -43,7 +43,6 @@ namespace Restaurant.DAL.UnitOfWork
         public ICustomerTierRepository CustomerTiers { get; set; }
         public IClassificationRepository Classifications { get; set; }
         public ICostCenterRepository CostCenters { get; set; }
-        public ISellTypeRepository SellTypes { get; set; }
         public IDeliveryZoneRepository DeliveryZones { get; set; }
         public IExpenseRepository Expenses { get; set; }
 

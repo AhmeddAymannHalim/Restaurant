@@ -43,7 +43,7 @@
                         <th>@L["InvoiceDate"]</th>
                         <th>@L["Bill.EntryType"]</th>
                         <th>@L["Bill.Bill"]</th>
-                        <th>@L["Bill.Total"]</th>
+                        <th>@L["LineTotal"]</th>
                         <th>@L["Bill.Remarks"]</th>
                         <th>@L["Bill.Entry"]</th>
                         <th data-export-ignore="true"></th>
@@ -70,7 +70,7 @@
                                 <td>@item.Remarks</td>
                                 <td>@(item.IsPosted ? L["Bill.Posted"] : L["Bill.NotPosted"])</td>
                                 <td class="bo-row-actions">
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Bill.Details"]" aria-label="@L["Bill.Details"]"><i class="fas fa-eye" aria-hidden="true"></i></a>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Details"]" aria-label="@L["Details"]"><i class="fas fa-eye" aria-hidden="true"></i></a>
                                 </td>
                             </tr>
                             counter++;

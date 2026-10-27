@@ -44,7 +44,6 @@ namespace Restaurant.DAL.UnitOfWork
             CustomerTiers = new CustomerTierRepository(_context, _httpContext);
             Classifications = new ClassificationRepository(_context, _httpContext);
             CostCenters = new CostCenterRepository(_context, _httpContext);
-            SellTypes = new SellTypeRepository(_context, _httpContext);
             DeliveryZones = new DeliveryZoneRepository(_context, _httpContext);
             Expenses = new ExpenseRepository(_context, _httpContext);
             Tables = new TableRepository(_context, _httpContext);
@@ -110,7 +109,6 @@ namespace Restaurant.DAL.UnitOfWork
         public ICustomerTierRepository CustomerTiers { get; set; }
         public IClassificationRepository Classifications { get; set; }
         public ICostCenterRepository CostCenters { get; set; }
-        public ISellTypeRepository SellTypes { get; set; }
         public IDeliveryZoneRepository DeliveryZones { get; set; }
         public IExpenseRepository Expenses { get; set; }
 

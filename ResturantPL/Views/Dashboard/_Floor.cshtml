@@ -22,7 +22,7 @@
 
                     <div class="when-Free">
                         <p class="floor-who">@L["Dash.Free"]</p>
-                        <a class="btn-ad btn-ad-ghost" asp-controller="Order" asp-action="Upsert" asp-route-tableId="@table.Id"><i class="fas fa-plus" aria-hidden="true"></i> @L["NewOrder"]</a>
+                        <a class="btn-ad btn-ad-ghost" asp-controller="Order" asp-action="Upsert" asp-route-tableId="@table.Id"><i class="fas fa-plus" aria-hidden="true"></i> @L["Cashier"]</a>
                     </div>
 
                     <div class="when-Reserved">
@@ -63,7 +63,7 @@
                     <span class="res-chip res-@booking.Status" data-status="@booking.Status"></span>
                     <span>
                         <button type="button" class="btn-ad btn-ad-primary btn-icon res-confirm only-pending" data-id="@booking.Id" title="@L["Reservation.Confirm"]" aria-label="@L["Reservation.Confirm"]"><i class="fas fa-check" aria-hidden="true"></i></button>
-                        <button type="button" class="btn-ad btn-ad-danger btn-icon res-reject only-pending" data-id="@booking.Id" title="@L["Reservation.Reject"]" aria-label="@L["Reservation.Reject"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                        <button type="button" class="btn-ad btn-ad-danger btn-icon res-reject only-pending" data-id="@booking.Id" title="@L["Reject"]" aria-label="@L["Reject"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
                         <button type="button" class="btn-ad btn-ad-ghost res-arrive" data-id="@booking.Id"><i class="fas fa-door-open" aria-hidden="true"></i> @L["Dash.GuestsArrived"]</button>
                     </span>
                 </footer>

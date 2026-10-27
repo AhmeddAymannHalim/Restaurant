@@ -60,7 +60,6 @@ namespace ResturantPL.Controllers.Definitions
                     }
                 }
 
-                model.SellTypes = await _lookup.NamedLookupAsync<SellType>();
                 model.CostCenters = await _lookup.NamedLookupAsync<CostCenter>();
                 model.Classifications = await _lookup.NamedLookupAsync<Classification>();
                 model.CustomerTiers = await _lookup.NamedLookupAsync<CustomerTier>();
@@ -99,7 +98,6 @@ namespace ResturantPL.Controllers.Definitions
                     _toastr.Error(_localizer["ValidationError"].Value);
                 }
 
-                model.SellTypes = await _lookup.NamedLookupAsync<SellType>();
                 model.CostCenters = await _lookup.NamedLookupAsync<CostCenter>();
                 model.Classifications = await _lookup.NamedLookupAsync<Classification>();
                 model.CustomerTiers = await _lookup.NamedLookupAsync<CustomerTier>();

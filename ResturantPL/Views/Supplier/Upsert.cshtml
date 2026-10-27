@@ -16,10 +16,10 @@
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="AccountId" />
             <ul class="nav emp-tabs bo-full" role="tablist">
-                <li class="nav-item" role="presentation"><button type="button" class="emp-tab active" id="tab-Basic" data-bs-toggle="tab" data-bs-target="#pane-Basic" role="tab" aria-controls="pane-Basic" aria-selected="true"><i class="fas fa-id-card" aria-hidden="true"></i> @L["Sup.Tab.Basic"]</button></li>
-                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Tax" data-bs-toggle="tab" data-bs-target="#pane-Tax" role="tab" aria-controls="pane-Tax" aria-selected="false"><i class="fas fa-file-invoice" aria-hidden="true"></i> @L["Sup.Tab.Tax"]</button></li>
-                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Credit" data-bs-toggle="tab" data-bs-target="#pane-Credit" role="tab" aria-controls="pane-Credit" aria-selected="false"><i class="fas fa-credit-card" aria-hidden="true"></i> @L["Sup.Tab.Credit"]</button></li>
-                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Org" data-bs-toggle="tab" data-bs-target="#pane-Org" role="tab" aria-controls="pane-Org" aria-selected="false"><i class="fas fa-sitemap" aria-hidden="true"></i> @L["Sup.Tab.Org"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab active" id="tab-Basic" data-bs-toggle="tab" data-bs-target="#pane-Basic" role="tab" aria-controls="pane-Basic" aria-selected="true"><i class="fas fa-id-card" aria-hidden="true"></i> @L["Tab.Basic"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Tax" data-bs-toggle="tab" data-bs-target="#pane-Tax" role="tab" aria-controls="pane-Tax" aria-selected="false"><i class="fas fa-file-invoice" aria-hidden="true"></i> @L["Tax"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Credit" data-bs-toggle="tab" data-bs-target="#pane-Credit" role="tab" aria-controls="pane-Credit" aria-selected="false"><i class="fas fa-credit-card" aria-hidden="true"></i> @L["Tab.Credit"]</button></li>
+                <li class="nav-item" role="presentation"><button type="button" class="emp-tab" id="tab-Org" data-bs-toggle="tab" data-bs-target="#pane-Org" role="tab" aria-controls="pane-Org" aria-selected="false"><i class="fas fa-sitemap" aria-hidden="true"></i> @L["Tab.Org"]</button></li>
             </ul>
             <div class="tab-content bo-full">
             <div class="tab-pane fade show active emp-pane" id="pane-Basic" role="tabpanel" aria-labelledby="tab-Basic" tabindex="0">
@@ -110,30 +110,30 @@
             </div>
 
             <div class="bo-section bo-full">
-                <h2 class="bo-section-title">@L["Sup.Section.Contact"]</h2>
+                <h2 class="bo-section-title">@L["Section.Contact"]</h2>
                 <div class="bo-section-grid">
                 <div class="form-group">
-                    <label asp-for="Email" class="control-label">@L["Sup.Email"]</label>
+                    <label asp-for="Email" class="control-label">@L["Email"]</label>
                     <input asp-for="Email" class="form-control" />
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="Website" class="control-label">@L["Sup.Website"]</label>
+                    <label asp-for="Website" class="control-label">@L["Cus.Website"]</label>
                     <input asp-for="Website" class="form-control" />
                     <span asp-validation-for="Website" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="StreetName" class="control-label">@L["Sup.StreetName"]</label>
+                    <label asp-for="StreetName" class="control-label">@L["StreetName"]</label>
                     <input asp-for="StreetName" class="form-control" />
                     <span asp-validation-for="StreetName" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="BuildingNo" class="control-label">@L["Sup.BuildingNo"]</label>
+                    <label asp-for="BuildingNo" class="control-label">@L["BuildingNo"]</label>
                     <input asp-for="BuildingNo" class="form-control" />
                     <span asp-validation-for="BuildingNo" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="PostalCode" class="control-label">@L["Sup.PostalCode"]</label>
+                    <label asp-for="PostalCode" class="control-label">@L["PostalCode"]</label>
                     <input asp-for="PostalCode" class="form-control" />
                     <span asp-validation-for="PostalCode" class="text-danger"></span>
                 </div>
@@ -146,12 +146,12 @@
                 <h2 class="bo-section-title">@L["Sup.Section.Tax"]</h2>
                 <div class="bo-section-grid">
                 <div class="form-group">
-                    <label asp-for="VatNumber" class="control-label">@L["Sup.VatNumber"]</label>
+                    <label asp-for="VatNumber" class="control-label">@L["VatNumber"]</label>
                     <input asp-for="VatNumber" class="form-control" />
                     <span asp-validation-for="VatNumber" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="RegistrationNumber" class="control-label">@L["Sup.RegistrationNumber"]</label>
+                    <label asp-for="RegistrationNumber" class="control-label">@L["RegistrationNumber"]</label>
                     <input asp-for="RegistrationNumber" class="form-control" />
                     <span asp-validation-for="RegistrationNumber" class="text-danger"></span>
                 </div>
@@ -161,25 +161,25 @@
             <div class="tab-pane fade emp-pane" id="pane-Credit" role="tabpanel" aria-labelledby="tab-Credit" tabindex="0">
 
             <div class="bo-section bo-full">
-                <h2 class="bo-section-title">@L["Sup.Section.Credit"]</h2>
+                <h2 class="bo-section-title">@L["Tab.Credit"]</h2>
                 <div class="bo-section-grid">
                 <div class="form-group">
-                    <label asp-for="BillPayType" class="control-label">@L["Sup.BillPayType"]</label>
+                    <label asp-for="BillPayType" class="control-label">@L["BillPayType"]</label>
                     <select asp-for="BillPayType" asp-items="Html.GetLocalizedEnumSelectList<PayType>(L)" class="form-control"></select>
                     <span asp-validation-for="BillPayType" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="CreditLimit" class="control-label">@L["Sup.CreditLimit"]</label>
+                    <label asp-for="CreditLimit" class="control-label">@L["CreditLimit"]</label>
                     <input asp-for="CreditLimit" type="number" step="0.01" min="0" class="form-control" />
                     <span asp-validation-for="CreditLimit" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="CreditDurationInDays" class="control-label">@L["Sup.CreditDurationInDays"]</label>
+                    <label asp-for="CreditDurationInDays" class="control-label">@L["CreditDurationInDays"]</label>
                     <input asp-for="CreditDurationInDays" type="number" min="0" class="form-control" />
                     <span asp-validation-for="CreditDurationInDays" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="BranchId" class="control-label">@L["Sup.BranchId"]</label>
+                    <label asp-for="BranchId" class="control-label">@L["Branch"]</label>
                     <select asp-for="BranchId" class="form-control">
                         <option value="">@L["Select"]</option>
                         @foreach (var item in Model.Branches.Where(item => true))
@@ -201,7 +201,7 @@
                     <span asp-validation-for="EmployeeId" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="Remark" class="control-label">@L["Sup.Remark"]</label>
+                    <label asp-for="Remark" class="control-label">@L["Remark"]</label>
                     <input asp-for="Remark" class="form-control" />
                     <span asp-validation-for="Remark" class="text-danger"></span>
                 </div>
@@ -211,10 +211,10 @@
             <div class="tab-pane fade emp-pane" id="pane-Org" role="tabpanel" aria-labelledby="tab-Org" tabindex="0">
 
             <div class="bo-section bo-full" data-fk-selects>
-                <h2 class="bo-section-title">@L["Sup.Section.Org"]</h2>
+                <h2 class="bo-section-title">@L["Section.Org"]</h2>
                 <div class="bo-section-grid">
                 <div class="form-group">
-                    <label asp-for="CostCenterId" class="control-label">@L["Sup.CostCenterId"]</label>
+                    <label asp-for="CostCenterId" class="control-label">@L["CostCenterId"]</label>
                     <select asp-for="CostCenterId" class="form-control">
                         <option value="">@L["Select"]</option>
                         @foreach (var item in Model.CostCenters)

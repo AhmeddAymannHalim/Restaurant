@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.Models;
 using Restaurant.DAL.Repositories.Definitions;
+using Restaurant.DAL.Repositories.Commons;
+using Shared.ViewModels.Definitions;
 using Shared.Enums;
 using Shared.ViewModels.Commons;
 
@@ -37,40 +39,44 @@ public class CatalogRepositoriesTests : IDisposable
     // ---------------------------------------------------------------- products
 
     [Fact]
-    public async Task Product_Create_GetsCodeAndTheStockPerStore()
+    public async Task Product_Create_GetsCode_AndHoldsNoStockYet()
     {
         var (a, b) = await SeedStores();
         var product = NewProduct();
 
-        var result = await _products.UpsertProductAsync(product, new[] { new ProductStock { StoreId = a.Id, Quantity = 10 }, new ProductStock { StoreId = b.Id, Quantity = 4 } });
+        var result = await _products.UpsertProductAsync(product);
 
         Assert.True(result.Success, result.Message);
         _db.Context.ChangeTracker.Clear();
         var saved = await _products.GetProductByIdAsync(product.Id);
         Assert.Equal("1", saved.Code);
-        Assert.Equal(10, saved.Stocks.Single(s => s.StoreId == a.Id).Quantity);
-        Assert.Equal(4, saved.Stocks.Single(s => s.StoreId == b.Id).Quantity);
+        Assert.Equal(0, saved.Stocks.Single(s => s.StoreId == a.Id).Quantity);
+        Assert.Equal(0, saved.Stocks.Single(s => s.StoreId == b.Id).Quantity);
+        Assert.Empty(_db.Context.StoreProductMovements);
     }
 
     [Fact]
-    public async Task Product_Edit_ChangesStockAndZeroesAStoreTakenOffTheList()
+    public async Task Product_Edit_ChangesTheName_AndLeavesTheStockAlone()
     {
         var (a, b) = await SeedStores();
         var product = NewProduct();
-        await _products.UpsertProductAsync(product, new[] { new ProductStock { StoreId = a.Id, Quantity = 10 }, new ProductStock { StoreId = b.Id, Quantity = 4 } });
+        await _products.UpsertProductAsync(product);
+        await _stock.MoveAsync(a.Id, product.Id, 10, StockMovementSource.OpeningBalance, product.Code);
+        await _db.Context.SaveChangesAsync();
         _db.Context.ChangeTracker.Clear();
 
         var edit = NewProduct("Flour 2");
         edit.Id = product.Id;
-        var result = await _products.UpsertProductAsync(edit, new[] { new ProductStock { StoreId = a.Id, Quantity = 7 } });
+        var result = await _products.UpsertProductAsync(edit);
 
         Assert.True(result.Success, result.Message);
         _db.Context.ChangeTracker.Clear();
         var saved = await _products.GetProductByIdAsync(product.Id);
         Assert.Equal("Flour 2", saved.EnName);
         Assert.Equal("1", saved.Code);
-        Assert.Equal(7, saved.Stocks.Single(s => s.StoreId == a.Id).Quantity);
+        Assert.Equal(10, saved.Stocks.Single(s => s.StoreId == a.Id).Quantity);
         Assert.Equal(0, saved.Stocks.Single(s => s.StoreId == b.Id).Quantity);
+        Assert.Single(_db.Context.StoreProductMovements);
     }
 
     [Fact]
@@ -79,7 +85,7 @@ public class CatalogRepositoriesTests : IDisposable
         var edit = NewProduct();
         edit.Id = 55;
 
-        Assert.Equal("RecordNotFound", (await _products.UpsertProductAsync(edit, new List<ProductStock>())).Message);
+        Assert.Equal("RecordNotFound", (await _products.UpsertProductAsync(edit)).Message);
     }
 
     [Fact]
@@ -87,9 +93,11 @@ public class CatalogRepositoriesTests : IDisposable
     {
         var (a, _) = await SeedStores();
         var withStock = NewProduct("Stocked");
-        await _products.UpsertProductAsync(withStock, new[] { new ProductStock { StoreId = a.Id, Quantity = 5 } });
+        await _products.UpsertProductAsync(withStock);
+        await _stock.MoveAsync(a.Id, withStock.Id, 5, StockMovementSource.OpeningBalance, withStock.Code);
+        await _db.Context.SaveChangesAsync();
         var empty = NewProduct("Empty");
-        await _products.UpsertProductAsync(empty, new List<ProductStock>());
+        await _products.UpsertProductAsync(empty);
         _db.Context.ChangeTracker.Clear();
 
         Assert.Equal("CannotDeleteHasStock", (await _products.DeleteProductAsync(withStock.Id)).Message);
@@ -103,7 +111,7 @@ public class CatalogRepositoriesTests : IDisposable
     {
         var (a, _) = await SeedStores();
         var product = NewProduct();
-        await _products.UpsertProductAsync(product, new List<ProductStock>());
+        await _products.UpsertProductAsync(product);
         var section = new MenuSection { Code = "1", ArName = "S", EnName = "S" };
         _db.Context.MenuItems.Add(new MenuItem
         {
@@ -120,7 +128,7 @@ public class CatalogRepositoriesTests : IDisposable
     public async Task Product_OnAnInvoice_CannotBeDeleted()
     {
         var product = NewProduct();
-        await _products.UpsertProductAsync(product, new List<ProductStock>());
+        await _products.UpsertProductAsync(product);
         var support = new BillSupportRepository(_db.Context);
         var setting = await support.GetBillSettingAsync(BillType.Purchases, "مشتريات", "Purchases");
         var itemId = await support.GetItemIdAsync(product.Id);
@@ -140,8 +148,11 @@ public class CatalogRepositoriesTests : IDisposable
     public async Task Product_PagingShowsStockOfEveryStore_AndSearches()
     {
         var (a, b) = await SeedStores();
-        await _products.UpsertProductAsync(NewProduct("Flour"), new[] { new ProductStock { StoreId = a.Id, Quantity = 3 } });
-        await _products.UpsertProductAsync(NewProduct("Sugar"), new List<ProductStock>());
+        var flour = NewProduct("Flour");
+        await _products.UpsertProductAsync(flour);
+        await _stock.MoveAsync(a.Id, flour.Id, 3, StockMovementSource.OpeningBalance, flour.Code);
+        await _db.Context.SaveChangesAsync();
+        await _products.UpsertProductAsync(NewProduct("Sugar"));
 
         var all = await _products.GetPagedProductsAsync(new PageRequest());
         var search = await _products.GetPagedProductsAsync(new PageRequest { SearchString = "sug" });
@@ -166,35 +177,119 @@ public class CatalogRepositoriesTests : IDisposable
     }
 
     [Fact]
-    public async Task Product_Units_AreSavedWithRateBarcodeAndDefault_AndAStoreKeepsItsReorderLimit()
+    public async Task Product_WithoutStock_TheCostComesFromThePrice()
+    {
+        await SeedStores();
+        var (gram, kilo) = await SeedUnits();
+        var product = NewProduct();
+        await _products.UpsertProductAsync(product);
+        _db.Context.ChangeTracker.Clear();
+        var edit = NewProduct();
+        edit.Id = product.Id;
+        edit.Units = new List<ProductUnit>
+        {
+            new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true },
+            new() { UnitPriceId = kilo.Id, TransRate = 1000, Price = 400 }
+        };
+
+        Assert.True((await _products.UpsertProductAsync(edit)).Success);
+
+        _db.Context.ChangeTracker.Clear();
+        Assert.Equal(0.4m, (await _products.GetProductByIdAsync(product.Id)).Cost);
+    }
+
+    [Fact]
+    public async Task Product_WithStock_ARateCannotChange()
     {
         var (a, _) = await SeedStores();
         var (gram, kilo) = await SeedUnits();
-        var priceTypes = Enumerable.Range(1, 6).Select(n => new SellType { ArName = "T" + n, EnName = "T" + n, Show = true }).ToList();
-        _db.Context.AddRange(priceTypes);
-        await _db.Context.SaveChangesAsync();
         var product = NewProduct();
         product.Units = new List<ProductUnit>
         {
-            new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true, Barcode = "111" },
-            new() { UnitPriceId = kilo.Id, TransRate = 1000, Barcode = "222", LastPurchase = 400, Prices = priceTypes.Select((t, n) => new ProductUnitPrice { SellTypeId = t.Id, Price = 10 * (n + 1) + 0.5m }).ToList() }
+            new() { UnitPriceId = kilo.Id, TransRate = 1, IsDefault = true },
+            new() { UnitPriceId = gram.Id, TransRate = 100 }
+        };
+        await _products.UpsertProductAsync(product);
+        await _stock.MoveAsync(a.Id, product.Id, 5, StockMovementSource.OpeningBalance, product.Code);
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+        var edit = NewProduct();
+        edit.Id = product.Id;
+        edit.Units = new List<ProductUnit>
+        {
+            new() { UnitPriceId = kilo.Id, TransRate = 1000 },
+            new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true }
         };
 
-        var result = await _products.UpsertProductAsync(product, new[] { new ProductStock { StoreId = a.Id, Quantity = 5, MinQuantity = 2 } });
+        var result = await _products.UpsertProductAsync(edit);
+
+        Assert.Equal("UnitRateLockedByMovements", result.Message);
+        _db.Context.ChangeTracker.Clear();
+        var saved = await _products.GetProductByIdAsync(product.Id);
+        Assert.Equal(1, saved.Units.Single(u => u.UnitPriceId == kilo.Id).TransRate);
+        Assert.Equal(100, saved.Units.Single(u => u.UnitPriceId == gram.Id).TransRate);
+    }
+
+    [Fact]
+    public async Task Product_AUnitABillWasWrittenIn_CannotBeSwappedForAnotherBaseUnit()
+    {
+        var (a, _) = await SeedStores();
+        var (gram, kilo) = await SeedUnits();
+        var supplier = new Supplier { Account = new Account { Code = "S", ArName = "Sup", EnName = "Sup", AccountType = AccountType.Supplier, BalanceType = AccountBalanceType.Credit } };
+        _db.Context.Add(supplier);
+        await _db.Context.SaveChangesAsync();
+        var product = NewProduct();
+        product.Units = new List<ProductUnit> { new() { UnitPriceId = kilo.Id, TransRate = 1, IsDefault = true } };
+        await _products.UpsertProductAsync(product);
+        _db.Context.ChangeTracker.Clear();
+        var invoices = new InvoiceRepository(_db.Context, new JournalEntryRepository(_db.Context));
+        var bought = await invoices.UpsertInvoiceAsync(new InvoiceViewModel
+        {
+            InvoiceType = InvoiceType.Purchases, StoreId = a.Id, SupplierId = supplier.Id, PayType = PayType.Later, AutoPost = true, AutoStock = true,
+            Items = new List<InvoiceItemViewModel> { new() { ProductId = product.Id, UnitPriceId = kilo.Id, Quantity = 2, Price = 50 } }
+        });
+        Assert.True(bought.Success, bought.Message);
+        _db.Context.ChangeTracker.Clear();
+        var edit = NewProduct();
+        edit.Id = product.Id;
+        edit.Units = new List<ProductUnit> { new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true } };
+
+        var result = await _products.UpsertProductAsync(edit);
+
+        Assert.Equal("UnitRateLockedByMovements", result.Message);
+        _db.Context.ChangeTracker.Clear();
+        Assert.Equal(kilo.Id, (await _products.GetProductByIdAsync(product.Id)).Units.Single().UnitPriceId);
+    }
+
+    [Fact]
+    public async Task Product_Units_AreSavedWithRatePriceAndTheChosenDefault_AndTheStockKeepsItsCost()
+    {
+        var (a, _) = await SeedStores();
+        var (gram, kilo) = await SeedUnits();
+        var product = NewProduct();
+        await _products.UpsertProductAsync(product);
+        await _stock.MoveAsync(a.Id, product.Id, 5, StockMovementSource.OpeningBalance, product.Code);
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+        var edit = NewProduct();
+        edit.Id = product.Id;
+        edit.Units = new List<ProductUnit>
+        {
+            new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true },
+            new() { UnitPriceId = kilo.Id, TransRate = 1000, Price = 400 }
+        };
+
+        var result = await _products.UpsertProductAsync(edit);
 
         Assert.True(result.Success, result.Message);
         _db.Context.ChangeTracker.Clear();
         var saved = await _products.GetProductByIdAsync(product.Id);
         Assert.Equal(2, saved.Units.Count);
         Assert.Equal(1000, saved.Units.Single(u => u.UnitPriceId == kilo.Id).TransRate);
-        Assert.Equal("222", saved.Units.Single(u => u.UnitPriceId == kilo.Id).Barcode);
-        var kiloPrices = saved.Units.Single(u => u.UnitPriceId == kilo.Id);
-        Assert.Equal(400, kiloPrices.LastPurchase);
-        // price types are a definition, so there is no fixed number of them (here 8)
-        Assert.Equal(6, kiloPrices.Prices.Count);
-        Assert.Equal(new[] { 10.5m, 20.5m, 30.5m, 40.5m, 50.5m, 60.5m }, kiloPrices.Prices.OrderBy(a => a.SellTypeId).Select(a => a.Price).ToArray());
+        Assert.Equal(400, saved.Units.Single(u => u.UnitPriceId == kilo.Id).Price);
+        // the stock already moved, so only a purchase changes the cost, not the price typed on the form
+        Assert.Equal(0, saved.Cost);
         Assert.True(saved.Units.Single(u => u.UnitPriceId == gram.Id).IsDefault);
-        Assert.Equal(2, saved.Stocks.Single(s => s.StoreId == a.Id).MinQuantity);
         Assert.Equal(5, saved.Stocks.Single(s => s.StoreId == a.Id).Quantity);
         // the stock unit that is created with the first stock row must not be a second default
         Assert.Single(await _db.Context.ItemUnits.AsNoTracking().Where(u => u.IsDefault).ToListAsync());
@@ -206,13 +301,13 @@ public class CatalogRepositoriesTests : IDisposable
         var (gram, kilo) = await SeedUnits();
         var product = NewProduct();
         product.Units = new List<ProductUnit> { new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true }, new() { UnitPriceId = kilo.Id, TransRate = 1000 } };
-        await _products.UpsertProductAsync(product, new List<ProductStock>());
+        await _products.UpsertProductAsync(product);
         _db.Context.ChangeTracker.Clear();
 
         var edit = NewProduct();
         edit.Id = product.Id;
         edit.Units = new List<ProductUnit> { new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true } };
-        Assert.True((await _products.UpsertProductAsync(edit, new List<ProductStock>())).Success);
+        Assert.True((await _products.UpsertProductAsync(edit)).Success);
 
         _db.Context.ChangeTracker.Clear();
         var saved = await _products.GetProductByIdAsync(product.Id);
@@ -228,7 +323,7 @@ public class CatalogRepositoriesTests : IDisposable
         flour.Units = new List<ProductUnit> { new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true }, new() { UnitPriceId = kilo.Id, TransRate = 1000 } };
         await _db.Context.SaveChangesAsync();
         _db.Context.ChangeTracker.Clear();
-        await _products.UpsertProductAsync(new Product { Id = flour.Id, ArName = "Flour", EnName = "Flour", Cost = 0.01m, Units = flour.Units }, new List<ProductStock>());
+        await _products.UpsertProductAsync(new Product { Id = flour.Id, ArName = "Flour", EnName = "Flour", Cost = 0.01m, Units = flour.Units });
         _db.Context.ChangeTracker.Clear();
 
         var dish = Dish(section, store, "Bread", (flour.Id, 0.25m));
@@ -261,7 +356,10 @@ public class CatalogRepositoriesTests : IDisposable
         var orders = new OrderRepository(_db.Context);
 
         var menuBefore = (await orders.GetCashierMenuAsync()).Single();
-        var result = await orders.CreateOrderAsync(new Order { Type = OrderType.TakeAway, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 2 } } } }, user.Id);
+        var walkIn = new Customer { Account = new Account { Code = "W", ArName = "Walk-in", EnName = "Walk-in", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
+        _db.Context.Add(walkIn);
+        await _db.Context.SaveChangesAsync();
+        var result = await orders.CreateOrderAsync(new Order { Type = OrderType.TakeAway, CustomerId = walkIn.Id, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 2 } } } }, user.Id);
 
         Assert.Equal(50, menuBefore.AvailablePortions);
         Assert.True(result.Success, result.Message);

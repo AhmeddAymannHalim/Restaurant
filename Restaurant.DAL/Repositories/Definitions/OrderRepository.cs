@@ -250,17 +250,13 @@ public class OrderRepository : IOrderRepository
                 return new ResultMessage { Success = false, Message = "MenuItemNotAvailable" };
             }
 
-            // 2. the customer, only when the order is on account
-            Customer customer = null;
-            if (order.OnAccount)
+            // 2. every order has a customer
+            var customer = order.CustomerId.HasValue
+                ? await _context.Customers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == order.CustomerId.Value)
+                : null;
+            if (customer is null)
             {
-                customer = order.CustomerId.HasValue
-                    ? await _context.Customers.Include(a => a.Account).FirstOrDefaultAsync(a => a.Id == order.CustomerId.Value)
-                    : null;
-                if (customer is null)
-                {
-                    return new ResultMessage { Success = false, Message = "CustomerRequired" };
-                }
+                return new ResultMessage { Success = false, Message = "CustomerRequired" };
             }
 
             // 3. each order type decides if it is paid now and what it needs (table, driver)
@@ -275,22 +271,15 @@ public class OrderRepository : IOrderRepository
             else if (order.Type == OrderType.Hall)
             {
                 order.EmployeeId = null;
-                if (cash)
+                table = order.TableId.HasValue ? await _context.Tables.FindAsync(order.TableId.Value) : null;
+                if (table is null)
                 {
-                    order.TableId = null;
+                    return new ResultMessage { Success = false, Message = "TableRequired" };
                 }
-                else
-                {
-                    table = order.TableId.HasValue ? await _context.Tables.FindAsync(order.TableId.Value) : null;
-                    if (table is null)
-                    {
-                        return new ResultMessage { Success = false, Message = "TableRequired" };
-                    }
 
-                    if (table.IsPending)
-                    {
-                        return new ResultMessage { Success = false, Message = "TableBusy" };
-                    }
+                if (table.IsPending)
+                {
+                    return new ResultMessage { Success = false, Message = "TableBusy" };
                 }
             }
             else
@@ -300,6 +289,11 @@ public class OrderRepository : IOrderRepository
                 if (!order.EmployeeId.HasValue || !await _context.Employees.AnyAsync(a => a.Id == order.EmployeeId))
                 {
                     return new ResultMessage { Success = false, Message = "DeliveryDriverRequired" };
+                }
+
+                if (string.IsNullOrWhiteSpace(order.Address) || string.IsNullOrWhiteSpace(order.PhoneNumber))
+                {
+                    return new ResultMessage { Success = false, Message = "Val.RequiredField" };
                 }
             }
 
@@ -422,12 +416,12 @@ public class OrderRepository : IOrderRepository
             _orderLedger.RecalculateBill(entity, settings.OrderTax);
 
             // 7. customer balance, table and stock movements
-            if (customer is not null)
+            if (order.OnAccount)
             {
                 customer.Account.Adjust(bill.TotalBillAmountAfterDiscountAndExtra);
             }
 
-            if (table is not null)
+            if (table is not null && !cash)
             {
                 table.IsPending = true;
             }

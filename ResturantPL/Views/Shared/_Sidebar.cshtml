@@ -20,7 +20,7 @@
     </label>
 
     <nav class="side-scroll" aria-label="@L["Definitions"]">
-        <div class="side-section">@L["SectionOperations"]</div>
+        <div class="side-section">@L["GroupOperations"]</div>
 
         <section class="side-group">
             <button type="button" class="side-parent" aria-expanded="false" aria-controls="side-operations" title="@L["GroupOperations"]">
@@ -30,8 +30,8 @@
             </button>
             <div class="side-children" id="side-operations">
                 <div class="side-children-inner">
-                    <a class="dash-side-link" asp-controller="Order" asp-action="Upsert" title="@L["NewOrder"]">
-                        <i class="fas fa-cash-register" aria-hidden="true"></i><span>@L["NewOrder"]</span>
+                    <a class="dash-side-link" asp-controller="Order" asp-action="Upsert" title="@L["Cashier"]">
+                        <i class="fas fa-cash-register" aria-hidden="true"></i><span>@L["Cashier"]</span>
                     </a>
                     <a class="dash-side-link" asp-controller="Order" asp-action="List" title="@L["Orders"]">
                         <i class="fas fa-bell-concierge" aria-hidden="true"></i><span>@L["Orders"]</span>
@@ -109,9 +109,9 @@
         @if (isManager)
         {
             <section class="side-group">
-                <button type="button" class="side-parent" aria-expanded="false" aria-controls="side-reports" title="@L["GroupReports"]">
+                <button type="button" class="side-parent" aria-expanded="false" aria-controls="side-reports" title="@L["Reports"]">
                     <i class="fas fa-chart-column" aria-hidden="true"></i>
-                    <span>@L["GroupReports"]</span>
+                    <span>@L["Reports"]</span>
                     <i class="fas fa-chevron-down side-chevron" aria-hidden="true"></i>
                 </button>
                 <div class="side-children" id="side-reports">
@@ -253,9 +253,6 @@
                     </a>
                     <a class="dash-side-link" asp-controller="Customer" asp-action="Index" title="@L["Customers"]">
                         <i class="fas fa-user-tag" aria-hidden="true"></i><span>@L["Customers"]</span>
-                    </a>
-                    <a class="dash-side-link" asp-controller="SellType" asp-action="Index" title="@L["SellTypes"]">
-                        <i class="fas fa-tags" aria-hidden="true"></i><span>@L["SellTypes"]</span>
                     </a>
                     <a class="dash-side-link" asp-controller="Classification" asp-action="Index" title="@L["Classifications"]">
                         <i class="fas fa-layer-group" aria-hidden="true"></i><span>@L["Classifications"]</span>

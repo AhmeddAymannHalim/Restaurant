@@ -1,13 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.DAL.Models;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Security.Claims;
 using Microsoft.Extensions.Localization;
 using Restaurant.BLL.Services.IServices.Commons;
 using Restaurant.BLL.Services.IServices.Definitions;
+using Restaurant.DAL.Models;
 using Shared;
-using Shared.Helpers;
 using Shared.Helpers.Localization;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
@@ -69,9 +66,7 @@ namespace ResturantPL.Controllers.Definitions
                 }
 
                model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
-               model.Stores = await _lookup.NamedLookupAsync<Store>();
                model.UnitList = await _lookup.NamedLookupAsync<UnitPrice>();
-               model.SellTypes = (await _lookup.SellTypeLookupAsync()).ToList();
                 return View(model);
             }
             catch (Exception ex)
@@ -104,9 +99,7 @@ namespace ResturantPL.Controllers.Definitions
                 }
 
                 model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
-                model.Stores = await _lookup.NamedLookupAsync<Store>();
                 model.UnitList = await _lookup.NamedLookupAsync<UnitPrice>();
-                model.SellTypes = (await _lookup.SellTypeLookupAsync()).ToList();
                 return View("Upsert", model);
             }
             catch (Exception ex)

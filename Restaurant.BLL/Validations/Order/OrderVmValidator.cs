@@ -26,7 +26,6 @@ public class OrderVmValidator : AbstractValidator<OrderViewModel>
 
         RuleFor(x => x.CustomerId)
             .NotNull()
-            .When(x => x.OnAccount)
             .WithMessage(localizer["CustomerRequired"].Value);
 
         RuleFor(x => x.CustomerName)
@@ -35,13 +34,18 @@ public class OrderVmValidator : AbstractValidator<OrderViewModel>
 
         RuleFor(x => x.TableId)
             .NotNull()
-            .When(x => x.Type == OrderType.Hall && !x.Cash)
+            .When(x => x.Type == OrderType.Hall)
             .WithMessage(localizer["TableRequired"].Value);
 
         RuleFor(x => x.EmployeeId)
             .NotNull()
-            .When(x => x.Type is OrderType.Delivery && !x.Cash)
+            .When(x => x.Type is OrderType.Delivery)
             .WithMessage(localizer["DeliveryDriverRequired"].Value);
+
+        RuleFor(x => x.PhoneNumber)
+            .NotEmpty()
+            .When(x => x.Type is OrderType.Delivery)
+            .WithMessage(localizer["Val.RequiredField"].Value);
 
         RuleFor(x => x.Address)
             .NotEmpty()

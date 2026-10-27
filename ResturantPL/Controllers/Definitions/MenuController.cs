@@ -63,16 +63,14 @@ namespace ResturantPL.Controllers.Definitions
                     _toastr.Error(_localizer["RecordNotFound"].Value);
                     return RedirectToAction(nameof(Index));
                 }
-                else
+                if (model.Id == 0)
                 {
                     model.Code = await _service.NewMenuItemCodeAsync();
                 }
 
                 model.MenuSections = await _lookup.NamedLookupAsync<MenuSection>();
                 model.Stores = await _lookup.NamedLookupAsync<Store>();
-                model.Products = await _lookup.NamedLookupAsync<Product>();
                 model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
-                model.SellTypes = (await _lookup.SellTypeLookupAsync()).ToList();
                 return View(model);
             }
             catch (Exception ex)
@@ -106,9 +104,7 @@ namespace ResturantPL.Controllers.Definitions
 
                 model.MenuSections = await _lookup.NamedLookupAsync<MenuSection>();
                 model.Stores = await _lookup.NamedLookupAsync<Store>();
-                model.Products = await _lookup.NamedLookupAsync<Product>();
                 model.Categories = await _lookup.NamedLookupAsync<ProductCategory>();
-                model.SellTypes = (await _lookup.SellTypeLookupAsync()).ToList();
                 return View("Upsert", model);
             }
             catch (Exception ex)

@@ -121,11 +121,19 @@ public class ValidatorTests : IDisposable
         Assert.Contains("Val.GreaterThanZero", (await Errors(new OrderViewModel { Items = { new OrderItemViewModel { MenuItemId = 1, Quantity = 0 } } })).SelectMany(e => e.Value));
         Assert.Contains("CustomerId", (await Errors(new OrderViewModel { Items = { item }, OnAccount = true })).Keys);
         Assert.Contains("TableId", (await Errors(new OrderViewModel { Items = { item }, Type = OrderType.Hall, Cash = false })).Keys);
+        Assert.Contains("TableId", (await Errors(new OrderViewModel { Items = { item }, Type = OrderType.Hall, Cash = true, CustomerId = 1 })).Keys);
+        Assert.Contains("CustomerId", (await Errors(new OrderViewModel { Items = { item }, Type = OrderType.Hall, Cash = true, TableId = 1 })).Keys);
+        Assert.Contains("CustomerId", (await Errors(new OrderViewModel { Items = { item }, Type = OrderType.Delivery, Cash = true, EmployeeId = 1, Address = "street", PhoneNumber = "0100" })).Keys);
+        Assert.Contains("EmployeeId", (await Errors(new OrderViewModel { Items = { item }, Type = OrderType.Delivery, Cash = true, CustomerId = 1, Address = "street", PhoneNumber = "0100" })).Keys);
+        Assert.Contains("PhoneNumber", (await Errors(new OrderViewModel { Items = { item }, Type = OrderType.Delivery, Cash = true, CustomerId = 1, EmployeeId = 1, Address = "street" })).Keys);
+        Assert.Empty(await Errors(new OrderViewModel { Items = { item }, Type = OrderType.Hall, Cash = true, TableId = 1, CustomerId = 1 }));
+        Assert.Empty(await Errors(new OrderViewModel { Items = { item }, Type = OrderType.Delivery, Cash = true, CustomerId = 1, EmployeeId = 1, Address = "street", PhoneNumber = "0100" }));
         Assert.Contains("EmployeeId", (await Errors(new OrderViewModel { Items = { item }, Type = OrderType.Delivery, Cash = false, Address = "street" })).Keys);
         Assert.Contains("Address", (await Errors(new OrderViewModel { Items = { item }, Type = OrderType.Delivery, Cash = true, EmployeeId = 1 })).Keys);
         Assert.Contains("Discount", (await Errors(new OrderViewModel { Items = { item }, Type = OrderType.TakeAway, Cash = true, Discount = -1 })).Keys);
         Assert.Contains("PhoneNumber", (await Errors(new OrderViewModel { Items = { item }, Type = OrderType.TakeAway, Cash = true, PhoneNumber = "123456789012" })).Keys);
-        Assert.Empty(await Errors(new OrderViewModel { Items = { item }, Type = OrderType.TakeAway, Cash = true }));
+        Assert.Empty(await Errors(new OrderViewModel { Items = { item }, Type = OrderType.TakeAway, Cash = true, CustomerId = 1 }));
+        Assert.Contains("CustomerId", (await Errors(new OrderViewModel { Items = { item }, Type = OrderType.TakeAway, Cash = true })).Keys);
     }
 
     [Fact]

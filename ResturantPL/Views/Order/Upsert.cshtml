@@ -318,6 +318,7 @@
             if (window.toastr) { toastr.error($('#cartEmpty').text()); }
             return;
         }
+        if (window.orderIsValid && !window.orderIsValid()) { return; }
 
         method = 'Cash';
         $('#paymentMethod').val(method);
@@ -481,6 +482,11 @@
             var defaultService = @Model.DefaultService.ToString(invariant);
             var msgPick = @Html.Raw(Json.Serialize(L["AtLeastOneItem"].Value));
             var msgInfo = @Html.Raw(Json.Serialize(L["Select"].Value));
+            var msgCustomer = @Html.Raw(Json.Serialize(L["CustomerRequired"].Value));
+            var msgTable = @Html.Raw(Json.Serialize(L["TableRequired"].Value));
+            var msgDriver = @Html.Raw(Json.Serialize(L["DeliveryDriverRequired"].Value));
+            var msgZone = @Html.Raw(Json.Serialize(L["DeliveryZoneRequired"].Value));
+            var msgRequired = @Html.Raw(Json.Serialize(L["Val.RequiredField"].Value));
 
             function number(value) { return parseFloat(value) || 0; }
             function money(value) { return (Math.round(value * 100) / 100).toFixed(2); }
@@ -687,8 +693,39 @@
                 return true;
             };
 
+            // same rules as OrderVmValidator, so a wrong order never leaves the page
+            window.orderIsValid = function () {
+                var type = $('#orderType').val();
+                var checks = [['#CustomerId', msgCustomer]];
+                if (type === 'Hall') {
+                    checks.push(['#TableId', msgTable]);
+                }
+                if (type === 'Delivery') {
+                    checks.push(['#EmployeeId', msgDriver]);
+                    if ($('#DeliveryZoneId option').length > 1) {
+                        checks.push(['#DeliveryZoneId', msgZone]);
+                    }
+                    checks.push(['#Address', $('label[for="Address"]').text() + ': ' + msgRequired]);
+                    checks.push(['#PhoneNumber', $('label[for="PhoneNumber"]').text() + ': ' + msgRequired]);
+                }
+
+                var errors = [];
+                $('#orderForm .is-invalid').removeClass('is-invalid');
+                $.each(checks, function (i, check) {
+                    if (!$.trim($(check[0]).val())) {
+                        $(check[0]).addClass('is-invalid');
+                        errors.push(check[1]);
+                    }
+                });
+                $.each(errors, function (i, message) { toastr.error(message); });
+                return errors.length === 0;
+            };
+
+            $('#orderForm').on('change input', '.is-invalid', function () { $(this).removeClass('is-invalid'); });
+
             $('#orderForm').on('submit', function (e) {
-                if (!window.buildOrderLineInputs()) { e.preventDefault(); toastr.error(msgPick); }
+                if (!window.buildOrderLineInputs()) { e.preventDefault(); toastr.error(msgPick); return; }
+                if (!window.orderIsValid()) { e.preventDefault(); }
             });
 
             render();

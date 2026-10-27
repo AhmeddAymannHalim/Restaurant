@@ -56,7 +56,7 @@ public class InvoiceBranchTests : IDisposable
 
     private InvoiceViewModel Purchase(decimal quantity, decimal price, decimal paid, int id = 0) => new()
     {
-        Id = id, InvoiceType = InvoiceType.Purchases, StoreId = _store.Id, SupplierId = _supplier.Id, Paid = paid, AutoPost = true, AutoStock = true,
+        Id = id, InvoiceType = InvoiceType.Purchases, StoreId = _store.Id, SupplierId = _supplier.Id, Paid = paid, PayType = Shared.Enums.PayType.Later, AutoPost = true, AutoStock = true,
         Items = new List<InvoiceItemViewModel> { new() { ProductId = _product.Id, UnitPriceId = _unit.Id, Quantity = quantity, Price = price } }
     };
 
@@ -134,7 +134,10 @@ public class InvoiceBranchTests : IDisposable
         Db.MenuItems.Add(dish);
         await Db.SaveChangesAsync();
         Db.ChangeTracker.Clear();
-        var created = await new OrderRepository(Db).CreateOrderAsync(new Order { Type = OrderType.TakeAway, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 1 } } } }, user.Id);
+        var walkIn = new Customer { Account = new Account { Code = "W", ArName = "Walk-in", EnName = "Walk-in", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
+        Db.Add(walkIn);
+        await Db.SaveChangesAsync();
+        var created = await new OrderRepository(Db).CreateOrderAsync(new Order { Type = OrderType.TakeAway, CustomerId = walkIn.Id, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 1 } } } }, user.Id);
         Assert.True(created.Success, created.Message);
         var orderBillId = int.Parse(created.Data);
         Db.ChangeTracker.Clear();

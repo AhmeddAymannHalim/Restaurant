@@ -29,11 +29,6 @@ public class LookupService : ILookupService
         return await _unitOfWork.Lookups.AllowanceTypeLookupAsync();
     }
 
-    public async Task<IEnumerable<SellTypeViewModel>> SellTypeLookupAsync()
-    {
-        return await _unitOfWork.Lookups.SellTypeLookupAsync();
-    }
-
     public async Task<IEnumerable<LeaveTypeViewModel>> LeaveTypeLookupAsync()
     {
         return await _unitOfWork.Lookups.LeaveTypeLookupAsync();

@@ -339,33 +339,6 @@ public class BillSupportRepository : IBillSupportRepository
         return number;
     }
 
-    public decimal? PriceOf(ItemUnit row, int sellTypeId)
-    {
-        switch (sellTypeId)
-        {
-            case 1: return row.Whole;
-            case 2: return row.HalfWhole;
-            case 3: return row.Retail;
-            case 4: return row.EndUsers;
-            case 5: return row.WeightedAverage;
-            case 6: return row.Export;
-            default: return null;
-        }
-    }
-
-    public void SetPriceOf(ItemUnit row, int sellTypeId, decimal price)
-    {
-        switch (sellTypeId)
-        {
-            case 1: row.Whole = price; break;
-            case 2: row.HalfWhole = price; break;
-            case 3: row.Retail = price; break;
-            case 4: row.EndUsers = price; break;
-            case 5: row.WeightedAverage = price; break;
-            case 6: row.Export = price; break;
-        }
-    }
-
     public int UnitPriceIdOf(string unitCode)
     {
         var number = 0;

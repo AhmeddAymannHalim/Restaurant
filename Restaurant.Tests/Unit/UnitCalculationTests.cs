@@ -56,7 +56,7 @@ public class UnitCalculationTests : IDisposable
         var edit = new Product { Id = _sugar.Id, ArName = "Sugar", EnName = "Sugar", Cost = 0.005m };
         edit.Units = new List<ProductUnit> { new() { UnitPriceId = _gram.Id, TransRate = 1, IsDefault = true }, new() { UnitPriceId = _kilo.Id, TransRate = 1000 } };
         _db.Context.ChangeTracker.Clear();
-        Assert.True((await products.UpsertProductAsync(edit, new List<ProductStock>())).Success);
+        Assert.True((await products.UpsertProductAsync(edit)).Success);
 
         _dish = new MenuItem
         {
@@ -89,6 +89,7 @@ public class UnitCalculationTests : IDisposable
             InvoiceType = type,
             StoreId = _store.Id,
             Paid = paid,
+            PayType = Shared.Enums.PayType.Later,
             AutoStock = post,
             AutoPost = post,
             Items = new List<InvoiceItemViewModel> { new() { ProductId = _sugar.Id, UnitPriceId = unit.Id, Quantity = quantity, Price = price } }
@@ -111,6 +112,7 @@ public class UnitCalculationTests : IDisposable
     {
         Type = OrderType.TakeAway,
         Cash = true,
+        CustomerId = _customer.Id,
         Lines = new List<OrderMenuItem> { new() { MenuItemId = _dish.Id, BillDetail = new BillDetail { Quantity = quantity } } }
     };
 
@@ -264,7 +266,7 @@ public class UnitCalculationTests : IDisposable
         var edit = new Product { Id = _sugar.Id, ArName = "Sugar", EnName = "Sugar", Cost = 0.005m };
         edit.Units = new List<ProductUnit> { new() { UnitPriceId = _gram.Id, TransRate = 1, IsDefault = true }, new() { UnitPriceId = _kilo.Id, TransRate = 1000 }, new() { UnitPriceId = unit.Id, TransRate = rate } };
         _db.Context.ChangeTracker.Clear();
-        Assert.True((await products.UpsertProductAsync(edit, new List<ProductStock>())).Success);
+        Assert.True((await products.UpsertProductAsync(edit)).Success);
 
         await Save(Invoice(InvoiceType.Purchases, unit, 2, (decimal)price, paid: 2 * (decimal)price));
 

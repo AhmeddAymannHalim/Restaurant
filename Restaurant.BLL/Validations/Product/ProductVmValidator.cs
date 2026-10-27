@@ -37,21 +37,6 @@ public class ProductVmValidator : AbstractValidator<ProductViewModel>
             .GreaterThan(0)
             .WithMessage(required);
 
-        RuleForEach(x => x.Stocks)
-            .ChildRules(stock =>
-            {
-                stock.RuleFor(a => a.StoreId)
-                    .GreaterThan(0)
-                    .WithMessage(required);
-                stock.RuleFor(a => a.Quantity)
-                    .GreaterThanOrEqualTo(0)
-                    .WithMessage(localizer["Val.NotNegative"].Value);
-            });
-
-        RuleFor(x => x.Stocks)
-            .Must(stocks => stocks.Select(a => a.StoreId).Distinct().Count() == stocks.Count)
-            .WithMessage(localizer["Val.StoreRepeated"].Value);
-
         RuleForEach(x => x.Units)
             .ChildRules(unit =>
             {
@@ -61,24 +46,9 @@ public class ProductVmValidator : AbstractValidator<ProductViewModel>
                 unit.RuleFor(a => a.TransRate)
                     .GreaterThan(0)
                     .WithMessage(localizer["Val.GreaterThanZero"].Value);
-                unit.RuleFor(a => a.LastPurchase)
+                unit.RuleFor(a => a.Price)
                     .GreaterThanOrEqualTo(0)
                     .WithMessage(localizer["Val.NotNegative"].Value);
-                unit.RuleForEach(a => a.Prices)
-                    .ChildRules(price =>
-                    {
-                        price.RuleFor(a => a.SellTypeId)
-                            .GreaterThan(0)
-                            .WithMessage(required)
-                            .LessThanOrEqualTo(6)
-                            .WithMessage(localizer["Val.PriceTypeNotSupported"].Value);
-                        price.RuleFor(a => a.Price)
-                            .GreaterThanOrEqualTo(0)
-                            .WithMessage(localizer["Val.NotNegative"].Value);
-                    });
-                unit.RuleFor(a => a.Prices)
-                    .Must(prices => prices.Select(a => a.SellTypeId).Distinct().Count() == prices.Count)
-                    .WithMessage(localizer["Val.PriceTypeRepeated"].Value);
             });
 
         RuleFor(x => x.Units)
@@ -88,9 +58,5 @@ public class ProductVmValidator : AbstractValidator<ProductViewModel>
             .WithMessage(localizer["Val.UnitNeedsBase"].Value)
             .Must(units => units.Count == 0 || units.Count(a => a.IsDefault) == 1)
             .WithMessage(localizer["Val.UnitNeedsOneDefault"].Value);
-
-        RuleFor(x => x.Cost)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage(localizer["Val.NotNegative"].Value);
     }
 }

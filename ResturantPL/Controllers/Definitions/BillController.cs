@@ -209,19 +209,6 @@ namespace ResturantPL.Controllers.Definitions
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> CustomerSellType(int customerId)
-        {
-            try
-            {
-                return Json(await _invoices.GetCustomerSellTypeIdAsync(customerId));
-            }
-            catch (Exception)
-            {
-                return Json(new { success = false, errorMessage = _localizer["SomethingWentError"].Value });
-            }
-        }
-
         [HttpPost]
         public async Task<IActionResult> Post(int id)
         {

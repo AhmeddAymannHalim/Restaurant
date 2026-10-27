@@ -113,17 +113,16 @@ public class ScreenJourneyTests : IDisposable
     }
 
     [Fact]
-    public async Task Product_And_Menu_Screens_SaveStockAndRecipes()
+    public async Task Product_And_Menu_Screens_SaveProductsAndRecipes()
     {
         var seed = await Seed();
         var products = _host.Controller<ProductController>();
-        Redirects<RedirectToActionResult>(await products.Upsert(new ProductViewModel
-        {
-            ArName = "Flour", EnName = "Flour", Cost = 4,
-            Stocks = new List<ProductStockViewModel> { new() { StoreId = seed.store, Quantity = 30 } }
-        }));
+        Redirects<RedirectToActionResult>(await products.Upsert(new ProductViewModel { ArName = "Flour", EnName = "Flour" }));
         var flour = await Db.Products.AsNoTracking().OrderByDescending(a => a.Id).FirstAsync();
-        Assert.Equal(30, (await Db.StoreProductMovements.AsNoTracking().SingleAsync(a => a.ProductId == flour.Id)).QuantityDelta);
+        Assert.False(await Db.StoreProductMovements.AnyAsync(a => a.ProductId == flour.Id));
+        await new Restaurant.DAL.Repositories.Definitions.StockRepository(Db).MoveAsync(seed.store, flour.Id, 30, StockMovementSource.OpeningBalance, flour.Code);
+        await Db.SaveChangesAsync();
+        Db.ChangeTracker.Clear();
 
         var menu = _host.Controller<MenuController>();
         var sectionId = (await Db.MenuSections.AsNoTracking().FirstAsync()).Id;
@@ -343,7 +342,7 @@ public class ScreenJourneyTests : IDisposable
 
         Assert.IsType<ViewResult>(await orders.Upsert((int?)null, null));
 
-        OrderViewModel New(OrderType type, int? table, bool cash) => new() { Type = type, Cash = cash, TableId = table, Items = { new OrderItemViewModel { MenuItemId = dish.Id, Quantity = 1, Price = 60 } } };
+        OrderViewModel New(OrderType type, int? table, bool cash) => new() { Type = type, Cash = cash, TableId = table, CustomerId = seed.customer, Items = { new OrderItemViewModel { MenuItemId = dish.Id, Quantity = 1, Price = 60 } } };
         Redirects<RedirectToActionResult>(await orders.Upsert(New(OrderType.TakeAway, null, true)));
         Redirects<RedirectToActionResult>(await orders.Upsert(New(OrderType.Hall, t1.Id, false)));
         Redirects<RedirectToActionResult>(await orders.Upsert(New(OrderType.Hall, t2.Id, false)));
@@ -381,14 +380,12 @@ public class ScreenJourneyTests : IDisposable
     }
 
     [Fact]
-    public async Task Product_And_Menu_Screens_UnitsPricesPerPriceType_AndAKiloRecipe()
+    public async Task Product_And_Menu_Screens_UnitsWithAPrice_AndAKiloRecipe()
     {
         var seed = await Seed();
         var gram = new UnitPrice { Code = "g", ArName = "Gram", EnName = "Gram" };
         var kilo = new UnitPrice { Code = "k", ArName = "Kilo", EnName = "Kilo" };
-        var types = Enumerable.Range(1, 3).Select(n => new SellType { ArName = "T" + n, EnName = "T" + n, Show = true }).ToList();
         Db.AddRange(gram, kilo);
-        Db.AddRange(types);
         await Db.SaveChangesAsync();
         Db.ChangeTracker.Clear();
 
@@ -398,16 +395,15 @@ public class ScreenJourneyTests : IDisposable
             ArName = "Sugar", EnName = "Sugar", Cost = 0.012m,
             Units = new List<ProductUnitViewModel>
             {
-                new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true, LastPurchase = 0.012m, Prices = types.Select(t => new ProductUnitPriceViewModel { SellTypeId = t.Id, Price = 1 }).ToList() },
-                new() { UnitPriceId = kilo.Id, TransRate = 1000, Prices = types.Select(t => new ProductUnitPriceViewModel { SellTypeId = t.Id, Price = 12 }).ToList() }
+                new() { UnitPriceId = gram.Id, TransRate = 1, Price = 0.012m },
+                new() { UnitPriceId = kilo.Id, TransRate = 1000, Price = 12 }
             }
         };
 
-        // a refused post shows the form again with every list it needs (units, price types)
+        // a refused post shows the form again with every list it needs
         products.ModelState.AddModelError("Units", "x");
         var refused = Assert.IsType<ViewResult>(await products.Upsert(form));
         var refusedModel = Assert.IsType<ProductViewModel>(refused.Model);
-        Assert.Equal(4, refusedModel.SellTypes.Count); // the 3 of the test + the one the invoice accounts need
         Assert.Contains(refusedModel.UnitList, u => u.Id == kilo.Id);
         products.ModelState.Clear();
 
@@ -417,8 +413,7 @@ public class ScreenJourneyTests : IDisposable
 
         var opened = (ProductViewModel)((ViewResult)await products.Upsert(sugar.Id)).Model;
         Assert.Equal(2, opened.Units.Count);
-        Assert.Equal(3, opened.Units.Single(u => u.UnitPriceId == kilo.Id).Prices.Count);
-        Assert.Equal(4, opened.SellTypes.Count);
+        Assert.Equal(12, opened.Units.Single(u => u.UnitPriceId == kilo.Id).Price);
 
         var menu = _host.Controller<MenuController>();
         var sectionId = (await Db.MenuSections.AsNoTracking().FirstAsync()).Id;

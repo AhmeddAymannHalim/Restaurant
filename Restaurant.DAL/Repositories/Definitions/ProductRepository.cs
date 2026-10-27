@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.IRepositories.Definitions;
 using Restaurant.DAL.Models;
-using Shared.Enums;
 using Shared.ViewModels.Commons;
 using Shared.ViewModels.Definitions;
 
@@ -84,8 +83,8 @@ public class ProductRepository : IProductRepository
                 .Where(a => a.Item.Code == itemCode && a.Unit.Code.StartsWith(BillSupportRepository.UnitCodePrefix))
                 .Select(a => new { Row = a, a.Unit.Code })
                 .ToListAsync();
+
             var unitPrices = await _context.UnitPrices.AsNoTracking().ToListAsync();
-            var sellTypeIds = await _context.SellTypes.AsNoTracking().OrderBy(a => a.Id).Select(a => a.Id).ToListAsync();
             foreach (var unitRow in unitRows)
             {
                 var row = unitRow.Row;
@@ -96,9 +95,7 @@ public class ProductRepository : IProductRepository
                     UnitPrice = unitPrices.FirstOrDefault(a => a.Id == unitPriceId),
                     TransRate = (decimal)row.TransRate,
                     IsDefault = row.IsDefault,
-                    Barcode = row.Barcode,
-                    LastPurchase = row.LastPurchase ?? 0,
-                    Prices = sellTypeIds.Where(a => _billSupport.PriceOf(row, a) != null).Select(a => new ProductUnitPrice { SellTypeId = a, Price = _billSupport.PriceOf(row, a).Value }).ToList()
+                    Price = row.LastPurchase ?? 0
                 });
             }
         }
@@ -119,15 +116,20 @@ public class ProductRepository : IProductRepository
         return nextCode.ToString();
     }
 
-    public async Task<ResultMessage> UpsertProductAsync(Product entity, IEnumerable<ProductStock> stocks)
+    public async Task<ResultMessage> UpsertProductAsync(Product entity)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        var costUnit = entity.Units.Where(a => a.Price > 0)
+                                   .OrderBy(a => a.TransRate)
+                                   .FirstOrDefault();
 
         try
         {
             if (entity.Id == 0)
             {
                 entity.Code = await NewProductCodeAsync();
+                entity.Cost = costUnit is null ? 0 : costUnit.Price / costUnit.TransRate;
                 entity.CreatedAt = DateTime.Now;
                 entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 await _context.Products.AddAsync(entity);
@@ -145,7 +147,28 @@ public class ProductRepository : IProductRepository
                     };
                 }
 
+                // once the stock moved, its quantities and cost are in the saved rates: changing a rate would change what they mean
+                var hasMovements = await _context.StoreProductMovements.AnyAsync(a => a.ProductId == entity.Id);
+                if (hasMovements)
+                {
+                    var savedItemCode = BillSupportRepository.ItemCodePrefix + entity.Id;
+                    var savedUnits = await _context.ItemUnits.AsNoTracking()
+                        .Include(a => a.Unit)
+                        .Where(a => a.Item.Code == savedItemCode && a.Unit.Code.StartsWith(BillSupportRepository.UnitCodePrefix))
+                        .ToListAsync();
+
+                    foreach (var unit in entity.Units)
+                    {
+                        var saved = savedUnits.FirstOrDefault(a => a.Unit.Code == BillSupportRepository.UnitCodePrefix + unit.UnitPriceId);
+                        if (saved is not null && (decimal)saved.TransRate != unit.TransRate)
+                        {
+                            return new ResultMessage { Success = false, Message = "UnitRateLockedByMovements" };
+                        }
+                    }
+                }
+
                 entity.Code = existing.Code;
+                entity.Cost = costUnit is null || hasMovements ? existing.Cost : costUnit.Price / costUnit.TransRate;
                 entity.State = existing.State;
                 entity.CreatedAt = existing.CreatedAt;
                 entity.CreatedById = existing.CreatedById;
@@ -154,36 +177,6 @@ public class ProductRepository : IProductRepository
                 _context.Entry(existing).CurrentValues.SetValues(entity);
                 await _context.SaveChangesAsync();
             }
-
-            // stock: quantities here are in the base unit (the unit whose rate is 1)
-            var current = await _stock.QuantitiesAsync();
-            foreach (var stock in stocks)
-            {
-                var oldQuantity = _stock.FindQuantity(current, stock.StoreId, entity.Id);
-                var oldMin = _stock.FindMinQuantity(current, stock.StoreId, entity.Id);
-                if (oldQuantity == stock.Quantity && oldMin == stock.MinQuantity)
-                {
-                    continue;
-                }
-
-                // move first: it reloads the row, which would drop an unsaved minimum
-                if (oldQuantity != stock.Quantity)
-                {
-                    await _stock.MoveAsync(stock.StoreId, entity.Id, stock.Quantity - oldQuantity, StockMovementSource.OpeningBalance, entity.Code);
-                }
-
-                var row = await _stock.RowAsync(stock.StoreId, entity.Id);
-                row.MinQuantityOrder = stock.MinQuantity;
-            }
-
-            // a store taken off the list no longer holds this product
-            var keptStoreIds = stocks.Select(a => a.StoreId).ToList();
-            foreach (var old in current.Where(a => a.ProductId == entity.Id && !keptStoreIds.Contains(a.StoreId) && a.Quantity != 0))
-            {
-                await _stock.MoveAsync(old.StoreId, entity.Id, -old.Quantity, StockMovementSource.OpeningBalance, entity.Code);
-            }
-
-            await _context.SaveChangesAsync();
 
             var unitItemCode = BillSupportRepository.ItemCodePrefix + entity.Id;
             var hadUnits = await _context.ItemUnits.AnyAsync(a => a.Item.Code == unitItemCode && a.Unit.Code.StartsWith(BillSupportRepository.UnitCodePrefix));
@@ -207,14 +200,25 @@ public class ProductRepository : IProductRepository
                 // a unit that a recipe still uses cannot be taken off the product (the recipe would keep a rate nobody owns)
                 var keptUnitIds = entity.Units.Select(a => a.UnitPriceId).ToList();
                 var removedRows = oldRows.Where(a => !keptUnitIds.Contains(_billSupport.UnitPriceIdOf(a.Unit.Code))).ToList();
-                var removedUnitIds = removedRows.Select(a => _billSupport.UnitPriceIdOf(a.Unit.Code)).ToList();
-                if (await _context.MenuItemComponents.AnyAsync(a => a.ProductId == entity.Id && a.UnitPriceId.HasValue && removedUnitIds.Contains(a.UnitPriceId.Value)))
+                if (removedRows.Count > 0)
                 {
-                    _context.ChangeTracker.Clear();
-                    return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
-                }
+                    var removedUnitIds = removedRows.Select(a => _billSupport.UnitPriceIdOf(a.Unit.Code)).ToList();
+                    if (await _context.MenuItemComponents.AnyAsync(a => a.ProductId == entity.Id && a.UnitPriceId.HasValue && removedUnitIds.Contains(a.UnitPriceId.Value)))
+                    {
+                        _context.ChangeTracker.Clear();
+                        return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };
+                    }
 
-                _context.ItemUnits.RemoveRange(removedRows);
+                    // a unit a bill was written in keeps the meaning of that bill's quantities
+                    var removedErpUnitIds = removedRows.Select(a => a.UnitId).ToList();
+                    if (await _context.BillDetails.AnyAsync(a => a.ItemId == itemId && removedErpUnitIds.Contains(a.UnitId)))
+                    {
+                        _context.ChangeTracker.Clear();
+                        return new ResultMessage { Success = false, Message = "UnitRateLockedByMovements" };
+                    }
+
+                    _context.ItemUnits.RemoveRange(removedRows);
+                }
 
                 foreach (var unit in entity.Units)
                 {
@@ -228,20 +232,13 @@ public class ProductRepository : IProductRepository
 
                     row.TransRate = (double)unit.TransRate;
                     row.IsDefault = unit.IsDefault;
-                    row.Barcode = unit.Barcode;
-                    row.LastPurchase = unit.LastPurchase;
+                    row.LastPurchase = unit.Price;
                     await _context.SaveChangesAsync();
 
                     // a recipe keeps the rate it was saved with, so it follows the unit when its rate changes
                     await _context.MenuItemComponents
                         .Where(a => a.ProductId == entity.Id && a.UnitPriceId == unit.UnitPriceId)
                         .ExecuteUpdateAsync(a => a.SetProperty(b => b.TransRate, unit.TransRate));
-
-                    // a price type that is not posted (hidden or deleted) keeps whatever it had
-                    foreach (var price in unit.Prices)
-                    {
-                        _billSupport.SetPriceOf(row, price.SellTypeId, price.Price);
-                    }
                 }
 
                 await _context.SaveChangesAsync();

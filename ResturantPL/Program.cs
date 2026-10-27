@@ -198,7 +198,6 @@ services.AddScoped<ISpecializationService, SpecializationService>();
 services.AddScoped<ICustomerTierService, CustomerTierService>();
 services.AddScoped<IClassificationService, ClassificationService>();
 services.AddScoped<ICostCenterService, CostCenterService>();
-services.AddScoped<ISellTypeService, SellTypeService>();
 services.AddScoped<IDeliveryZoneService, DeliveryZoneService>();
 services.AddScoped<IExpenseService, ExpenseService>();
 

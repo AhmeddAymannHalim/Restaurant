@@ -25,7 +25,7 @@
                 <input asp-for="Email" class="form-control" maxlength="150" />
             </div>
             <div class="form-group">
-                <label asp-for="TableId" class="control-label">@L["Reservation.Table"]</label>
+                <label asp-for="TableId" class="control-label">@L["Table"]</label>
                 <select asp-for="TableId" class="form-select" required>
                     <option value="">@L["Reservation.ChooseTable"]</option>
                     @foreach (var table in Model.Tables)
@@ -47,7 +47,7 @@
                 <input asp-for="GuestCount" type="number" min="1" max="50" step="1" class="form-control" required />
             </div>
             <div class="form-group">
-                <label asp-for="Status" class="control-label">@L["Reservation.Status"]</label>
+                <label asp-for="Status" class="control-label">@L["Status"]</label>
                 <select asp-for="Status" class="form-select">
                     <option value="Pending">@L["Enum.ReservationStatus.Pending"]</option>
                     <option value="Confirmed">@L["Enum.ReservationStatus.Confirmed"]</option>

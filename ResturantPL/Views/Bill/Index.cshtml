@@ -19,15 +19,15 @@
                 <input id="Bill-search" type="search" class="form-control" name="searchString" value="@Model.SearchString" placeholder="@L["SearchHere"]" />
             </div>
             <select name="type" class="form-select w-auto" aria-label="@L["Bill.BillType"]">
-                <option value="">@L["Bill.AllBills"]</option>
+                <option value="">@L["AllTypes"]</option>
                 <option value="ORD" selected="@(Model.Type == "ORD")">@L["Bill.Cashier"]</option>
                 <option value="SAL" selected="@(Model.Type == "SAL")">@L["Sales"]</option>
                 <option value="SRET" selected="@(Model.Type == "SRET")">@L["SalesReturn"]</option>
                 <option value="PUR" selected="@(Model.Type == "PUR")">@L["Purchases"]</option>
                 <option value="PRET" selected="@(Model.Type == "PRET")">@L["Returns"]</option>
-                <option value="SHRT" selected="@(Model.Type == "SHRT")">@L["Invoice.Shortage"]</option>
-                <option value="SRPL" selected="@(Model.Type == "SRPL")">@L["Invoice.Surplus"]</option>
-                <option value="OPEN" selected="@(Model.Type == "OPEN")">@L["Invoice.OpeningInventory"]</option>
+                <option value="SHRT" selected="@(Model.Type == "SHRT")">@L["Shortage"]</option>
+                <option value="SRPL" selected="@(Model.Type == "SRPL")">@L["Surplus"]</option>
+                <option value="OPEN" selected="@(Model.Type == "OPEN")">@L["OpeningInventory"]</option>
             </select>
             <label class="bo-check"><input type="checkbox" name="unpaidOnly" value="true" checked="@Model.UnpaidOnly" /> @L["UnpaidInvoices"]</label>
             <input type="date" name="fromDate" class="form-control w-auto" value="@Model.FromDate?.ToString("yyyy-MM-dd")" aria-label="@L["From"]" title="@L["From"]" />
@@ -70,7 +70,7 @@
                                 <td class="num">@item.Remaining.ToString("N2")</td>
                                 <td>@(item.IsEntryPosted ? L["Bill.Posted"] : L["Bill.NotPosted"])</td>
                                 <td class="bo-row-actions">
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Bill.Details"]" aria-label="@L["Bill.Details"]"><i class="fas fa-eye" aria-hidden="true"></i></a>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Details"]" aria-label="@L["Details"]"><i class="fas fa-eye" aria-hidden="true"></i></a>
                                     @if (item.IsEditable)
                                     {
                                         <a asp-action="Upsert" asp-route-id="@item.Id" class="btn-ad btn-ad-ghost btn-icon" title="@L["Edit"]" aria-label="@L["Edit"]"><i class="fas fa-pen" aria-hidden="true"></i></a>

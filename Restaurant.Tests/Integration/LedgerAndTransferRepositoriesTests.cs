@@ -282,9 +282,12 @@ public class LedgerAndTransferRepositoriesTests : IDisposable
         _db.Context.ChangeTracker.Clear();
 
         var orders = new OrderRepository(_db.Context);
+        var walkIn = new Customer { Account = new Account { Code = "W", ArName = "Walk-in", EnName = "Walk-in", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
+        _db.Context.Add(walkIn);
+        await _db.Context.SaveChangesAsync();
         var result = await orders.CreateOrderAsync(new Order
         {
-            Type = OrderType.TakeAway,
+            Type = OrderType.TakeAway, CustomerId = walkIn.Id,
             Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 1 } } }
         }, user.Id);
         Assert.True(result.Success, result.Message);

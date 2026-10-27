@@ -136,15 +136,6 @@ public class InvoiceRepository : IInvoiceRepository
         return account?.BalanceValue ?? 0;
     }
 
-    // the price type the customer buys at (0 when the customer has none, so the bill setting decides)
-    public async Task<int> GetCustomerSellTypeIdAsync(int customerId)
-    {
-        return await _context.Customers.AsNoTracking()
-            .Where(a => a.Id == customerId)
-            .Select(a => a.SellTypeId ?? 0)
-            .FirstOrDefaultAsync();
-    }
-
     public async Task<decimal> GetCustomerBalanceAsync(int customerId)
     {
         var account = await _context.Customers.AsNoTracking()
@@ -315,12 +306,17 @@ public class InvoiceRepository : IInvoiceRepository
             var discount = model.Discount;
             var total = itemsTotal - discount;
             var paid = model.Paid;
-            var remaining = total - paid;
             decimal linkedPayments = 0;
             if (model.Id != 0)
             {
                 linkedPayments = await _billSupport.GetLinkedPaymentsAsync(model.Id);
             }
+            var isCash = model.HasPartner && model.PayType == Shared.Enums.PayType.Cash;
+            if (isCash)
+            {
+                paid = Math.Max(0, total - linkedPayments);
+            }
+            var remaining = total - paid;
             if (paid + linkedPayments > total)
             {
                 _context.ChangeTracker.Clear();
@@ -345,7 +341,7 @@ public class InvoiceRepository : IInvoiceRepository
             bill.BillDiscountValue = discount;
             bill.TotalDiscountValueOnBillAndItems = discount;
             bill.TotalBillAmountAfterDiscountAndExtra = total;
-            bill.PayType = model.PayType == Shared.Enums.PayType.Later ? Shared.Enums.PayType.Later : Shared.Enums.PayType.Cash;
+            bill.PayType = isCash || !model.HasPartner ? Shared.Enums.PayType.Cash : Shared.Enums.PayType.Later;
             bill.AmountPaided = paid + linkedPayments;
             bill.CasherRemainingAmount = remaining - linkedPayments;
             bill.PaymentMethods = paid > 0
@@ -373,22 +369,9 @@ public class InvoiceRepository : IInvoiceRepository
 
             if (model.InvoiceType == InvoiceType.Purchases && bill.IsStorageEffected)
             {
-                // the product cost is per base unit, the line price is per the unit of the line
-                for (var i = 0; i < items.Count; i++)
+                foreach (var productId in items.Select(a => a.ProductId).Distinct())
                 {
-                    var productToUpdateCost = await _context.Products.FindAsync(items[i].ProductId);
-                    if (productToUpdateCost is not null)
-                    {
-                        productToUpdateCost.Cost = items[i].Price / details[i].TransRate.Value;
-                    }
-
-                    // the ERP keeps the last buy price on the unit the line was bought in
-                    var boughtUnit = await _context.ItemUnits.FirstOrDefaultAsync(a => a.ItemId == details[i].ItemId && a.UnitId == details[i].UnitId)
-                        ?? _context.ItemUnits.Local.FirstOrDefault(a => a.ItemId == details[i].ItemId && a.UnitId == details[i].UnitId);
-                    if (boughtUnit is not null)
-                    {
-                        boughtUnit.LastPurchase = items[i].Price;
-                    }
+                    await _stock.ApplyPurchaseCostAsync(productId, details.Where((detail, i) => items[i].ProductId == productId).ToList());
                 }
             }
 
@@ -527,10 +510,8 @@ public class InvoiceRepository : IInvoiceRepository
         var settings = await _context.BillSettings.AsNoTracking()
             .Where(a => invoiceBillTypes.Contains(a.BillType))
             .OrderBy(a => a.Id)
-            .Select(a => new { a.BillType, a.EntryGenerate, a.StorageEffect, a.SellTypeId })
+            .Select(a => new { a.BillType, a.EntryGenerate, a.StorageEffect })
             .ToListAsync();
-
-        var defaultSellTypeId = await _context.SellTypes.OrderBy(a => a.Id).Select(a => (int?)a.Id).FirstOrDefaultAsync() ?? 0;
 
         var defaults = new List<PostingDefaultViewModel>();
         foreach (var info in _billSupport.GetAllInvoiceTypes())
@@ -541,8 +522,7 @@ public class InvoiceRepository : IInvoiceRepository
             {
                 Type = info.Type,
                 AutoPost = setting is null || setting.EntryGenerate == EntryGenerate.AutomaticEntryCreated,
-                AutoStock = setting is null || setting.StorageEffect == StorageEffect.AutoEffected,
-                SellTypeId = setting?.SellTypeId ?? defaultSellTypeId
+                AutoStock = setting is null || setting.StorageEffect == StorageEffect.AutoEffected
             });
         }
 
@@ -618,11 +598,7 @@ public class InvoiceRepository : IInvoiceRepository
                     await _stock.MoveAsync(bill.StoreId ?? 0, productId, postQuantity, StockMovementSource.Invoice, bill.Code);
                     if (type == InvoiceType.Purchases && detail.UnitPrice.HasValue)
                     {
-                        var product = await _context.Products.FindAsync(productId);
-                        if (product is not null)
-                        {
-                            product.Cost = detail.UnitPrice.Value / (postRate > 0 ? postRate : 1);
-                        }
+                        await _stock.ApplyPurchaseCostAsync(productId, new List<BillDetail> { detail });
                     }
                 }
 

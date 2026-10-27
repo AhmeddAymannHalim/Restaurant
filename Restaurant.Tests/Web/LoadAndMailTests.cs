@@ -175,7 +175,10 @@ public class LoadAndMailTests : IDisposable
         _host.Context.MenuItems.Add(dish);
         await _host.Context.SaveChangesAsync();
         var orders = new Restaurant.DAL.Repositories.Definitions.OrderRepository(_host.Context);
-        await orders.CreateOrderAsync(new Order { Type = Shared.Enums.OrderType.TakeAway, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 1 } } } }, "user-1");
+        var walkIn = new Customer { Account = new Account { Code = "W", ArName = "Walk-in", EnName = "Walk-in", AccountType = Shared.Enums.AccountType.Customer, BalanceType = Shared.Enums.AccountBalanceType.Debit } };
+        _host.Context.Add(walkIn);
+        await _host.Context.SaveChangesAsync();
+        await orders.CreateOrderAsync(new Order { Type = Shared.Enums.OrderType.TakeAway, CustomerId = walkIn.Id, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 1 } } } }, "user-1");
         var id = (await _host.Context.Orders.AsNoTracking().SingleAsync()).Id;
         var controller = _host.Controller<OrderController>();
 

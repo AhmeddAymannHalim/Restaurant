@@ -32,9 +32,9 @@
                     <option value="Returns" selected="@(Model.InvoiceType == InvoiceType.Returns)">@L["Returns"]</option>
                     <option value="Sales" selected="@(Model.InvoiceType == InvoiceType.Sales)">@L["Sales"]</option>
                     <option value="SalesReturn" selected="@(Model.InvoiceType == InvoiceType.SalesReturn)">@L["SalesReturn"]</option>
-                    <option value="Shortage" selected="@(Model.InvoiceType == InvoiceType.Shortage)">@L["Invoice.Shortage"]</option>
-                    <option value="Surplus" selected="@(Model.InvoiceType == InvoiceType.Surplus)">@L["Invoice.Surplus"]</option>
-                    <option value="OpeningInventory" selected="@(Model.InvoiceType == InvoiceType.OpeningInventory)">@L["Invoice.OpeningInventory"]</option>
+                    <option value="Shortage" selected="@(Model.InvoiceType == InvoiceType.Shortage)">@L["Shortage"]</option>
+                    <option value="Surplus" selected="@(Model.InvoiceType == InvoiceType.Surplus)">@L["Surplus"]</option>
+                    <option value="OpeningInventory" selected="@(Model.InvoiceType == InvoiceType.OpeningInventory)">@L["OpeningInventory"]</option>
                 </select>
             </div>
             <div class="form-group">
@@ -86,7 +86,7 @@
                 <span asp-validation-for="StoreId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="CostCenterId" class="control-label">@L["Invoice.CostCenterId"]</label>
+                <label asp-for="CostCenterId" class="control-label">@L["CostCenterId"]</label>
                 <select asp-for="CostCenterId" class="form-select">
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.CostCenters)
@@ -97,7 +97,7 @@
                 <span asp-validation-for="CostCenterId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="CurrencyId" class="control-label">@L["Invoice.CurrencyId"]</label>
+                <label asp-for="CurrencyId" class="control-label">@L["Account.Currency"]</label>
                 <select asp-for="CurrencyId" class="form-select">
                     <option value="">@L["Select"]</option>
                     @foreach (var item in Model.Currencies)
@@ -108,7 +108,7 @@
                 <span asp-validation-for="CurrencyId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="CurrencyRate" class="control-label">@L["Invoice.CurrencyRate"]</label>
+                <label asp-for="CurrencyRate" class="control-label">@L["CurrencyRate"]</label>
                 <input asp-for="CurrencyRate" type="number" step="any" min="0" class="form-control" />
                 <span asp-validation-for="CurrencyRate" class="text-danger"></span>
             </div>
@@ -270,6 +270,9 @@
                 var net = sub - number($('#discount').val());
                 $('#subTotal').val(money(sub));
                 $('#net').val(money(net));
+                if ($('#PayType').val() === 'Cash' && hasPartnerType()) {
+                    $('#paid').val(money(Math.max(0, net - linkedPayments)));
+                }
                 $('#remaining').val(money(net - number($('#paid').val()) - linkedPayments));
             }
 
@@ -352,18 +355,8 @@
 
             $('#InvoiceType').on('change', togglePartner);
 
-            var postingDefaults = @Html.Raw(Json.Serialize(Model.PostingDefaults.Select(a => new { type = a.Type.ToString(), autoPost = a.AutoPost, autoStock = a.AutoStock, sellTypeId = a.SellTypeId })));
+            var postingDefaults = @Html.Raw(Json.Serialize(Model.PostingDefaults.Select(a => new { type = a.Type.ToString(), autoPost = a.AutoPost, autoStock = a.AutoStock, })));
             var isNewInvoice = @(Model.Id == 0 ? "true" : "false");
-
-            // the sell type that decides which of a unit's prices applies, driven by the invoice's current type
-            // a customer who buys at his own price type (Gomla, half gomla...) overrides the invoice type's sell type
-            var customerSellTypeId = 0;
-
-            function currentSellTypeId() {
-                if (customerSellTypeId > 0 && isCustomerType()) { return customerSellTypeId; }
-                var d = postingDefaults.find(function (x) { return x.type === $('#InvoiceType').val(); });
-                return d ? d.sellTypeId : 0;
-            }
 
             $('#InvoiceType').on('change', function () {
                 var type = $(this).val();
@@ -373,8 +366,6 @@
                     $('#AutoStock').prop('checked', d.autoStock);
                 }
 
-                // changing the invoice type can change the sell type, so unit prices must be re-picked
-                fillUnits(stock[$('#productList').val()]);
                 showUnitFigures();
             });
 
@@ -386,13 +377,8 @@
 
             $('#CustomerId').on('change', function () {
                 var id = $(this).val();
-                if (!id) { $('#customerBalance').val(''); customerSellTypeId = 0; return; }
+                if (!id) { $('#customerBalance').val(''); return; }
                 $.get('/Bill/CustomerBalance', { customerId: id }, function (balance) { $('#customerBalance').val(money(balance)); });
-                $.get('/Bill/CustomerSellType', { customerId: id }, function (sellTypeId) {
-                    customerSellTypeId = Number(sellTypeId) || 0;
-                    fillUnits(stock[$('#productList').val()]);
-                    showUnitFigures();
-                });
             });
 
             // a product that has units of its own can only be moved in those units; stock and cost are per base unit
@@ -408,10 +394,7 @@
 
                 list.empty();
                 $.each(item.units, function (i, u) {
-                    var sellPrice = currentSellTypeId() ? (u.prices || []).filter(function (x) { return x.sellTypeId === currentSellTypeId() && x.price > 0; })[0] : null;
-                    // the customer's price type has no price on this unit: use the first price that is filled in rather than the cost
-                    if (!sellPrice && currentSellTypeId()) { sellPrice = (u.prices || []).filter(function (x) { return x.price > 0; })[0]; }
-                    var option = $('<option>', { value: u.unitPriceId, text: isArabic ? u.unitArName : u.unitEnName }).attr('data-rate', u.transRate).attr('data-sell', sellPrice ? sellPrice.price : 0).attr('data-ar', u.unitArName).attr('data-en', u.unitEnName);
+                    var option = $('<option>', { value: u.unitPriceId, text: isArabic ? u.unitArName : u.unitEnName }).attr('data-rate', u.transRate).attr('data-sell', u.price || 0).attr('data-ar', u.unitArName).attr('data-en', u.unitEnName);
                     option.prop('selected', u.isDefault);
                     list.append(option);
                 });
@@ -476,8 +459,13 @@
                 recalc();
             });
 
-            function togglePayFull() { $('#payFull').toggle($('#PayType').val() === 'Later'); }
-            $('#PayType').on('change', togglePayFull);
+            function togglePayFull() {
+                var isCash = $('#PayType').val() === 'Cash' && hasPartnerType();
+                $('#payFull').toggle(hasPartnerType() && !isCash);
+                $('#paid').prop('readonly', isCash);
+                recalc();
+            }
+            $('#PayType, #InvoiceType').on('change', togglePayFull);
             togglePayFull();
 
             $('#invoiceForm').on('submit', function (e) {

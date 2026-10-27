@@ -186,7 +186,6 @@
                         <label asp-for="Price" class="control-label">@L["Price"]</label>
                         <input id="price" asp-for="Price" class="form-control" type="number" step="0.01" min="0" />
                         <span asp-validation-for="Price" class="text-danger"></span>
-                        <button type="button" id="suggestPrice" class="btn-ad btn-ad-ghost">@L["SuggestPrice"]</button>
                     </div>
                     <div class="profit-figures">
                         <div><span>@L["TotalCost"]</span><strong id="totalCostText">0.00</strong></div>
@@ -222,15 +221,12 @@
             var msgNegative = @Html.Raw(Json.Serialize(L["NegativeBenefitConfirm"].Value));
             var msgSelect = @Html.Raw(Json.Serialize(L["Select"].Value));
             var msgLoss = @Html.Raw(Json.Serialize(L["LossWarning"].Value));
-            var msgNoCost = @Html.Raw(Json.Serialize(L["SuggestPriceNeedsCost"].Value));
             var alertTitle = @Html.Raw(Json.Serialize(L["LossAlertTitle"].Value));
             var saveAnywayText = @Html.Raw(Json.Serialize(L["SaveAnyway"].Value));
             var cancelText = @Html.Raw(Json.Serialize(L["Cancel"].Value));
             var removeText = @Html.Raw(Json.Serialize(L["Delete"].Value));
             var formulaText = @Html.Raw(Json.Serialize(L["CostFormula"].Value));
-            var sellTypes = @Html.Raw(Json.Serialize(Model.SellTypes.Where(a => a.Show).Select(a => new { id = a.Id, name = isArabic ? a.ArName : a.EnName })));
-            var margin = 1.3;
-            var priceTouched = false;
+            var lastBuyText = @Html.Raw(Json.Serialize(L["PriceLastPurchase"].Value));
             var storeLoaded = false;
             var stock = {};
 
@@ -325,13 +321,7 @@
                 }
 
                 $.each(units, function (i, u) {
-                    var option = $('<option>', { value: u.unitPriceId, text: isArabic ? u.unitArName : u.unitEnName }).attr('data-rate', u.transRate);
-                    // the unit's price for every price type, shown under the unit list
-                    var sell = $.map(sellTypes, function (t) {
-                        var price = $.grep(u.prices || [], function (x) { return x.sellTypeId === t.id; })[0];
-                        return price ? t.name + ': ' + price.price : null;
-                    });
-                    option.attr('data-sell', sell.join(' | '));
+                    var option = $('<option>', { value: u.unitPriceId, text: isArabic ? u.unitArName : u.unitEnName }).attr('data-rate', u.transRate).attr('data-sell', u.price || '');
                     option.prop('selected', u.isDefault);
                     list.append(option);
                 });
@@ -342,7 +332,8 @@
                 var rate = number($('#unitList option:selected').attr('data-rate')) || 1;
                 $('#availableQuantity').val(item ? Math.round(item.quantity / rate * 1000) / 1000 : '');
                 $('#unitCost').val(item ? Math.round(item.cost * rate * 10000) / 10000 : '');
-                $('#unitSell').text($('#unitList option:selected').attr('data-sell') || '');
+                var lastBuy = $('#unitList option:selected').attr('data-sell');
+                $('#unitSell').text(lastBuy ? lastBuyText + ': ' + lastBuy : '');
                 $('#quantity').trigger('input');
             }
 
@@ -363,30 +354,7 @@
                 $('#formula').text(quantity + ' x ' + unitText(unit) + ' = ' + cost.toFixed(2));
             });
 
-            // The selling price follows the raw-material cost (cost + 30%) until the user types a price by hand.
-            function autoPrice() {
-                var total = number($('#totalCost').val());
-                if (!priceTouched && total > 0) {
-                    $('#price').val((Math.ceil(total * margin * 2) / 2).toFixed(2));
-                    recalc();
-                }
-            }
-
-            $('#price').on('input', function () {
-                priceTouched = true;
-                recalc();
-            });
-
-            $('#suggestPrice').on('click', function () {
-                priceTouched = false;
-                recalc();
-                if (number($('#totalCost').val()) <= 0) {
-                    toastr.warning(msgNoCost);
-                    return;
-                }
-
-                autoPrice();
-            });
+            $('#price').on('input', recalc);
 
             $('#addComponent').on('click', function () {
                 var id = $('#productList').val();
@@ -412,13 +380,11 @@
                 $('#componentTable tbody').append(row);
                 $('#productList').val('').trigger('change');
                 recalc();
-                autoPrice();
             });
 
             $(document).on('click', '.cancelRow', function () {
                 $(this).closest('tr').remove();
                 recalc();
-                autoPrice();
             });
 
             var confirmed = false;

@@ -65,7 +65,7 @@
                 <dt>@L["Address"]</dt><dd>@Model.Address</dd>
                 <dt>@L["PhoneNumber"]</dt><dd>@Model.PhoneNumber</dd>
             }
-            <dt>@L["PaymentStatus"]</dt><dd>@L[Model.OnAccount ? "OnAccountStatus" : Model.Cash ? "PaidStatus" : "Unpaid"]</dd>
+            <dt>@L["PaymentStatus"]</dt><dd>@L[Model.OnAccount ? "OnAccount" : Model.Cash ? "PaidStatus" : "Unpaid"]</dd>
         </dl>
 
         <table>
@@ -129,7 +129,7 @@
             }
             <button type="button" onclick="printCopies()">@L["Print"]</button>
             <a href="@Url.Action("Pdf", new { id = Model.Id })">PDF</a>
-            <a class="alt" href="@Url.Action("Upsert")">@L["NewOrder"]</a>
+            <a class="alt" href="@Url.Action("Upsert")">@L["Cashier"]</a>
             <a class="alt" href="@Url.Action("List", new { status = Model.Cash ? "paid" : "pending" })">@L["Back"]</a>
         </div>
         <script>

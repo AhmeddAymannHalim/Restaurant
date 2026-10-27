@@ -73,13 +73,11 @@ public class AutoMapper : Profile
         CreateMap<ProductUnit, ProductUnitViewModel>()
             .ForMember(dest => dest.UnitArName, opt => opt.MapFrom(src => src.UnitPrice.ArName))
             .ForMember(dest => dest.UnitEnName, opt => opt.MapFrom(src => src.UnitPrice.EnName));
-        CreateMap<ProductUnitPrice, ProductUnitPriceViewModel>().ReverseMap();
         CreateMap<ProductUnitViewModel, ProductUnit>()
             .ForMember(dest => dest.UnitPrice, opt => opt.Ignore());
 
         CreateMap<Product, ProductViewModel>()
             .ForMember(dest => dest.UnitList, opt => opt.Ignore())
-            .ForMember(dest => dest.SellTypes, opt => opt.Ignore())
             .ForMember(dest => dest.Stocks, opt => opt.MapFrom(src => src.Stocks))
             .ForMember(dest => dest.TotalStock, opt => opt.MapFrom(src => src.Stocks.Sum(a => a.Quantity)))
             .ForMember(dest => dest.ProductCategoryId, opt => opt.MapFrom(src => src.ProductCategoryId ?? 0))
@@ -363,8 +361,6 @@ public class AutoMapper : Profile
 
         CreateMap<DeliveryZone, DeliveryZoneViewModel>().ReverseMap();
 
-        CreateMap<SellType, SellTypeViewModel>();
-        CreateMap<SellTypeViewModel, SellType>();
 
         CreateMap<CostCenter, CostCenterViewModel>()
             .ForMember(dest => dest.ParentArName, opt => opt.MapFrom(src => src.Parent.ArName))
@@ -567,7 +563,6 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.ImageFile, opt => opt.Ignore())
             .ForMember(dest => dest.MenuSections, opt => opt.Ignore())
             .ForMember(dest => dest.Stores, opt => opt.Ignore())
-            .ForMember(dest => dest.Products, opt => opt.Ignore())
             .ForMember(dest => dest.Categories, opt => opt.Ignore());
         CreateMap<MenuItemViewModel, MenuItem>()
             .ForMember(dest => dest.Store, opt => opt.Ignore())

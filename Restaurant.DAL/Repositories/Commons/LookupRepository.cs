@@ -24,22 +24,6 @@ public class LookupRepository : ILookupRepository
 
 
 
-    public async Task<IEnumerable<SellTypeViewModel>> SellTypeLookupAsync()
-    {
-        return await _context.SellTypes.AsNoTracking()
-            .OrderBy(a => a.Id)
-            .Select(a => new SellTypeViewModel
-            {
-                Id = a.Id,
-                ArName = a.ArName,
-                EnName = a.EnName,
-                Show = a.Show,
-                IsLastPrice = a.IsLastPrice,
-                PlusPrice = a.PlusPrice
-            })
-            .ToListAsync();
-    }
-
     public async Task<IEnumerable<LeaveTypeViewModel>> LeaveTypeLookupAsync()
     {
         return await _context.LeaveTypes.AsNoTracking()

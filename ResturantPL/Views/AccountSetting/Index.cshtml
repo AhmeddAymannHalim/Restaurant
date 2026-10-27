@@ -1,14 +1,14 @@
 ﻿@model AccountSettingViewModel
 @{
     bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
-    ViewBag.Title = L["AccSet_Title"].Value;
+    ViewBag.Title = L["AccountSettings"].Value;
     var accounts = new SelectList(Model.Accounts, "Id", isArabic ? "ArName" : "EnName", null);
 }
 
 <div class="bo-card">
     <div class="bo-card-head">
         <span class="bo-icon"><i class="fas fa-sliders" aria-hidden="true"></i></span>
-        <h1>@L["AccSet_Title"]</h1>
+        <h1>@L["AccountSettings"]</h1>
     </div>
     <div class="bo-card-body">
         <p>@L["AccSet_Help"]</p>

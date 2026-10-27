@@ -94,7 +94,7 @@ public class OrderLedgerRepository : IOrderLedgerRepository
 
     public async Task RemoveOrderAsync(Order order)
     {
-        if (order.Type == OrderType.Hall && order.TableId.HasValue)
+        if (order.Type == OrderType.Hall && order.TableId.HasValue && !order.Cash)
         {
             var freedTable = await _context.Tables.FindAsync(order.TableId.Value);
             if (freedTable is not null)

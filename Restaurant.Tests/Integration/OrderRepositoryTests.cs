@@ -19,6 +19,7 @@ public class OrderRepositoryTests : IDisposable
     private MenuItem _dish;
     private Table _table;
     private Table _table2;
+    private Customer _customer;
 
     public OrderRepositoryTests()
     {
@@ -38,7 +39,8 @@ public class OrderRepositoryTests : IDisposable
         var section = new MenuSection { Code = "1", ArName = "Section", EnName = "Section" };
         _table = new Table { Code = "1", ArName = "T1", EnName = "T1", NumOfPersons = 4 };
         _table2 = new Table { Code = "2", ArName = "T2", EnName = "T2", NumOfPersons = 4 };
-        _db.Context.AddRange(seller, other, _store, _flour, section, _table, _table2);
+        _customer = new Customer { Account = new Account { Code = "W", ArName = "Walk-in", EnName = "Walk-in", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
+        _db.Context.AddRange(seller, other, _store, _flour, section, _table, _table2, _customer);
         _db.Context.ApplicationSettings.Add(new ApplicationSetting { Password = "x", OrderTax = 10, OrderService = 5 });
         await _db.Context.SaveChangesAsync();
 
@@ -61,6 +63,9 @@ public class OrderRepositoryTests : IDisposable
         Type = type,
         Cash = cash,
         TableId = type == OrderType.Hall ? _table.Id : null,
+        CustomerId = _customer.Id,
+        Address = type == OrderType.Delivery ? "Road" : null,
+        PhoneNumber = type == OrderType.Delivery ? "0100" : null,
         Lines = new List<OrderMenuItem> { new() { MenuItemId = _dish.Id, BillDetail = new BillDetail { Quantity = quantity } } }
     };
 
@@ -158,6 +163,79 @@ public class OrderRepositoryTests : IDisposable
         order.TableId = null;
 
         Assert.Equal("TableRequired", (await _sut.CreateOrderAsync(order, _user)).Message);
+    }
+
+    [Fact]
+    public async Task Create_HallPaidNowWithoutTable_ReturnsTableRequiredAndKeepsStock()
+    {
+        await Seed();
+        var order = NewOrder(OrderType.Hall, cash: true);
+        order.TableId = null;
+
+        Assert.Equal("TableRequired", (await _sut.CreateOrderAsync(order, _user)).Message);
+        Assert.Equal(100, await Flour());
+    }
+
+    [Theory]
+    [InlineData(OrderType.Hall)]
+    [InlineData(OrderType.TakeAway)]
+    public async Task Create_WithoutCustomer_ReturnsCustomerRequiredAndKeepsStock(OrderType type)
+    {
+        await Seed();
+        var order = NewOrder(type, cash: true);
+        order.CustomerId = null;
+
+        Assert.Equal("CustomerRequired", (await _sut.CreateOrderAsync(order, _user)).Message);
+        Assert.Equal(100, await Flour());
+    }
+
+    [Fact]
+    public async Task Create_HallPaidNow_KeepsItsTableButLeavesTheTableFree()
+    {
+        await Seed();
+
+        var order = await Reload(await Create(NewOrder(OrderType.Hall, cash: true)));
+
+        Assert.Equal(_table.Id, order.TableId);
+        Assert.Equal(_customer.Id, order.CustomerId);
+        Assert.False((await _db.Context.Tables.AsNoTracking().SingleAsync(a => a.Id == _table.Id)).IsPending);
+        Assert.Equal(0, (await _db.Context.Accounts.AsNoTracking().SingleAsync(a => a.Id == _customer.AccountId)).DebitBalance);
+    }
+
+    [Fact]
+    public async Task Delete_PaidHallOrder_DoesNotFreeATableAnotherOrderUses()
+    {
+        await Seed();
+        var paid = await Create(NewOrder(OrderType.Hall, cash: true));
+        await Create(NewOrder(OrderType.Hall));
+
+        Assert.True((await _sut.DeleteOrderAsync(paid)).Success);
+
+        Assert.True((await _db.Context.Tables.AsNoTracking().SingleAsync(a => a.Id == _table.Id)).IsPending);
+    }
+
+    [Theory]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(false, false, true)]
+    public async Task Create_DeliveryMissingCustomerAddressOrPhone_IsRefused(bool noCustomer, bool noAddress, bool noPhone)
+    {
+        await Seed();
+        var driver = new Employee { Code = "1", ArName = "Driver", EnName = "Driver" };
+        _db.Context.Add(driver);
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+        var order = NewOrder(OrderType.Delivery);
+        order.EmployeeId = driver.Id;
+        if (noCustomer) order.CustomerId = null;
+        if (noAddress) order.Address = " ";
+        if (noPhone) order.PhoneNumber = null;
+
+        var result = await _sut.CreateOrderAsync(order, _user);
+
+        Assert.False(result.Success);
+        Assert.Equal(noCustomer ? "CustomerRequired" : "Val.RequiredField", result.Message);
+        Assert.Equal(100, await Flour());
     }
 
     [Fact]
@@ -265,6 +343,7 @@ public class OrderRepositoryTests : IDisposable
 
         var noCustomer = NewOrder(OrderType.TakeAway);
         noCustomer.OnAccount = true;
+        noCustomer.CustomerId = null;
         Assert.Equal("CustomerRequired", (await _sut.CreateOrderAsync(noCustomer, _user)).Message);
 
         var good = NewOrder(OrderType.TakeAway);

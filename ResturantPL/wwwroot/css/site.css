@@ -977,6 +977,10 @@ body.side-shut .dash-side:not(:hover) .side-chevron { opacity: 0; }
 .bo-form .bo-full,
 .bo-form > .text-danger { grid-column: 1 / -1; }
 
+.bo-fit-table { width: auto; }
+.bo-fit-table select { min-width: 9rem; }
+.bo-fit-table input[type="number"] { width: 8rem; }
+
 /* Bootstrap paints its helper classes for a light page (dark grey, !important), which disappears on the dark
    admin surface. Re-colour them once here so every hint/help text in every view stays readable. */
 body.dash .text-muted,

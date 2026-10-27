@@ -91,7 +91,41 @@ public class StockRepository : IStockRepository
         });
     }
 
-    // every product with what one store holds of it, and the units (rate and sell prices) it can be moved in
+    // the product cost is the weighted average per base unit; the bill already moved the stock, so it is taken back out here
+    public async Task ApplyPurchaseCostAsync(int productId, List<BillDetail> lines)
+    {
+        var product = await _context.Products.FindAsync(productId);
+        var boughtBaseQuantity = lines.Sum(a => (a.Quantity ?? 0) * (a.TransRate ?? 1));
+        if (product is null || boughtBaseQuantity <= 0)
+        {
+            return;
+        }
+
+        var itemId = lines.First().ItemId;
+        var boughtValue = lines.Sum(a => (a.Quantity ?? 0) * (a.UnitPrice ?? 0));
+        var lastLine = lines.Last();
+        var lastBaseCost = (lastLine.UnitPrice ?? 0) / (lastLine.TransRate > 0 ? lastLine.TransRate.Value : 1);
+
+        var stockNow = (await _context.StoreItemUnits.AsNoTracking()
+                .Where(a => a.ItemId == itemId && a.Unit.Code == BaseUnitCode)
+                .Select(a => a.Quantity)
+                .ToListAsync())
+            .Sum(a => a ?? 0);
+        var stockBefore = Math.Max(0, stockNow - boughtBaseQuantity);
+        product.Cost = (stockBefore * product.Cost + boughtValue) / (stockBefore + boughtBaseQuantity);
+
+        await _context.ItemUnits.Where(a => a.ItemId == itemId).LoadAsync();
+        foreach (var unit in _context.ItemUnits.Local.Where(a => a.ItemId == itemId))
+        {
+            var boughtInThisUnit = lines.LastOrDefault(a => a.UnitId == unit.UnitId);
+            unit.LastPurchase = boughtInThisUnit is not null
+                ? boughtInThisUnit.UnitPrice
+                : lastBaseCost * (decimal)unit.TransRate;
+            unit.WeightedAverage = product.Cost * (decimal)unit.TransRate;
+        }
+    }
+
+    // every product with what one store holds of it, and the units (rate and price) it can be moved in
     public async Task<List<StoreProductLookupItem>> ProductsOfStoreAsync(int storeId)
     {
         var store = await _context.Stores.AsNoTracking().FirstOrDefaultAsync(a => a.Id == storeId);
@@ -110,7 +144,6 @@ public class StockRepository : IStockRepository
             .Where(a => a.Item.Code.StartsWith(BillSupportRepository.ItemCodePrefix) && a.Unit.Code.StartsWith(BillSupportRepository.UnitCodePrefix))
             .Select(a => new { Row = a, ItemCode = a.Item.Code, UnitCode = a.Unit.Code })
             .ToListAsync();
-        var sellTypeIds = await _context.SellTypes.AsNoTracking().Where(a => a.Show).OrderBy(a => a.Id).Select(a => a.Id).ToListAsync();
         var unitNames = await _context.UnitPrices.AsNoTracking().ToListAsync();
 
         foreach (var product in products)
@@ -131,7 +164,7 @@ public class StockRepository : IStockRepository
                     UnitEnName = unitName.EnName,
                     TransRate = (decimal)row.Row.TransRate,
                     IsDefault = row.Row.IsDefault,
-                    Prices = sellTypeIds.Where(a => _billSupport.PriceOf(row.Row, a) != null).Select(a => new ProductUnitPriceViewModel { SellTypeId = a, Price = _billSupport.PriceOf(row.Row, a).Value }).ToList()
+                    Price = row.Row.LastPurchase ?? 0
                 });
             }
         }

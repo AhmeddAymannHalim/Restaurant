@@ -34,7 +34,6 @@ public class DefinitionRepositoryTests : IDisposable
         new object[] { typeof(LeaveTypeRepository), typeof(LeaveType) },
         new object[] { typeof(MenuSectionRepository), typeof(MenuSection) },
         new object[] { typeof(ProductCategoryRepository), typeof(ProductCategory) },
-        new object[] { typeof(SellTypeRepository), typeof(SellType) },
         new object[] { typeof(SpecializationRepository), typeof(Specialization) },
         new object[] { typeof(UnitPriceRepository), typeof(UnitPrice) },
         new object[] { typeof(TableRepository), typeof(Restaurant.DAL.Models.Table) },
@@ -83,7 +82,7 @@ public class DefinitionRepositoryTests : IDisposable
         return entity;
     }
 
-    // SellType and Classification follow the ERP models, which have no Code column
+    // Classification follows the ERP models, which have no Code column
     private static string CodeOf(object entity) => (string)entity.GetType().GetProperty("Code")?.GetValue(entity);
     private static int IdOf(object entity) => (int)entity.GetType().GetProperty("Id").GetValue(entity);
     private static void SetName(object entity, string en) => entity.GetType().GetProperty("EnName").SetValue(entity, en);

@@ -30,23 +30,6 @@ public class ProductToInvoiceJourneyTests : IDisposable
         return (await Db.Accounts.AsNoTracking().SingleAsync(a => a.Id == accountId)).BalanceValue;
     }
 
-    [Fact]
-    public async Task Customer_BuysAtHisOwnPriceType_OrNoneWhenHeHasNoneSet()
-    {
-        var halfWhole = new SellType { ArName = "Half", EnName = "Half", Show = true };
-        Db.Add(halfWhole);
-        await Db.SaveChangesAsync();
-        var withType = new Customer { SellTypeId = halfWhole.Id, Account = new Account { Code = "C1", ArName = "A", EnName = "A", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
-        var withoutType = new Customer { Account = new Account { Code = "C2", ArName = "B", EnName = "B", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
-        Db.AddRange(withType, withoutType);
-        await Db.SaveChangesAsync();
-        Db.ChangeTracker.Clear();
-        var invoices = new InvoiceRepository(Db, new JournalEntryRepository(Db));
-
-        Assert.Equal(halfWhole.Id, await invoices.GetCustomerSellTypeIdAsync(withType.Id));
-        Assert.Equal(0, await invoices.GetCustomerSellTypeIdAsync(withoutType.Id));
-        Assert.Equal(0, await invoices.GetCustomerSellTypeIdAsync(999999));
-    }
 
     [Fact]
     public async Task Potato_FromProductToDishToPurchaseAndSale_EveryNumberIsRight()
@@ -54,38 +37,38 @@ public class ProductToInvoiceJourneyTests : IDisposable
         var store = new Store { Code = "1", ArName = "Store", EnName = "Store" };
         var gram = new UnitPrice { Code = "g", ArName = "Gram", EnName = "Gram" };
         var kilo = new UnitPrice { Code = "k", ArName = "Kilo", EnName = "Kilo" };
-        var retail = new SellType { ArName = "Retail", EnName = "Retail", Show = true };
-        var wholesale = new SellType { ArName = "Wholesale", EnName = "Wholesale", Show = true };
         var section = new MenuSection { Code = "1", ArName = "Section", EnName = "Section" };
         var supplier = new Supplier { Account = new Account { Code = "S", ArName = "Sup", EnName = "Sup", AccountType = AccountType.Supplier, BalanceType = AccountBalanceType.Credit } };
         var customer = new Customer { Account = new Account { Code = "C", ArName = "Cus", EnName = "Cus", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
-        Db.AddRange(store, gram, kilo, retail, wholesale, section, supplier, customer);
+        Db.AddRange(store, gram, kilo, section, supplier, customer);
         await Db.SaveChangesAsync();
         Db.ChangeTracker.Clear();
 
-        // ---- 1. the product: 10000 grams in stock, a gram sells for 0.03 / 0.025 and a kilo for 30 / 25
+        // ---- 1. the product: 10000 grams in stock, a gram is priced 0.02 and a kilo 20, so the cost is 0.02 per gram
         var products = new ProductRepository(Db, _db.Http);
         var potato = new Product
         {
             ArName = "Potato", EnName = "Potato", Cost = 0.02m,
             Units = new List<ProductUnit>
             {
-                new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true, Prices = new List<ProductUnitPrice> { new() { SellTypeId = retail.Id, Price = 0.03m }, new() { SellTypeId = wholesale.Id, Price = 0.025m } } },
-                new() { UnitPriceId = kilo.Id, TransRate = 1000, Prices = new List<ProductUnitPrice> { new() { SellTypeId = retail.Id, Price = 30 }, new() { SellTypeId = wholesale.Id, Price = 25 } } }
+                new() { UnitPriceId = gram.Id, TransRate = 1, Price = 0.02m },
+                new() { UnitPriceId = kilo.Id, TransRate = 1000, Price = 20 }
             }
         };
-        var saved = await products.UpsertProductAsync(potato, new List<ProductStock> { new() { StoreId = store.Id, Quantity = 10000, MinQuantity = 500 } });
+        var saved = await products.UpsertProductAsync(potato);
         Assert.True(saved.Success, saved.Message);
         Db.ChangeTracker.Clear();
         var productId = (await Db.Products.AsNoTracking().SingleAsync()).Id;
+        await new StockRepository(Db).MoveAsync(store.Id, productId, 10000, StockMovementSource.OpeningBalance, "1");
+        await Db.SaveChangesAsync();
+        Assert.Equal(0.02m, (await Db.Products.AsNoTracking().SingleAsync()).Cost);
 
         Assert.Equal(10000, await Stock(store.Id, productId));
         var opened = await products.GetProductByIdAsync(productId);
         Assert.Equal(1, opened.Units.Single(a => a.UnitPriceId == gram.Id).TransRate);
         Assert.Equal(1000, opened.Units.Single(a => a.UnitPriceId == kilo.Id).TransRate);
-        Assert.Equal(new[] { 30m, 25m }, opened.Units.Single(a => a.UnitPriceId == kilo.Id).Prices.OrderBy(a => a.SellTypeId).Select(a => a.Price).ToArray());
-        Assert.Equal(new[] { 0.03m, 0.025m }, opened.Units.Single(a => a.UnitPriceId == gram.Id).Prices.OrderBy(a => a.SellTypeId).Select(a => a.Price).ToArray());
-        Assert.Equal(500, opened.Stocks.Single(a => a.StoreId == store.Id).MinQuantity);
+        Assert.Equal(20, opened.Units.Single(a => a.UnitPriceId == kilo.Id).Price);
+        Assert.Equal(0.02m, opened.Units.Single(a => a.UnitPriceId == gram.Id).Price);
         Db.ChangeTracker.Clear();
 
         // ---- 2. the dish: 0.2 kilo + 100 grams of potato = 300 grams, the rates come from the product
@@ -111,7 +94,7 @@ public class ProductToInvoiceJourneyTests : IDisposable
         var invoices = new InvoiceRepository(Db, new JournalEntryRepository(Db));
         InvoiceViewModel Purchase(int id, decimal kilos) => new()
         {
-            Id = id, InvoiceType = InvoiceType.Purchases, StoreId = store.Id, SupplierId = supplier.Id, Paid = 100, AutoPost = true, AutoStock = true,
+            Id = id, InvoiceType = InvoiceType.Purchases, StoreId = store.Id, SupplierId = supplier.Id, Paid = 100, PayType = Shared.Enums.PayType.Later, AutoPost = true, AutoStock = true,
             Items = new List<InvoiceItemViewModel>
             {
                 new() { ProductId = productId, UnitPriceId = kilo.Id, Quantity = kilos, Price = 20 },
@@ -127,8 +110,8 @@ public class ProductToInvoiceJourneyTests : IDisposable
         Assert.Equal(new[] { 100m, 15m }, purchaseBill.BillDetails.OrderBy(a => a.RowNumber).Select(a => a.TotalAmount ?? 0).ToArray());
         Assert.Equal(new[] { 1000m, 1m }, purchaseBill.BillDetails.OrderBy(a => a.RowNumber).Select(a => a.TransRate ?? 0).ToArray());
         Assert.Equal(10000 + 5000 + 500, await Stock(store.Id, productId));
-        // the cost per gram is the price of the last line (0.03 per gram)
-        Assert.Equal(0.03m, (await Db.Products.AsNoTracking().SingleAsync()).Cost);
+        // the cost per gram is the weighted average: (10000 x 0.02 + 115) / 15500
+        Assert.Equal(315m / 15500m, (await Db.Products.AsNoTracking().SingleAsync()).Cost, 6);
         // each unit remembers the price it was last bought at
         var kiloRow = await Db.ItemUnits.AsNoTracking().SingleAsync(a => a.Unit.Code == BillSupportRepository.UnitCodePrefix + kilo.Id);
         var gramRow = await Db.ItemUnits.AsNoTracking().SingleAsync(a => a.Unit.Code == BillSupportRepository.UnitCodePrefix + gram.Id);
@@ -147,7 +130,7 @@ public class ProductToInvoiceJourneyTests : IDisposable
         // ---- 4. a sale: 2 kilos at 30 + 250 grams at 0.03 = 60 + 7.5 = 67.5, all paid
         var sale = await invoices.UpsertInvoiceAsync(new InvoiceViewModel
         {
-            InvoiceType = InvoiceType.Sales, StoreId = store.Id, CustomerId = customer.Id, Paid = 67.5m, AutoPost = true, AutoStock = true,
+            InvoiceType = InvoiceType.Sales, StoreId = store.Id, CustomerId = customer.Id, Paid = 67.5m, PayType = Shared.Enums.PayType.Later, AutoPost = true, AutoStock = true,
             Items = new List<InvoiceItemViewModel>
             {
                 new() { ProductId = productId, UnitPriceId = kilo.Id, Quantity = 2, Price = 30 },
@@ -159,16 +142,16 @@ public class ProductToInvoiceJourneyTests : IDisposable
         var saleBill = await Db.BillMasters.AsNoTracking().OrderByDescending(a => a.Id).FirstAsync();
         Assert.Equal(67.5m, saleBill.TotalBillAmountAfterDiscountAndExtra);
         Assert.Equal(15500 - 2250, await Stock(store.Id, productId));
-        // cost 0.03 per gram: 2250 grams = 67.5 cost, so the profit is 0
-        Assert.Equal(67.5m, saleBill.BillCost);
-        Assert.Equal(0, saleBill.BillProfit);
+        // cost is the weighted average per gram: 2250 x 315 / 15500
+        Assert.Equal(2250m * 315m / 15500m, saleBill.BillCost.Value, 4);
+        Assert.Equal(67.5m - 2250m * 315m / 15500m, saleBill.BillProfit.Value, 4);
         Assert.Equal(0, await Balance(customer.AccountId.Value));
 
         // ---- 5. the sale is edited to 1 kilo: the 2250 grams come back, 1250 grams go out
         Db.ChangeTracker.Clear();
         var edited = await invoices.UpsertInvoiceAsync(new InvoiceViewModel
         {
-            Id = saleBill.Id, InvoiceType = InvoiceType.Sales, StoreId = store.Id, CustomerId = customer.Id, Paid = 30, AutoPost = true, AutoStock = true,
+            Id = saleBill.Id, InvoiceType = InvoiceType.Sales, StoreId = store.Id, CustomerId = customer.Id, Paid = 30, PayType = Shared.Enums.PayType.Later, AutoPost = true, AutoStock = true,
             Items = new List<InvoiceItemViewModel>
             {
                 new() { ProductId = productId, UnitPriceId = kilo.Id, Quantity = 1, Price = 30 },
@@ -205,7 +188,7 @@ public class ProductToInvoiceJourneyTests : IDisposable
             Id = productId, ArName = "Potato", EnName = "Potato", Cost = 0.03m,
             Units = new List<ProductUnit> { new() { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true } }
         };
-        var removed = await products.UpsertProductAsync(withoutKilo, new List<ProductStock> { new() { StoreId = store.Id, Quantity = 15500 - 1250, MinQuantity = 500 } });
+        var removed = await products.UpsertProductAsync(withoutKilo);
         Assert.Equal("CannotDeleteLinkedRecord", removed.Message);
         Db.ChangeTracker.Clear();
         Assert.Equal(2, await Db.ItemUnits.CountAsync(a => a.Item.Code == "RST-P" + productId && a.Unit.Code.StartsWith("RST-U")));

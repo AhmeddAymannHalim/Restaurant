@@ -48,8 +48,8 @@
                                     }
                                 </select>
                             </div>
-                            <div class="form-group"><label class="control-label">@L["Bill.Debit"]</label><input type="number" step="0.01" min="0" name="Lines[@i].Debit" value="@(Model.Lines[i].Debit is null or 0 ? "" : Model.Lines[i].Debit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))" class="form-control line-debit" /></div>
-                            <div class="form-group"><label class="control-label">@L["Bill.Credit"]</label><input type="number" step="0.01" min="0" name="Lines[@i].Credit" value="@(Model.Lines[i].Credit is null or 0 ? "" : Model.Lines[i].Credit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))" class="form-control line-credit" /></div>
+                            <div class="form-group"><label class="control-label">@L["Debit"]</label><input type="number" step="0.01" min="0" name="Lines[@i].Debit" value="@(Model.Lines[i].Debit is null or 0 ? "" : Model.Lines[i].Debit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))" class="form-control line-debit" /></div>
+                            <div class="form-group"><label class="control-label">@L["Credit"]</label><input type="number" step="0.01" min="0" name="Lines[@i].Credit" value="@(Model.Lines[i].Credit is null or 0 ? "" : Model.Lines[i].Credit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))" class="form-control line-credit" /></div>
                             <div class="form-group"><label class="control-label">@L["Bill.Remarks"]</label><input type="text" name="Lines[@i].Remarks" value="@Model.Lines[i].Remarks" class="form-control" maxlength="250" /></div>
                             <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
                         </div>
@@ -68,15 +68,15 @@
                                 }
                             </select>
                         </div>
-                        <div class="form-group"><label class="control-label">@L["Bill.Debit"]</label><input type="number" step="0.01" min="0" name="Lines[__i__].Debit" class="form-control line-debit" /></div>
-                        <div class="form-group"><label class="control-label">@L["Bill.Credit"]</label><input type="number" step="0.01" min="0" name="Lines[__i__].Credit" class="form-control line-credit" /></div>
+                        <div class="form-group"><label class="control-label">@L["Debit"]</label><input type="number" step="0.01" min="0" name="Lines[__i__].Debit" class="form-control line-debit" /></div>
+                        <div class="form-group"><label class="control-label">@L["Credit"]</label><input type="number" step="0.01" min="0" name="Lines[__i__].Credit" class="form-control line-credit" /></div>
                         <div class="form-group"><label class="control-label">@L["Bill.Remarks"]</label><input type="text" name="Lines[__i__].Remarks" class="form-control" maxlength="250" /></div>
                         <button type="button" class="btn-ad btn-ad-danger btn-icon" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button>
                     </div>
                 </template>
                 <p class="bo-meta">
-                    @L["Bill.Debit"]: <b id="sumDebit">0.00</b>
-                    &nbsp;|&nbsp; @L["Bill.Credit"]: <b id="sumCredit">0.00</b>
+                    @L["Debit"]: <b id="sumDebit">0.00</b>
+                    &nbsp;|&nbsp; @L["Credit"]: <b id="sumCredit">0.00</b>
                     &nbsp;|&nbsp; <b id="sumState"></b>
                 </p>
             </div>

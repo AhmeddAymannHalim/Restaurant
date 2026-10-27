@@ -58,8 +58,6 @@ public class CustomerViewModel
     public IEnumerable<LookupItem> Nationalities { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Branches { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Employees { get; set; } = new List<LookupItem>();
-    public int? SellTypeId { get; set; }
-    public IEnumerable<LookupItem> SellTypes { get; set; } = new List<LookupItem>();
     public int? CostCenterId { get; set; }
     public IEnumerable<LookupItem> CostCenters { get; set; } = new List<LookupItem>();
     public int? ClassificationId { get; set; }

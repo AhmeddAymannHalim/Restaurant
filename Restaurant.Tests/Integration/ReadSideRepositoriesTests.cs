@@ -193,29 +193,6 @@ public class ReadSideRepositoriesTests : IDisposable
         Assert.Single((await sut.GetPagedAsync(narrow, null, null)).Data);
     }
 
-    [Fact]
-    public async Task Product_StockTypedInTheForm_LeavesAMovementForEveryChange()
-    {
-        var store = new Store { Code = "1", ArName = "S", EnName = "S" };
-        _db.Context.Stores.Add(store);
-        await _db.Context.SaveChangesAsync();
-        var products = new ProductRepository(_db.Context, _db.Http);
-        var product = new Product { ArName = "دقيق", EnName = "Flour", Cost = 3 };
-
-        await products.UpsertProductAsync(product, new[] { new ProductStock { StoreId = store.Id, Quantity = 10 } });
-        _db.Context.ChangeTracker.Clear();
-        var edit = new Product { Id = product.Id, ArName = "دقيق", EnName = "Flour", Cost = 3 };
-        await products.UpsertProductAsync(edit, new[] { new ProductStock { StoreId = store.Id, Quantity = 7 } });
-        _db.Context.ChangeTracker.Clear();
-        var sameAgain = new Product { Id = product.Id, ArName = "دقيق", EnName = "Flour", Cost = 3 };
-        await products.UpsertProductAsync(sameAgain, new[] { new ProductStock { StoreId = store.Id, Quantity = 7 } });
-        _db.Context.ChangeTracker.Clear();
-        await products.UpsertProductAsync(new Product { Id = product.Id, ArName = "دقيق", EnName = "Flour", Cost = 3 }, new List<ProductStock>());
-
-        var deltas = await _db.Context.StoreProductMovements.AsNoTracking().OrderBy(a => a.Id).Select(a => a.QuantityDelta).ToListAsync();
-        Assert.Equal(new decimal[] { 10, -3, -7 }, deltas);
-        Assert.All(await _db.Context.StoreProductMovements.AsNoTracking().ToListAsync(), m => Assert.Equal(StockMovementSource.OpeningBalance, m.Source));
-    }
 
     // ---------------------------------------------------------------- location
 
@@ -247,7 +224,8 @@ public class ReadSideRepositoriesTests : IDisposable
         var section = new MenuSection { Code = "1", ArName = "Sec", EnName = "Sec" };
         var free = new Table { Code = "1", ArName = "T1", EnName = "T1", NumOfPersons = 4 };
         var reserved = new Table { Code = "2", ArName = "T2", EnName = "T2", NumOfPersons = 2 };
-        _db.Context.AddRange(user, store, section, free, reserved);
+        var customer = new Customer { Account = new Account { Code = "C", ArName = "Cus", EnName = "Cus", AccountType = AccountType.Customer, BalanceType = AccountBalanceType.Debit } };
+        _db.Context.AddRange(user, store, section, free, reserved, customer);
         await _db.Context.SaveChangesAsync();
         var dish = new MenuItem { Code = "1", ArName = "Dish", EnName = "Dish", Price = 40, StoreId = store.Id, MenuSectionId = section.Id };
         _db.Context.MenuItems.Add(dish);
@@ -259,8 +237,8 @@ public class ReadSideRepositoriesTests : IDisposable
         await _db.Context.SaveChangesAsync();
         var orders = new OrderRepository(_db.Context);
         _db.Context.ChangeTracker.Clear();
-        Assert.True((await orders.CreateOrderAsync(new Order { Type = OrderType.TakeAway, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 1 } } } }, user.Id)).Success);
-        Assert.True((await orders.CreateOrderAsync(new Order { Type = OrderType.Hall, TableId = free.Id, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 2 } } } }, user.Id)).Success);
+        Assert.True((await orders.CreateOrderAsync(new Order { Type = OrderType.TakeAway, CustomerId = customer.Id, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 1 } } } }, user.Id)).Success);
+        Assert.True((await orders.CreateOrderAsync(new Order { Type = OrderType.Hall, TableId = free.Id, CustomerId = customer.Id, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 2 } } } }, user.Id)).Success);
         _db.Context.ChangeTracker.Clear();
 
         var model = await new DashboardRepository(_db.Context).GetDashboardAsync(user.Id);

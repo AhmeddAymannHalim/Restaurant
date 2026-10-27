@@ -83,7 +83,7 @@ public class SupportAndServiceBranchTests : IDisposable
         Assert.True((await invoices.UpsertInvoiceAsync(Make(InvoiceType.Purchases))).Success);
         await _host.Get<IStockRepository>().AdjustAsync(store.Id, product.Id, 10, allowNegative: true);
         Assert.True((await invoices.UpsertInvoiceAsync(Make(InvoiceType.Sales))).Success);
-        var order = await new OrderRepository(_host.Context).CreateOrderAsync(new Order { Type = OrderType.TakeAway, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 1 } } } }, user.Id);
+        var order = await new OrderRepository(_host.Context).CreateOrderAsync(new Order { Type = OrderType.TakeAway, CustomerId = customer.Id, Lines = new List<OrderMenuItem> { new() { MenuItemId = dish.Id, BillDetail = new BillDetail { Quantity = 1 } } } }, user.Id);
         Assert.True(order.Success, order.Message);
         _host.Context.ChangeTracker.Clear();
     }
@@ -164,7 +164,7 @@ public class SupportAndServiceBranchTests : IDisposable
         var invoices = _host.Get<IInvoiceRepository>();
         Assert.True((await invoices.UpsertInvoiceAsync(new InvoiceViewModel
         {
-            InvoiceType = InvoiceType.Purchases, StoreId = store.Id, SupplierId = supplier.Id, AutoPost = true, AutoStock = true,
+            InvoiceType = InvoiceType.Purchases, StoreId = store.Id, SupplierId = supplier.Id, PayType = PayType.Later, AutoPost = true, AutoStock = true,
             Items = new List<InvoiceItemViewModel> { new() { ProductId = product.Id, UnitPriceId = unit.Id, Quantity = 10, Price = 10 } }
         })).Success);
         var bill = await _host.Context.BillMasters.AsNoTracking().SingleAsync();

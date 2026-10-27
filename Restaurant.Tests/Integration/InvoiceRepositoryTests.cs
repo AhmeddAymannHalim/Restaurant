@@ -45,6 +45,7 @@ public class InvoiceRepositoryTests : IDisposable
             InvoiceType = type,
             StoreId = _store.Id,
             Paid = paid,
+            PayType = PayType.Later,
             AutoStock = autoStock,
             AutoPost = true,
             Items = new List<InvoiceItemViewModel>
@@ -92,9 +93,9 @@ public class InvoiceRepositoryTests : IDisposable
         await _db.Context.SaveChangesAsync();
         var products = new ProductRepository(_db.Context, _db.Http);
         var edit = new Product { Id = _product.Id, ArName = "Product", EnName = "Product", Cost = 0.005m };
-        edit.Units = new List<ProductUnit> { new() { UnitPriceId = _unit.Id, TransRate = 1, IsDefault = true }, new() { UnitPriceId = kilo.Id, TransRate = 1000 } };
+        edit.Units = new List<ProductUnit> { new() { UnitPriceId = _unit.Id, TransRate = 1, Price = 0.005m }, new() { UnitPriceId = kilo.Id, TransRate = 1000 } };
         _db.Context.ChangeTracker.Clear();
-        Assert.True((await products.UpsertProductAsync(edit, new List<ProductStock>())).Success);
+        Assert.True((await products.UpsertProductAsync(edit)).Success);
         _db.Context.ChangeTracker.Clear();
         return kilo;
     }
@@ -114,6 +115,56 @@ public class InvoiceRepositoryTests : IDisposable
         Assert.Equal(0.007m, (await _db.Context.Products.AsNoTracking().SingleAsync()).Cost);
         Assert.Equal(1000, (await _db.Context.BillDetails.AsNoTracking().SingleAsync()).TransRate);
         Assert.Equal(3000, (await _db.Context.StoreProductMovements.AsNoTracking().SingleAsync()).QuantityDelta);
+    }
+
+    [Fact]
+    public async Task Purchase_CostIsTheWeightedAverageOfStockAndWhatWasBought()
+    {
+        await Seed();
+        await _sut.UpsertInvoiceAsync(Invoice(InvoiceType.Purchases, 10, 6));
+        _db.Context.ChangeTracker.Clear();
+
+        await _sut.UpsertInvoiceAsync(Invoice(InvoiceType.Purchases, 30, 10));
+
+        Assert.Equal(40, await Stock());
+        Assert.Equal(9, (await _db.Context.Products.AsNoTracking().SingleAsync()).Cost);
+    }
+
+    [Fact]
+    public async Task Purchase_InAKilo_UpdatesTheGramLastBuyAndEveryUnitAverage()
+    {
+        await Seed();
+        var kilo = await SeedGramAndKilo();
+        var invoice = Invoice(InvoiceType.Purchases, 3, 7);
+        invoice.Items[0].UnitPriceId = kilo.Id;
+
+        Assert.True((await _sut.UpsertInvoiceAsync(invoice)).Success);
+
+        var units = await _db.Context.ItemUnits.AsNoTracking().Include(a => a.Unit).ToListAsync();
+        var gramRow = units.Single(a => a.Unit.Code == BillSupportRepository.UnitCodePrefix + _unit.Id);
+        var kiloRow = units.Single(a => a.Unit.Code == BillSupportRepository.UnitCodePrefix + kilo.Id);
+        Assert.Equal(0.007m, gramRow.LastPurchase);
+        Assert.Equal(7, kiloRow.LastPurchase);
+        Assert.Equal(0.007m, gramRow.WeightedAverage);
+        Assert.Equal(7, kiloRow.WeightedAverage);
+    }
+
+    [Fact]
+    public async Task Purchase_PostedLater_AveragesTheCostToo()
+    {
+        await Seed();
+        await _sut.UpsertInvoiceAsync(Invoice(InvoiceType.Purchases, 10, 6));
+        _db.Context.ChangeTracker.Clear();
+        await _sut.UpsertInvoiceAsync(Invoice(InvoiceType.Purchases, 30, 10, autoStock: false));
+        var pendingId = (await _db.Context.BillMasters.AsNoTracking().OrderBy(a => a.Id).LastAsync()).Id;
+        _db.Context.ChangeTracker.Clear();
+        Assert.Equal(6, (await _db.Context.Products.AsNoTracking().SingleAsync()).Cost);
+
+        var posted = await _sut.PostInvoiceAsync(pendingId);
+
+        Assert.True(posted.Success, posted.Message);
+        Assert.Equal(40, await Stock());
+        Assert.Equal(9, (await _db.Context.Products.AsNoTracking().SingleAsync()).Cost);
     }
 
     [Fact]
@@ -197,6 +248,79 @@ public class InvoiceRepositoryTests : IDisposable
         await _sut.UpsertInvoiceAsync(Invoice(InvoiceType.Purchases, 10, 7, paid: 20));
 
         Assert.Equal(50, await Balance(_supplier.Account));
+        Assert.Equal(PayType.Later, (await _db.Context.BillMasters.AsNoTracking().SingleAsync()).PayType);
+    }
+
+    [Fact]
+    public async Task Purchase_Cash_IsPaidInFullWhateverPaidSays()
+    {
+        await Seed();
+        var model = Invoice(InvoiceType.Purchases, 10, 7, paid: 20);
+        model.PayType = PayType.Cash;
+
+        var result = await _sut.UpsertInvoiceAsync(model);
+
+        Assert.True(result.Success, result.Message);
+        var bill = await _db.Context.BillMasters.Include(a => a.PaymentMethods).AsNoTracking().SingleAsync();
+        Assert.Equal(PayType.Cash, bill.PayType);
+        Assert.Equal(70, bill.AmountPaided);
+        Assert.Equal(0, bill.CasherRemainingAmount);
+        Assert.Equal(70, bill.PaymentMethods.Sum(a => a.AmountPaided));
+        Assert.Equal(0, await Balance(_supplier.Account));
+    }
+
+    [Fact]
+    public async Task Sale_Cash_LeavesNothingOwedByTheCustomer()
+    {
+        await Seed();
+        await _sut.UpsertInvoiceAsync(Invoice(InvoiceType.Purchases, 10, 5, paid: 50));
+        var model = Invoice(InvoiceType.Sales, 4, 9);
+        model.PayType = PayType.Cash;
+
+        var result = await _sut.UpsertInvoiceAsync(model);
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(0, await Balance(_customer.Account));
+        var bill = await _db.Context.BillMasters.AsNoTracking().OrderBy(a => a.Id).LastAsync();
+        Assert.Equal(36, bill.AmountPaided);
+    }
+
+    [Fact]
+    public async Task Edit_ToCash_PaysOnlyWhatLinkedPaymentsDidNotCover()
+    {
+        await Seed();
+        await _sut.UpsertInvoiceAsync(Invoice(InvoiceType.Purchases, 10, 7));
+        var bill = await _db.Context.BillMasters.AsNoTracking().SingleAsync();
+        _db.Context.PaymentInvoiceSupplier.Add(new PaymentInvoiceSupplier { SupplierId = _supplier.Id, BillMasterId = bill.Id, Paid = 10, ProcessCode = "1", Date = DateTime.Now });
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+        var model = Invoice(InvoiceType.Purchases, 10, 7);
+        model.Id = bill.Id;
+        model.PayType = PayType.Cash;
+
+        var result = await _sut.UpsertInvoiceAsync(model);
+
+        Assert.True(result.Success, result.Message);
+        var saved = await _db.Context.BillMasters.Include(a => a.PaymentMethods).AsNoTracking().SingleAsync();
+        Assert.Equal(60, saved.PaymentMethods.Sum(a => a.AmountPaided));
+        Assert.Equal(70, saved.AmountPaided);
+        Assert.Equal(0, saved.CasherRemainingAmount);
+    }
+
+    [Fact]
+    public async Task Shortage_Cash_HasNoPayment()
+    {
+        await Seed();
+        await _sut.UpsertInvoiceAsync(Invoice(InvoiceType.Purchases, 10, 5, paid: 50));
+        var model = Invoice(InvoiceType.Shortage, 2, 5);
+        model.PayType = PayType.Cash;
+
+        var result = await _sut.UpsertInvoiceAsync(model);
+
+        Assert.True(result.Success, result.Message);
+        var bill = await _db.Context.BillMasters.Include(a => a.PaymentMethods).AsNoTracking().OrderBy(a => a.Id).LastAsync();
+        Assert.Equal(0, bill.AmountPaided);
+        Assert.Empty(bill.PaymentMethods);
     }
 
     [Fact]

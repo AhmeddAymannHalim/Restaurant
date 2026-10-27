@@ -2,8 +2,6 @@
 @{
     bool isArabic = CultureInfo.CurrentUICulture.ToString().StartsWith("ar");
     var isNew = Model.Id == 0;
-    // the ERP keeps six prices per unit (sell type id 1..6)
-    var priceTypes = Model.SellTypes.Where(a => a.Show && a.Id <= 6).ToList();
     ViewBag.Title = isNew ? L["NewProduct"].Value : L["UpdateProduct"].Value;
 }
 
@@ -41,26 +39,15 @@
                 </select>
                 <span asp-validation-for="ProductCategoryId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Cost" class="control-label">@L["UnitCost"]</label>
-                <input asp-for="Cost" type="number" step="any" min="0" class="form-control" />
-                <span asp-validation-for="Cost" class="text-danger"></span>
-            </div>
-
             <div class="form-group bo-full" data-row-list data-prefix="Units">
-                <label class="control-label">@L["ProductUnits"]</label>
+                <label class="control-label">@L["UnitPrices"]</label>
                 <div class="table-responsive">
-                    <table class="table table-bordered table-sm align-middle">
+                    <table class="table table-bordered table-sm align-middle bo-fit-table">
                         <thead class="table-light">
                             <tr>
                                 <th>@L["Unit"]</th>
-                                <th>@L["TransRateHead"]</th>
-                                <th>@L["PriceLastPurchase"]</th>
-                                @foreach (var sellType in priceTypes)
-                                {
-                                    <th>@(isArabic ? sellType.ArName : sellType.EnName)@if (sellType.IsLastPrice && sellType.PlusPrice > 0) { <span> +@sellType.PlusPrice.Value.ToString("0.##")%</span> }</th>
-                                }
-                                <th>@L["Barcode"]</th>
+                                <th>@L["TransRate"]</th>
+                                <th>@L["ProductUnitPrice"]</th>
                                 <th class="text-center">@L["DefaultUnit"]</th>
                                 <th></th>
                             </tr>
@@ -84,18 +71,7 @@
                                         <input type="number" name="Units[@i].TransRate" value="@unitRow.TransRate.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)" step="0.000001" min="0" class="form-control form-control-sm" aria-label="@L["TransRate"]" />
                                         @Html.ValidationMessage($"Units[{i}].TransRate", new { @class = "text-danger" })
                                     </td>
-                                    <td><input type="number" name="Units[@i].LastPurchase" value="@unitRow.LastPurchase.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)" step="any" min="0" class="form-control form-control-sm unit-last" aria-label="@L["PriceLastPurchase"]" /></td>
-                                    @{ var priceIndex = 0; }
-                                    @foreach (var sellType in priceTypes)
-                                    {
-                                        var priceValue = unitRow.Prices.FirstOrDefault(a => a.SellTypeId == sellType.Id)?.Price ?? 0;
-                                        <td>
-                                            <input type="hidden" name="Units[@i].Prices[@priceIndex].SellTypeId" value="@sellType.Id" />
-                                            <input type="number" name="Units[@i].Prices[@priceIndex].Price" value="@priceValue.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)" step="any" min="0" class="form-control form-control-sm unit-price" data-plus="@(sellType.IsLastPrice ? sellType.PlusPrice : null)" aria-label="@(isArabic ? sellType.ArName : sellType.EnName)" />
-                                        </td>
-                                        priceIndex++;
-                                    }
-                                    <td><input type="text" name="Units[@i].Barcode" value="@unitRow.Barcode" class="form-control form-control-sm" aria-label="@L["Barcode"]" /></td>
+                                    <td><input type="number" name="Units[@i].Price" value="@unitRow.Price.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)" step="any" min="0" class="form-control form-control-sm" aria-label="@L["ProductUnitPrice"]" /></td>
                                     <td class="text-center"><input type="checkbox" name="Units[@i].IsDefault" value="true" class="form-check-input unit-default" checked="@unitRow.IsDefault" aria-label="@L["DefaultUnit"]" /></td>
                                     <td><button type="button" class="btn btn-sm btn-outline-danger" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button></td>
                                 </tr>
@@ -117,75 +93,8 @@
                             </select>
                         </td>
                         <td><input type="number" name="Units[__i__].TransRate" value="1" step="0.000001" min="0" class="form-control form-control-sm" aria-label="@L["TransRate"]" /></td>
-                        <td><input type="number" name="Units[__i__].LastPurchase" value="0" step="any" min="0" class="form-control form-control-sm unit-last" aria-label="@L["PriceLastPurchase"]" /></td>
-                        @{ var templateIndex = 0; }
-                        @foreach (var sellType in priceTypes)
-                        {
-                            <td>
-                                <input type="hidden" name="Units[__i__].Prices[@templateIndex].SellTypeId" value="@sellType.Id" />
-                                <input type="number" name="Units[__i__].Prices[@templateIndex].Price" value="0" step="any" min="0" class="form-control form-control-sm unit-price" data-plus="@(sellType.IsLastPrice ? sellType.PlusPrice : null)" aria-label="@(isArabic ? sellType.ArName : sellType.EnName)" />
-                            </td>
-                            templateIndex++;
-                        }
-                        <td><input type="text" name="Units[__i__].Barcode" class="form-control form-control-sm" aria-label="@L["Barcode"]" /></td>
+                        <td><input type="number" name="Units[__i__].Price" value="0" step="any" min="0" class="form-control form-control-sm" aria-label="@L["ProductUnitPrice"]" /></td>
                         <td class="text-center"><input type="checkbox" name="Units[__i__].IsDefault" value="true" class="form-check-input unit-default" aria-label="@L["DefaultUnit"]" /></td>
-                        <td><button type="button" class="btn btn-sm btn-outline-danger" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button></td>
-                    </tr>
-                </template>
-            </div>
-
-            <div class="form-group bo-full" data-row-list data-prefix="Stocks">
-                <label class="control-label">@L["StockPerStore"]</label>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-sm align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>@L["Store"]</th>
-                                <th>@L["Quantity"]</th>
-                                <th>@L["MinQuantity"]</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody data-rows>
-                            @for (var i = 0; i < Model.Stocks.Count; i++)
-                            {
-                                <tr data-row>
-                                    <td>
-                                        <select name="Stocks[@i].StoreId" class="form-select form-select-sm" aria-label="@L["Store"]">
-                                            <option value="">@L["Select"]</option>
-                                            @foreach (var store in Model.Stores)
-                                            {
-                                                <option value="@store.Id" selected="@(Model.Stocks[i].StoreId == store.Id)">@(isArabic ? store.ArName : store.EnName)</option>
-                                            }
-                                        </select>
-                                        @Html.ValidationMessage($"Stocks[{i}].StoreId", new { @class = "text-danger" })
-                                    </td>
-                                    <td>
-                                        <input type="number" name="Stocks[@i].Quantity" value="@Model.Stocks[i].Quantity.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)" step="0.001" min="0" class="form-control form-control-sm" aria-label="@L["Quantity"]" />
-                                        @Html.ValidationMessage($"Stocks[{i}].Quantity", new { @class = "text-danger" })
-                                    </td>
-                                    <td><input type="number" name="Stocks[@i].MinQuantity" value="@Model.Stocks[i].MinQuantity.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)" step="0.001" min="0" class="form-control form-control-sm" aria-label="@L["MinQuantity"]" /></td>
-                                    <td><button type="button" class="btn btn-sm btn-outline-danger" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button></td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-                @Html.ValidationMessage("Stocks", new { @class = "text-danger d-block" })
-                <button type="button" class="btn btn-sm btn-outline-secondary" data-row-add><i class="fas fa-plus" aria-hidden="true"></i> @L["AddLine"]</button>
-                <template data-row-template>
-                    <tr data-row>
-                        <td>
-                            <select name="Stocks[__i__].StoreId" class="form-select form-select-sm" aria-label="@L["Store"]">
-                                <option value="">@L["Select"]</option>
-                                @foreach (var store in Model.Stores)
-                                {
-                                    <option value="@store.Id">@(isArabic ? store.ArName : store.EnName)</option>
-                                }
-                            </select>
-                        </td>
-                        <td><input type="number" name="Stocks[__i__].Quantity" value="0" step="0.001" min="0" class="form-control form-control-sm" aria-label="@L["Quantity"]" /></td>
-                        <td><input type="number" name="Stocks[__i__].MinQuantity" value="0" step="0.001" min="0" class="form-control form-control-sm" aria-label="@L["MinQuantity"]" /></td>
                         <td><button type="button" class="btn btn-sm btn-outline-danger" data-row-remove title="@L["Delete"]" aria-label="@L["Delete"]"><i class="fas fa-xmark" aria-hidden="true"></i></button></td>
                     </tr>
                 </template>
@@ -206,22 +115,6 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // a sell type that follows the last purchase is that price plus its percent
-        document.addEventListener('input', function (event) {
-            if (!event.target.classList.contains('unit-last')) {
-                return;
-            }
-
-            var last = parseFloat(event.target.value) || 0;
-            event.target.closest('tr').querySelectorAll('.unit-price[data-plus]').forEach(function (box) {
-                var plus = parseFloat(box.dataset.plus);
-                if (plus > 0) {
-                    box.value = Math.round(last * (1 + plus / 100) * 1000000) / 1000000;
-                }
-            });
-        });
-
-        // only one unit can be the default
         document.addEventListener('change', function (event) {
             if (!event.target.classList.contains('unit-default') || !event.target.checked) {
                 return;
