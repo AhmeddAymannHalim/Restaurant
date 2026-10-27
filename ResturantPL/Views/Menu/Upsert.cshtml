@@ -33,6 +33,16 @@
                         <input asp-for="EnName" class="form-control" />
                         <span asp-validation-for="EnName" class="text-danger"></span>
                     </div>
+                     <div class="form-group col-md-3">
+                        <label asp-for="ArDescription" class="control-label">@L["ArabicDescription"]</label>
+                        <input asp-for="ArDescription" class="form-control" />
+                        <span asp-validation-for="ArDescription" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label asp-for="EnDescription" class="control-label">@L["EnglishDescription"]</label>
+                        <input asp-for="EnDescription" class="form-control" />
+                        <span asp-validation-for="EnDescription" class="text-danger"></span>
+                    </div>
                     <div class="form-group col-md-3">
                         <label asp-for="MenuSectionId" class="control-label">@L["MenuSection"]</label>
                         <select asp-for="MenuSectionId" class="form-control">
@@ -55,16 +65,7 @@
                         </select>
                         <span asp-validation-for="Size" class="text-danger"></span>
                     </div>
-                    <div class="form-group col-md-3">
-                        <label asp-for="ArDescription" class="control-label">@L["ArabicDescription"]</label>
-                        <input asp-for="ArDescription" class="form-control" />
-                        <span asp-validation-for="ArDescription" class="text-danger"></span>
-                    </div>
-                    <div class="form-group col-md-3">
-                        <label asp-for="EnDescription" class="control-label">@L["EnglishDescription"]</label>
-                        <input asp-for="EnDescription" class="form-control" />
-                        <span asp-validation-for="EnDescription" class="text-danger"></span>
-                    </div>
+                   
                     <div class="form-group col-md-3">
                         <label asp-for="ImageFile" class="control-label">@L["Image"]</label>
                         @if (!string.IsNullOrEmpty(Model.ImageUrl))

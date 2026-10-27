@@ -120,6 +120,17 @@ public class ProductRepository : IProductRepository
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
+        // one unit is priced by hand (the default one, or the one that has a price) and every other unit follows it by its rate
+        var priceUnit = entity.Units.FirstOrDefault(a => a.IsDefault && a.Price > 0)
+            ?? entity.Units.Where(a => a.Price > 0 && a.TransRate > 0).OrderBy(a => a.TransRate).FirstOrDefault();
+        if (priceUnit is not null && priceUnit.TransRate > 0)
+        {
+            foreach (var unit in entity.Units.Where(a => a != priceUnit))
+            {
+                unit.Price = priceUnit.Price / priceUnit.TransRate * unit.TransRate;
+            }
+        }
+
         var costUnit = entity.Units.Where(a => a.Price > 0)
                                    .OrderBy(a => a.TransRate)
                                    .FirstOrDefault();

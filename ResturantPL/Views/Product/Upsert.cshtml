@@ -115,16 +115,40 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        document.addEventListener('change', function (event) {
-            if (!event.target.classList.contains('unit-default') || !event.target.checked) {
-                return;
-            }
-
-            document.querySelectorAll('.unit-default').forEach(function (box) {
-                if (box !== event.target) {
-                    box.checked = false;
+        // the default unit is priced by hand; every other unit is its price per base unit times its rate
+        function fillUnitPrices() {
+            var rows = Array.from(document.querySelectorAll('[data-rows] [data-row]'));
+            var main = rows.find(function (row) { return row.querySelector('.unit-default').checked; });
+            var mainPrice = main ? parseFloat(main.querySelector('input[name$=".Price"]').value) || 0 : 0;
+            var mainRate = main ? parseFloat(main.querySelector('input[name$=".TransRate"]').value) || 0 : 0;
+            rows.forEach(function (row) {
+                var price = row.querySelector('input[name$=".Price"]');
+                var follows = main && row !== main && mainPrice > 0 && mainRate > 0;
+                price.readOnly = !!follows;
+                if (follows) {
+                    var rate = parseFloat(row.querySelector('input[name$=".TransRate"]').value) || 0;
+                    price.value = Math.round(mainPrice / mainRate * rate * 1000000) / 1000000;
                 }
             });
+        }
+
+        document.addEventListener('change', function (event) {
+            if (event.target.classList.contains('unit-default') && event.target.checked) {
+                document.querySelectorAll('.unit-default').forEach(function (box) {
+                    if (box !== event.target) {
+                        box.checked = false;
+                    }
+                });
+            }
+
+            fillUnitPrices();
         });
+        document.addEventListener('input', fillUnitPrices);
+        document.addEventListener('click', function (event) {
+            if (event.target.closest('[data-row-add], [data-row-remove]')) {
+                setTimeout(fillUnitPrices, 0);
+            }
+        });
+        fillUnitPrices();
     </script>
 }

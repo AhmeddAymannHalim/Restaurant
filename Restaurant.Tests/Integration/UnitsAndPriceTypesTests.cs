@@ -80,7 +80,26 @@ public class UnitsAndPriceTypesTests : IDisposable
         await _products.UpsertProductAsync(product);
 
         _db.Context.ChangeTracker.Clear();
-        Assert.Equal(0.03m, (await _products.GetProductByIdAsync(product.Id)).Cost);
+        var saved = await _products.GetProductByIdAsync(product.Id);
+        Assert.Equal(0.03m, saved.Cost);
+        Assert.Equal(0.03m, saved.Units.Single(a => a.UnitPriceId == gram.Id).Price);
+    }
+
+    [Fact]
+    public async Task Product_TheOtherUnitsArePricedFromTheDefaultUnitByTheirRate_WhateverWasTyped()
+    {
+        var (gram, kilo) = await SeedUnits();
+        var product = Flour(
+            new ProductUnit { UnitPriceId = gram.Id, TransRate = 1, IsDefault = true, Price = 0.03m },
+            new ProductUnit { UnitPriceId = kilo.Id, TransRate = 1000, Price = 999 });
+
+        await _products.UpsertProductAsync(product);
+
+        _db.Context.ChangeTracker.Clear();
+        var saved = await _products.GetProductByIdAsync(product.Id);
+        Assert.Equal(0.03m, saved.Units.Single(a => a.UnitPriceId == gram.Id).Price);
+        Assert.Equal(30, saved.Units.Single(a => a.UnitPriceId == kilo.Id).Price);
+        Assert.Equal(0.03m, saved.Cost);
     }
 
     [Fact]
