@@ -115,24 +115,88 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // the default unit is priced by hand; every other unit is its price per base unit times its rate
-        function fillUnitPrices() {
-            var rows = Array.from(document.querySelectorAll('[data-rows] [data-row]'));
-            var main = rows.find(function (row) { return row.querySelector('.unit-default').checked; });
-            var mainPrice = main ? parseFloat(main.querySelector('input[name$=".Price"]').value) || 0 : 0;
-            var mainRate = main ? parseFloat(main.querySelector('input[name$=".TransRate"]').value) || 0 : 0;
-            rows.forEach(function (row) {
-                var price = row.querySelector('input[name$=".Price"]');
-                var follows = main && row !== main && mainPrice > 0 && mainRate > 0;
-                price.readOnly = !!follows;
-                if (follows) {
-                    var rate = parseFloat(row.querySelector('input[name$=".TransRate"]').value) || 0;
-                    price.value = Math.round(mainPrice / mainRate * rate * 1000000) / 1000000;
+        var basePrice = 0;
+
+        function unitRows() {
+            return Array.from(document.querySelectorAll('[data-rows] [data-row]'));
+        }
+
+        function rateOf(row) {
+            return parseFloat(row.querySelector('input[name$=".TransRate"]').value) || 0;
+        }
+
+        function priceOf(row) {
+            return parseFloat(row.querySelector('input[name$=".Price"]').value) || 0;
+        }
+
+        function fillPrices(typedRow) {
+            unitRows().forEach(function (row) {
+                if (row !== typedRow && basePrice > 0 && rateOf(row) > 0) {
+                    row.querySelector('input[name$=".Price"]').value = Math.round(basePrice * rateOf(row) * 1000000) / 1000000;
                 }
             });
         }
 
+        function checkBaseUnitAsDefault() {
+            var rows = unitRows();
+            if (rows.some(function (row) { return row.querySelector('.unit-default').checked; })) {
+                return;
+            }
+            var baseRow = rows.find(function (row) { return rateOf(row) === 1; });
+            if (baseRow) {
+                baseRow.querySelector('.unit-default').checked = true;
+            }
+        }
+
+        var startRow = unitRows().find(function (row) { return rateOf(row) === 1 && priceOf(row) > 0; })
+            || unitRows().find(function (row) { return rateOf(row) > 0 && priceOf(row) > 0; });
+        if (startRow) {
+            basePrice = priceOf(startRow) / rateOf(startRow);
+        }
+
+        document.addEventListener('input', function (event) {
+            var row = event.target.closest('[data-rows] [data-row]');
+            if (!row) {
+                return;
+            }
+
+            if (event.target.matches('input[name$=".Price"]') && rateOf(row) > 0) {
+                basePrice = priceOf(row) / rateOf(row);
+                fillPrices(row);
+            }
+
+            if (event.target.matches('input[name$=".TransRate"]')) {
+                fillPrices(null);
+                checkBaseUnitAsDefault();
+            }
+        });
+
+        document.addEventListener('focusin', function (event) {
+            if (event.target.matches('[data-rows] input[name$=".TransRate"]')) {
+                event.target.dataset.oldRate = event.target.value;
+            }
+        });
+
         document.addEventListener('change', function (event) {
+            if (event.target.matches('[data-rows] input[name$=".TransRate"]')) {
+                var row = event.target.closest('[data-row]');
+                var oldRate = parseFloat(event.target.dataset.oldRate) || 0;
+                event.target.dataset.oldRate = event.target.value;
+                if (rateOf(row) === 1 && oldRate > 0 && oldRate !== 1) {
+                    unitRows().forEach(function (other) {
+                        if (other !== row && rateOf(other) > 0) {
+                            other.querySelector('input[name$=".TransRate"]').value = Math.round(rateOf(other) / oldRate * 1000000) / 1000000;
+                        }
+                    });
+                    basePrice = basePrice * oldRate;
+                    document.querySelectorAll('.unit-default').forEach(function (box) {
+                        box.checked = false;
+                    });
+                    row.querySelector('.unit-default').checked = true;
+                    fillPrices(null);
+                }
+            }
+
             if (event.target.classList.contains('unit-default') && event.target.checked) {
                 document.querySelectorAll('.unit-default').forEach(function (box) {
                     if (box !== event.target) {
@@ -140,15 +204,17 @@
                     }
                 });
             }
-
-            fillUnitPrices();
         });
-        document.addEventListener('input', fillUnitPrices);
+
         document.addEventListener('click', function (event) {
             if (event.target.closest('[data-row-add], [data-row-remove]')) {
-                setTimeout(fillUnitPrices, 0);
+                setTimeout(function () {
+                    fillPrices(null);
+                    checkBaseUnitAsDefault();
+                }, 0);
             }
         });
-        fillUnitPrices();
+
+        checkBaseUnitAsDefault();
     </script>
 }
