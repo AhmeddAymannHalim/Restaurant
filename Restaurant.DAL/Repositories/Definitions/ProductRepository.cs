@@ -127,7 +127,7 @@ public class ProductRepository : IProductRepository
         {
             foreach (var unit in entity.Units.Where(a => a != priceUnit))
             {
-                unit.Price = priceUnit.Price / priceUnit.TransRate * unit.TransRate;
+                unit.Price = priceUnit.Price * unit.TransRate / priceUnit.TransRate;
             }
         }
 
