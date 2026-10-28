@@ -1,6 +1,5 @@
 using Restaurant.DAL.Models;
 using Shared.ViewModels.Commons;
-using Shared.ViewModels.Definitions;
 
 namespace Restaurant.DAL.IRepositories.Definitions;
 
