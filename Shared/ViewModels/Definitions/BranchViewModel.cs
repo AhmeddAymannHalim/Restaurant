@@ -15,6 +15,11 @@ public class BranchViewModel
     public string Phone1 { get; set; }
     public string Phone2 { get; set; }
     public string Mobile1 { get; set; }
+    public string Email { get; set; }
+    public string VatNumber { get; set; }
+    public string RegistrationNumber { get; set; }
+    public int? TaxId { get; set; }
+    public IEnumerable<LookupItem> Taxes { get; set; } = new List<LookupItem>();
     public int? CompanyId { get; set; }
     public IEnumerable<LookupItem> Companies { get; set; } = new List<LookupItem>();
     public int? CurrencyId { get; set; }

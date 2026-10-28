@@ -106,6 +106,8 @@ public class OrderRepositoryTests : IDisposable
         Assert.Equal(115, order.Bill.CasherRemainingAmount);
         Assert.Equal(0, order.Bill.AmountPaided);
         Assert.Equal(8, order.Bill.BillCost); // 2 dishes * 2 flour * cost 2
+        Assert.Equal(100 + 5 - 8, order.Bill.BillProfit);
+        Assert.Equal(100 + 5 - 8, order.Bill.BillProfit);
         Assert.Equal(96, await Flour());
         Assert.True((await _db.Context.Tables.AsNoTracking().SingleAsync(a => a.Id == _table.Id)).IsPending);
         var movement = await _db.Context.StoreProductMovements.AsNoTracking().SingleAsync(a => a.Source == StockMovementSource.Order);
@@ -329,6 +331,8 @@ public class OrderRepositoryTests : IDisposable
         var order = await Reload(await Create(good));
         Assert.Equal(12, order.DeliveryFee);
         Assert.Equal(100 + 10 + 5 + 12, order.Bill.TotalBillAmountAfterDiscountAndExtra);
+        Assert.Equal(100 + 5 - 8, order.Bill.BillProfit);
+        Assert.Equal(100 + 5 - 8, order.Bill.BillProfit); // the tax and the driver's fee are not the restaurant's profit
         Assert.True(order.Cash);
     }
 
@@ -524,6 +528,51 @@ public class OrderRepositoryTests : IDisposable
         Assert.Equal(10, order.Bill.BillExtraPercentage);
         Assert.Equal(10, order.Tax);
         Assert.Equal(115, order.Bill.AmountPaided);
+    }
+
+    private async Task PutStoreInBranch(double? branchTax, double? companyTax)
+    {
+        var company = new Company { Code = "1", ArName = "Co", EnName = "Co", Tax = companyTax.HasValue ? new Tax { ArName = "C", EnName = "C", Value = companyTax } : null };
+        var branch = new CompanyBranch { Code = "1", ArName = "Br", EnName = "Br", Company = company, Tax = branchTax.HasValue ? new Tax { ArName = "B", EnName = "B", Value = branchTax } : null };
+        _db.Context.CompanyBranches.Add(branch);
+        await _db.Context.SaveChangesAsync();
+        var store = await _db.Context.Stores.SingleAsync(a => a.Id == _store.Id);
+        store.BranchId = branch.Id;
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+    }
+
+    [Theory]
+    [InlineData(14d, 5d, 14)]
+    [InlineData(null, 5d, 5)]
+    [InlineData(null, null, 10)]
+    [InlineData(0d, 5d, 0)]
+    public async Task Create_TaxComesFromTheStoreBranchThenTheCompanyThenTheSettings(double? branchTax, double? companyTax, decimal expected)
+    {
+        await Seed();
+        await PutStoreInBranch(branchTax, companyTax);
+
+        var id = await Create(NewOrder(OrderType.Hall));
+
+        var order = await Reload(id);
+        Assert.Equal(expected, order.Bill.BillExtraPercentage);
+        Assert.Equal(expected, order.Tax);
+        Assert.Equal(100 + expected + 5, order.Bill.TotalBillAmountAfterDiscountAndExtra);
+        Assert.NotNull(order.Bill.CompanyBranchId);
+        Assert.Equal(expected, (await _sut.GetNewOrderAsync(null, null)).TaxPercent);
+    }
+
+    [Fact]
+    public async Task Create_StoreWithoutBranch_UsesTheSettingsTaxAndNoBranch()
+    {
+        await Seed();
+
+        var id = await Create(NewOrder(OrderType.Hall));
+
+        var order = await Reload(id);
+        Assert.Equal(10, order.Bill.BillExtraPercentage);
+        Assert.Null(order.Bill.CompanyBranchId);
+        Assert.Equal(10, (await _sut.GetNewOrderAsync(null, null)).TaxPercent);
     }
 
     [Fact]

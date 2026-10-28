@@ -84,7 +84,7 @@ public class OrderLedgerRepository : IOrderLedgerRepository
         order.Bill.TotalExtraValueOnBillAndItems = extras;
         order.Bill.TotalBillAmountAfterDiscountAndExtra = total;
         order.Bill.BillCost = cost;
-        order.Bill.BillProfit = total - cost;
+        order.Bill.BillProfit = total - order.Tax - order.DeliveryFee - cost;
         order.Bill.PayType = order.OnAccount ? PayType.Later : PayType.Cash;
         order.Bill.IsEntryPosted = false;
         order.Bill.AmountPaided = order.Cash && !order.OnAccount ? total : 0;

@@ -14,6 +14,10 @@ public class BillViewModel
     public decimal ItemsTotal { get; set; }
     public decimal Discount { get; set; }
     public decimal Extras { get; set; }
+    public decimal Service { get; set; }
+    public decimal Tax { get; set; }
+    public decimal TaxPercent { get; set; }
+    public decimal DeliveryFee { get; set; }
     public decimal Total { get; set; }
     public decimal Paid { get; set; }
     public decimal Remaining { get; set; }

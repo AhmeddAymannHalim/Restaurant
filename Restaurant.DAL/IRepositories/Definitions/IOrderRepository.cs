@@ -14,6 +14,7 @@ public interface IOrderRepository
     Task<IEnumerable<MenuItem>> GetCashierMenuAsync();
 
     Task<ApplicationSetting> GetSettingsAsync();
+    Task<decimal> GetTaxPercentAsync(int? storeId);
     Task<Order> GetNewOrderAsync(int? tableId, int? reservationId);
     Task<Order> GetPendingHallOrderByIdAsync(int id);
     Task<IEnumerable<Table>> GetPendingTablesAsync(int exceptTableId);

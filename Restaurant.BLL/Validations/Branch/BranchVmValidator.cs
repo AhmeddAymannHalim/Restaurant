@@ -50,5 +50,20 @@ public class BranchVmValidator : AbstractValidator<BranchViewModel>
         RuleFor(x => x.Mobile1)
             .MaximumLength(11)
             .WithMessage(MaxLength(11));
+
+        RuleFor(x => x.Email)
+            .EmailAddress()
+            .When(x => !string.IsNullOrWhiteSpace(x.Email))
+            .WithMessage(localizer["Val.InvalidEmail"].Value)
+            .MaximumLength(100)
+            .WithMessage(MaxLength(100));
+
+        RuleFor(x => x.VatNumber)
+            .MaximumLength(50)
+            .WithMessage(MaxLength(50));
+
+        RuleFor(x => x.RegistrationNumber)
+            .MaximumLength(50)
+            .WithMessage(MaxLength(50));
     }
 }

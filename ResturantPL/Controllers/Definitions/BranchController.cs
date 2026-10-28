@@ -66,6 +66,7 @@ namespace ResturantPL.Controllers.Definitions
 
                 model.Companies = await _lookup.NamedLookupAsync<Company>();
                 model.Currencies = await _lookup.NamedLookupAsync<Currency>();
+                model.Taxes = await _lookup.NamedLookupAsync<Tax>();
 
                 return View(model);
             }
@@ -86,6 +87,7 @@ namespace ResturantPL.Controllers.Definitions
                 {
                     model.Companies = await _lookup.NamedLookupAsync<Company>();
                     model.Currencies = await _lookup.NamedLookupAsync<Currency>();
+                    model.Taxes = await _lookup.NamedLookupAsync<Tax>();
                     _toastr.Error(_localizer["ValidationError"].Value);
                     return View("Upsert", model);
                 }
@@ -99,6 +101,7 @@ namespace ResturantPL.Controllers.Definitions
 
                 model.Companies = await _lookup.NamedLookupAsync<Company>();
                 model.Currencies = await _lookup.NamedLookupAsync<Currency>();
+                model.Taxes = await _lookup.NamedLookupAsync<Tax>();
                 _toastr.Error(_localizer[result.Message ?? (isNew ? "ErrorWhileSaving" : "ErrorWhileUpdating")].Value);
                 return View("Upsert", model);
             }

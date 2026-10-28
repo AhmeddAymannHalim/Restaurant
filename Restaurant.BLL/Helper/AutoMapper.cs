@@ -21,11 +21,13 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.ArAddress))
             .ForMember(dest => dest.Phone1, opt => opt.MapFrom(src => src.PhoneNumber1))
             .ForMember(dest => dest.Phone2, opt => opt.MapFrom(src => src.PhoneNumber2))
-            .ForMember(dest => dest.Mobile1, opt => opt.MapFrom(src => src.PhoneNumber3));
+            .ForMember(dest => dest.Mobile1, opt => opt.MapFrom(src => src.PhoneNumber3))
+            .ForMember(dest => dest.Taxes, opt => opt.Ignore());
         CreateMap<BranchViewModel, CompanyBranch>()
             .ForMember(dest => dest.Code, opt => opt.Ignore())
             .ForMember(dest => dest.Company, opt => opt.Ignore())
             .ForMember(dest => dest.Currency, opt => opt.Ignore())
+            .ForMember(dest => dest.Tax, opt => opt.Ignore())
             .ForMember(dest => dest.ArAddress, opt => opt.MapFrom(src => src.Address))
             .ForMember(dest => dest.EnAddress, opt => opt.MapFrom(src => src.Address))
             .ForMember(dest => dest.PhoneNumber1, opt => opt.MapFrom(src => src.Phone1))
@@ -416,9 +418,18 @@ public class AutoMapper : Profile
         CreateMap<Company, CompanyViewModel>()
             .ForMember(dest => dest.CurrencyArName, opt => opt.MapFrom(src => src.Currency.ArName))
             .ForMember(dest => dest.CurrencyEnName, opt => opt.MapFrom(src => src.Currency.EnName))
-            .ForMember(dest => dest.Currencies, opt => opt.Ignore());
+            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.ArAddress))
+            .ForMember(dest => dest.Phone1, opt => opt.MapFrom(src => src.PhoneNumber1))
+            .ForMember(dest => dest.Phone2, opt => opt.MapFrom(src => src.PhoneNumber2))
+            .ForMember(dest => dest.Currencies, opt => opt.Ignore())
+            .ForMember(dest => dest.Taxes, opt => opt.Ignore());
         CreateMap<CompanyViewModel, Company>()
-            .ForMember(dest => dest.Currency, opt => opt.Ignore());
+            .ForMember(dest => dest.Currency, opt => opt.Ignore())
+            .ForMember(dest => dest.Tax, opt => opt.Ignore())
+            .ForMember(dest => dest.ArAddress, opt => opt.MapFrom(src => src.Address))
+            .ForMember(dest => dest.EnAddress, opt => opt.MapFrom(src => src.Address))
+            .ForMember(dest => dest.PhoneNumber1, opt => opt.MapFrom(src => src.Phone1))
+            .ForMember(dest => dest.PhoneNumber2, opt => opt.MapFrom(src => src.Phone2));
 
         CreateMap<Currency, CurrencyViewModel>();
         CreateMap<CurrencyViewModel, Currency>()

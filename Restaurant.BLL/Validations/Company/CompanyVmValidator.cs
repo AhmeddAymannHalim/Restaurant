@@ -30,5 +30,32 @@ public class CompanyVmValidator : AbstractValidator<CompanyViewModel>
             .WithMessage(MaxLength(100))
             .Must((model, enName) => !validator.IsEnNameExist(model.Id, enName))
             .WithMessage(localizer["Val.NameAlreadyExist"].Value);
+
+        RuleFor(x => x.Address)
+            .MaximumLength(250)
+            .WithMessage(MaxLength(250));
+
+        RuleFor(x => x.Phone1)
+            .MaximumLength(11)
+            .WithMessage(MaxLength(11));
+
+        RuleFor(x => x.Phone2)
+            .MaximumLength(11)
+            .WithMessage(MaxLength(11));
+
+        RuleFor(x => x.Email)
+            .EmailAddress()
+            .When(x => !string.IsNullOrWhiteSpace(x.Email))
+            .WithMessage(localizer["Val.InvalidEmail"].Value)
+            .MaximumLength(100)
+            .WithMessage(MaxLength(100));
+
+        RuleFor(x => x.VatNumber)
+            .MaximumLength(50)
+            .WithMessage(MaxLength(50));
+
+        RuleFor(x => x.RegistrationNumber)
+            .MaximumLength(50)
+            .WithMessage(MaxLength(50));
     }
 }

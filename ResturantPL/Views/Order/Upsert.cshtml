@@ -297,10 +297,10 @@
         $drawer.find('.pay-rest').prop('hidden', payments.length === 0);
         $drawer.find('.pay-rest-amount').text(left.toFixed(2) + ' ' + currency);
         $drawer.find('.pay-amount').text(left.toFixed(2) + ' ' + currency);
-        $('#payAmount').val('').removeClass('is-invalid').attr('placeholder', left.toFixed(2));
+        $('#payAmount').val(left.toFixed(2)).removeClass('is-invalid').attr('placeholder', left.toFixed(2));
     }
 
-    // the message follows the amount the cashier is typing; an empty box means the whole rest
+    // the box starts with the whole rest; the cashier lowers it to pay a part, and an emptied box still means the whole rest
     function quickMessage() {
         var typed = parseFloat($('#payAmount').val());
         var sum = (isNaN(typed) || typed < 0 ? rest() : typed).toFixed(2) + ' ' + currency;
@@ -534,6 +534,8 @@
     $drawer.find('.pay-chip').on('click', function () { setMethod($(this).data('method')); });
     $('#payAmount').on('input', function () {
         $drawer.find('.pay-msg').text(quickMessage());
+    }).on('focus', function () {
+        this.select();
     });
 
     $drawer.on('click', '.pay-row-x', function () {

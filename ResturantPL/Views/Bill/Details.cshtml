@@ -60,7 +60,16 @@
         <div class="bo-form">
             <div class="form-group"><label>@L["SubTotal"]</label><div class="form-control">@Model.ItemsTotal.ToString("N2")</div></div>
             <div class="form-group"><label>@L["Discount"]</label><div class="form-control">@Model.Discount.ToString("N2")</div></div>
-            <div class="form-group"><label>@L["Bill.Extras"]</label><div class="form-control">@Model.Extras.ToString("N2")</div></div>
+            @if (Model.IsCashier)
+            {
+                <div class="form-group"><label>@L["Service"]</label><div class="form-control">@Model.Service.ToString("N2")</div></div>
+                <div class="form-group"><label>@L["Tax"] (@Model.TaxPercent.ToString("0.##")%)</label><div class="form-control">@Model.Tax.ToString("N2")</div></div>
+                <div class="form-group"><label>@L["DeliveryFee"]</label><div class="form-control">@Model.DeliveryFee.ToString("N2")</div></div>
+            }
+            else
+            {
+                <div class="form-group"><label>@L["Bill.Extras"]</label><div class="form-control">@Model.Extras.ToString("N2")</div></div>
+            }
             <div class="form-group"><label>@L["NetTotal"]</label><div class="form-control"><b>@Model.Total.ToString("N2")</b></div></div>
             <div class="form-group"><label>@L["Paid"]</label><div class="form-control">@Model.Paid.ToString("N2")</div></div>
             <div class="form-group"><label>@L["Remaining"]</label><div class="form-control">@Model.Remaining.ToString("N2")</div></div>

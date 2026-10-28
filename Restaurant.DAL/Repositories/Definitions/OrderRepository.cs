@@ -119,20 +119,37 @@ public class OrderRepository : IOrderRepository
                                                  .FirstOrDefaultAsync() ?? new ApplicationSetting();
     }
 
+    public async Task<decimal> GetTaxPercentAsync(int? storeId)
+    {
+        var taxes = await _context.Stores.AsNoTracking()
+            .Where(a => a.Id == storeId)
+            .Select(a => new { BranchTax = a.Branch.Tax.Value, CompanyTax = a.Branch.Company.Tax.Value })
+            .FirstOrDefaultAsync();
+
+        var value = taxes?.BranchTax ?? taxes?.CompanyTax;
+        if (value.HasValue)
+        {
+            return (decimal)value.Value;
+        }
+
+        return (await GetSettingsAsync()).OrderTax;
+    }
+
     public async Task<Order> GetNewOrderAsync(int? tableId, int? reservationId)
     {
         var settings = await GetSettingsAsync();
+        var menu = (await GetCashierMenuAsync()).ToList();
         var order = new Order
         {
             OrderCode = await GetNextCodeAsync(),
             CustomerName = null, // typed on the screen, not the default cash customer
             Bill = new BillMaster { Date = DateTime.Now },
             Service = settings.OrderService,
-            TaxPercent = settings.OrderTax,
+            TaxPercent = await GetTaxPercentAsync(menu.FirstOrDefault()?.StoreId),
             DefaultService = settings.OrderService,
             MaxDiscount = settings.OrderDiscount,
             LoyaltyPointValue = settings.LoyaltyPointValue,
-            Menu = (await GetCashierMenuAsync()).ToList()
+            Menu = menu
         };
 
         if (tableId.HasValue)
@@ -391,6 +408,7 @@ public class OrderRepository : IOrderRepository
             var billSetting = await _orderLedger.GetSettingAsync();
             var code = await GetNextCodeAsync();
             var now = DateTime.Now;
+            var storeId = lines.First().BillDetail.StoreId;
 
             var bill = new BillMaster
             {
@@ -400,11 +418,12 @@ public class OrderRepository : IOrderRepository
                 CurrencyRate = 1,
                 BillSettingId = billSetting.Id,
                 BillDiscountValue = (order.Bill?.BillDiscountValue ?? 0) + pointsValue,
-                BillExtraPercentage = settings.OrderTax,
+                BillExtraPercentage = await GetTaxPercentAsync(storeId),
+                CompanyBranchId = await _context.Stores.Where(a => a.Id == storeId).Select(a => a.BranchId).FirstOrDefaultAsync(),
                 CustomerOrSupplierPhoneNumber = order.PhoneNumber,
                 CustomerOrSupplierAccountId = customer?.AccountId,
                 EmployeeId = order.EmployeeId,
-                StoreId = lines.First().BillDetail.StoreId,
+                StoreId = storeId,
                 IsStorageEffected = true,
                 CreatedAt = now,
                 BillDetails = lines.Select(a => a.BillDetail).ToList()
