@@ -141,7 +141,7 @@
             var rows = unitRows();
             if (rows.some(function (row) { return row.querySelector('.unit-default').checked; })) {
                 return;
-            }
+            }   
             var baseRow = rows.find(function (row) { return rateOf(row) === 1; });
             if (baseRow) {
                 baseRow.querySelector('.unit-default').checked = true;
