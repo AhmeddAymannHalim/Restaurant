@@ -47,9 +47,7 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.TableEnName, opt => opt.MapFrom(src => src.Table == null ? null : src.Table.EnName))
             .ForMember(dest => dest.Tables, opt => opt.Ignore());
         CreateMap<TableReservationViewModel, TableReservation>()
-            .ForMember(dest => dest.Table, opt => opt.Ignore())
-            .ForMember(dest => dest.Customer, opt => opt.Ignore())
-            .ForMember(dest => dest.CustomerId, opt => opt.Ignore());
+            .ForMember(dest => dest.Table, opt => opt.Ignore());
         CreateMap<TableViewModel, Restaurant.DAL.Models.Table>()
             .ForMember(dest => dest.IsPending, opt => opt.Ignore());
 
@@ -407,6 +405,8 @@ public class AutoMapper : Profile
         CreateMap<InsuranceCompanyViewModel, InsuranceCompany>();
         CreateMap<AllowanceType, AllowanceTypeViewModel>();
         CreateMap<AllowanceTypeViewModel, AllowanceType>();
+        CreateMap<Tax, TaxViewModel>();
+        CreateMap<TaxViewModel, Tax>();
         CreateMap<DeductionType, DeductionTypeViewModel>();
         CreateMap<DeductionTypeViewModel, DeductionType>();
 

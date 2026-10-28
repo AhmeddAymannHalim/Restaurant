@@ -3,14 +3,13 @@ using Shared.ViewModels.Commons;
 
 namespace Shared.ViewModels.Definitions;
 
-// Used by the admin screens (list and edit).
 public class TableReservationViewModel
 {
     public int Id { get; set; }
     public int TableId { get; set; }
     public string TableArName { get; set; }
     public string TableEnName { get; set; }
-    public string CustomerName { get; set; }
+    public string GuestName { get; set; }
     public string PhoneNumber { get; set; }
     public string Email { get; set; }
     public byte GuestCount { get; set; } = 2;

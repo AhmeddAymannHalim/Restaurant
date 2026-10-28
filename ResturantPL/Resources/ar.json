@@ -134,6 +134,7 @@
   "LeaveTypes": "أنواع الإجازات",
   "Companies": "الشركات",
   "Currencies": "العملات",
+  "Taxes": "الضرائب",
   "Branches": "الفروع",
   "Jobs": "الوظائف",
   "Employees": "الموظفين",
@@ -476,6 +477,9 @@
   "UpdateCostCenter": "تعديل مركز التكلفة",
   "NewCurrency": "إضافة العملة",
   "UpdateCurrency": "تعديل العملة",
+  "NewTax": "إضافة ضريبة",
+  "UpdateTax": "تعديل ضريبة",
+  "Tax.Value": "النسبة (%)",
   "Currency.SubArName": "اسم الفكة (عربي)",
   "Currency.SubEnName": "اسم الفكة (إنجليزي)",
   "Currency.SubToCurrencyTrans": "عدد الفكة في العملة",
@@ -875,6 +879,10 @@
   "Val.NotNegative": "القيمة لا يمكن أن تكون سالبة",
   "Val.DiscountTooBig": "الخصم أكبر من إجمالي الأصناف",
   "Val.PaidTooBig": "المدفوع أكبر من صافي الفاتورة",
+  "Val.MinValue": "القيمة يجب أن تكون {0} أو أكثر",
+  "Val.MaxValue": "القيمة يجب أن تكون {0} أو أقل",
+  "Val.Range": "القيمة يجب أن تكون بين {0} و {1}",
+  "Val.Step": "القيمة يجب أن تكون من مضاعفات {0}",
 
   //messages (toastr)
   "LockedByBalance": "عليه رصيد غير مسدد، لا يمكن الحذف إلا بعد السداد",

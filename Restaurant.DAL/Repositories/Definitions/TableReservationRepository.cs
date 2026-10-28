@@ -28,7 +28,7 @@ public class TableReservationRepository : ITableReservationRepository
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
             var search = request.SearchString.Trim().ToLower();
-            query = query.Where(a => a.CustomerName.ToLower().Contains(search)
+            query = query.Where(a => a.GuestName.ToLower().Contains(search)
                 || a.PhoneNumber.Contains(search)
                 || a.Table.ArName.ToLower().Contains(search)
                 || a.Table.EnName.ToLower().Contains(search));
@@ -54,7 +54,7 @@ public class TableReservationRepository : ITableReservationRepository
     {
         try
         {
-            entity.CustomerName = entity.CustomerName?.Trim();
+            entity.GuestName = entity.GuestName?.Trim();
             entity.PhoneNumber = entity.PhoneNumber?.Trim();
             entity.Email = string.IsNullOrWhiteSpace(entity.Email) ? null : entity.Email.Trim();
             entity.Notes = string.IsNullOrWhiteSpace(entity.Notes) ? null : entity.Notes.Trim();
@@ -64,7 +64,7 @@ public class TableReservationRepository : ITableReservationRepository
                 return new ResultMessage { Success = false, Message = "Reservation.Error.DateRequired" };
             }
 
-            if (string.IsNullOrWhiteSpace(entity.CustomerName))
+            if (string.IsNullOrWhiteSpace(entity.GuestName))
             {
                 return new ResultMessage { Success = false, Message = "Reservation.Error.NameRequired" };
             }
@@ -125,7 +125,6 @@ public class TableReservationRepository : ITableReservationRepository
                 }
 
                 entity.CreatedAt = existing.CreatedAt;
-                entity.CustomerId = existing.CustomerId;
                 if (entity.Status != ReservationStatus.Rejected)
                 {
                     entity.RejectionReason = null;

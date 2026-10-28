@@ -377,7 +377,7 @@ public class IdentityScreenControllerTests
     public async Task Reservation_Open_NewOrExistingWithTheTables_OrBackToTheListWhenMissing_OrTheErrorPage()
     {
         var reservations = new Reservations();
-        reservations.Service.Setup(a => a.GetReservationByIdAsync(1)).ReturnsAsync(new TableReservationViewModel { Id = 1, CustomerName = "Ali" });
+        reservations.Service.Setup(a => a.GetReservationByIdAsync(1)).ReturnsAsync(new TableReservationViewModel { Id = 1, GuestName = "Ali" });
         reservations.Service.Setup(a => a.GetReservationByIdAsync(9)).ThrowsAsync(new InvalidOperationException());
 
         var fresh = ModelOf<TableReservationViewModel>(await reservations.Controller.Upsert((int?)null));
@@ -385,7 +385,7 @@ public class IdentityScreenControllerTests
         var missing = await reservations.Controller.Upsert(2);
 
         Assert.Single(fresh.Tables);
-        Assert.Equal("Ali", found.CustomerName);
+        Assert.Equal("Ali", found.GuestName);
         Assert.Equal("Index", Assert.IsType<RedirectToActionResult>(missing).ActionName);
         Assert.Equal(ErrorView, Assert.IsType<ViewResult>(await reservations.Controller.Upsert(9)).ViewName);
     }

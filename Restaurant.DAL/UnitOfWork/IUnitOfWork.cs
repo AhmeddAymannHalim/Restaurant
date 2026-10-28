@@ -30,6 +30,7 @@ namespace Restaurant.DAL.UnitOfWork
 
         public IKitchenRepository Kitchens { get; set; }
         public ICurrencyRepository Currencies { get; set; }
+        public ITaxRepository Taxes { get; set; }
         public ICompanyRepository Companies { get; set; }
         public ILeaveTypeRepository LeaveTypes { get; set; }
         public IInsuranceCompanyRepository InsuranceCompanies { get; set; }

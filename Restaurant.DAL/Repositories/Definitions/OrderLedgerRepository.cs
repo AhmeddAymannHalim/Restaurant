@@ -67,10 +67,10 @@ public class OrderLedgerRepository : IOrderLedgerRepository
         await new JournalEntryRepository(_context).RemoveBillEntriesAsync(billId);
     }
 
-    public void RecalculateBill(Order order, decimal taxPercent)
+    public void RecalculateBill(Order order)
     {
         var subTotal = order.Lines.Sum(a => a.Price);
-        order.Tax = Math.Round(subTotal * taxPercent / 100, 2);
+        order.Tax = Math.Round(subTotal * order.Bill.BillExtraPercentage / 100, 2);
         var extras = order.Tax + order.Service + order.DeliveryFee;
         var discount = Math.Min(Math.Max(0, order.Bill.BillDiscountValue), subTotal + extras);
         var total = subTotal + extras - discount;

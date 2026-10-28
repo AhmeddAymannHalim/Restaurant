@@ -6,8 +6,7 @@ namespace Restaurant.DAL.Models
     {
         public int Id { get; set; }
         public int TableId { get; set; }
-        public string CustomerId { get; set; }
-        public string CustomerName { get; set; }
+        public string GuestName { get; set; }
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
         public byte GuestCount { get; set; }
@@ -19,6 +18,5 @@ namespace Restaurant.DAL.Models
         public DateTime CreatedAt { get; set; }
 
         public virtual Table Table { get; set; }
-        public virtual ApplicationUser Customer { get; set; }
     }
 }

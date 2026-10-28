@@ -137,7 +137,7 @@ public class DashboardRepository : IDashboardRepository
                 TableId = a.TableId,
                 TableArName = a.Table.ArName,
                 TableEnName = a.Table.EnName,
-                CustomerName = a.CustomerName,
+                GuestName = a.GuestName,
                 PhoneNumber = a.PhoneNumber,
                 GuestCount = a.GuestCount,
                 ReservationDate = a.ReservationDate,
@@ -185,7 +185,7 @@ public class DashboardRepository : IDashboardRepository
                     card.State = DashboardTableState.Reserved;
                     card.ReservationId = booking.Id;
                     card.BookingStatus = booking.Status;
-                    card.CustomerName = booking.CustomerName;
+                    card.GuestName = booking.GuestName;
                     card.PhoneNumber = booking.PhoneNumber;
                     card.ReservedAt = booking.ReservationDate;
                     card.Guests = booking.GuestCount;

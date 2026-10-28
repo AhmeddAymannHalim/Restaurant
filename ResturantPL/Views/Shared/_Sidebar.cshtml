@@ -275,6 +275,9 @@
                     <a class="dash-side-link" asp-controller="Currency" asp-action="Index" title="@L["Currencies"]">
                         <i class="fas fa-money-bill" aria-hidden="true"></i><span>@L["Currencies"]</span>
                     </a>
+                    <a class="dash-side-link" asp-controller="Tax" asp-action="Index" title="@L["Taxes"]">
+                        <i class="fas fa-percent" aria-hidden="true"></i><span>@L["Taxes"]</span>
+                    </a>
                     @if (isManager)
                     {
                         <a class="dash-side-link" asp-controller="ChartAccount" asp-action="Index" title="@L["ChartOfAccounts"]">

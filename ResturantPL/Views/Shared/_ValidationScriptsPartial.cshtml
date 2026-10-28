@@ -1,2 +1,16 @@
 ﻿<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<script>
+    $.extend($.validator.messages, {
+        required: @Html.Raw(Json.Serialize(L["Val.RequiredField"].Value)),
+        number: @Html.Raw(Json.Serialize(L["Val.MustBeNumber"].Value)),
+        digits: @Html.Raw(Json.Serialize(L["Val.PhoneDigitsOnly"].Value)),
+        email: @Html.Raw(Json.Serialize(L["Val.InvalidEmail"].Value)),
+        maxlength: $.validator.format(@Html.Raw(Json.Serialize(L["Val.MaxLength"].Value))),
+        minlength: $.validator.format(@Html.Raw(Json.Serialize(L["Val.MinLength"].Value))),
+        min: $.validator.format(@Html.Raw(Json.Serialize(L["Val.MinValue"].Value))),
+        max: $.validator.format(@Html.Raw(Json.Serialize(L["Val.MaxValue"].Value))),
+        range: $.validator.format(@Html.Raw(Json.Serialize(L["Val.Range"].Value))),
+        step: $.validator.format(@Html.Raw(Json.Serialize(L["Val.Step"].Value)))
+    });
+</script>

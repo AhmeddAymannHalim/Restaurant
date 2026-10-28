@@ -26,7 +26,7 @@
                     </div>
 
                     <div class="when-Reserved">
-                        <p class="floor-who"><i class="fas fa-calendar-check" aria-hidden="true"></i> @table.CustomerName</p>
+                        <p class="floor-who"><i class="fas fa-calendar-check" aria-hidden="true"></i> @table.GuestName</p>
                         <p class="floor-when"><b dir="ltr">@table.ReservedAt?.ToString("HH:mm")</b> <span>@table.Guests @L["Reservation.Guests"]</span></p>
                         <p><a href="tel:@table.PhoneNumber" dir="ltr">@table.PhoneNumber</a></p>
                         <span class="res-chip res-@table.BookingStatus" data-status="@table.BookingStatus"></span>
@@ -49,7 +49,7 @@
         {
             <article class="ops-card res-card res-@booking.Status">
                 <header>
-                    <strong>@booking.CustomerName</strong>
+                    <strong>@booking.GuestName</strong>
                     <span class="ops-age" dir="ltr">@booking.ReservationDate.ToString("dd/MM HH:mm")</span>
                 </header>
                 <p class="ops-where">

@@ -231,7 +231,7 @@ public class ReadSideRepositoriesTests : IDisposable
         _db.Context.MenuItems.Add(dish);
         _db.Context.TableReservations.Add(new TableReservation
         {
-            TableId = reserved.Id, CustomerName = "Sara", PhoneNumber = "01012345678", GuestCount = 2,
+            TableId = reserved.Id, GuestName = "Sara", PhoneNumber = "01012345678", GuestCount = 2,
             ReservationDate = DateTime.Now.AddMinutes(30), Status = ReservationStatus.Confirmed
         });
         await _db.Context.SaveChangesAsync();
@@ -253,7 +253,7 @@ public class ReadSideRepositoriesTests : IDisposable
         Assert.Equal(DashboardTableState.Occupied, model.Tables.Single(a => a.Id == free.Id).State);
         var card = model.Tables.Single(a => a.Id == reserved.Id);
         Assert.Equal(DashboardTableState.Reserved, card.State);
-        Assert.Equal("Sara", card.CustomerName);
+        Assert.Equal("Sara", card.GuestName);
         Assert.Equal(2, model.Kitchen.Count);
     }
 

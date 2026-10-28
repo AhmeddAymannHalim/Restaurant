@@ -31,6 +31,7 @@ namespace Restaurant.DAL.UnitOfWork
             Products = new ProductRepository(_context, _httpContext);
             Kitchens = new KitchenRepository(_context, _httpContext);
             Currencies = new CurrencyRepository(_context, _httpContext);
+            Taxes = new TaxRepository(_context, _httpContext);
             Companies = new CompanyRepository(_context, _httpContext);
             LeaveTypes = new LeaveTypeRepository(_context, _httpContext);
             InsuranceCompanies = new InsuranceCompanyRepository(_context, _httpContext);
@@ -96,6 +97,7 @@ namespace Restaurant.DAL.UnitOfWork
 
         public IKitchenRepository Kitchens { get; set; }
         public ICurrencyRepository Currencies { get; set; }
+        public ITaxRepository Taxes { get; set; }
         public ICompanyRepository Companies { get; set; }
         public ILeaveTypeRepository LeaveTypes { get; set; }
         public IInsuranceCompanyRepository InsuranceCompanies { get; set; }

@@ -488,7 +488,7 @@ public class OrderRepositoryTests : IDisposable
         var id = await Create(NewOrder(OrderType.Hall));
         _db.Context.TableReservations.Add(new TableReservation
         {
-            TableId = _table.Id, CustomerName = "Ali", PhoneNumber = "01012345678", GuestCount = 2,
+            TableId = _table.Id, GuestName = "Ali", PhoneNumber = "01012345678", GuestCount = 2,
             ReservationDate = DateTime.Now, Status = ReservationStatus.Seated
         });
         await _db.Context.SaveChangesAsync();
@@ -505,6 +505,25 @@ public class OrderRepositoryTests : IDisposable
         Assert.Equal(0, order.Bill.CasherRemainingAmount);
         Assert.False((await _db.Context.Tables.AsNoTracking().SingleAsync(a => a.Id == _table.Id)).IsPending);
         Assert.Equal(ReservationStatus.Completed, (await _db.Context.TableReservations.AsNoTracking().SingleAsync()).Status);
+    }
+
+    [Fact]
+    public async Task Pay_AfterTheTaxSettingChanged_KeepsTheTaxOfTheOrder()
+    {
+        await Seed();
+        var id = await Create(NewOrder(OrderType.Hall));
+        var settings = await _db.Context.ApplicationSettings.SingleAsync();
+        settings.OrderTax = 14;
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+
+        var result = await _sut.PayOrderAsync(id, _user, PaymentMethod.Cash, new());
+
+        Assert.True(result.Success, result.Message);
+        var order = await Reload(id);
+        Assert.Equal(10, order.Bill.BillExtraPercentage);
+        Assert.Equal(10, order.Tax);
+        Assert.Equal(115, order.Bill.AmountPaided);
     }
 
     [Fact]

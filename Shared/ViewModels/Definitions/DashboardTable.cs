@@ -17,7 +17,7 @@ public class DashboardTable
     // Filled only when State is Reserved: the booking that holds this table.
     public int? ReservationId { get; set; }
     public ReservationStatus? BookingStatus { get; set; }
-    public string CustomerName { get; set; }
+    public string GuestName { get; set; }
     public string PhoneNumber { get; set; }
     public DateTime? ReservedAt { get; set; }
     public byte Guests { get; set; }

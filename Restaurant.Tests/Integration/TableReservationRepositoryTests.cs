@@ -26,7 +26,7 @@ public class TableReservationRepositoryTests : IDisposable
     private TableReservation Reservation(int tableId, DateTime? at = null, ReservationStatus status = ReservationStatus.Confirmed) => new()
     {
         TableId = tableId,
-        CustomerName = " Ali ",
+        GuestName = " Ali ",
         PhoneNumber = "01012345678",
         GuestCount = 2,
         ReservationDate = at ?? _start,
@@ -43,7 +43,7 @@ public class TableReservationRepositoryTests : IDisposable
 
         Assert.True(result.Success, result.Message);
         var saved = await _sut.GetReservationByIdAsync(1);
-        Assert.Equal("Ali", saved.CustomerName);
+        Assert.Equal("Ali", saved.GuestName);
         Assert.Equal(table.Id, saved.Table.Id);
     }
 
@@ -61,7 +61,7 @@ public class TableReservationRepositoryTests : IDisposable
         var entity = Reservation(table.Id);
         switch (field)
         {
-            case "name": entity.CustomerName = "  "; break;
+            case "name": entity.GuestName = "  "; break;
             case "phone": entity.PhoneNumber = "12"; break;
             case "email": entity.Email = "no-at-sign"; break;
             case "date": entity.ReservationDate = default; break;
@@ -192,14 +192,14 @@ public class TableReservationRepositoryTests : IDisposable
         var table = await SeedTable();
         await _sut.UpsertReservationAsync(Reservation(table.Id, _start, ReservationStatus.Confirmed));
         var pending = Reservation(table.Id, _start.AddDays(1), ReservationStatus.Pending);
-        pending.CustomerName = "Omar";
+        pending.GuestName = "Omar";
         await _sut.UpsertReservationAsync(pending);
 
         var all = await _sut.GetPagedReservationsAsync(new PageRequest(), null);
         var onlyConfirmed = await _sut.GetPagedReservationsAsync(new PageRequest(), ReservationStatus.Confirmed);
         var search = await _sut.GetPagedReservationsAsync(new PageRequest { SearchString = "OMAR" }, null);
 
-        Assert.Equal("Omar", all.Data[0].CustomerName);
+        Assert.Equal("Omar", all.Data[0].GuestName);
         Assert.Single(onlyConfirmed.Data);
         Assert.Single(search.Data);
     }

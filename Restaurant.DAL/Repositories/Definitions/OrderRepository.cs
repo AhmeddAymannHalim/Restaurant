@@ -146,7 +146,7 @@ public class OrderRepository : IOrderRepository
             var reservation = await _context.TableReservations.AsNoTracking().FirstOrDefaultAsync(a => a.Id == reservationId.Value);
             if (reservation != null)
             {
-                order.CustomerName = reservation.CustomerName;
+                order.CustomerName = reservation.GuestName;
                 order.PhoneNumber = reservation.PhoneNumber;
             }
         }
@@ -400,6 +400,7 @@ public class OrderRepository : IOrderRepository
                 CurrencyRate = 1,
                 BillSettingId = billSetting.Id,
                 BillDiscountValue = (order.Bill?.BillDiscountValue ?? 0) + pointsValue,
+                BillExtraPercentage = settings.OrderTax,
                 CustomerOrSupplierPhoneNumber = order.PhoneNumber,
                 CustomerOrSupplierAccountId = customer?.AccountId,
                 EmployeeId = order.EmployeeId,
@@ -432,7 +433,7 @@ public class OrderRepository : IOrderRepository
                 Service = order.Type == OrderType.TakeAway ? 0 : settings.OrderService,
                 Lines = lines
             };
-            _orderLedger.RecalculateBill(entity, settings.OrderTax);
+            _orderLedger.RecalculateBill(entity);
 
             // 8. the discount: never more than the bill, and never more than the settings limit unless the customer tier gives more
             var requestedDiscount = (order.Bill?.BillDiscountValue ?? 0) + pointsValue;
@@ -562,7 +563,7 @@ public class OrderRepository : IOrderRepository
             order.ReceiverId = userId;
             order.Bill.Date = DateTime.Now;
             var settings = await GetSettingsAsync();
-            _orderLedger.RecalculateBill(order, settings.OrderTax);
+            _orderLedger.RecalculateBill(order);
             var paymentError = await _orderLedger.SetPaymentsAsync(order, payments);
             if (paymentError is not null)
             {
@@ -623,8 +624,6 @@ public class OrderRepository : IOrderRepository
                 return new ResultMessage { Success = false, Message = "TargetTableHasNoOrder" };
             }
 
-            var settings = await GetSettingsAsync();
-
             to.Lines.Add(line);
             line.BillDetail.BillMasterId = to.Id;
             _context.ChangeTracker.DetectChanges();
@@ -643,7 +642,7 @@ public class OrderRepository : IOrderRepository
 
             foreach (var open in openOrders)
             {
-                _orderLedger.RecalculateBill(open, settings.OrderTax);
+                _orderLedger.RecalculateBill(open);
             }
 
             await _context.SaveChangesAsync();
@@ -675,8 +674,6 @@ public class OrderRepository : IOrderRepository
                 return new ResultMessage { Success = false, Message = "TargetTableHasNoOrder" };
             }
 
-            var settings = await GetSettingsAsync();
-
             foreach (var line in from.Lines.ToList())
             {
                 to.Lines.Add(line);
@@ -687,7 +684,7 @@ public class OrderRepository : IOrderRepository
             to.Service += from.Service;
             to.Bill.BillDiscountValue += from.Bill.BillDiscountValue;
             to.PointsRedeemed += from.PointsRedeemed;
-            _orderLedger.RecalculateBill(to, settings.OrderTax);
+            _orderLedger.RecalculateBill(to);
 
             await _orderLedger.RemoveOrderAsync(from);
 

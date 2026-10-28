@@ -9,7 +9,7 @@ public class TableReservationConfig : IEntityTypeConfiguration<TableReservation>
 {
     public void Configure(EntityTypeBuilder<TableReservation> builder)
     {
-        builder.Property(a => a.CustomerName).IsRequired().HasMaxLength(100);
+        builder.Property(a => a.GuestName).IsRequired().HasMaxLength(100);
         builder.Property(a => a.PhoneNumber).IsRequired().HasMaxLength(20);
         builder.Property(a => a.Email).HasMaxLength(150);
         builder.Property(a => a.Notes).HasMaxLength(500);
@@ -22,12 +22,6 @@ public class TableReservationConfig : IEntityTypeConfiguration<TableReservation>
             .HasOne(a => a.Table)
             .WithMany()
             .HasForeignKey(a => a.TableId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder
-            .HasOne(a => a.Customer)
-            .WithMany()
-            .HasForeignKey(a => a.CustomerId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

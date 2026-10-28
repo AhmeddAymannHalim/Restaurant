@@ -9,7 +9,7 @@ public class DashboardReservation
     public int TableId { get; set; }
     public string TableArName { get; set; }
     public string TableEnName { get; set; }
-    public string CustomerName { get; set; }
+    public string GuestName { get; set; }
     public string PhoneNumber { get; set; }
     public byte GuestCount { get; set; }
     public DateTime ReservationDate { get; set; }

@@ -153,7 +153,7 @@ public class SmallPiecesTests : IDisposable
         await _host.Context.SaveChangesAsync();
         var reservation = new TableReservation
         {
-            TableId = table.Id, CustomerName = "Mona", PhoneNumber = "0100000000", GuestCount = 2,
+            TableId = table.Id, GuestName = "Mona", PhoneNumber = "0100000000", GuestCount = 2,
             ReservationDate = DateTime.Today.AddDays(1), Status = ReservationStatus.Confirmed
         };
         _host.Context.Add(reservation);

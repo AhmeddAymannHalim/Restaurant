@@ -134,6 +134,7 @@
   "LeaveTypes": "Leave types",
   "Companies": "Companies",
   "Currencies": "Currencies",
+  "Taxes": "Taxes",
   "Branches": "Branches",
   "Jobs": "Jobs",
   "Employees": "Employees",
@@ -476,6 +477,9 @@
   "UpdateCostCenter": "Update cost center",
   "NewCurrency": "New currency",
   "UpdateCurrency": "Update currency",
+  "NewTax": "New tax",
+  "UpdateTax": "Update tax",
+  "Tax.Value": "Rate (%)",
   "Currency.SubArName": "Sub-unit name (Arabic)",
   "Currency.SubEnName": "Sub-unit name (English)",
   "Currency.SubToCurrencyTrans": "Sub-units per currency",
@@ -875,6 +879,10 @@
   "Val.NotNegative": "The value cannot be negative",
   "Val.DiscountTooBig": "The discount is more than the items total",
   "Val.PaidTooBig": "The paid amount is more than the invoice net",
+  "Val.MinValue": "The value must be {0} or more",
+  "Val.MaxValue": "The value must be {0} or less",
+  "Val.Range": "The value must be between {0} and {1}",
+  "Val.Step": "The value must be a multiple of {0}",
 
   //messages (toastr)
   "LockedByBalance": "This record has an unsettled balance, so it cannot be deleted until the balance is settled",
