@@ -333,7 +333,8 @@ public class AutoMapper : Profile
             .ForMember(dest => dest.TownArName, opt => opt.MapFrom(src => src.Town.ArName))
             .ForMember(dest => dest.TownEnName, opt => opt.MapFrom(src => src.Town.EnName))
             .ForMember(dest => dest.GovernorateId, opt => opt.MapFrom(src => src.Town.GovernorateId))
-            .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.Town.Governorate.CountryId));
+            .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.Town.Governorate.CountryId))
+            .ForMember(dest => dest.CustomerTierDiscountPercentage, opt => opt.MapFrom(src => src.CustomerTier == null ? 0 : (decimal)src.CustomerTier.CustomerTierDiscounts.Select(a => a.DiscountPercentage).FirstOrDefault()));
         CreateMap<CustomerViewModel, Customer>()
             .ForMember(dest => dest.DetailedAddress, opt => opt.MapFrom(src => src.Address))
             .ForMember(dest => dest.PhoneNumber1, opt => opt.MapFrom(src => src.PhoneNumber))
@@ -374,8 +375,10 @@ public class AutoMapper : Profile
         CreateMap<ClassificationViewModel, Classification>()
             .ForMember(dest => dest.Customers, opt => opt.Ignore());
 
-        CreateMap<CustomerTier, CustomerTierViewModel>();
-        CreateMap<CustomerTierViewModel, CustomerTier>();
+        CreateMap<CustomerTier, CustomerTierViewModel>()
+            .ForMember(dest => dest.DiscountPercentage, opt => opt.MapFrom(src => (decimal)src.CustomerTierDiscounts.Select(a => a.DiscountPercentage).FirstOrDefault()));
+        CreateMap<CustomerTierViewModel, CustomerTier>()
+            .ForMember(dest => dest.CustomerTierDiscounts, opt => opt.MapFrom(src => new List<CustomerTierDiscount> { new CustomerTierDiscount { DiscountPercentage = (double)src.DiscountPercentage } }));
 
         CreateMap<Specialization, SpecializationViewModel>()
             .ForMember(dest => dest.ParentArName, opt => opt.MapFrom(src => src.Parent.ArName))

@@ -63,6 +63,9 @@ public class CustomerViewModel
     public int? ClassificationId { get; set; }
     public IEnumerable<LookupItem> Classifications { get; set; } = new List<LookupItem>();
     public int? CustomerTierId { get; set; }
+    public decimal CustomerTierDiscountPercentage { get; set; }
+    public string CustomerTierArName { get; set; }
+    public string CustomerTierEnName { get; set; }
     public IEnumerable<LookupItem> CustomerTiers { get; set; } = new List<LookupItem>();
     public int? SpecializationId { get; set; }
     public IEnumerable<LookupItem> Specializations { get; set; } = new List<LookupItem>();

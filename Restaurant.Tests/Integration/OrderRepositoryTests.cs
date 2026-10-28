@@ -359,15 +359,102 @@ public class OrderRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task Create_DiscountIsCappedAtTheTotal()
+    public async Task Create_DiscountOfTheWholeBill_IsAllowed()
+    {
+        await Seed();
+        var order = NewOrder(OrderType.TakeAway);
+        order.Bill = new BillMaster { BillDiscountValue = 110 };
+
+        var saved = await Reload(await Create(order));
+
+        Assert.Equal(0, saved.Bill.TotalBillAmountAfterDiscountAndExtra);
+    }
+
+    [Fact]
+    public async Task Create_DiscountMoreThanTheBill_IsRefusedAndTakesNothing()
     {
         await Seed();
         var order = NewOrder(OrderType.TakeAway);
         order.Bill = new BillMaster { BillDiscountValue = 9999 };
 
+        var result = await _sut.CreateOrderAsync(order, _user);
+
+        Assert.False(result.Success);
+        Assert.Equal("OrderDiscountTooBig", result.Message);
+        Assert.Equal(100, await Flour());
+        Assert.False(await _db.Context.Orders.AnyAsync());
+    }
+
+    private async Task SetDiscountLimit(decimal limit, double? tierPercentage = null)
+    {
+        var settings = await _db.Context.ApplicationSettings.SingleAsync();
+        settings.OrderDiscount = limit;
+        if (tierPercentage.HasValue)
+        {
+            var tier = new CustomerTier { Code = "1", ArName = "Gold", EnName = "Gold" };
+            tier.CustomerTierDiscounts.Add(new CustomerTierDiscount { DiscountPercentage = tierPercentage.Value });
+            _db.Context.CustomerTiers.Add(tier);
+            await _db.Context.SaveChangesAsync();
+            (await _db.Context.Customers.SingleAsync(a => a.Id == _customer.Id)).CustomerTierId = tier.Id;
+        }
+
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+    }
+
+    [Fact]
+    public async Task Create_DiscountOverTheSettingsLimit_IsRefused()
+    {
+        await Seed();
+        await SetDiscountLimit(20);
+        var order = NewOrder(OrderType.TakeAway);
+        order.Bill = new BillMaster { BillDiscountValue = 25 };
+
+        var result = await _sut.CreateOrderAsync(order, _user);
+
+        Assert.False(result.Success);
+        Assert.Equal("DiscountOverLimit", result.Message);
+        Assert.Equal(100, await Flour());
+    }
+
+    [Fact]
+    public async Task Create_DiscountUpToTheSettingsLimit_IsSaved()
+    {
+        await Seed();
+        await SetDiscountLimit(20);
+        var order = NewOrder(OrderType.TakeAway);
+        order.Bill = new BillMaster { BillDiscountValue = 20 };
+
         var saved = await Reload(await Create(order));
 
-        Assert.Equal(0, saved.Bill.TotalBillAmountAfterDiscountAndExtra);
+        Assert.Equal(90, saved.Bill.TotalBillAmountAfterDiscountAndExtra);
+    }
+
+    [Fact]
+    public async Task Create_CustomerTierDiscount_CanGoOverTheSettingsLimit()
+    {
+        await Seed();
+        await SetDiscountLimit(5, tierPercentage: 30);
+        var order = NewOrder(OrderType.TakeAway);
+        order.Bill = new BillMaster { BillDiscountValue = 33 }; // 30% of 110
+
+        var saved = await Reload(await Create(order));
+
+        Assert.Equal(77, saved.Bill.TotalBillAmountAfterDiscountAndExtra);
+    }
+
+    [Fact]
+    public async Task Create_DiscountOverTheCustomerTier_IsRefused()
+    {
+        await Seed();
+        await SetDiscountLimit(5, tierPercentage: 30);
+        var order = NewOrder(OrderType.TakeAway);
+        order.Bill = new BillMaster { BillDiscountValue = 40 };
+
+        var result = await _sut.CreateOrderAsync(order, _user);
+
+        Assert.False(result.Success);
+        Assert.Equal("DiscountOverLimit", result.Message);
     }
 
     [Fact]

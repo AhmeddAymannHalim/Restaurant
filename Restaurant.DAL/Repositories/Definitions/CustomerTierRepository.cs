@@ -22,7 +22,7 @@ public class CustomerTierRepository : ICustomerTierRepository
 
     public async Task<PaginatedResult<CustomerTier>> GetPagedCustomerTiersAsync(PageRequest request)
     {
-        var query = _context.CustomerTiers.AsNoTracking().AsQueryable();
+        var query = _context.CustomerTiers.AsNoTracking().Include(a => a.CustomerTierDiscounts).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchString))
         {
@@ -42,7 +42,9 @@ public class CustomerTierRepository : ICustomerTierRepository
 
     public async Task<CustomerTier> GetCustomerTierByIdAsync(int id)
     {
-        return await _context.CustomerTiers.FindAsync(id);
+        return await _context.CustomerTiers.AsNoTracking()
+            .Include(a => a.CustomerTierDiscounts)
+            .FirstOrDefaultAsync(a => a.Id == id);
     }
 
     public async Task<string> NewCustomerTierCodeAsync()
@@ -67,12 +69,21 @@ public class CustomerTierRepository : ICustomerTierRepository
                 entity.Code = await NewCustomerTierCodeAsync();
                 entity.CreatedAt = DateTime.Now;
                 entity.CreatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
+                foreach (var discount in entity.CustomerTierDiscounts)
+                {
+                    discount.CreatedAt = entity.CreatedAt;
+                    discount.CreatedById = entity.CreatedById;
+                }
+
                 await _context.CustomerTiers.AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
             else
             {
-                var existing = await _context.CustomerTiers.FirstOrDefaultAsync(a => a.Id == entity.Id);
+                var existing = await _context.CustomerTiers
+                    .Include(a => a.CustomerTierDiscounts)
+                    .FirstOrDefaultAsync(a => a.Id == entity.Id);
+
                 if (existing is null)
                 {
                     return new ResultMessage
@@ -89,6 +100,25 @@ public class CustomerTierRepository : ICustomerTierRepository
                 entity.UpdatedAt = DateTime.Now;
                 entity.UpdatedById = _httpContext.HttpContext.User.Identity.Name ?? "";
                 _context.Entry(existing).CurrentValues.SetValues(entity);
+
+                var percentage = entity.CustomerTierDiscounts.Select(a => a.DiscountPercentage).FirstOrDefault();
+                var discount = existing.CustomerTierDiscounts.FirstOrDefault();
+                if (discount is null)
+                {
+                    existing.CustomerTierDiscounts.Add(new CustomerTierDiscount
+                    {
+                        DiscountPercentage = percentage,
+                        CreatedAt = DateTime.Now,
+                        CreatedById = entity.UpdatedById
+                    });
+                }
+                else
+                {
+                    discount.DiscountPercentage = percentage;
+                    discount.UpdatedAt = DateTime.Now;
+                    discount.UpdatedById = entity.UpdatedById;
+                }
+
                 await _context.SaveChangesAsync();
             }
 
@@ -114,6 +144,7 @@ public class CustomerTierRepository : ICustomerTierRepository
                 return new ResultMessage { Success = true };
             }
 
+            _context.CustomerTierDiscounts.RemoveRange(await _context.CustomerTierDiscounts.Where(a => a.CustomerTierId == id).ToListAsync());
             _context.CustomerTiers.Remove(entity);
             await _context.SaveChangesAsync();
 

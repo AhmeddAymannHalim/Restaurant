@@ -295,7 +295,10 @@ namespace ResturantPL.Controllers.Definitions
                     customer.ArName,
                     customer.EnName,
                     customer.Address,
-                    customer.PhoneNumber
+                    customer.PhoneNumber,
+                    customer.CustomerTierDiscountPercentage,
+                    customer.CustomerTierArName,
+                    customer.CustomerTierEnName
                 });
             }
             catch (Exception)

@@ -27,6 +27,11 @@
                 <input asp-for="EnName" class="form-control" />
                 <span asp-validation-for="EnName" class="text-danger"></span>
             </div>
+            <div class="form-group">
+                <label asp-for="DiscountPercentage" class="control-label">@L["DiscountPercent"]</label>
+                <input asp-for="DiscountPercentage" type="number" step="0.01" min="0" max="100" class="form-control" />
+                <span asp-validation-for="DiscountPercentage" class="text-danger"></span>
+            </div>
 
             <div class="bo-form-actions">
                 <button type="submit" class="btn-ad btn-ad-primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> @L["Save"]</button>

@@ -11,6 +11,7 @@ public class OrderConfig : IEntityTypeConfiguration<Order>
         builder.Property(a => a.Id).ValueGeneratedNever();
         builder.Ignore(a => a.TaxPercent);
         builder.Ignore(a => a.DefaultService);
+        builder.Ignore(a => a.MaxDiscount);
         builder.Ignore(a => a.Menu);
         builder.Property(a => a.OrderCode).IsRequired().HasMaxLength(30);
         builder.Property(a => a.CustomerName).HasMaxLength(100);

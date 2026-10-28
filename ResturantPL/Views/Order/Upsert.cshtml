@@ -119,10 +119,10 @@
                     <div id="deliveryRow"><span>@L["DeliveryFee"]</span><b id="deliveryFee">0.00</b></div>
                     <div class="pos-discount">
                         <span>@L["DiscountPercent"]</span>
-                        <input id="discountPercent" type="number" step="0.01" min="0" max="100" value="0" class="form-control" aria-label="@L["DiscountPercent"]" placeholder="%" />
+                        <input id="discountPercent" name="DiscountPercent" type="number" step="0.01" min="0" max="100" value="@Model.DiscountPercent.ToString(invariant)" class="form-control" aria-label="@L["DiscountPercent"]" placeholder="%" />
                         <input id="discount" name="Discount" type="hidden" value="@Model.Discount.ToString(invariant)" />
                     </div>
-                    <div id="discountRow" class="pos-saved" hidden><span>@L["Discount"]</span><b id="discountShown">0.00</b></div>
+                    <div id="discountRow" class="pos-saved" hidden><span>@L["Discount"] <small id="tierHint"></small></span><b id="discountShown">0.00</b></div>
                     <div class="pos-total"><span>@L["TotalPrice"]</span><b id="total">0.00</b></div>
                 </div>
 
@@ -487,6 +487,14 @@
             var msgDriver = @Html.Raw(Json.Serialize(L["DeliveryDriverRequired"].Value));
             var msgZone = @Html.Raw(Json.Serialize(L["DeliveryZoneRequired"].Value));
             var msgRequired = @Html.Raw(Json.Serialize(L["Val.RequiredField"].Value));
+            var msgDiscountTooBig = @Html.Raw(Json.Serialize(L["OrderDiscountTooBig"].Value));
+            var msgDiscountOverLimit = @Html.Raw(Json.Serialize(L["DiscountOverLimit"].Value));
+            var msgTierHint = @Html.Raw(Json.Serialize(L["TierDiscountHint"].Value));
+            var msgTierApplied = @Html.Raw(Json.Serialize(L["TierDiscountApplied"].Value));
+            var maxDiscount = @Model.MaxDiscount.ToString(invariant);
+            var tierPercent = 0;
+            var tierName = '';
+            var gross = 0;
 
             function number(value) { return parseFloat(value) || 0; }
             function money(value) { return (Math.round(value * 100) / 100).toFixed(2); }
@@ -520,7 +528,8 @@
                 var isDelivery = type === 'Delivery';
                 var zone = $('#DeliveryZoneId');
                 var fee = isDelivery ? number(zone.is('select') ? zone.find('option:selected').data('fee') : zone.data('fee')) : 0;
-                var gross = sub + tax + service + fee;
+                gross = sub + tax + service + fee;
+                $('#discount').val(money(gross * number($('#discountPercent').val()) / 100));
                 var discount = Math.min(number($('#discount').val()), gross);
                 $('#subTotal').text(money(sub));
                 $('#tax').text(money(tax));
@@ -528,9 +537,10 @@
                 $('#deliveryFee').text(money(fee));
                 $('#deliveryRow').toggle(isDelivery);
                 $('#discountRow').prop('hidden', discount <= 0);
+                var fromTier = tierPercent > 0 && number($('#discountPercent').val()) === tierPercent;
+                $('#tierHint').text(fromTier ? msgTierHint.replace('{0}', tierName).replace('{1}', tierPercent) : '');
                 $('#discountShown').text('-' + money(discount));
                 $('#total').text(money(gross - discount));
-                $('#discount').data('gross', gross);
             }
 
             function addItem(id, name, price, qty) {
@@ -639,10 +649,7 @@
             });
             $(document).on('click', '#cartTable .remove', function () { $(this).closest('tr').remove(); render(); });
 
-            $('#discountPercent').on('input', function () {
-                $('#discount').val(money(number($('#discount').data('gross')) * number($(this).val()) / 100));
-                totals();
-            });
+            $('#discountPercent').on('input', totals);
 
             function showFields() {
                 var type = $('#orderType').val();
@@ -660,11 +667,20 @@
             $('#CustomerId').on('change', function () {
                 var id = $(this).val();
                 $('#payOnAccount').prop('hidden', !id);
-                if (!id) { return; }
+                tierPercent = 0;
+                tierName = '';
+                if (!id) { totals(); return; }
                 $.get('/Order/CustomerInfo', { customerId: id }, function (c) {
                     $('#CustomerName').val(@(isArabic ? "c.arName" : "c.enName"));
                     $('#Address').val(c.address);
                     $('#PhoneNumber').val(c.phoneNumber);
+                    tierPercent = number(c.customerTierDiscountPercentage);
+                    tierName = @(isArabic ? "c.customerTierArName" : "c.customerTierEnName");
+                    $('#discountPercent').val(tierPercent);
+                    totals();
+                    if (tierPercent > 0) {
+                        toastr.info(msgTierApplied.replace('{0}', tierName).replace('{1}', tierPercent));
+                    }
                 });
             });
 
@@ -717,6 +733,16 @@
                         errors.push(check[1]);
                     }
                 });
+                var percent = number($('#discountPercent').val());
+                var allowed = Math.max(maxDiscount, gross * tierPercent / 100);
+                if (percent < 0 || percent > 100) {
+                    $('#discountPercent').addClass('is-invalid');
+                    errors.push(msgDiscountTooBig);
+                } else if (maxDiscount > 0 && gross * percent / 100 > allowed + 0.01) {
+                    $('#discountPercent').addClass('is-invalid');
+                    errors.push(msgDiscountOverLimit);
+                }
+
                 $.each(errors, function (i, message) { toastr.error(message); });
                 return errors.length === 0;
             };
@@ -731,6 +757,13 @@
             render();
             showFields();
             $('#payOnAccount').prop('hidden', !$('#CustomerId').val());
+            if ($('#CustomerId').val()) {
+                $.get('/Order/CustomerInfo', { customerId: $('#CustomerId').val() }, function (c) {
+                    tierPercent = number(c.customerTierDiscountPercentage);
+                    tierName = @(isArabic ? "c.customerTierArName" : "c.customerTierEnName");
+                    totals();
+                });
+            }
         });
     </script>
 }

@@ -132,6 +132,7 @@ public class OrderRepository : IOrderRepository
             Service = settings.OrderService,
             TaxPercent = settings.OrderTax,
             DefaultService = settings.OrderService,
+            MaxDiscount = settings.OrderDiscount,
             Menu = (await GetCashierMenuAsync()).ToList()
         };
 
@@ -415,7 +416,31 @@ public class OrderRepository : IOrderRepository
             };
             _orderLedger.RecalculateBill(entity, settings.OrderTax);
 
-            // 7. customer balance, table and stock movements
+            // 7. the discount: never more than the bill, and never more than the settings limit unless the customer tier gives more
+            var requestedDiscount = order.Bill?.BillDiscountValue ?? 0;
+            if (requestedDiscount > bill.BillDiscountValue + 0.01m)
+            {
+                return new ResultMessage { Success = false, Message = "OrderDiscountTooBig" };
+            }
+
+            if (settings.OrderDiscount > 0)
+            {
+                var tierPercentage = customer.CustomerTierId.HasValue
+                    ? await _context.CustomerTierDiscounts.AsNoTracking()
+                        .Where(a => a.CustomerTierId == customer.CustomerTierId.Value)
+                        .Select(a => a.DiscountPercentage)
+                        .FirstOrDefaultAsync()
+                    : 0;
+
+                var gross = bill.TotalAmountBeforeDiscountOrExtra + bill.BillExtraValue;
+                var tierDiscount = Math.Round(gross * (decimal)tierPercentage / 100, 2);
+                if (bill.BillDiscountValue > Math.Max(settings.OrderDiscount, tierDiscount) + 0.01m)
+                {
+                    return new ResultMessage { Success = false, Message = "DiscountOverLimit" };
+                }
+            }
+
+            // 8. customer balance, table and stock movements
             if (order.OnAccount)
             {
                 customer.Account.Adjust(bill.TotalBillAmountAfterDiscountAndExtra);
@@ -435,7 +460,7 @@ public class OrderRepository : IOrderRepository
             await _context.Orders.AddAsync(entity);
             await _context.SaveChangesAsync();
 
-            // 8. a paid order gets its journal entry now
+            // 9. a paid order gets its journal entry now
             if (entity.Cash)
             {
                 if (billSetting.EntryGenerate == EntryGenerate.AutomaticEntryCreated)

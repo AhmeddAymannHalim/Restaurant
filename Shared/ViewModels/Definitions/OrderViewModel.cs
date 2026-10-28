@@ -17,6 +17,7 @@ public class OrderViewModel
     public decimal Service { get; set; }
     public decimal Tax { get; set; }
     public decimal Discount { get; set; }
+    public decimal DiscountPercent { get; set; }
     public decimal TotalPrice { get; set; }
     public decimal DeliveryFee { get; set; }
     public int? DeliveryZoneId { get; set; }
@@ -43,6 +44,7 @@ public class OrderViewModel
 
     public decimal TaxPercent { get; set; }
     public decimal DefaultService { get; set; }
+    public decimal MaxDiscount { get; set; }
     public IEnumerable<LookupItem> Customers { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Tables { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> DeliveryDrivers { get; set; } = new List<LookupItem>();
@@ -55,6 +57,7 @@ public class OrderViewModel
         OrderCode = fresh?.OrderCode;
         TaxPercent = fresh?.TaxPercent ?? 0;
         DefaultService = fresh?.DefaultService ?? 0;
+        MaxDiscount = fresh?.MaxDiscount ?? 0;
         Menu = fresh?.Menu ?? new();
         foreach (var item in Items.ToList())
         {

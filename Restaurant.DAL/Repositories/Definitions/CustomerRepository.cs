@@ -57,6 +57,7 @@ public class CustomerRepository : ICustomerRepository
         var customer = await _context.Customers
             .Include(a => a.Account)
             .Include(a => a.Town).ThenInclude(a => a.Governorate)
+            .Include(a => a.CustomerTier).ThenInclude(a => a.CustomerTierDiscounts)
             .FirstOrDefaultAsync(a => a.Id == id);
         if (customer is null)
         {

@@ -43,5 +43,6 @@ public class Order
     // filled only for a new order on the cashier screen
     public decimal TaxPercent { get; set; }
     public decimal DefaultService { get; set; }
+    public decimal MaxDiscount { get; set; }
     public List<MenuItem> Menu { get; set; } = new();
 }

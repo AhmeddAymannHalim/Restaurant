@@ -30,5 +30,9 @@ public class CustomerTierVmValidator : AbstractValidator<CustomerTierViewModel>
             .WithMessage(MaxLength(100))
             .Must((model, enName) => !validator.IsEnNameExist(model.Id, enName))
             .WithMessage(localizer["Val.NameAlreadyExist"].Value);
+
+        RuleFor(x => x.DiscountPercentage)
+            .InclusiveBetween(0, 100)
+            .WithMessage(localizer["Val.Between0And100"].Value);
     }
 }
