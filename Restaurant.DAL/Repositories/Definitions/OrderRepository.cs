@@ -119,8 +119,6 @@ public class OrderRepository : IOrderRepository
                                                  .FirstOrDefaultAsync() ?? new ApplicationSetting();
     }
 
-    // a fresh order for the cashier screen: next code, tax and service of the settings, the dishes on sale,
-    // and the table and customer of a reservation when the order starts from one
     public async Task<Order> GetNewOrderAsync(int? tableId, int? reservationId)
     {
         var settings = await GetSettingsAsync();
@@ -133,6 +131,7 @@ public class OrderRepository : IOrderRepository
             TaxPercent = settings.OrderTax,
             DefaultService = settings.OrderService,
             MaxDiscount = settings.OrderDiscount,
+            LoyaltyPointValue = settings.LoyaltyPointValue,
             Menu = (await GetCashierMenuAsync()).ToList()
         };
 
@@ -370,7 +369,25 @@ public class OrderRepository : IOrderRepository
                 lines.Add(line);
             }
 
-            // 6. the bill and the order
+            // 6. loyalty points the customer spends on this order become part of its discount
+            if (order.PointsRedeemed < 0)
+            {
+                return new ResultMessage { Success = false, Message = "PointsNegative" };
+            }
+
+            if (order.PointsRedeemed > 0 && settings.LoyaltyPointValue <= 0)
+            {
+                return new ResultMessage { Success = false, Message = "LoyaltyPointsOff" };
+            }
+
+            if (order.PointsRedeemed > customer.LoyaltyPointsNumber)
+            {
+                return new ResultMessage { Success = false, Message = "NotEnoughPoints" };
+            }
+
+            var pointsValue = Math.Round(order.PointsRedeemed * settings.LoyaltyPointValue, 2);
+
+            // 7. the bill and the order
             var billSetting = await _orderLedger.GetSettingAsync();
             var code = await GetNextCodeAsync();
             var now = DateTime.Now;
@@ -382,7 +399,7 @@ public class OrderRepository : IOrderRepository
                 Date = now,
                 CurrencyRate = 1,
                 BillSettingId = billSetting.Id,
-                BillDiscountValue = order.Bill?.BillDiscountValue ?? 0,
+                BillDiscountValue = (order.Bill?.BillDiscountValue ?? 0) + pointsValue,
                 CustomerOrSupplierPhoneNumber = order.PhoneNumber,
                 CustomerOrSupplierAccountId = customer?.AccountId,
                 EmployeeId = order.EmployeeId,
@@ -411,13 +428,14 @@ public class OrderRepository : IOrderRepository
                 PhoneNumber = order.PhoneNumber,
                 DeliveryZoneId = deliveryZoneId,
                 DeliveryFee = deliveryFee,
+                PointsRedeemed = order.PointsRedeemed,
                 Service = order.Type == OrderType.TakeAway ? 0 : settings.OrderService,
                 Lines = lines
             };
             _orderLedger.RecalculateBill(entity, settings.OrderTax);
 
-            // 7. the discount: never more than the bill, and never more than the settings limit unless the customer tier gives more
-            var requestedDiscount = order.Bill?.BillDiscountValue ?? 0;
+            // 8. the discount: never more than the bill, and never more than the settings limit unless the customer tier gives more
+            var requestedDiscount = (order.Bill?.BillDiscountValue ?? 0) + pointsValue;
             if (requestedDiscount > bill.BillDiscountValue + 0.01m)
             {
                 return new ResultMessage { Success = false, Message = "OrderDiscountTooBig" };
@@ -434,16 +452,30 @@ public class OrderRepository : IOrderRepository
 
                 var gross = bill.TotalAmountBeforeDiscountOrExtra + bill.BillExtraValue;
                 var tierDiscount = Math.Round(gross * (decimal)tierPercentage / 100, 2);
-                if (bill.BillDiscountValue > Math.Max(settings.OrderDiscount, tierDiscount) + 0.01m)
+                if (bill.BillDiscountValue - pointsValue > Math.Max(settings.OrderDiscount, tierDiscount) + 0.01m)
                 {
                     return new ResultMessage { Success = false, Message = "DiscountOverLimit" };
                 }
             }
 
-            // 8. customer balance, table and stock movements
+            // 9. the payments of a paid order (one method, or a part by visa and the rest by another method) must cover the bill
+            var paymentError = await _orderLedger.SetPaymentsAsync(entity, order.Payments);
+            if (paymentError is not null)
+            {
+                return new ResultMessage { Success = false, Message = paymentError };
+            }
+
+            // 10. customer balance and points, table and stock movements
             if (order.OnAccount)
             {
                 customer.Account.Adjust(bill.TotalBillAmountAfterDiscountAndExtra);
+            }
+
+            customer.LoyaltyPointsNumber -= order.PointsRedeemed;
+            if (cash && settings.LoyaltyAmountPerPoint > 0)
+            {
+                entity.PointsEarned = Math.Floor(bill.TotalBillAmountAfterDiscountAndExtra / settings.LoyaltyAmountPerPoint);
+                customer.LoyaltyPointsNumber += entity.PointsEarned;
             }
 
             if (table is not null && !cash)
@@ -460,7 +492,7 @@ public class OrderRepository : IOrderRepository
             await _context.Orders.AddAsync(entity);
             await _context.SaveChangesAsync();
 
-            // 9. a paid order gets its journal entry now
+            // 11. a paid order gets its journal entry now
             if (entity.Cash)
             {
                 if (billSetting.EntryGenerate == EntryGenerate.AutomaticEntryCreated)
@@ -490,7 +522,7 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method)
+    public async Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method, List<OrderPaymentViewModel> payments)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -526,11 +558,27 @@ public class OrderRepository : IOrderRepository
             }
 
             order.Cash = true;
-            order.PaymentMethod = method;
+            order.PaymentMethod = payments.FirstOrDefault()?.Method ?? method;
             order.ReceiverId = userId;
             order.Bill.Date = DateTime.Now;
             var settings = await GetSettingsAsync();
             _orderLedger.RecalculateBill(order, settings.OrderTax);
+            var paymentError = await _orderLedger.SetPaymentsAsync(order, payments);
+            if (paymentError is not null)
+            {
+                return new ResultMessage { Success = false, Message = paymentError };
+            }
+
+            // the customer earns loyalty points when the order is paid
+            if (settings.LoyaltyAmountPerPoint > 0 && order.CustomerId.HasValue)
+            {
+                var customer = await _context.Customers.FirstOrDefaultAsync(a => a.Id == order.CustomerId.Value);
+                if (customer is not null)
+                {
+                    order.PointsEarned = Math.Floor(order.Bill.TotalBillAmountAfterDiscountAndExtra / settings.LoyaltyAmountPerPoint);
+                    customer.LoyaltyPointsNumber += order.PointsEarned;
+                }
+            }
 
             await _context.SaveChangesAsync();
             var billSetting = await _orderLedger.GetSettingAsync();
@@ -638,6 +686,7 @@ public class OrderRepository : IOrderRepository
 
             to.Service += from.Service;
             to.Bill.BillDiscountValue += from.Bill.BillDiscountValue;
+            to.PointsRedeemed += from.PointsRedeemed;
             _orderLedger.RecalculateBill(to, settings.OrderTax);
 
             await _orderLedger.RemoveOrderAsync(from);
@@ -695,6 +744,16 @@ public class OrderRepository : IOrderRepository
                 if (customer is not null)
                 {
                     customer.Account.Adjust(-order.TotalPrice);
+                }
+            }
+
+            // give back the points the order spent and take back the points it earned
+            if (order.CustomerId.HasValue && (order.PointsRedeemed > 0 || order.PointsEarned > 0))
+            {
+                var pointsOwner = await _context.Customers.FirstOrDefaultAsync(a => a.Id == order.CustomerId.Value);
+                if (pointsOwner is not null)
+                {
+                    pointsOwner.LoyaltyPointsNumber = Math.Max(0, pointsOwner.LoyaltyPointsNumber + order.PointsRedeemed - order.PointsEarned);
                 }
             }
 

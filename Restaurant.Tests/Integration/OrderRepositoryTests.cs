@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Restaurant.DAL.Models;
 using Restaurant.DAL.Repositories.Definitions;
 using Shared.Enums;
+using Shared.ViewModels.Definitions;
 using PaymentMethod = Shared.Enums.PaymentMethod;
 
 namespace Restaurant.Tests;
@@ -493,7 +494,7 @@ public class OrderRepositoryTests : IDisposable
         await _db.Context.SaveChangesAsync();
         _db.Context.ChangeTracker.Clear();
 
-        var result = await _sut.PayOrderAsync(id, _otherUser, PaymentMethod.Visa);
+        var result = await _sut.PayOrderAsync(id, _otherUser, PaymentMethod.Visa, new());
 
         Assert.True(result.Success, result.Message);
         var order = await Reload(id);
@@ -511,9 +512,9 @@ public class OrderRepositoryTests : IDisposable
     {
         await Seed();
         var id = await Create(NewOrder(OrderType.Hall));
-        await _sut.PayOrderAsync(id, _user, PaymentMethod.Cash);
+        await _sut.PayOrderAsync(id, _user, PaymentMethod.Cash, new());
 
-        var again = await _sut.PayOrderAsync(id, _otherUser, PaymentMethod.Visa);
+        var again = await _sut.PayOrderAsync(id, _otherUser, PaymentMethod.Visa, new());
 
         Assert.True(again.Success);
         var order = await Reload(id);
@@ -524,7 +525,7 @@ public class OrderRepositoryTests : IDisposable
     [Fact]
     public async Task Pay_Unknown_ReturnsRecordNotFound()
     {
-        Assert.Equal("RecordNotFound", (await _sut.PayOrderAsync(404, "u", PaymentMethod.Cash)).Message);
+        Assert.Equal("RecordNotFound", (await _sut.PayOrderAsync(404, "u", PaymentMethod.Cash, new())).Message);
     }
 
     [Fact]
@@ -725,5 +726,367 @@ public class OrderRepositoryTests : IDisposable
         Assert.Single(mine.Data);
         Assert.Single(pending.Data);
         Assert.Equal(OrderType.Hall, pending.Data[0].Type);
+    }
+
+    // ---------------------------------------------------------------- split payment
+
+    private async Task<(Account Cash, Account Card)> SeedSalesAccounts(bool withCard = true)
+    {
+        var sales = new Account { Code = "S", ArName = "Sales", EnName = "Sales", AccountType = AccountType.Normal, BalanceType = AccountBalanceType.Credit };
+        var cash = new Account { Code = "C", ArName = "Cash", EnName = "Cash", AccountType = AccountType.Box, BalanceType = AccountBalanceType.Debit };
+        var card = new Account { Code = "V", ArName = "Card", EnName = "Card", AccountType = AccountType.Bank, BalanceType = AccountBalanceType.Debit };
+        var sellType = new SellType { ArName = "Retail", EnName = "Retail", Show = true };
+        _db.Context.AddRange(sales, cash, card, sellType);
+        await _db.Context.SaveChangesAsync();
+        _db.Context.BillSettings.Add(new BillSetting
+        {
+            ArName = "Sales", EnName = "Sales", ArAbrvation = "Sales", EnAbrvation = "Sales", BillType = BillType.Sales,
+            EntryGenerate = EntryGenerate.AutomaticEntryCreated, EntryAutoPosted = true, StorageEffect = StorageEffect.AutoEffected,
+            CurrencyRate = 1, DefaultPayType = PayType.Cash, SellTypeId = sellType.Id,
+            AccountItemId = sales.Id, AccountPayId = cash.Id, AccountPaymentCardId = withCard ? card.Id : null
+        });
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+        return (cash, card);
+    }
+
+    private async Task<decimal> Balance(Account account)
+    {
+        _db.Context.ChangeTracker.Clear();
+        return (await _db.Context.Accounts.AsNoTracking().SingleAsync(a => a.Id == account.Id)).BalanceValue;
+    }
+
+    private async Task<List<Restaurant.DAL.Models.PaymentMethod>> Payments(int orderId)
+    {
+        _db.Context.ChangeTracker.Clear();
+        return await _db.Context.PaymentMethods.AsNoTracking().Where(a => a.BillMasterId == orderId).OrderBy(a => a.RowNumber).ToListAsync();
+    }
+
+    private static List<OrderPaymentViewModel> Paid(params OrderPaymentViewModel[] lines) => lines.ToList();
+
+    private static OrderPaymentViewModel By(PaymentMethod method, decimal amount) => new() { Method = method, Amount = amount };
+
+    [Fact]
+    public async Task Create_PartByVisaAndTheRestByCash_MakesOneRowPerPayment()
+    {
+        await Seed();
+        var (cash, card) = await SeedSalesAccounts();
+        var order = NewOrder(OrderType.TakeAway); // 110
+        order.PaymentMethod = PaymentMethod.Visa;
+        order.Payments = Paid(By(PaymentMethod.Visa, 30), By(PaymentMethod.Cash, 80));
+
+        var id = await Create(order);
+
+        var payments = await Payments(id);
+        Assert.Equal(2, payments.Count);
+        Assert.Equal(card.Id, payments[0].AccountPayId);
+        Assert.Equal(30, payments[0].AmountPaided);
+        Assert.Equal(cash.Id, payments[1].AccountPayId);
+        Assert.Equal(80, payments[1].AmountPaided);
+        Assert.Equal(80, await Balance(cash));
+        Assert.Equal(30, await Balance(card));
+        Assert.Equal(PaymentMethod.Visa, (await Reload(id)).PaymentMethod);
+        Assert.Equal(3, (await _db.Context.EntryDetails.AsNoTracking().ToListAsync()).Count);
+    }
+
+    [Fact]
+    public async Task Create_NoAmounts_PaysTheWholeBillByTheChosenMethod()
+    {
+        await Seed();
+        var (cash, card) = await SeedSalesAccounts();
+        var order = NewOrder(OrderType.TakeAway);
+        order.PaymentMethod = PaymentMethod.InstaPay;
+
+        var id = await Create(order);
+
+        var payment = Assert.Single(await Payments(id));
+        Assert.Equal(card.Id, payment.AccountPayId);
+        Assert.Equal(110, payment.AmountPaided);
+        Assert.Equal(0, await Balance(cash));
+        Assert.Equal(110, await Balance(card));
+    }
+
+    [Fact]
+    public async Task Create_VisaWithoutACardAccount_GoesToTheCashBox()
+    {
+        await Seed();
+        var (cash, _) = await SeedSalesAccounts(withCard: false);
+        var order = NewOrder(OrderType.TakeAway);
+        order.PaymentMethod = PaymentMethod.Visa;
+
+        var id = await Create(order);
+
+        var payment = Assert.Single(await Payments(id));
+        Assert.Equal(cash.Id, payment.AccountPayId);
+        Assert.Equal(110, await Balance(cash));
+    }
+
+    [Fact]
+    public async Task Create_PaymentsLessThanTheBill_IsRefusedAndTakesNothing()
+    {
+        await Seed();
+        await SeedSalesAccounts();
+        var order = NewOrder(OrderType.TakeAway);
+        order.PaymentMethod = PaymentMethod.Visa;
+        order.Payments = Paid(By(PaymentMethod.Visa, 30));
+
+        var result = await _sut.CreateOrderAsync(order, _user);
+
+        Assert.False(result.Success);
+        Assert.Equal("PaymentsLessThanTotal", result.Message);
+        Assert.Equal(100, await Flour());
+        Assert.False(await _db.Context.Orders.AnyAsync());
+    }
+
+    [Fact]
+    public async Task Create_PaymentsMoreThanTheBill_IsRefused()
+    {
+        await Seed();
+        await SeedSalesAccounts();
+        var order = NewOrder(OrderType.TakeAway);
+        order.Payments = Paid(By(PaymentMethod.Visa, 100), By(PaymentMethod.Cash, 50));
+
+        var result = await _sut.CreateOrderAsync(order, _user);
+
+        Assert.Equal("PaymentsMoreThanTotal", result.Message);
+        Assert.False(await _db.Context.Orders.AnyAsync());
+    }
+
+    [Fact]
+    public async Task Create_NegativePayment_IsRefused()
+    {
+        await Seed();
+        await SeedSalesAccounts();
+        var order = NewOrder(OrderType.TakeAway);
+        order.Payments = Paid(By(PaymentMethod.Visa, 120), By(PaymentMethod.Cash, -10));
+
+        var result = await _sut.CreateOrderAsync(order, _user);
+
+        Assert.Equal("PaymentNegative", result.Message);
+        Assert.False(await _db.Context.Orders.AnyAsync());
+    }
+
+    [Fact]
+    public async Task Create_PendingHallOrder_HasNoPaymentRows()
+    {
+        await Seed();
+        await SeedSalesAccounts();
+
+        var id = await Create(NewOrder(OrderType.Hall));
+
+        Assert.Empty(await Payments(id));
+    }
+
+    [Fact]
+    public async Task Pay_PendingOrderPartByCashAndTheRestByBankTransfer_SplitsThePayment()
+    {
+        await Seed();
+        var (cash, card) = await SeedSalesAccounts();
+        var id = await Create(NewOrder(OrderType.Hall)); // 115
+
+        var result = await _sut.PayOrderAsync(id, _user, PaymentMethod.Cash, Paid(By(PaymentMethod.Cash, 15), By(PaymentMethod.BankTransfer, 100)));
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(new decimal[] { 15, 100 }, (await Payments(id)).Select(a => a.AmountPaided).ToArray());
+        Assert.Equal(15, await Balance(cash));
+        Assert.Equal(100, await Balance(card));
+    }
+
+    [Fact]
+    public async Task Pay_OnlyAMethodWithoutAmounts_PaysTheWholeBillByIt()
+    {
+        await Seed();
+        var (_, card) = await SeedSalesAccounts();
+        var id = await Create(NewOrder(OrderType.Hall));
+
+        var result = await _sut.PayOrderAsync(id, _user, PaymentMethod.Cash, Paid(By(PaymentMethod.Visa, 0), By(PaymentMethod.Cash, 0)));
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(PaymentMethod.Visa, (await Reload(id)).PaymentMethod);
+        Assert.Equal(115, await Balance(card));
+    }
+
+    [Fact]
+    public async Task Pay_PaymentsLessThanTheBill_IsRefusedAndTheOrderStaysPending()
+    {
+        await Seed();
+        await SeedSalesAccounts();
+        var id = await Create(NewOrder(OrderType.Hall));
+
+        var result = await _sut.PayOrderAsync(id, _user, PaymentMethod.Visa, Paid(By(PaymentMethod.Visa, 30)));
+
+        Assert.Equal("PaymentsLessThanTotal", result.Message);
+        Assert.False((await Reload(id)).Cash);
+        Assert.Empty(await Payments(id));
+    }
+
+    [Fact]
+    public async Task Pay_NegativePayment_IsRefusedAndTheOrderStaysPending()
+    {
+        await Seed();
+        await SeedSalesAccounts();
+        var id = await Create(NewOrder(OrderType.Hall));
+
+        var result = await _sut.PayOrderAsync(id, _user, PaymentMethod.Visa, Paid(By(PaymentMethod.Visa, -5)));
+
+        Assert.Equal("PaymentNegative", result.Message);
+        Assert.False((await Reload(id)).Cash);
+    }
+
+    [Fact]
+    public async Task Delete_SplitPaidOrder_RemovesThePaymentRowsAndGivesTheBalancesBack()
+    {
+        await Seed();
+        var (cash, card) = await SeedSalesAccounts();
+        var order = NewOrder(OrderType.TakeAway);
+        order.Payments = Paid(By(PaymentMethod.Visa, 60), By(PaymentMethod.Cash, 50));
+        var id = await Create(order);
+
+        var result = await _sut.DeleteOrderAsync(id);
+
+        Assert.True(result.Success, result.Message);
+        Assert.Empty(await Payments(id));
+        Assert.Equal(0, await Balance(cash));
+        Assert.Equal(0, await Balance(card));
+    }
+
+    // ---------------------------------------------------------------- loyalty points
+
+    private async Task SetLoyalty(decimal amountPerPoint, decimal pointValue, decimal customerPoints = 0, decimal discountLimit = 0)
+    {
+        var settings = await _db.Context.ApplicationSettings.SingleAsync();
+        settings.LoyaltyAmountPerPoint = amountPerPoint;
+        settings.LoyaltyPointValue = pointValue;
+        settings.OrderDiscount = discountLimit;
+        (await _db.Context.Customers.SingleAsync(a => a.Id == _customer.Id)).LoyaltyPointsNumber = customerPoints;
+        await _db.Context.SaveChangesAsync();
+        _db.Context.ChangeTracker.Clear();
+    }
+
+    private async Task<decimal> Points()
+    {
+        _db.Context.ChangeTracker.Clear();
+        return (await _db.Context.Customers.AsNoTracking().SingleAsync(a => a.Id == _customer.Id)).LoyaltyPointsNumber;
+    }
+
+    [Fact]
+    public async Task Create_PaidOrder_EarnsPointsForTheCustomer()
+    {
+        await Seed();
+        await SetLoyalty(10, 1);
+
+        var id = await Create(NewOrder(OrderType.TakeAway)); // 110
+
+        Assert.Equal(11, (await Reload(id)).PointsEarned);
+        Assert.Equal(11, await Points());
+    }
+
+    [Fact]
+    public async Task Create_LoyaltyOff_EarnsNothing()
+    {
+        await Seed();
+
+        await Create(NewOrder(OrderType.TakeAway));
+
+        Assert.Equal(0, await Points());
+    }
+
+    [Fact]
+    public async Task Pay_PendingOrder_EarnsThePointsOnlyWhenPaid()
+    {
+        await Seed();
+        await SetLoyalty(10, 1);
+        var id = await Create(NewOrder(OrderType.Hall)); // 115
+
+        Assert.Equal(0, await Points());
+        await _sut.PayOrderAsync(id, _user, PaymentMethod.Cash, new());
+
+        Assert.Equal(11, await Points());
+        Assert.Equal(11, (await Reload(id)).PointsEarned);
+    }
+
+    [Fact]
+    public async Task Create_RedeemPoints_BecomesADiscountOutsideTheSettingsLimit()
+    {
+        await Seed();
+        await SetLoyalty(10, 0.5m, customerPoints: 30, discountLimit: 5);
+        var order = NewOrder(OrderType.TakeAway); // 110
+        order.PointsRedeemed = 20; // 10 off
+
+        var id = await Create(order);
+
+        var saved = await Reload(id);
+        Assert.Equal(100, saved.Bill.TotalBillAmountAfterDiscountAndExtra);
+        Assert.Equal(20, saved.PointsRedeemed);
+        Assert.Equal(10, saved.PointsEarned);
+        Assert.Equal(30 - 20 + 10, await Points());
+    }
+
+    [Fact]
+    public async Task Create_RedeemPointsPlusADiscountOverTheLimit_IsRefused()
+    {
+        await Seed();
+        await SetLoyalty(0, 0.5m, customerPoints: 30, discountLimit: 5);
+        var order = NewOrder(OrderType.TakeAway);
+        order.PointsRedeemed = 20;
+        order.Bill = new BillMaster { BillDiscountValue = 6 };
+
+        var result = await _sut.CreateOrderAsync(order, _user);
+
+        Assert.Equal("DiscountOverLimit", result.Message);
+        Assert.Equal(30, await Points());
+    }
+
+    [Fact]
+    public async Task Create_RedeemMoreThanTheCustomerHas_IsRefused()
+    {
+        await Seed();
+        await SetLoyalty(10, 1, customerPoints: 5);
+        var order = NewOrder(OrderType.TakeAway);
+        order.PointsRedeemed = 6;
+
+        var result = await _sut.CreateOrderAsync(order, _user);
+
+        Assert.Equal("NotEnoughPoints", result.Message);
+        Assert.Equal(5, await Points());
+        Assert.False(await _db.Context.Orders.AnyAsync());
+    }
+
+    [Fact]
+    public async Task Create_RedeemWhenPointsHaveNoValue_IsRefused()
+    {
+        await Seed();
+        await SetLoyalty(10, 0, customerPoints: 50);
+        var order = NewOrder(OrderType.TakeAway);
+        order.PointsRedeemed = 10;
+
+        Assert.Equal("LoyaltyPointsOff", (await _sut.CreateOrderAsync(order, _user)).Message);
+    }
+
+    [Fact]
+    public async Task Create_NegativePoints_IsRefused()
+    {
+        await Seed();
+        await SetLoyalty(10, 1, customerPoints: 50);
+        var order = NewOrder(OrderType.TakeAway);
+        order.PointsRedeemed = -3;
+
+        Assert.Equal("PointsNegative", (await _sut.CreateOrderAsync(order, _user)).Message);
+        Assert.Equal(50, await Points());
+    }
+
+    [Fact]
+    public async Task Delete_PaidOrder_GivesBackTheSpentPointsAndTakesBackTheEarnedOnes()
+    {
+        await Seed();
+        await SetLoyalty(10, 0.5m, customerPoints: 30);
+        var order = NewOrder(OrderType.TakeAway);
+        order.PointsRedeemed = 20;
+        var id = await Create(order);
+        Assert.Equal(20, await Points());
+
+        Assert.True((await _sut.DeleteOrderAsync(id)).Success);
+
+        Assert.Equal(30, await Points());
     }
 }

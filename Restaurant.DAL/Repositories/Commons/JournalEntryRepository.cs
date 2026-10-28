@@ -229,7 +229,21 @@ public class JournalEntryRepository : IJournalEntryRepository
             Debit = itemIsDebit ? Math.Round(total, 2) : 0,
             Credit = itemIsCredit ? Math.Round(total, 2) : 0
         });
-        if (paid > 0)
+        // a bill paid in parts (cash + card) gets one line per payment row
+        var payments = bill.PaymentMethods.Where(a => a.AmountPaided > 0 && a.AccountPayId != null).ToList();
+        if (paid > 0 && payments.Count > 0 && payments.Sum(a => Math.Round(a.AmountPaided, 2)) == Math.Round(paid, 2))
+        {
+            foreach (var payment in payments)
+            {
+                lines.Add(new EntryDetail
+                {
+                    AccountId = payment.AccountPayId,
+                    Debit = itemIsCredit ? Math.Round(payment.AmountPaided, 2) : 0,
+                    Credit = itemIsDebit ? Math.Round(payment.AmountPaided, 2) : 0
+                });
+            }
+        }
+        else if (paid > 0)
         {
             lines.Add(new EntryDetail
             {

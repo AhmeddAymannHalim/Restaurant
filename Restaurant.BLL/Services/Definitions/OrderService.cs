@@ -56,9 +56,9 @@ public class OrderService : IOrderService
         return await _unitOfWork.Orders.CreateOrderAsync(order, userId);
     }
 
-    public async Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method)
+    public async Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method, List<OrderPaymentViewModel> payments)
     {
-        return await _unitOfWork.Orders.PayOrderAsync(id, userId, method);
+        return await _unitOfWork.Orders.PayOrderAsync(id, userId, method, payments);
     }
 
     public async Task<ResultMessage> MoveItemAsync(OrderMoveViewModel model)

@@ -30,7 +30,10 @@
         .actions a, .actions button { padding: 8px 14px; border: 1px solid #112233; background: #112233; color: #fff; border-radius: 6px; text-decoration: none; cursor: pointer; font: inherit; }
         .actions a.alt { background: #fff; color: #112233; }
         .actions form { display: flex; gap: 8px; width: 100%; justify-content: center; }
-        .actions select { padding: 8px; border: 1px solid #112233; border-radius: 6px; font: inherit; }
+        .actions select, .actions input { padding: 8px; border: 1px solid #112233; border-radius: 6px; font: inherit; }
+        .actions input { width: 120px; }
+        .actions form.pay-lines { flex-direction: column; align-items: center; }
+        .actions form.pay-lines div { display: flex; gap: 8px; }
         .unpaid-flag { margin: 0 0 12px; padding: 6px 10px; border-radius: 6px; background: #fdecea; border: 1px solid #c0564e; color: #a5342b; text-align: center; font-weight: 700; font-size: 13px; }
         @@media print { body { background: #fff; padding: 0; } .receipt { border: 0; } .actions { display: none; } }
     </style>
@@ -108,6 +111,14 @@
                 <div><span>@L["PaymentMethod"]</span><span>@L["Pay." + Model.PaymentMethod.Value]</span></div>
             }
             <div class="grand"><span>@L["TotalPrice"]</span><span>@Model.TotalPrice.ToString("N2")</span></div>
+            @if (Model.PointsRedeemed > 0)
+            {
+                <div><span>@L["RedeemPoints"]</span><span>@Model.PointsRedeemed.ToString("0.##")</span></div>
+            }
+            @if (Model.PointsEarned > 0)
+            {
+                <div><span>@L["PointsEarned"]</span><span>+@Model.PointsEarned.ToString("0.##")</span></div>
+            }
         </div>
     </div>
 
@@ -117,13 +128,20 @@
             @if (!Model.Cash && !Model.OnAccount)
             {
                 @* the check is on screen: the cashier confirms the items, then takes the payment *@
-                <form asp-action="Pay" asp-route-id="@Model.Id" method="post">
-                    <select name="method" aria-label="@L["PaymentMethod"]">
-                        @foreach (var method in Enum.GetValues<PaymentMethod>())
-                        {
-                            <option value="@method">@L["Pay." + method]</option>
-                        }
-                    </select>
+                @* no amount = the whole bill by the first method; or a part by one method and the rest by the other *@
+                <form asp-action="Pay" asp-route-id="@Model.Id" method="post" class="pay-lines">
+                    @for (var i = 0; i < 2; i++)
+                    {
+                        <div>
+                            <select name="payments[@i].Method" aria-label="@L["PaymentMethod"]">
+                                @foreach (var method in Enum.GetValues<PaymentMethod>())
+                                {
+                                    <option value="@method" selected="@(method == (i == 0 ? PaymentMethod.Cash : PaymentMethod.Visa))">@L["Pay." + method]</option>
+                                }
+                            </select>
+                            <input name="payments[@i].Amount" type="number" step="0.01" min="0" placeholder="@L["PaymentAmount"]" aria-label="@L["PaymentAmount"]" />
+                        </div>
+                    }
                     <button type="submit">@L["PayOrder"]</button>
                 </form>
             }

@@ -528,7 +528,7 @@ public class AccountDefinitionRepository : IAccountDefinitionRepository
                     || a.ParentExpensesId == id || a.ParentBankId == id || a.ParentBoxId == id
                     || a.ParentFixedAssetsId == id || a.ParentEmployeeId == id)
                 || await _context.BillSettings.AnyAsync(a => a.AccountItemId == id || a.AccountPayId == id
-                    || a.AccountDiscountId == id || a.AccountExtraId == id)
+                    || a.AccountDiscountId == id || a.AccountExtraId == id || a.AccountPaymentCardId == id)
                 || await _context.EntrySettings.AnyAsync(a => a.AccountId == id))
             {
                 return new ResultMessage { Success = false, Message = "CannotDeleteLinkedRecord" };

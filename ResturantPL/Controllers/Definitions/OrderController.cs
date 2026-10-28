@@ -145,12 +145,12 @@ namespace ResturantPL.Controllers.Definitions
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Pay(int id, PaymentMethod method = PaymentMethod.Cash)
+        public async Task<IActionResult> Pay(int id, PaymentMethod method = PaymentMethod.Cash, List<OrderPaymentViewModel> payments = null)
         {
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var result = await _service.PayOrderAsync(id, userId, method);
+                var result = await _service.PayOrderAsync(id, userId, method, payments ?? new List<OrderPaymentViewModel>());
                 if (!result.Success)
                 {
                     _toastr.Error(_localizer[result.Message].Value);
@@ -298,7 +298,8 @@ namespace ResturantPL.Controllers.Definitions
                     customer.PhoneNumber,
                     customer.CustomerTierDiscountPercentage,
                     customer.CustomerTierArName,
-                    customer.CustomerTierEnName
+                    customer.CustomerTierEnName,
+                    customer.LoyaltyPointsNumber
                 });
             }
             catch (Exception)

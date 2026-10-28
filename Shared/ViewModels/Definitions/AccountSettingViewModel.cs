@@ -19,6 +19,7 @@ public class AccountSettingViewModel
     // invoices: the item account (sales / purchases) and the cash account
     public int? SalesItemAccountId { get; set; }
     public int? SalesPayAccountId { get; set; }
+    public int? SalesCardAccountId { get; set; }
     public int? SalesReturnItemAccountId { get; set; }
     public int? SalesReturnPayAccountId { get; set; }
     public int? PurchasesItemAccountId { get; set; }

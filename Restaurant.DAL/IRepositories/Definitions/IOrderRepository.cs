@@ -19,7 +19,7 @@ public interface IOrderRepository
     Task<IEnumerable<Table>> GetPendingTablesAsync(int exceptTableId);
 
     Task<ResultMessage> CreateOrderAsync(Order order, string userId);
-    Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method);
+    Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method, List<OrderPaymentViewModel> payments);
     Task<ResultMessage> MoveItemAsync(int orderMenuItemId, int targetTableId);
     Task<ResultMessage> MergeOrderAsync(int id, int targetTableId);
     Task<ResultMessage> DeleteOrderAsync(int id);

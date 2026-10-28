@@ -26,6 +26,14 @@ public class ApplicationSettingVmValidator : AbstractValidator<ApplicationSettin
         RuleFor(x => x.OrderService)
             .GreaterThanOrEqualTo(0)
             .WithMessage(localizer["Val.NotNegative"].Value);
+
+        RuleFor(x => x.LoyaltyAmountPerPoint)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage(localizer["Val.NotNegative"].Value);
+
+        RuleFor(x => x.LoyaltyPointValue)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage(localizer["Val.NotNegative"].Value);
     }
 }
 

@@ -24,6 +24,8 @@ public class Order
     public string PhoneNumber { get; set; }
     public int? DeliveryZoneId { get; set; }
     public decimal DeliveryFee { get; set; }
+    public decimal PointsEarned { get; set; }
+    public decimal PointsRedeemed { get; set; }
 
     public virtual BillMaster Bill { get; set; }
     public virtual ApplicationUser Seller { get; set; }
@@ -44,5 +46,7 @@ public class Order
     public decimal TaxPercent { get; set; }
     public decimal DefaultService { get; set; }
     public decimal MaxDiscount { get; set; }
+    public List<Shared.ViewModels.Definitions.OrderPaymentViewModel> Payments { get; set; } = new();
+    public decimal LoyaltyPointValue { get; set; }
     public List<MenuItem> Menu { get; set; } = new();
 }

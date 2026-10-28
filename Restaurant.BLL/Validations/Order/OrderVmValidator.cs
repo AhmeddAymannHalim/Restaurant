@@ -24,6 +24,15 @@ public class OrderVmValidator : AbstractValidator<OrderViewModel>
             .GreaterThanOrEqualTo(0)
             .WithMessage(localizer["Val.GreaterThanZero"].Value);
 
+        RuleFor(x => x.PointsRedeemed)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage(localizer["PointsNegative"].Value);
+
+        RuleForEach(x => x.Payments).ChildRules(payment =>
+        {
+            payment.RuleFor(p => p.Amount).GreaterThanOrEqualTo(0).WithMessage(localizer["PaymentNegative"].Value);
+        });
+
         RuleFor(x => x.CustomerId)
             .NotNull()
             .WithMessage(localizer["CustomerRequired"].Value);

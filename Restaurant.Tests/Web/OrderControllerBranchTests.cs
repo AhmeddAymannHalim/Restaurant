@@ -249,8 +249,8 @@ public class OrderControllerBranchTests
     public async Task Pay_Succeeds_GoesToTheReceipt_Refused_BacksToThePendingList_AndFailureEndsOnTheErrorPage()
     {
         var cashier = new Cashier();
-        cashier.Orders.Setup(a => a.PayOrderAsync(1, It.IsAny<string>(), PaymentMethod.Visa)).ReturnsAsync(new ResultMessage { Success = true });
-        cashier.Orders.Setup(a => a.PayOrderAsync(2, It.IsAny<string>(), PaymentMethod.Cash)).ReturnsAsync(new ResultMessage { Success = false, Message = "OrderAlreadyPaid" });
+        cashier.Orders.Setup(a => a.PayOrderAsync(1, It.IsAny<string>(), PaymentMethod.Visa, It.IsAny<List<Shared.ViewModels.Definitions.OrderPaymentViewModel>>())).ReturnsAsync(new ResultMessage { Success = true });
+        cashier.Orders.Setup(a => a.PayOrderAsync(2, It.IsAny<string>(), PaymentMethod.Cash, It.IsAny<List<Shared.ViewModels.Definitions.OrderPaymentViewModel>>())).ReturnsAsync(new ResultMessage { Success = false, Message = "OrderAlreadyPaid" });
 
         var paid = await cashier.Controller.Pay(1, PaymentMethod.Visa);
         var refused = await cashier.Controller.Pay(2);

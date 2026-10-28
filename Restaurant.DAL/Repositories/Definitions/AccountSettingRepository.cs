@@ -39,6 +39,7 @@ public class AccountSettingRepository : IAccountSettingRepository
         var sales = await _billSupport.GetBillSettingAsync(BillType.Sales, "مبيعات", "Sales");
         model.SalesItemAccountId = sales.AccountItemId;
         model.SalesPayAccountId = sales.AccountPayId;
+        model.SalesCardAccountId = sales.AccountPaymentCardId;
 
         var salesReturn = await _billSupport.GetBillSettingAsync(BillType.SalesReturn, "مرتجع مبيعات", "Sales Return");
         model.SalesReturnItemAccountId = salesReturn.AccountItemId;
@@ -101,6 +102,7 @@ public class AccountSettingRepository : IAccountSettingRepository
             var sales = await _billSupport.GetBillSettingAsync(BillType.Sales, "مبيعات", "Sales");
             sales.AccountItemId = model.SalesItemAccountId;
             sales.AccountPayId = model.SalesPayAccountId;
+            sales.AccountPaymentCardId = model.SalesCardAccountId;
 
             var salesReturn = await _billSupport.GetBillSettingAsync(BillType.SalesReturn, "مرتجع مبيعات", "Sales Return");
             salesReturn.AccountItemId = model.SalesReturnItemAccountId;

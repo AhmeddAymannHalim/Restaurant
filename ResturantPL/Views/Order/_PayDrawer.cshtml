@@ -3,6 +3,10 @@
        data-msg-cash="@L["PaidCashMessage"].Value"
        data-msg-via="@L["PaidViaMessage"].Value"
        data-bad="@L["CardInvalid"]"
+       data-msg-pay-rest="@L["PayTheRest"].Value"
+       data-msg-negative="@L["PaymentNegative"].Value"
+       data-msg-too-big="@L["PaymentsMoreThanTotal"].Value"
+       data-remove="@L["Delete"].Value"
        data-dashboard-url="@Url.Action("Index", "Dashboard")">
     <header class="pay-head">
         <div>
@@ -19,6 +23,16 @@
                 <i class="fas @(method switch { PaymentMethod.Cash => "fa-money-bill-wave", PaymentMethod.InstaPay => "fa-bolt", PaymentMethod.BankTransfer => "fa-building-columns", _ => "fa-credit-card" })" aria-hidden="true"></i> @L["Pay." + method]
             </button>
         }
+    </div>
+
+    @* each confirm takes one payment; the drawer stays open until the payments cover the bill *@
+    <div class="pay-fields pay-split">
+        <label class="pay-full">@L["PaymentAmount"]
+            <input id="payAmount" type="number" step="0.01" min="0" inputmode="decimal" dir="ltr" />
+        </label>
+        <ul class="pay-full pay-rows" aria-live="polite"></ul>
+        <div class="pay-full pay-rest" hidden><span>@L["Remaining"]</span><b class="pay-rest-amount"></b></div>
+        <div id="payInputs"></div>
     </div>
 
     <div class="pay-stage">

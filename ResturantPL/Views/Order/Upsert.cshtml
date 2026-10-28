@@ -123,6 +123,11 @@
                         <input id="discount" name="Discount" type="hidden" value="@Model.Discount.ToString(invariant)" />
                     </div>
                     <div id="discountRow" class="pos-saved" hidden><span>@L["Discount"] <small id="tierHint"></small></span><b id="discountShown">0.00</b></div>
+                    <div id="pointsRow" class="pos-discount" hidden>
+                        <span>@L["RedeemPoints"] <small id="pointsAvailable"></small></span>
+                        <input id="pointsRedeemed" name="PointsRedeemed" type="number" step="1" min="0" value="@Model.PointsRedeemed.ToString(invariant)" class="form-control" aria-label="@L["RedeemPoints"]" />
+                    </div>
+                    <div id="pointsValueRow" class="pos-saved" hidden><span>@L["PointsDiscount"]</span><b id="pointsShown">0.00</b></div>
                     <div class="pos-total"><span>@L["TotalPrice"]</span><b id="total">0.00</b></div>
                 </div>
 
@@ -265,8 +270,38 @@
         return text.replace('{0}', values[0]).replace('{1}', values[1] || '');
     }
 
+    // the payments taken so far in this drawer (a part by visa, the rest by cash, ...)
+    var payments = [];
+
+    function rest() {
+        var paid = 0;
+        $.each(payments, function (i, p) { paid += p.amount; });
+        return Math.round(((parseFloat(amount()) || 0) - paid) * 100) / 100;
+    }
+
+    function renderPayments() {
+        var $list = $drawer.find('.pay-rows').empty();
+        var $inputs = $('#payInputs').empty();
+        $.each(payments, function (i, p) {
+            $list.append($('<li>').append(
+                $('<i aria-hidden="true">').attr('class', 'fas ' + p.icon),
+                $('<span>').text(p.name),
+                $('<b>').text(p.amount.toFixed(2) + ' ' + currency),
+                $('<button type="button" class="pay-row-x">').attr({ 'data-index': i, 'aria-label': $drawer.data('remove') }).append('<i class="fas fa-xmark" aria-hidden="true"></i>')));
+            $inputs.append(
+                $('<input type="hidden" form="orderForm">').attr('name', 'Payments[' + i + '].Method').val(p.method),
+                $('<input type="hidden" form="orderForm">').attr('name', 'Payments[' + i + '].Amount').val(p.amount.toFixed(2)));
+        });
+
+        var left = rest();
+        $drawer.find('.pay-rest').prop('hidden', payments.length === 0);
+        $drawer.find('.pay-rest-amount').text(left.toFixed(2) + ' ' + currency);
+        $drawer.find('.pay-amount').text(left.toFixed(2) + ' ' + currency);
+        $('#payAmount').val('').removeClass('is-invalid').attr('placeholder', left.toFixed(2));
+    }
+
     function quickMessage() {
-        var sum = amount() + ' ' + currency;
+        var sum = rest().toFixed(2) + ' ' + currency;
         return method === 'Cash'
             ? fill($drawer.data('msg-cash'), [sum])
             : fill($drawer.data('msg-via'), [sum, $drawer.find('.pay-chip[data-method="' + method + '"]').data('name')]);
@@ -322,11 +357,12 @@
 
         method = 'Cash';
         $('#paymentMethod').val(method);
+        payments = [];
+        renderPayments();
         $drawer.find('.pay-chip').removeClass('is-on').attr('aria-checked', false)
             .filter('[data-method="Cash"]').addClass('is-on').attr('aria-checked', true);
         $stage.children('.pay-pane').prop('hidden', true);
         $stage.children('[data-pane="quick"]').prop('hidden', false);
-        $drawer.find('.pay-amount').text(amount() + ' ' + currency);
         $drawer.find('.pay-msg').text(quickMessage());
         $drawer.find('.pay-badge i').attr('class', 'fas fa-money-bill-wave');
         $drawer.removeClass('is-busy is-closing').prop('hidden', false);
@@ -416,6 +452,22 @@
     function confirm() {
         if (busy) { return; }
 
+        // an empty amount means "the rest by this method"
+        var typed = $.trim($('#payAmount').val());
+        var left = rest();
+        var value = typed === '' ? left : Math.round(parseFloat(typed) * 100) / 100;
+        if (isNaN(value) || value < 0) {
+            $('#payAmount').addClass('is-invalid').trigger('focus');
+            if (window.toastr) { toastr.error($drawer.data('msgNegative')); }
+            return;
+        }
+
+        if (value > left + 0.001) {
+            $('#payAmount').addClass('is-invalid').trigger('focus');
+            if (window.toastr) { toastr.error($drawer.data('msgTooBig')); }
+            return;
+        }
+
         if (method === 'Visa') {
             var bad = cardError();
             if (bad) {
@@ -426,6 +478,21 @@
                 $drawer.find('.pay-pane[data-pane="card"]').addClass('is-shaking');
                 return;
             }
+        }
+
+        var doneText = method === 'Visa' || payments.length > 0 ? approvedText : quickMessage();
+        if (value > 0) {
+            payments.push({ method: method, name: $drawer.find('.pay-chip.is-on').data('name'), icon: $drawer.find('.pay-chip.is-on i').attr('class').split(' ')[1], amount: value });
+        }
+        renderPayments();
+
+        // a part is still unpaid: the drawer stays open for the next payment
+        if (rest() > 0.004) {
+            clearCard();
+            $drawer.find('.pay-msg').text(quickMessage());
+            if (window.toastr) { toastr.info(fill($drawer.data('msgPayRest'), [rest().toFixed(2) + ' ' + currency])); }
+            $('#payAmount').trigger('focus');
+            return;
         }
 
         // Open the receipt tab now, still inside the click — browsers block window.open()
@@ -447,7 +514,7 @@
 
         run.then(function () {
             show('done', function () {
-                $drawer.find('.pay-done-msg').text(method === 'Visa' ? approvedText : quickMessage());
+                $drawer.find('.pay-done-msg').text(doneText);
             });
             return wait(1100);
         }).then(function () {
@@ -463,6 +530,12 @@
     }
 
     $drawer.find('.pay-chip').on('click', function () { setMethod($(this).data('method')); });
+    $drawer.on('click', '.pay-row-x', function () {
+        if (busy) { return; }
+        payments.splice($(this).data('index'), 1);
+        renderPayments();
+        $drawer.find('.pay-msg').text(quickMessage());
+    });
     $drawer.find('.pay-confirm').on('click', confirm);
     $drawer.find('.pay-cancel, .pay-x').on('click', close);
     $drawer.on('keydown', function (e) {
@@ -495,6 +568,11 @@
             var tierPercent = 0;
             var tierName = '';
             var gross = 0;
+            var pointValue = @Model.LoyaltyPointValue.ToString(invariant);
+            var availablePoints = 0;
+            var msgPointsAvailable = @Html.Raw(Json.Serialize(L["PointsAvailable"].Value));
+            var msgPointsNegative = @Html.Raw(Json.Serialize(L["PointsNegative"].Value));
+            var msgNotEnoughPoints = @Html.Raw(Json.Serialize(L["NotEnoughPoints"].Value));
 
             function number(value) { return parseFloat(value) || 0; }
             function money(value) { return (Math.round(value * 100) / 100).toFixed(2); }
@@ -529,17 +607,21 @@
                 var zone = $('#DeliveryZoneId');
                 var fee = isDelivery ? number(zone.is('select') ? zone.find('option:selected').data('fee') : zone.data('fee')) : 0;
                 gross = sub + tax + service + fee;
-                $('#discount').val(money(gross * number($('#discountPercent').val()) / 100));
-                var discount = Math.min(number($('#discount').val()), gross);
+                var percentPart = gross * number($('#discountPercent').val()) / 100;
+                var pointsPart = Math.round(number($('#pointsRedeemed').val()) * pointValue * 100) / 100;
+                $('#discount').val(money(percentPart));
+                var discount = Math.min(percentPart + pointsPart, gross);
                 $('#subTotal').text(money(sub));
                 $('#tax').text(money(tax));
                 $('#service').text(money(service));
                 $('#deliveryFee').text(money(fee));
                 $('#deliveryRow').toggle(isDelivery);
-                $('#discountRow').prop('hidden', discount <= 0);
+                $('#discountRow').prop('hidden', percentPart <= 0);
+                $('#pointsValueRow').prop('hidden', pointsPart <= 0);
+                $('#pointsShown').text('-' + money(pointsPart));
                 var fromTier = tierPercent > 0 && number($('#discountPercent').val()) === tierPercent;
                 $('#tierHint').text(fromTier ? msgTierHint.replace('{0}', tierName).replace('{1}', tierPercent) : '');
-                $('#discountShown').text('-' + money(discount));
+                $('#discountShown').text('-' + money(percentPart));
                 $('#total').text(money(gross - discount));
             }
 
@@ -664,11 +746,24 @@
             $('#orderType').on('change', showFields);
             $('#DeliveryZoneId').on('change', totals);
 
+            // the points box shows only when points have a value and the customer has some
+            function showPoints(points) {
+                availablePoints = points;
+                var on = pointValue > 0 && availablePoints > 0;
+                $('#pointsRow').prop('hidden', !on);
+                if (!on) { $('#pointsRedeemed').val(0); }
+                $('#pointsAvailable').text(on ? msgPointsAvailable.replace('{0}', availablePoints) : '');
+            }
+
+            $('#pointsRedeemed').on('input', totals);
+
             $('#CustomerId').on('change', function () {
                 var id = $(this).val();
                 $('#payOnAccount').prop('hidden', !id);
                 tierPercent = 0;
                 tierName = '';
+                $('#pointsRedeemed').val(0);
+                showPoints(0);
                 if (!id) { totals(); return; }
                 $.get('/Order/CustomerInfo', { customerId: id }, function (c) {
                     $('#CustomerName').val(@(isArabic ? "c.arName" : "c.enName"));
@@ -677,6 +772,7 @@
                     tierPercent = number(c.customerTierDiscountPercentage);
                     tierName = @(isArabic ? "c.customerTierArName" : "c.customerTierEnName");
                     $('#discountPercent').val(tierPercent);
+                    showPoints(number(c.loyaltyPointsNumber));
                     totals();
                     if (tierPercent > 0) {
                         toastr.info(msgTierApplied.replace('{0}', tierName).replace('{1}', tierPercent));
@@ -734,8 +830,17 @@
                     }
                 });
                 var percent = number($('#discountPercent').val());
+                var points = number($('#pointsRedeemed').val());
                 var allowed = Math.max(maxDiscount, gross * tierPercent / 100);
-                if (percent < 0 || percent > 100) {
+                if (points < 0) {
+                    $('#pointsRedeemed').addClass('is-invalid');
+                    errors.push(msgPointsNegative);
+                } else if (points > availablePoints) {
+                    $('#pointsRedeemed').addClass('is-invalid');
+                    errors.push(msgNotEnoughPoints);
+                }
+
+                if (percent < 0 || percent > 100 || gross * percent / 100 + points * pointValue > gross + 0.01) {
                     $('#discountPercent').addClass('is-invalid');
                     errors.push(msgDiscountTooBig);
                 } else if (maxDiscount > 0 && gross * percent / 100 > allowed + 0.01) {
@@ -761,6 +866,7 @@
                 $.get('/Order/CustomerInfo', { customerId: $('#CustomerId').val() }, function (c) {
                     tierPercent = number(c.customerTierDiscountPercentage);
                     tierName = @(isArabic ? "c.customerTierArName" : "c.customerTierEnName");
+                    showPoints(number(c.loyaltyPointsNumber));
                     totals();
                 });
             }

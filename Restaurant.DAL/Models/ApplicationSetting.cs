@@ -7,6 +7,8 @@
         public decimal OrderTax { get; set; }
         public decimal OrderDiscount { get; set; }
         public decimal OrderService { get; set; }
+        public decimal LoyaltyAmountPerPoint { get; set; }
+        public decimal LoyaltyPointValue { get; set; }
         public bool PrintAfterOrder { get; set; }
         public bool PrintForTakeawayOrder { get; set; }
         public bool PrintForKitchen { get; set; }

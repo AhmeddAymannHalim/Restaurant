@@ -20,6 +20,8 @@ public class OrderViewModel
     public decimal DiscountPercent { get; set; }
     public decimal TotalPrice { get; set; }
     public decimal DeliveryFee { get; set; }
+    public decimal PointsEarned { get; set; }
+    public decimal PointsRedeemed { get; set; }
     public int? DeliveryZoneId { get; set; }
     public string DeliveryZoneArName { get; set; }
     public string DeliveryZoneEnName { get; set; }
@@ -41,10 +43,12 @@ public class OrderViewModel
     public int ItemsCount { get; set; }
 
     public List<OrderItemViewModel> Items { get; set; } = new();
+    public List<OrderPaymentViewModel> Payments { get; set; } = new();
 
     public decimal TaxPercent { get; set; }
     public decimal DefaultService { get; set; }
     public decimal MaxDiscount { get; set; }
+    public decimal LoyaltyPointValue { get; set; }
     public IEnumerable<LookupItem> Customers { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> Tables { get; set; } = new List<LookupItem>();
     public IEnumerable<LookupItem> DeliveryDrivers { get; set; } = new List<LookupItem>();
@@ -58,6 +62,7 @@ public class OrderViewModel
         TaxPercent = fresh?.TaxPercent ?? 0;
         DefaultService = fresh?.DefaultService ?? 0;
         MaxDiscount = fresh?.MaxDiscount ?? 0;
+        LoyaltyPointValue = fresh?.LoyaltyPointValue ?? 0;
         Menu = fresh?.Menu ?? new();
         foreach (var item in Items.ToList())
         {
@@ -74,6 +79,12 @@ public class OrderViewModel
             item.Price = dish.Price * item.Quantity;
         }
     }
+}
+
+public class OrderPaymentViewModel
+{
+    public PaymentMethod Method { get; set; }
+    public decimal Amount { get; set; }
 }
 
 public class OrderItemViewModel

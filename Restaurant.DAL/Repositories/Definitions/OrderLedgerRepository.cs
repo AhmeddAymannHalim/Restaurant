@@ -92,6 +92,70 @@ public class OrderLedgerRepository : IOrderLedgerRepository
         order.Bill.UpdatedAt = DateTime.Now;
     }
 
+    // the payment rows of a paid order: each payment the cashier took (cash, visa, ...) is one row,
+    // cash goes to the cash box and the other methods to the card account of the sales setting.
+    // returns the message key when the payments are wrong, or null
+    public async Task<string> SetPaymentsAsync(Order order, List<Shared.ViewModels.Definitions.OrderPaymentViewModel> payments)
+    {
+        if (order.Bill.Id != 0)
+        {
+            _context.PaymentMethods.RemoveRange(await _context.PaymentMethods.Where(a => a.BillMasterId == order.Bill.Id).ToListAsync());
+        }
+
+        order.Bill.PaymentMethods = new List<Models.PaymentMethod>();
+        if (!order.Cash || order.OnAccount)
+        {
+            return null;
+        }
+
+        var total = Math.Round(order.Bill.TotalBillAmountAfterDiscountAndExtra, 2);
+        var lines = payments.Where(a => a.Amount != 0).ToList();
+        if (lines.Any(a => a.Amount < 0))
+        {
+            return "PaymentNegative";
+        }
+
+        // one method and no amount typed: the whole bill is paid by it
+        if (lines.Count == 0 && total > 0)
+        {
+            lines.Add(new Shared.ViewModels.Definitions.OrderPaymentViewModel { Method = order.PaymentMethod ?? Shared.Enums.PaymentMethod.Cash, Amount = total });
+        }
+
+        var paid = lines.Sum(a => Math.Round(a.Amount, 2));
+        if (paid < total - 0.01m)
+        {
+            return "PaymentsLessThanTotal";
+        }
+
+        if (paid > total + 0.01m)
+        {
+            return "PaymentsMoreThanTotal";
+        }
+
+        if (lines.Count == 0)
+        {
+            return null;
+        }
+
+        var setting = await GetSettingAsync();
+        order.PaymentMethod = lines[0].Method;
+        foreach (var line in lines)
+        {
+            order.Bill.PaymentMethods.Add(new Restaurant.DAL.Models.PaymentMethod
+            {
+                RowNumber = (byte)(order.Bill.PaymentMethods.Count + 1),
+                AccountPayId = line.Method == Shared.Enums.PaymentMethod.Cash ? setting.AccountPayId : setting.AccountPaymentCardId ?? setting.AccountPayId,
+                AmountPaided = Math.Round(line.Amount, 2),
+                CreatedAt = DateTime.Now
+            });
+        }
+
+        // a rounding cent goes on the last row so the rows always add up to the bill
+        order.Bill.PaymentMethods.Last().AmountPaided += total - paid;
+
+        return null;
+    }
+
     public async Task RemoveOrderAsync(Order order)
     {
         if (order.Type == OrderType.Hall && order.TableId.HasValue && !order.Cash)
@@ -112,6 +176,7 @@ public class OrderLedgerRepository : IOrderLedgerRepository
         _context.Orders.Remove(order);
         if (order.Bill is not null)
         {
+            _context.PaymentMethods.RemoveRange(await _context.PaymentMethods.Where(a => a.BillMasterId == order.Bill.Id).ToListAsync());
             _context.BillMasters.Remove(order.Bill);
         }
     }

@@ -127,6 +127,42 @@
 }
 
 .pay-fields input:focus { outline: 2px solid var(--cyan, #219ecf); outline-offset: 1px; }
+/* payments taken so far: a short receipt tape, then what is still owed */
+.pay-split { margin: .25rem 0 .5rem; }
+.pay-rows { display: grid; margin: 0; padding: 0; list-style: none; }
+.pay-rows:empty { display: none; }
+.pay-rows li {
+    display: grid;
+    grid-template-columns: 1.25rem 1fr auto 1.75rem;
+    align-items: center;
+    gap: .5rem;
+    padding: .45rem 0;
+    border-bottom: 1px dashed var(--line, #2b4560);
+    font-size: .9rem;
+}
+.pay-rows li i { color: var(--cyan, #219ecf); text-align: center; }
+.pay-rows li b { font-variant-numeric: tabular-nums; }
+.pay-row-x {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--muted, #9fb4c8);
+    cursor: pointer;
+}
+.pay-row-x:hover, .pay-row-x:focus-visible { background: rgba(255, 138, 115, .15); color: #ff8a73; }
+.pay-rest {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-top: .35rem;
+    color: #f2b35b;
+}
+.pay-rest[hidden] { display: none; }
+.pay-rest b { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
 .pay-error { min-height: 1.1em; color: #ff8a73; }
 .pay-error:empty { min-height: 0; }
 .pay-note { color: var(--muted, #9fb4c8); }

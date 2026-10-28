@@ -59,6 +59,10 @@
                 <select asp-for="SalesPayAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
             </div>
             <div class="form-group">
+                <label asp-for="SalesCardAccountId" class="control-label">@L["AccSet_SalesCard"]</label>
+                <select asp-for="SalesCardAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
+            </div>
+            <div class="form-group">
                 <label asp-for="SalesReturnItemAccountId" class="control-label">@L["AccSet_SalesReturnItem"]</label>
                 <select asp-for="SalesReturnItemAccountId" asp-items="accounts" class="form-select"><option value="">@L["Select"]</option></select>
             </div>

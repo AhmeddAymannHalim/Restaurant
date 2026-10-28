@@ -13,7 +13,7 @@ public interface IOrderService
     Task<IEnumerable<LookupItem>> GetPendingTablesAsync(int exceptTableId);
 
     Task<ResultMessage> CreateOrderAsync(OrderViewModel model, string userId);
-    Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method);
+    Task<ResultMessage> PayOrderAsync(int id, string userId, PaymentMethod method, List<OrderPaymentViewModel> payments);
     Task<ResultMessage> MoveItemAsync(OrderMoveViewModel model);
     Task<ResultMessage> MergeOrderAsync(OrderMoveViewModel model);
     Task<ResultMessage> DeleteOrderAsync(int id);

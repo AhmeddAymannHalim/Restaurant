@@ -9,5 +9,6 @@ public interface IOrderLedgerRepository
     Task<bool> PostEntryAsync(Order order);
     Task RemoveEntryAsync(int billId);
     void RecalculateBill(Order order, decimal taxPercent);
+    Task<string> SetPaymentsAsync(Order order, List<Shared.ViewModels.Definitions.OrderPaymentViewModel> payments);
     Task RemoveOrderAsync(Order order);
 }
