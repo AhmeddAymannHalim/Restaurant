@@ -148,10 +148,34 @@
             }
         }
 
+        var unitGrams = { 'جرام': 1, 'gram': 1, 'كيلو': 1000, 'kilo': 1000, 'kg': 1000, 'طن': 1000000, 'ton': 1000000 };
+
+        function gramsOf(row) {
+            var select = row.querySelector('select[name$=".UnitPriceId"]');
+            var name = select.selectedIndex > 0 ? select.options[select.selectedIndex].text.trim().toLowerCase() : '';
+            return unitGrams[name] || 0;
+        }
+
+        function fixRates() {
+            var rows = unitRows();
+            var baseRow = rows.find(function (row) { return rateOf(row) === 1 && row.querySelector('.unit-default').checked; })
+                || rows.find(function (row) { return rateOf(row) === 1; });
+            if (!baseRow || !gramsOf(baseRow)) {
+                return;
+            }
+            rows.forEach(function (row) {
+                if (row !== baseRow && gramsOf(row)) {
+                    row.querySelector('input[name$=".TransRate"]').value = Math.round(gramsOf(row) / gramsOf(baseRow) * 1000000) / 1000000;
+                }
+            });
+        }
+
+        fixRates();
         var startRow = unitRows().find(function (row) { return rateOf(row) === 1 && priceOf(row) > 0; })
             || unitRows().find(function (row) { return rateOf(row) > 0 && priceOf(row) > 0; });
         if (startRow) {
             basePrice = priceOf(startRow) / rateOf(startRow);
+            fillPrices(startRow);
         }
 
         document.addEventListener('input', function (event) {
@@ -165,7 +189,7 @@
                 fillPrices(row);
             }
 
-            if (event.target.matches('input[name$=".TransRate"]')) {
+            if (event.target.matches('input[name$=".TransRate"]') && !gramsOf(row)) {
                 fillPrices(null);
                 checkBaseUnitAsDefault();
             }
@@ -181,20 +205,32 @@
             if (event.target.matches('[data-rows] input[name$=".TransRate"]')) {
                 var row = event.target.closest('[data-row]');
                 var oldRate = parseFloat(event.target.dataset.oldRate) || 0;
+                var newRate = rateOf(row);
                 event.target.dataset.oldRate = event.target.value;
-                if (rateOf(row) === 1 && oldRate > 0 && oldRate !== 1) {
+                if (gramsOf(row) && oldRate > 0 && newRate > 0 && newRate !== oldRate) {
                     unitRows().forEach(function (other) {
                         if (other !== row && rateOf(other) > 0) {
-                            other.querySelector('input[name$=".TransRate"]').value = Math.round(rateOf(other) / oldRate * 1000000) / 1000000;
+                            other.querySelector('input[name$=".TransRate"]').value = Math.round(rateOf(other) * newRate / oldRate * 1000000) / 1000000;
                         }
                     });
-                    basePrice = basePrice * oldRate;
-                    document.querySelectorAll('.unit-default').forEach(function (box) {
-                        box.checked = false;
-                    });
-                    row.querySelector('.unit-default').checked = true;
-                    fillPrices(null);
+                    basePrice = basePrice * oldRate / newRate;
+                    var baseRow = unitRows().find(function (other) { return rateOf(other) === 1; });
+                    if (baseRow) {
+                        document.querySelectorAll('.unit-default').forEach(function (box) {
+                            box.checked = false;
+                        });
+                        baseRow.querySelector('.unit-default').checked = true;
+                    }
                 }
+                fixRates();
+                fillPrices(null);
+                checkBaseUnitAsDefault();
+            }
+
+            if (event.target.matches('[data-rows] select[name$=".UnitPriceId"]')) {
+                fixRates();
+                fillPrices(null);
+                checkBaseUnitAsDefault();
             }
 
             if (event.target.classList.contains('unit-default') && event.target.checked) {
@@ -209,6 +245,7 @@
         document.addEventListener('click', function (event) {
             if (event.target.closest('[data-row-add], [data-row-remove]')) {
                 setTimeout(function () {
+                    fixRates();
                     fillPrices(null);
                     checkBaseUnitAsDefault();
                 }, 0);
