@@ -300,8 +300,10 @@
         $('#payAmount').val('').removeClass('is-invalid').attr('placeholder', left.toFixed(2));
     }
 
+    // the message follows the amount the cashier is typing; an empty box means the whole rest
     function quickMessage() {
-        var sum = rest().toFixed(2) + ' ' + currency;
+        var typed = parseFloat($('#payAmount').val());
+        var sum = (isNaN(typed) || typed < 0 ? rest() : typed).toFixed(2) + ' ' + currency;
         return method === 'Cash'
             ? fill($drawer.data('msg-cash'), [sum])
             : fill($drawer.data('msg-via'), [sum, $drawer.find('.pay-chip[data-method="' + method + '"]').data('name')]);
@@ -530,6 +532,10 @@
     }
 
     $drawer.find('.pay-chip').on('click', function () { setMethod($(this).data('method')); });
+    $('#payAmount').on('input', function () {
+        $drawer.find('.pay-msg').text(quickMessage());
+    });
+
     $drawer.on('click', '.pay-row-x', function () {
         if (busy) { return; }
         payments.splice($(this).data('index'), 1);
