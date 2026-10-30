@@ -58,7 +58,8 @@ public class ReportRepository : IReportRepository
                 var supplierReturns = await _context.BillMasters
                     .AsNoTracking()
                     .Where(a => a.BillSetting.BillType == BillType.PurchaseReturn && a.Date >= from && a.Date < end)
-                    .SumAsync(a => (decimal?)a.PaymentMethods.Sum(p => p.AmountPaided)) ?? 0;
+                    .SelectMany(a => a.PaymentMethods)
+                    .SumAsync(a => (decimal?)a.AmountPaided) ?? 0;
 
                 var customerPayments = await _context.PaymentInvoiceCustomer
                     .AsNoTracking()
@@ -68,7 +69,8 @@ public class ReportRepository : IReportRepository
                 var purchases = await _context.BillMasters
                     .AsNoTracking()
                     .Where(a => a.BillSetting.BillType == BillType.Purchases && a.Date >= from && a.Date < end)
-                    .SumAsync(a => (decimal?)a.PaymentMethods.Sum(p => p.AmountPaided)) ?? 0;
+                    .SelectMany(a => a.PaymentMethods)
+                    .SumAsync(a => (decimal?)a.AmountPaided) ?? 0;
 
                 var expenses = await _context.ExitExpenses
                     .AsNoTracking()
